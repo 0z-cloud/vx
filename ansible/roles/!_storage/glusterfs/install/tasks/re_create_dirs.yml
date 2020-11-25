@@ -1,0 +1,43 @@
+- name: Unmount the default virt storage pool dir
+  mount:
+    path: "{{ glusterfs_settings.directories.cloud_dir }}"
+    state: '{{ item }}'
+  with_items:
+    - unmounted
+    - absent
+
+### NEED TO SPLIT TO DIFFERENT WAYS IF HAVE MULTIPLE VOLUMES
+# - name: Remove the directories 
+#   file:
+#     path: "{{ item.value }}"
+#     state: absent
+#   with_dict: "{{ glusterfs_settings.directories | default({}) }}"
+#   when: clean_glusterfs_all is defined
+
+- name: Remove the bricks directories 
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items: "{{ glusterfs_settings.bricks_array }}"
+  when: clean_glusterfs_all is defined
+
+# - name: Umount possible wrong links
+#   raw: umount {{ glusterfs_settings.directories.cloud_dir }}
+#   when: clean_glusterfs_all is defined
+
+- name: Create the directories 
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0777
+    force: yes
+  with_dict: "{{ glusterfs_settings.directories | default({}) }}"
+  tags: [configuration,glusterfs]
+
+- name: Create the bricks directories 
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0777
+  with_items: "{{ glusterfs_settings.bricks_array }}"
+  tags: [configuration,glusterfs]

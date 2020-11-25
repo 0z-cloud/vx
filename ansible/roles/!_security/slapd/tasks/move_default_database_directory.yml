@@ -1,0 +1,32 @@
+---
+
+#
+# During package installation, a default HDB database is created in
+# /var/lib/ldap with a "top" object named after the hostname of the
+# node.  These tasks move this default database from /var/lib/ldap to
+# a new location (`slapd_data_dir`).
+#
+
+- name: Ensure data root exists
+  when: slapd_data_root_dir is defined
+  file: state=directory path="{{ slapd_data_root_dir }}" owner=root group=root mode=0755
+
+- name: Check whether new data directory exists
+  stat: path="{{ slapd_data_dir }}"
+  register: slapd_new_data_dir
+  
+- name: Create new data directory
+  when: slapd_new_data_dir.stat.exists == false
+  file: state=directory path="{{ slapd_data_dir }}" owner="{{ slapd_user }}" group="{{ slapd_group }}" mode=0755 recurse=true
+  register: slapd_created_new_data_dir
+
+- name: Copy default database directory to new directory
+  when: slapd_created_new_data_dir.changed
+  shell: "cp -p -R {{ slapd_default_data_dir }}/* {{ slapd_data_dir }}"
+
+- name: Set data directory via LDAP
+  ldap_attr:
+    dn:     "olcDatabase={1}hdb,cn=config"
+    name:   olcDbDirectory
+    values: "{{ slapd_data_dir }}"
+    state:  exact

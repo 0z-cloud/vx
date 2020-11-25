@@ -1,0 +1,31 @@
+name: bik
+published_port: "{{ bik_service_listen_port }}"
+docker_image: "gitlab.vortex.ru:4567/vortex/bik"
+docker_image_tag: latest
+replicas: 1
+
+db_migrate: true
+db_seed: true
+
+variables:
+  APP_ENV: "stage"
+  APP_DEBUG: "true"
+  APP_LOG_LEVEL: "debug"
+  APP_URL: "http://bik.service.cloud.vortex.me:{{ bik_service_listen_port }}"
+  DB_CONNECTION: "mysql"
+  DB_HOST: "percona.service.cloud.vortex.me"
+  DB_PORT: "3306"
+  DB_DATABASE: "bik"
+  BROADCAST_DRIVER: "log"
+  CACHE_DRIVER: "file"
+  SESSION_DRIVER: "array"
+  QUEUE_DRIVER: "sync"
+  PUBLIC_API_URL: "http://public-api.service.cloud.vortex.me:{{ public_api_service_listen_port }}"
+  BIK_LIST_URL: "http://www.bik-info.ru/base/base.xml"
+  SENTRY_LARAVEL_DSN: "http://60d655c4d9d44b73a55c1cee83a7a46a:2c3f29022e4445ca8568117f2510ca55@sentry.service.cloud.vortex.me:9000/8"
+
+secured_variables:
+  - {name: "app.key", value: "base64:QhLLPYJ0L/4Pz+0+xhC8ZsXZ/ASM2VslErvhDwDk/nY="}
+  - {name: "database.connections.mysql.username", value: "root"}
+  - {name: "database.connections.mysql.password", value: "root"}
+

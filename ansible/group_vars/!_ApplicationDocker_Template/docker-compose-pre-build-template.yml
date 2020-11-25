@@ -1,0 +1,397 @@
+docker_compose_netwroks:
+  dmz: "dmz_{{ ansible_environment }}"
+  balancer: "bal_{{ ansible_environment }}"
+  cde: "cde_{{ ansible_environment }}"
+  default: "{{ ansible_environment }}-{{ ansible_product }}-localhost_default"
+
+all_services_pre_build_chain_docker_compose_generate:
+
+    heaven
+      image: "heaven-vx"
+      build_context: services
+      privileged: true
+      tag: "{{ version_ansible_build_id }}"
+      location: "{{ default_docker_image_environment_location }}"
+      # volumes:
+      #   - "{{ default_docker_database_docker_socket_environment_location }}"
+      #   - "{{ default_docker_database_binary_socket_environment_location }}"
+      # ports: 
+      #   - "{{ eden_cloud_service_listen_port }}:{{ eden_cloud_service_listen_port }}"
+      scale: 1
+      attached_networks_main: "{{ docker_compose_netwroks.default }}"
+      deployment_strategy: high_availability
+      rollback_parallelism: 1
+      rollback_monitor: 60s
+      rollback_max_failure_ratio: ".2"
+      depends_on:
+        - "redis"
+        - "adam"
+        - "eve"
+      # depends_on_condition:
+      #   postgres:
+      #     condition: service_healthy
+      mode: global
+      endpoint_mode: vip
+      order: start-first
+      container_type: service
+      placement: manager
+      k8s_container_type: python
+      k8s_service_protocol: HTTPS
+      k8s_service_placement: true
+
+    # adam:
+    #   image: "adam"
+    #   build_context: services
+    #   privileged: true
+    #   tag: "{{ version_ansible_build_id }}"
+    #   location: "{{ default_docker_image_environment_location }}"
+    #   # eden_vortice_mail_server_service_listen_port: 3001
+    #   volumes:
+    #     - "{{ default_docker_database_docker_socket_environment_location }}"
+    #     - "{{ default_docker_database_binary_socket_environment_location }}"
+    #   # ports: 
+    #   #   - "{{ eden_redis_adam_service_listen_port }}:{{ eden_redis_adam_service_listen_port }}"
+    #   scale: 1
+    #   attached_networks_main: "{{ docker_compose_netwroks.default }}"
+    #   deployment_strategy: high_availability
+    #   rollback_parallelism: 1
+    #   rollback_monitor: 60s
+    #   rollback_max_failure_ratio: ".2"
+    #   # depends_on:
+    #     # - "redis"
+    #     # - "eve"
+    #   # depends_on_condition:
+    #   #   postgres:
+    #   #     condition: service_healthy
+    #   mode: global
+    #   endpoint_mode: vip
+    #   order: start-first
+    #   container_type: service
+    #   placement: manager
+    #   k8s_container_type: python
+    #   k8s_service_protocol: HTTPS
+    #   k8s_service_placement: true
+
+    # eve:
+    #   image: "eve"
+    #   build_context: services
+    #   privileged: true
+    #   tag: "{{ version_ansible_build_id }}"
+    #   location: "{{ default_docker_image_environment_location }}"
+    #   # eve_service_listen_port: 3004
+    #   volumes:
+    #     - "{{ default_docker_database_docker_socket_environment_location }}"
+    #     - "{{ default_docker_database_binary_socket_environment_location }}"
+    #   # ports: 
+    #   #   - "{{ eve_service_listen_port }}:{{ eve_service_listen_port }}"
+    #   scale: 1
+    #   attached_networks_main: "{{ docker_compose_netwroks.default }}"
+    #   deployment_strategy: high_availability
+    #   rollback_parallelism: 1
+    #   rollback_monitor: 60s
+    #   rollback_max_failure_ratio: ".2"
+    #   # depends_on:
+    #   #   - "mariadb"
+    #   #   - "adam"
+    #   # depends_on_condition:
+    #   #   postgres:
+    #   #     condition: service_healthy
+    #   mode: global
+    #   endpoint_mode: vip
+    #   order: start-first
+    #   container_type: service
+    #   placement: manager
+    #   k8s_container_type: python
+    #   k8s_service_protocol: HTTPS
+    #   k8s_service_placement: true
+
+    # redis:
+    #   image: "redis"
+    #   build_context: dockerfiles
+    #   tag: "latest"
+    #   volumes:
+    #     - "{{ default_docker_database_redis_environment_location }}"
+    #   # - "{{ default_docker_database_redis_logs_environment_location }}"
+    #   location: "{{ default_docker_image_environment_location }}"
+    #   ports: 
+    #     - "{{ redis_service_listen_port }}:{{ redis_service_listen_port }}"
+    #   scale: 1
+    #   attached_networks_main: "{{ docker_compose_netwroks.default }}"
+    #   deployment_strategy: high_availability
+    #   rollback_parallelism: 1
+    #   rollback_monitor: 60s
+    #   rollback_max_failure_ratio: ".2"
+    #   # attached_networks_main: "{{ docker_compose_netwroks.default }}"
+    #   # healthcheck:
+    #   #     test: ["CMD", "mysqladmin", "ping", "--silent"]
+    #   # healthcheck:
+    #   #   test: ["CMD-SHELL", "pg_isready -U postgres"]
+    #   #   interval: 50s
+    #   #   timeout: 5s
+    #   #   retries: 10
+    #   mode: global
+    #   endpoint_mode: vip
+    #   order: start-first
+    #   # container_type: database
+    #   container_type: service
+    #   resources:
+    #     limits:
+    #       cpus: "4"
+    #       memory: "2045M"
+    #     reservations:
+    #       cpus: "2"
+    #       memory: "2045M"
+    #   placement: manager
+    #   k8s_container_type: service
+    #   k8s_service_protocol: HTTPS
+    #   k8s_service_placement: true
+    #   k8s_storage_space_size: 20Gi
+
+
+    # zina:
+    #   image: "zina"
+    #   build_context: services
+    #   tag: "{{ version_ansible_build_id }}"
+    #   location: "{{ default_docker_image_environment_location }}"
+    #   # zina_service_listen_port: 3004
+    #   volumes:
+    #     - "/var/run/docker.sock:/var/run/docker.sock"
+    #   ports: 
+    #     - "{{ zina_service_listen_port }}:{{ zina_service_listen_port }}"
+    #   scale: 1
+    #   attached_networks_main: "{{ docker_compose_netwroks.default }}"
+    #   deployment_strategy: high_availability
+    #   rollback_parallelism: 1
+    #   rollback_monitor: 60s
+    #   rollback_max_failure_ratio: ".2"
+    #   # depends_on:
+    #   #   - "mariadb"
+    #   #   - "adam"
+    #   depends_on_condition:
+    #     postgres:
+    #       condition: service_healthy
+    #   mode: global
+    #   endpoint_mode: vip
+    #   order: start-first
+    #   container_type: service
+    #   placement: manager
+    #   k8s_container_type: python
+    #   k8s_service_protocol: HTTPS
+    #   k8s_service_placement: true
+
+      
+    # nginx:
+    #     image: "nginx"
+    #     build_context: dockerfiles
+    #     tag: "latest"
+    #     # volumes:
+    #     #   - "{{ default_docker_database_nginx_environment_location }}"
+    #     #   - "{{ default_docker_database_nginx_config_environment_location }}"
+    #     # command: "nginx -g daemon off;"
+    #     location: "{{ default_docker_image_environment_location }}"
+    #     ports: 
+    #       - "{{ nginx_http_service_listen_port }}:{{ nginx_http_service_listen_port }}"
+    #       - "{{ nginx_https_service_listen_port }}:{{ nginx_https_service_listen_port }}"
+    #     scale: 1
+    #     attached_networks_main: "{{ docker_compose_netwroks.default }}"
+    #     deployment_strategy: high_availability
+    #     depends_on_condition:
+    #       postgres:
+    #         condition: service_healthy
+    #     mode: global
+    #     endpoint_mode: vip
+    #     order: start-first
+    #     no_healthcheck: true
+    #     container_type: service
+    #     placement: manager
+    #     k8s_container_type: webserver
+    #     k8s_container_node: cloud-bind-eve-dns
+    #     k8s_service_protocol: HTTPS
+    #     k8s_service_placement: true
+
+    # luka:
+    #   image: "luka"
+    #   build_context: eserver
+    #   # dockerfile_context: "/Dockerfile"
+    #   tag: "{{ version_ansible_build_id }}"
+    #   location: "{{ default_docker_image_environment_location }}"
+    #   luka_service_listen_port: 2292
+    #   volumes:
+    #     - "/var/run/docker.sock:/var/run/docker.sock"
+    #   # ports: 
+    #   #   - "{{ luka_service_listen_port }}:{{ luka_service_listen_port }}"
+    #   scale: 1
+    #   attached_networks_main: "{{ docker_compose_netwroks.default }}"
+    #   deployment_strategy: high_availability
+    #   rollback_parallelism: 1
+    #   rollback_monitor: 60s
+    #   rollback_max_failure_ratio: ".2"
+    #   # depends_on:
+    #   #   - "mariadb"
+    #   #   - "adam"
+    #   depends_on_condition:
+    #     postgres:
+    #       condition: service_healthy
+    #   mode: global
+    #   endpoint_mode: vip
+    #   order: start-first
+    #   container_type: service
+    #   placement: manager
+    #   k8s_container_type: python
+    #   k8s_service_protocol: HTTPS
+    #   k8s_service_placement: true
+
+    # elasticsearch:
+    #     image: "elasticsearch"
+    #     tag: "latest"
+    #     location: "{{ default_docker_image_environment_location }}"
+    #     ports: "{{ elasticsearch_service_listen_port }}:{{ elasticsearch_service_listen_port }}"
+    #     volumes:
+    #       - "{{ elasticsearch_stack_settings.directories.data }}/:/usr/share/elasticsearch/data/:rw"
+    #       - "{{ elasticsearch_stack_settings.directories.logs }}/:/usr/share/elasticsearch/logs/:rw"
+    #       - "{{ elasticsearch_stack_settings.directories.catalina_logs }}/:/var/log/elasticsearch/:rw"
+    #       - "{{ elasticsearch_stack_settings.directories.etc }}/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:bind"
+    #     scale: 1
+    #     mode: global
+    #     endpoint_mode: vip
+    #     order: start-first
+    #     container_type: service
+    #     resources:
+    #       limits:
+    #         cpus: "6"
+    #         memory: "6045M"
+    #       reservations:
+    #         cpus: "2"
+    #         memory: "6045M"
+
+    # kibana:
+    #   image: "kibana"
+    #   tag: "{{ version_ansible_build_id }}"
+    #   location: "{{ default_docker_image_environment_location }}"
+    #   ports: "{{ kibana_service_listen_port }}:5601"
+    #   scale: 1
+    #   mode: global
+    #   endpoint_mode: vip
+    #   order: start-first
+    #   container_type: service
+
+  # admin_panel:
+    #   image: "admin-panel"
+    #   build_context: services
+    #   tag: "{{ version_ansible_build_id }}"
+    #   location: "{{ default_docker_image_environment_location }}"
+    #   # admin_panel_service_listen_port: 3008
+    #   ports: 
+    #     - "{{ admin_panel_service_listen_port }}:{{ admin_panel_service_listen_port }}"
+    #   scale: 1
+    #   attached_networks_main: "{{ docker_compose_netwroks.default }}"
+    #   deployment_strategy: high_availability
+    #   rollback_parallelism: 1
+    #   rollback_monitor: 60s
+    #   rollback_max_failure_ratio: ".2"
+    #   depends_on:
+    #     - "mariadb"
+    #     - "eve"
+    #     - "adam"
+    #   depends_on_condition:
+    #     postgres:
+    #       condition: service_healthy
+    #   mode: global
+    #   endpoint_mode: vip
+    #   order: start-first
+    #   container_type: service
+    #   placement: manager
+    #   k8s_container_type: python
+    #   k8s_service_protocol: HTTPS
+    #   k8s_service_placement: true
+
+    # mailer:
+    #   image: "mailer"
+    #   build_context: services
+    #   tag: "{{ version_ansible_build_id }}"
+    #   # volumes:
+    #   #   - ".:/opt/limit_notification/"
+    #   location: "{{ default_docker_image_environment_location }}"
+    #   # mailer_service_listen_port: 5556
+    #   ports: 
+    #     - "{{ mailer_service_listen_port }}:{{ mailer_service_listen_port }}"
+    #   scale: 2
+    #   attached_networks_main: "{{ docker_compose_netwroks.default }}"
+    #   deployment_strategy: high_availability
+    #   rollback_parallelism: 1
+    #   rollback_monitor: 60s
+    #   rollback_max_failure_ratio: ".2"
+    #   depends_on:
+    #     - "mariadb"
+    #     - "eve"
+    #     - "adam"
+    #   # depends_on:
+    #   #   - "postgres"
+    #   #   - "k8"
+    #   # depends_on_condition:
+    #   #   postgres:
+    #   #     condition: service_healthy
+    #   mode: global
+    #   endpoint_mode: vip
+    #   order: start-first
+    #   container_type: service
+    #   placement: manager
+    #   k8s_container_type: ruby
+    #   k8s_service_protocol: HTTPS
+    #   k8s_service_placement: true
+
+    # cli:
+    #     image: "cli"
+    #     build_context: services
+    #     tag: "{{ version_ansible_build_id }}"
+    #     # volumes:
+    #     #   - ".:/opt/limit_notification/"
+    #     location: "{{ default_docker_image_environment_location }}"
+    #     # cli_service_listen_port: 5556
+    #     ports: 
+    #       - "{{ cli_service_listen_port }}:{{ cli_service_listen_port }}"
+    #     scale: 1
+    #     attached_networks_main: "{{ docker_compose_netwroks.default }}"
+    #     deployment_strategy: high_availability
+    #     rollback_parallelism: 1
+    #     rollback_monitor: 60s
+    #     rollback_max_failure_ratio: ".2"
+    #     depends_on:
+    #       - "mariadb"
+    #       - "eve"
+    #       - "adam"
+    #       - "mailer"
+    #       - "admin_panel"
+    #     # depends_on:
+    #     #   - "postgres"
+    #     #   - "k8"
+    #     # depends_on_condition:
+    #     #   postgres:
+    #     #     condition: service_healthy
+    #     mode: global
+    #     endpoint_mode: vip
+    #     order: start-first
+    #     container_type: service
+    #     placement: manager
+    #     k8s_container_type: ruby
+    #     k8s_service_protocol: HTTPS
+    #     k8s_service_placement: true
+  
+special_all_services_remap_docker_compose_generate:
+    test:
+      image: "test"
+      build_context: dockerfiles
+      tag: "{{ version_ansible_build_id }}"
+      location: "{{ default_docker_image_environment_location }}"
+      ports: 
+        - "{{ test_service_listen_port }}:5070"
+      scale: 1
+      deployment_strategy: high_availability
+      rollback_parallelism: 1
+      rollback_monitor: 40s
+      rollback_max_failure_ratio: ".2"
+      mode: global
+      endpoint_mode: vip
+      order: start-first
+      container_type: service
+      placement: manager

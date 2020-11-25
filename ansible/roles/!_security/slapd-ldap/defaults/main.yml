@@ -1,0 +1,4 @@
+---
+# defaults file for jpnewman.openldap-server
+
+default_user_password: password123

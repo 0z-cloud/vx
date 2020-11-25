@@ -1,0 +1,164 @@
+{% raw %}
+$ORIGIN {% endraw %}{{ consul_merge_domain_name }}{% raw %}
+$TTL 86400 ; 1 day
+@ IN SOA {% endraw %}{{ hostvars[inventory_hostname].ansible_nodename }}{% raw %} hostmaster (
+        2018070104 ; serial
+                60 ; refresh (60 seconds)
+                900 ; retry (15 minutes)
+            604800 ; expire (1 week)
+                60 ; minimum (60 seconds)
+)
+;
+{% endraw %}
+
+; A DNS SECTION			                                ------------------------------------
+{% for host in groups['cloud-bind-frontend-dns'] %}{% if main_other_consul_domain is defined %}
+                                                      IN	     NS	     {{ hostvars[host]['cloud_ns_name'] }}.{{ main_other_consul_domain }}.
+{% else %}
+                                                      IN	     NS	     {{ hostvars[host]['cloud_ns_name'] }}.{{ consul_merge_domain_name }}
+{% endif %}
+{% endfor %}
+
+
+; HA DNS SECTION			                            ------------------------------------
+{% for item in bind_cloud_settings.mixed_static_with_dynamic_entries %}
+{{ item.record }}{{ item.value }}
+{% endfor %}
+
+
+; OTHER NS A RECORDS
+
+{% if bind_cloud_settings.other_environments_subdomains is defined %}
+{% for item, children in bind_cloud_settings.other_environments_subdomains.items() %}
+{% if children.mu_location is not defined or children.mu_location is not true %}
+{% for c in children.dns_ip_list %}
+ns{{ loop.index }}{% raw %}-{% endraw %}{{ children.dc_prefix }}.{% if main_other_consul_domain is defined %}{{ main_other_consul_domain }}.{% else %}{{ consul_merge_domain_name }}{% endif %}                             IN        A       {{ c }}
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% endif %}
+
+{% if 'logging-elasticsearch-cluster' in group_names %}
+; ELASTICSEARCH LOGGING CLUSTER
+{% for host in groups['logging-elasticsearch-cluster'] %}
+log-es-cl-{{ ansible_environment }}-{{ hostvars[host].ansible_nodename }}                 IN                 A                 {{ hostvars[host]['second_ip'] }}
+logging-elasticsearch-cluster                 IN                 A                  {{ hostvars[host]['second_ip'] }}
+{% endfor %}
+{% endif %}
+
+{% if 'apt-repository-mirror' in group_names %}
+; LOCAL REPOSITORY MIRROR SERVER RECORDS
+{% for host in groups['apt-repository-mirror'] %}
+apt                 IN      A       {{ hostvars[host].second_ip }}
+{% endfor %}
+{% endif %}
+
+{% if 'clamav-repository-mirror' in group_names %}
+{% for host in groups['clamav-repository-mirror'] %}
+clamav              IN      A       {{ hostvars[host].second_ip }}
+{% endfor %}
+{% endif %}
+
+; GLUSTERFS RECORDS
+{% for host in groups['cloud-bind-frontend-dns'] %}
+{% if hostvars[host]['second_ip'] is defined %}
+{% if hostvars[host]['ansible_ssh_host']  == hostvars[host]['ansible_default_ipv4']['address'] %}
+{% if hostvars[host]['public_nat_ip'] is defined and "REPLACED" not in hostvars[host]['public_nat_ip'] %}
+{% set result_public_ip = hostvars[host]['public_nat_ip'] %}
+{% else %}
+{% set result_public_ip = hostvars[host]['ansible_default_ipv4']['address'] %}
+{% endif %}
+{% if hostvars[host]['cloud_ns_name'] is defined %}{{ hostvars[host]['cloud_ns_name'] }}{% else %}{{ hostvars[host]['ansible_nodename'] }}{% endif %}.{% if main_other_consul_domain is defined %}{{ main_other_consul_domain }}.{% else %}{{ consul_merge_domain_name }}{% endif %} IN      A       {{ result_public_ip }}
+{% else %}
+{% if hostvars[host]['cloud_ns_name'] is defined %}{{ hostvars[host]['cloud_ns_name'] }}{% else %}{{ hostvars[host]['ansible_nodename'] }}{% endif %}.{% if main_other_consul_domain is defined %}{{ main_other_consul_domain }}.{% else %}{{ consul_merge_domain_name }}{% endif %} IN      A       {{ hostvars[host]['ansible_ssh_host'] }}
+{% endif %}
+{{ hostvars[host].ansible_nodename }}                 IN      A       {{ hostvars[host]['second_ip'] }}
+glusterfs.{{ hostvars[host].ansible_nodename }}       IN      A       {{ hostvars[host]['second_ip'] }}
+{% else %}
+{% if hostvars[host]['cloud_ns_name'] is defined %}{{ hostvars[host]['cloud_ns_name'] }}{% else %}{{ hostvars[host]['ansible_nodename'] }}{% endif %}.{% if main_other_consul_domain is defined %}{{ main_other_consul_domain }}.{% else %}{{ consul_merge_domain_name }}{% endif %} IN      A       {{ hostvars[host]['ansible_default_ipv4']['address'] }}
+{{ hostvars[host].ansible_nodename }}                 IN      A       {{ hostvars[host]['ansible_default_ipv4']['address'] }}
+glusterfs.{{ hostvars[host].ansible_nodename }}       IN      A       {{ hostvars[host]['ansible_default_ipv4']['address'] }}
+{% endif %}
+{% endfor %}
+
+
+{% if unification_services is defined %}
+{% if bind_cloud_settings.extra_static_with_dynamic_entries is defined %}
+; EXTRA DNS SECTION			                            ------------------------------------
+{% for item in bind_cloud_settings.extra_static_with_dynamic_entries %}
+{{ item.record }}{{ item.value }}
+{% endfor %}
+{% endif %}
+{% endif %}
+
+; PRIMARY SITE SERVICES PUBLISH
+{% for dict_item in unification_dns_primary_services %}{% for key, value in dict_item.items() %}
+{% for v in value.external_ip %}
+
+{{ key | replace('\n', '') }}                IN      A       {{ v }}
+{% endfor %}
+{% endfor %}
+{% endfor %}
+
+; EXTERNAL SERVICES PUBLISH
+{% if unification_services is defined %}
+{% for dict_item in unification_services %}{% for key, value in dict_item.items() %}
+{% if value.external_ip is defined %}
+{% for v in value.external_ip %}
+{{ key | replace('\n', '') }}                IN      A       {{ v }}
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% endfor %}
+{% endif %}
+
+{% if pci_dss_environment is defined %}
+; PCI BACKEND CONFIGURATION VIP ON BALANCER HOSTS
+{{ vip_balancer_endpoint_host }}             IN     A         {{ vip_balancer_endpount_ip }}
+{% endif %}
+
+; HOSTS SECTION
+{% for host in groups['all'] %}
+
+{{ hostvars[host].ansible_nodename }}                 IN      A       {% if hostvars[host]['second_ip'] is defined %}{{ hostvars[host]['second_ip'] }}{% else %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}{% endif %}
+
+{% endfor %}
+
+;TXT_MAPPER_ENDLINE
+
+{% if main_other_consul_domain is not defined %}; OTHER NAMESERVERS NS RECORDS{% raw %}
+{% endraw %}{% if bind_cloud_settings.other_environments_subdomains is defined %}{% for item, children in bind_cloud_settings.other_environments_subdomains.items() %}{% raw %}
+; SUBDOMAIN {% endraw %}{{ item }}{% raw %}
+{% endraw %}$ORIGIN {{ item }}.{% if main_other_consul_domain is defined %}{{ main_other_consul_domain }}.{% else %}{{ consul_merge_domain_name }}{% endif %}{% for c in children.dns_ip_list %}{% raw %}
+{% endraw %}@                             IN        NS      ns{{ loop.index }}{% raw %}-{% endraw %}{{ children.dc_prefix }}.{% if main_other_consul_domain is defined %}{{ main_other_consul_domain }}.{% else %}{{ consul_merge_domain_name }}{% endif %}{% raw %}
+{% endraw %}{% endfor %}{% endfor %}{% endif %}{% endif %}
+
+; K8 SERVICE DISCOVERY NS SERVERS
+{% if k8_cloud_domain_name is defined %}
+; INTERNAL K8 SERVICE DISCOVERY NAMESERVERS NS RECORDS
+; SUBDOMAIN K8 {{ k8_cloud_domain_name }}{% raw %}
+{% endraw %}$ORIGIN {{ k8_cloud_domain_name }}.{% for host in groups['cloud-bind-frontend-dns'] %}{% raw %}
+{% endraw %}@                                                     IN	     NS	     {{ hostvars[host]['cloud_ns_name'] }}.{{ consul_merge_domain_name }}{% raw %}
+{% endraw %}{% endfor %}
+
+; SUB INTERNAL SERVICE DISCOVERY NAMESERVERS NS RECORDS ON OTHER DNS ZONE{% if bind_cloud_settings.other_environments_subdomains is defined %}{% for item, children in bind_cloud_settings.other_environments_subdomains.items() %}{% raw %}
+{% endraw %}; SUBDOMAIN {{ k8_cloud_domain_name_public_prefix }}.{{ item }}.{{ consul_merge_domain_name }}{% raw %}
+{% endraw %}$ORIGIN {{ k8_cloud_domain_name_public_prefix }}.{{ item }}.{% if main_other_consul_domain is defined %}{{ main_other_consul_domain }}.{% else %}{{ consul_merge_domain_name }}{% endif %}{% for c in children.dns_ip_list %}{% raw %}
+{% endraw %}@                             IN        NS      ns{{ loop.index }}{% raw %}-{% endraw %}{{ children.dc_prefix }}.{% if main_other_consul_domain is defined %}{{ main_other_consul_domain }}.{% else %}{{ consul_merge_domain_name }}{% endif %}{% raw %}
+{% endraw %}{% endfor %}{% endfor %}{% endif %}{% endif %}
+
+; CONSUL SERVICE DISCOVERY NS SERVERS (CONSUL DNS BACKEND SUB-DOMAIN)
+{% if consul_cloud_domain_name is defined %}{% raw %}
+{% endraw %}; INTERNAL CONSUL SERVICE DISCOVERY NAMESERVERS NS RECORDS{% raw %}
+{% endraw %}; SUBDOMAIN CONSUL {{ consul_cloud_domain_name }}.{% raw %}
+{% endraw %}$ORIGIN {{ consul_cloud_domain_name }}.{% for host in groups['cloud-bind-frontend-dns'] %}{% raw %}
+{% endraw %}@                                                     IN	     NS	     {{ hostvars[host]['cloud_ns_name'] }}.{{ consul_merge_domain_name }}{% raw %}
+{% endraw %}{% endfor %}
+
+; SUB INTERNAL CONSUL SERVICE DISCOVERY NAMESERVERS NS RECORDS ON OTHER DNS ZONE{% raw %}
+{% endraw %}{% if bind_cloud_settings.other_environments_subdomains is defined %}{% for item, children in bind_cloud_settings.other_environments_subdomains.items() %}{% raw %}
+{% endraw %}; SUBDOMAIN CONSUL {{ consul_cloud_domain_name_public_prefix }}.{{ item }}.{{ consul_merge_domain_name }}{% raw %}
+{% endraw %}$ORIGIN {{ consul_cloud_domain_name_public_prefix }}.{{ item }}.{% if main_other_consul_domain is defined %}{{ main_other_consul_domain }}.{% else %}{{ consul_merge_domain_name }}{% endif %}{% raw %}
+{% endraw %}{% for c in children.dns_ip_list %}{% raw %}
+{% endraw %}@                             IN        NS      ns{{ loop.index }}{% raw %}-{% endraw %}{{ children.dc_prefix }}.{% if main_other_consul_domain is defined %}{{ main_other_consul_domain }}.{% else %}{{ consul_merge_domain_name }}{% endif %}{% raw %}
+{% endraw %}{% endfor %}{% endfor %}{% endif %}{% endif %}

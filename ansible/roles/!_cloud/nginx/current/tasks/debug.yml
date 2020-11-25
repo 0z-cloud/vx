@@ -1,0 +1,39 @@
+
+- name: nginx_core_type
+  debug:
+    msg: "{{ nginx_core_type }}"
+
+- name: Debug unificated_sites_enabled Full
+  debug:
+    msg: "{{ unificated_sites_enabled }}"
+
+- name: Debug unificated_sites_disabled Full
+  debug:
+    msg: "{{ unificated_sites_disabled }}"
+
+- name: Debug unificated_sites_enabled
+  debug:
+    msg: "{{ item['name'] }}"
+  with_items: "{{ unificated_sites_enabled }}"
+
+- name: Debug unificated_sites_disabled by strings
+  debug:
+    msg: "{{ item['name'] }}"
+  with_items: "{{ unificated_sites_disabled }}"
+  
+- name: Debug 
+  debug:
+    msg: "{{ item }}"
+  when: cert_bot_sites is defined and cert_bot_sites != ""
+  with_items: |
+    {% raw %}[ {% endraw %} {% for dict_item in cert_bot_sites %}
+      {% for key, value in dict_item.items() %}
+      {% raw %}"{% endraw %}{{ value }}{% raw %}" {% endraw %}
+      {% endfor %}{% if not loop.last %}, {% endif %}
+    {% endfor %}    {% raw %} ]{% endraw %}
+  tags: [debug]
+
+- name: Debug cert_bot_sites
+  debug:
+    msg: "{{ cert_bot_sites }}"
+  tags: debug

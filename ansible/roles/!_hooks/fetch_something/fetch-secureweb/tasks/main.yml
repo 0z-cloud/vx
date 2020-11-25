@@ -1,0 +1,17 @@
+
+- name: Compress directory /path/to/foo/ into /path/to/foo.tgz
+  archive:
+    path: "{{ item.path }}"
+    dest: "/tmp/{{ inventory_hostname }}_{{ item.name }}.tgz"
+  with_items:
+    - { path: '/etc/apache2', name: 'apache2' }
+    - { path: '/srv/web/secure.vortex', name: 'secureweb' }
+
+- name: Fetch the apache2 files from secureweb
+  fetch:
+    src: "/tmp/{{ inventory_hostname }}_{{ item.name }}.tgz"
+    dest: /tmp/secureweb/{{ inventory_hostname }}
+    flat: yes
+  with_items:
+    - { path: '/etc/apache2', name: 'apache2' }
+    - { path: '/srv/web/secure.vortex', name: 'secureweb' }

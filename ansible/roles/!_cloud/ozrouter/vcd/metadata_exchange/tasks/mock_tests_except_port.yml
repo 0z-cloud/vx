@@ -1,0 +1,14 @@
+- name: DEBUG TEST ADD retry_to_re_read
+  set_fact:
+    debug_additional_ports: []
+
+- name: DEBUG TEST ADD retry_to_re_read
+  set_fact:
+    debug_additional_ports: "{{ debug_additional_ports + [ anycloud_zone_extra_subnets_adapters_vpn_ozrouter_ports[item]['port'] | join ] }}"
+  with_items: "{{ anycloud_zone_extra_subnets_adapters_vpn_ozrouter_ports.keys() | list }}"
+
+- name: Register restricted ports merge add debug_additional_ports
+  set_fact:
+    restricted_ports_list: "{{ restricted_ports_list + [ item | join ] }}"
+  with_items: 
+    - "{{ debug_additional_ports }}"

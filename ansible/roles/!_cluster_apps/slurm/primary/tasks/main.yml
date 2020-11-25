@@ -1,0 +1,49 @@
+---
+
+- name: Create slurm manifest directory
+  file:
+    path: /tmp/slurm
+    state: directory
+  when: local is defined 
+
+- name: Add kubernetes manifests
+  template:
+    src: "templates/{{ item.src }}"
+    dest: "/tmp/slurm/{{ item.dest }}"
+  with_items:
+    - { src: slurm-config.yaml.j2, dest: /slurm-config.yaml }
+    - { src: slurm.yaml.j2, dest: /slurm.yaml }
+    - { src: slurm-config-pvc.yaml.j2, dest: /slurm-config-pvc.yaml }
+    - { src: slurm-pvc.yaml.j2, dest: /slurm-pvc.yaml }
+    - { src: slurm-autoscaler.yaml.j2, dest: /slurm-autoscaler.yaml }
+    - { src: slurm-namespace.yaml.j2, dest: /slurm-namespace.yaml}
+  when: local is defined 
+
+- name: Create slurm namespace
+  command: kubectl apply -f /tmp/slurm/slurm-namespace.yaml
+  when: local is defined
+
+- name: Create slurm config map
+  command: kubectl apply -f /tmp/slurm/slurm-config.yaml
+  #when: local is defined 
+
+- name: Create MySQL password secret
+  shell: |
+    echo -n {{ slurm_mysql_pass }} > password.txt
+    kubectl --namespace {{ slurm_namespace }} create secret generic slurm-mysql-pass --from-file=password.txt
+    rm password.txt
+
+- name: Label MySQL storage node
+  command: "kubectl label node {{ groups['slurm-mysql-storage'][0] }} slurmstorage=mysql --overwrite=true"
+
+- name: Create slurm PersistentVolumeClaims
+  command: "kubectl apply -f /tmp/slurm/{{ item }}"
+  with_items:
+    - slurm-pvc.yaml
+    - slurm-config-pvc.yaml
+
+- name: Create slurm cluster
+  command: kubectl apply -f /tmp/slurm/slurm.yaml
+
+- name: Create slurm autoscaler
+  command: kubectl apply -f /tmp/slurm/slurm-autoscaler.yaml

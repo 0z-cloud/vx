@@ -1,0 +1,25 @@
+# - name: Debug Raw exec changes lines for change in ossec.conf
+#   debug:
+#     msg: "{{ item }} /var/ossec/etc/ossec.conf"
+#   with_items: 
+#     - 'sed -i "s/admin@ifsholding.com/pci-devops@vortex.ru/g"'
+#     - 'sed -i "s/ossec@ifsholding.com/pci-ossec@vortex.ru/g"'
+
+- name: Raw exec changes in ossec.conf
+  raw: "{{ item }} /var/ossec/etc/ossec.conf"
+  with_items: 
+    - 'sed -i "s/admin@ifsholding.com/devops@vortex.ru/g"'
+    - 'sed -i "s/ossec@ifsholding.com/pci-ossec@vortex.ru/g"'
+
+- name: Check results
+  raw: cat /var/ossec/etc/ossec.conf
+  register: result
+
+- name: Show result
+  debug:
+    msg: "{{ result.stdout_lines }}"
+
+- name: Restart ossec
+  service:
+    name: ossec
+    state: restarted

@@ -1,0 +1,15 @@
+- name: NTP MANUAL | RAW SHOW GATEWAY
+  debug:
+    msg: "{{ hostvars[inventory_hostname].ansible_default_ipv4.gateway }}"
+
+# - name: NTP CHECK | Row query to local NTP server
+#   raw: "ntpdate -u -q -s {{ hostvars[inventory_hostname].ansible_default_ipv4.gateway }}"
+#   register: ntpdate_result
+  
+- name: NTP CHECK | Row query to local NTP server
+  raw: "ntpdate -s {{ hostvars[inventory_hostname].ansible_default_ipv4.gateway }}"
+  register: ntpdate_result
+  
+- name: NTP SHOW | Print result of query to NTP
+  debug:
+    msg: "{{ ntpdate_result }}"

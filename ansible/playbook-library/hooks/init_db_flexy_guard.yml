@@ -1,0 +1,148 @@
+- name: Fact gathering
+  hosts: all
+  tasks: []
+  tags: [get-facts, always]
+    
+- name: INIT FLEXY GUARD DBs
+  become: true
+  hosts: "{{ HOSTS }}"
+  tasks:
+
+    - name: INIT | Inspect swarm for get Leader
+      shell: docker node ls --format "{% raw %}{{.Hostname}} {{.ManagerStatus}}{% endraw %}" | grep Leader | awk '{print $1}'
+      register: swarm_info
+
+    # - name: DEBUG | Swarm info
+    #   debug:
+    #     msg: "{{ swarm_info.stdout }}"
+
+    - name: REPLACE | If inventory a production
+      set_fact:
+        remapper_leader: "{{ swarm_info.stdout }}"
+      when: ansible_environment == 'production'
+
+    - name: REPLACE | If inventory not a production
+      set_fact:
+        remapper_leader: "{{ swarm_info.stdout | regex_replace('(production)', '') }}{{ ansible_environment }}"
+      when: ansible_environment != 'production'
+  
+    # - name: DEBUG | Show remapper_leader
+    #   debug:
+    #     msg: "{{ item }}"
+    #   with_items: "{{ remapper_leader }}"
+      
+    - name: CREATE HOST | Add a host to in-memory inventory
+      add_host:
+        hostname: "SWARM_LEADER"
+        name: "{{ hostvars[item]['ansible_hostname'] }}"
+        groups: "SWARM_LEADER"
+        ansible_ssh_host: "{{ hostvars[item]['ansible_ssh_host'] }}"
+      with_items: "{{ remapper_leader }}"
+
+    - name: CREATE HOST | Add a host to in-memory inventory
+      add_host:
+        hostname: "SWARM_LEADER"
+        name: "{{ hostvars[item]['ansible_hostname'] }}"
+        groups: "SWARM_LEADER"
+        ansible_ssh_host: "{{ hostvars[item]['ansible_ssh_host'] }}"
+      delegate_to: "{{ hostvars[item]['ansible_hostname'] }}"
+      with_items: "{{ remapper_leader }}"
+
+    # - name: DEBUG | Run delegate to leader
+    #   debug:
+    #     msg: "{{ inventory_hostname }}"
+    #   delegate_to: "{{ hostvars[item]['ansible_hostname'] }}"
+    #   with_items: "{{ remapper_leader }}"
+
+    - name: DEBUG | Run echo test to leader
+      shell: hostname
+      delegate_to: "{{ hostvars[item]['ansible_hostname'] }}"
+      with_items: "{{ remapper_leader }}"
+      register: remote_stdout
+      
+    # - name: DEBUG | Show remote_stdout
+    #   debug:
+    #     msg: "{{ remote_stdout }}"
+
+    - name: FACTS | Set fact about service name
+      set_fact:
+        fullservicename: "{{ ansible_product }}-{{ ansible_environment }}_flexy_guard"
+
+    - name: DEBUG | Show flexy_guard full service name
+      debug:
+        msg: "{{ fullservicename }}"
+      
+    - name: SERVICE LOCATOR | Get the service locator id
+      shell: "docker service ps {{ fullservicename }} -q --no-trunc | head -n1"
+      register: service_locator
+
+    - name: WORKER LOCATOR | Get the service worker node name
+      shell: "docker service ps {{ fullservicename }} | head -2 | awk '{print $4}' | head -n2 | tail -n +2"
+      register: worker_locator
+
+    # - name: DEBUG | Show flexy_guard worker_locator id
+    #   debug:
+    #     msg: "{{ worker_locator }}"
+
+    # - name: DEBUG | Show flexy_guard service_locator id
+    #   debug:
+    #     msg: "{{ service_locator }}"
+
+    - name: REPLACE | If inventory a production for worker_locator
+      set_fact:
+        worker_remapper_leader: "{{ worker_locator.stdout }}"
+      when: ansible_environment == 'production'
+
+    - name: REPLACE | If inventory not a production for worker_locator
+      set_fact:
+        worker_remapper_leader: "{{ worker_locator.stdout | regex_replace('(production)', '') }}{{ ansible_environment }}"
+      when: ansible_environment != 'production'
+  
+    # - name: DEBUG | Show worker_remapper_leader
+    #   debug:
+    #     msg: "{{ item }}"
+    #   with_items: "{{ worker_remapper_leader }}"
+
+    # - name: DEBUG | Show remapper_leader
+    #   debug:
+    #     msg: "{{ item }}"
+    #   with_items: "{{ remapper_leader }}"
+
+    - name: CREATE HOST | Add a host to in-memory inventory
+      add_host:
+        hostname: "WORKER_SWARM_NODE"
+        name: "{{ hostvars[item]['ansible_hostname'] }}"
+        groups: "WORKER_SWARM_NODE"
+        ansible_ssh_host: "{{ hostvars[item]['ansible_ssh_host'] }}"
+      with_items: "{{ worker_remapper_leader }}"
+
+    - name: APK | Add the mongodb-tools to service
+      shell: "docker exec {{ fullservicename }}.1.{{ service_locator.stdout }} /bin/sh -c 'apk update && apk add mongodb-tools bash mongodb'"
+      delegate_to: "{{ hostvars[item]['ansible_hostname'] }}"
+      with_items: "{{ worker_remapper_leader }}"
+      register: remote_apk_install
+
+    # - name: DEBUG | Show flexy guard after install services
+    #   debug:
+    #     msg: "{{ remote_apk_install }}"
+
+    - name: MONGO IMPORT | Upload databases
+      shell: "docker exec -i {{ fullservicename }}.1.{{ service_locator.stdout }} /bin/bash -c '{{ item }}'"
+      with_items:
+        - 'tr ";" "\t" < rules/lists/ip2country_iso.csv | mongoimport --host mongo --port 27017 --drop --db counters --collection ip:country --type tsv --headerline'
+        - 'tr ";" "\t" < rules/lists/bins_iso_13_2.csv | mongoimport --host mongo --port 27017 --drop --db counters --collection bin:countries --type tsv --headerline'
+      delegate_to: "{{ hostvars[worker_remapper_leader]['ansible_hostname'] }}"
+      register: remote_upload_databases
+
+    - name: MONGO INIT | Create index
+      shell: "docker exec {{ fullservicename }}.1.{{ service_locator.stdout }} mongo --host mongo --eval \"conn = new Mongo('mongo'); db = conn.getDB('counters') ; db.rules.createIndex( { Comment: 'text', HashDescr: 'text' }) ;\""
+      delegate_to: "{{ hostvars[worker_remapper_leader]['ansible_hostname'] }}"
+      register: mongo_init_create_index
+      tags: upload_index
+
+    - name: DEBUG | Show final result of mongo init
+      debug:
+        msg: "{{ item }}"
+      with_items:
+        - "{{ remote_upload_databases }}"
+        - "{{ mongo_init_create_index }}"

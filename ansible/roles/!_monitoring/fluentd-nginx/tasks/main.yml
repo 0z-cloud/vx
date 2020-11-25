@@ -1,0 +1,104 @@
+- name: Remove old docker python extensions
+  pip:
+    name: ['docker', 'docker-py']
+    state: absent
+
+- name: Install docker python extension
+  pip:
+    name: docker
+    state: forcereinstall
+
+- name: Create the directories for env specific configurations
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0777
+  with_dict: "{{ fluentd_service_settings.directories | default({}) }}"
+  tags: [configuration,fluentd]
+
+- name: Copy Patterns file
+  copy:
+     src: files/patterns.txt
+     dest: "{{ fluentd_service_settings.directories.etc }}/patterns.txt"
+
+- name: Copy Default Config file
+  copy:
+    src: files/fluent.conf
+    dest: "{{ fluentd_service_settings.directories.etc }}/fluent.conf"
+
+- name: Copy Entrypoint sh file
+  copy:
+    src: files/entrypoint.sh
+    dest: "{{ fluentd_service_settings.directories.etc }}/entrypoint.sh"
+    mode: 0777
+
+- name: Create nginx.output.conf.j2 from template
+  template: 
+    src: nginx.output.conf.j2
+    dest: "{{ fluentd_service_settings.directories.etc }}/nginx.output.conf"
+
+- name: Create nginx.access.conf.j2 from template
+  template: 
+    src: nginx.access.conf.j2
+    dest: "{{ fluentd_service_settings.directories.etc }}/nginx.access.conf"
+
+- name: Create nginx.error.conf.j2 from template
+  template: 
+    src: nginx.error.conf.j2
+    dest: "{{ fluentd_service_settings.directories.etc }}/nginx.error.conf"
+
+- name: Create docker.syslog.conf.j2 from template
+  template: 
+    src: docker.syslog.conf.j2
+    dest: "{{ fluentd_service_settings.directories.etc }}/docker.syslog.conf"
+
+- name: Create docker.output.conf.j2 from template
+  template: 
+    src: docker.output.conf.j2
+    dest: "{{ fluentd_service_settings.directories.etc }}/docker.output.conf"
+
+- name: Raw chmod 644 for syslog
+  shell: chmod 644 /var/log/syslog
+
+- name: Create index_upload_curl.sh from template
+  template: 
+    src: index_upload_curl.sh
+    dest: "{{ fluentd_service_settings.directories.etc }}/index_upload_curl.sh"
+    mode: 0777
+
+- name: Create a fluentd Service docker container with swarm
+  docker_container:
+    name: "fluentd-{{ ansible_product }}-{{ ansible_environment }}-{{ inventory_hostname }}"
+    image: "{{ ansible_global_gitlab_registry_site_name }}/{{ ansible_git_project_path }}/fluentd:latest"
+    #image: fluent/fluentd:v1.7-1
+    pull: yes
+    recreate: yes
+    volumes:
+      - "{{ fluentd_service_settings.directories.etc }}/index_upload_curl.sh:/index_upload_curl.sh"
+      - "{{ fluentd_service_settings.directories.etc }}/:/fluentd/etc/"
+      - "{{ fluentd_service_settings.nginx_mountpoint }}:{{ fluentd_service_settings.nginx_mountpoint }}"
+      - "{{ fluentd_service_settings.directories.positions }}:/positions"
+      - "{{ fluentd_service_settings.syslog_mountpoint }}:{{ fluentd_service_settings.syslog_mountpoint }}"
+#      - "{{ fluentd_service_settings.directories.etc }}/entrypoint.sh:/bin/entrypoint.sh"     
+    networks:
+      - name: "{{ ansible_product }}-{{ ansible_environment }}_default"
+    restart_policy: always
+    privileged: true
+    detach: True
+    state: started
+
+- name: Check docker stack is alive and present
+  shell: "docker stack ls | grep {{ ansible_environment }} | grep -q {{ ansible_product }} && echo 0 || echo 1"
+  register: stack_status_check_result
+
+- name: DEBUG | Show docker stack status result
+  debug:
+    msg: "{{ stack_status_check_result.stdout_lines }}"
+
+- name: Run upload elasticsearch index from fluentd
+  raw: "docker exec -it fluentd-{{ ansible_product }}-{{ ansible_environment }}-{{ inventory_hostname }} bash -c '/index_upload_curl.sh'"
+  register: upload_elastic_index_result
+
+- name: DEBUG | Show docker exec upload index result
+  debug:
+    msg: "{{ upload_elastic_index_result }}"

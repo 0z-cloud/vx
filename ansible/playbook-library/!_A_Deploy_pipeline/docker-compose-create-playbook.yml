@@ -1,0 +1,23 @@
+- name: Run to localhost generate the docker-compose
+  hosts: localhost
+  vars_files:
+    - "./group_vars/!_ApplicationDocker_Template/docker-compose-template.yml"
+  tasks:
+
+    - name: Include environment variables for applications - Folders Mappings
+      include_vars: "group_vars/!_Applications_Core/{{ ANSIBLE_APPLICATION_TYPE }}/{{ ANSIBLE_APPLICATION_TYPE }}_folders_map.yml"
+
+    - name: Include environment variables for applications - Settings Mappings
+      include_vars: "group_vars/!_Applications_Core/{{ ANSIBLE_APPLICATION_TYPE }}/{{ ANSIBLE_APPLICATION_TYPE }}_settings_map.yml"
+
+    #TEST
+    - name: Include environment variables for environment cloud
+      include_vars: "{{ inventory_dir }}/group_vars/dns/cloud-bind-frontend-dns/cloud-bind-frontend-dns.yml"
+
+    - name: Template the docker-compose.yml
+      template:
+        src: "./group_vars/!_ApplicationDocker_Template/docker-compose-template.yml.j2"
+        dest: "../.local/docker-compose.yml"
+
+    - name: Shell run docker-compose up -d
+      raw: cd ../.local/ && docker-compose up -d

@@ -1,0 +1,180 @@
+apiVersion: kubeadm.k8s.io/v1beta2
+kind: InitConfiguration
+bootstrapTokens:
+- token: {{ kubeadm_token_generate.stdout | join }}
+  description: "kubespray kubeadm bootstrap token"
+  ttl: "24h"
+localAPIEndpoint:
+  advertiseAddress: {{ hostvars[inventory_hostname]['second_ip'] }}
+  bindPort: {{ K8S_CLUSTER_LISTEN_PORT }}
+{% if kubeadm_certificate_key is defined %}
+certificateKey: {{ kubeadm_certificate_key }}
+{% endif %}
+nodeRegistration:
+  name: {{ hostvars[inventory_hostname]['ansible_nodename'] }}
+{% if inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker'] %}
+  taints:
+  - effect: NoSchedule
+    key: node-role.kubernetes.io/master
+{% else %}
+  taints: []
+{% endif %}
+  criSocket: "/var/run/dockershim.sock" {# {{ cri_socket }} #}
+{% if cloud_provider is defined and cloud_provider in ["external"] %}
+  kubeletExtraArgs:
+    cloud-provider: external
+{% endif %}{% raw %}
+--- {% endraw %}
+apiVersion: kubeadm.k8s.io/v1beta2
+kind: ClusterConfiguration
+clusterName: {{ K8S_CLUSTER_NAME }}
+etcd:
+  external:
+      endpoints: {% for host in groups['kubernetes-master'] %}{% raw %}
+      - https://{% endraw %}{{ hostvars[host]['second_ip'] }}{% raw %}:{% endraw %}{{ K8S_CLUSTER_LISTEN_PORT_2379 }}{% raw %}
+      {% endraw %}{% endfor %}
+      caFile: /opt/ca/pki/ca.pem
+      certFile: /opt/ca/pki/etcd.pem
+      keyFile: /opt/ca/pki/etcd.key
+dns:
+  type: CoreDNS
+  imageRepository: k8s.gcr.io
+  imageTag: "1.6.7"
+networking:
+  dnsDomain: {{ public_consul_domain }}
+  serviceSubnet: {{ SERVICE_NETWORK_CIDR }}
+  podSubnet: {{ POD_NETWORK_CIDR }}{% raw %}
+kubernetesVersion: v1.18.0
+controlPlaneEndpoint: vortex.{% endraw %}{{ public_consul_domain }}{% raw %}:{% endraw %}{{ K8S_CLUSTER_LISTEN_PORT }}
+certificatesDir: /opt/ca/pki
+imageRepository: k8s.gcr.io
+apiServer:
+  extraArgs:
+    authorization-mode: []
+    bind-address: 0.0.0.0
+    insecure-bind-address: 127.0.0.1
+    insecure-port: 8080
+    enable-admission-plugins: PodSecurityPolicy,AlwaysPullImages,DefaultStorageClass
+    disable-admission-plugins: SecurityContextDeny
+    apiserver-count: 3
+    endpoint-reconciler-type: lease
+    service-node-port-range: 30000-32767
+    kubelet-preferred-address-types: 'InternalDNS,InternalIP,Hostname,ExternalDNS,ExternalIP'
+    profiling: false
+    request-timeout: "1m0s"
+    enable-aggregator-routing: false
+    basic-auth-file: /opt/ca/kube/known_users.csv
+    token-auth-file: /opt/ca/kube/known_tokens.csv
+    authentication-token-webhook-config-file: /opt/ca/kube/webhook-token-auth-config.yaml
+    encryption-provider-config: /opt/ca/kube/secrets_encryption.yaml
+    storage-backend: etcd3
+    runtime-config: []
+    allow-privileged: "true"
+    audit-log-path: "/opt/ca/kube/logs/"
+    audit-log-maxage: "30"
+    audit-log-maxbackup: "1"
+    audit-log-maxsize: "100"
+    audit-policy-file: /opt/ca/kube/audit_policy/apiserver-audit-policy.yaml
+    feature-gates: []
+  extraVolumes:
+  - name: basic-auth-config
+    hostPath: /opt/ca/kube/
+    mountPath: /opt/ca/kube/
+  - name: token-auth-config
+    hostPath: /opt/ca/kube/
+    mountPath: /opt/ca/kube/
+  - name: webhook-token-auth-config
+    hostPath: /opt/ca/kube/webhook-token-auth-config.yaml
+    mountPath: /opt/ca/kube/webhook-token-auth-config.yaml
+  - name: audit-policy
+    hostPath: /opt/ca/kube/audit_policy/
+    mountPath: /opt/ca/kube/audit_policy/
+  - name: auditk8-log
+    hostPath: /opt/ca/kube/logs/
+    mountPath: /opt/ca/kube/logs/
+    readOnly: false
+  - name: usr-share-ca-certificates
+    hostPath: /usr/share/ca-certificates
+    mountPath: /usr/share/ca-certificates
+    readOnly: true
+  - name: usr-share-ca-certificates
+    hostPath: /usr/share/ca-certificates
+    mountPath: /usr/share/ca-certificates
+    readOnly: true
+  certSANs:
+  - "kubernetes"
+  - "kubernetes.default"
+  - "kubernetes.default.svc"
+  - "kubernetes.default.svc.{{ public_consul_domain }}"
+  - "{{ CALICO_ETCD_CLUSTER_IP }}"
+  - "{{ K8S_CLUSTER_ADDRESS }}"
+  - "localhost"
+  - "127.0.0.1"
+  - "vortex.{{ public_consul_domain }}"
+  - "10.32.40.155"
+  - "10.32.40.156"
+  - "10.32.40.154"
+  - "vortex-node-05-production"
+  - "vortex-node-04-production"
+  - "vortex-node-06-production"
+  timeoutForControlPlane: "5m0s"
+controllerManager:
+  extraArgs:
+    node-monitor-grace-period: "40s"
+    node-monitor-period: "5s"
+    pod-eviction-timeout: "5m0s"
+    node-cidr-mask-size: "24"
+    profiling: false
+    terminated-pod-gc-threshold: "12500"
+    bind-address: 0.0.0.0
+    feature-gates: []
+{% if kube_network_plugin is defined and kube_network_plugin not in ["cloud"] %}
+    configure-cloud-routes: "false"
+{% endif %}
+scheduler:
+  extraArgs:
+    bind-address: 0.0.0.0
+    feature-gates: []
+
+---
+apiVersion: kubeproxy.config.k8s.io/v1alpha1
+kind: KubeProxyConfiguration
+bindAddress: 0.0.0.0
+clientConnection:
+ acceptContentTypes: ''
+ burst: "10"
+ contentType: application/vnd.kubernetes.protobuf
+ kubeconfig: ''
+ qps: "5"
+clusterCIDR: {{ POD_NETWORK_CIDR }}
+configSyncPeriod: "15m0s"
+conntrack:
+ maxPerCore: "32768"
+ min: "131072"
+ tcpCloseWaitTimeout: "1h0m0s"
+ tcpEstablishedTimeout: "24h0m0s"
+enableProfiling: false
+healthzBindAddress: 0.0.0.0:10256
+hostnameOverride: {{ hostvars[inventory_hostname]['ansible_nodename'] }}
+iptables:
+ masqueradeAll: true
+ masqueradeBit: "14"
+ minSyncPeriod: "0s"
+ syncPeriod: "30s"
+ipvs:
+ excludeCIDRs: []
+ minSyncPeriod: "0s"
+ scheduler: "rr"
+ syncPeriod: "30s"
+ strictARP: false
+metricsBindAddress: 127.0.0.1:10249
+mode: "ipvs"
+nodePortAddresses: {{ CLUSTER_NETWORK_CIDR }}
+oomScoreAdj: "-999"
+portRange: ''
+udpIdleTimeout: "250ms"
+---
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+clusterDNS:
+- "10.233.0.10"

@@ -1,0 +1,45 @@
+####
+
+- name: '[vsphere:] Destroy infrastructure from localhost to ESXi Vcenter Appliance'
+  hosts: localhost
+  #strategy: free
+
+  gather_facts: False
+  tasks:
+
+    - name: Load groupvars/product global shared settings
+      include_vars: group_vars/products/{{ ansible_product }}/{{ item }}.yml
+      with_items:
+        - vsphere
+        - main
+
+    - name: Load groupvars/product global shared settings
+      include_vars: group_vars/products/{{ ansible_product }}/{{ ansible_environment }}/{{ item }}.yml
+      with_items:
+        - attached
+        - main
+
+  
+- name: '[vsphere:] Starting task to instances Destroy'
+  hosts: localhost
+  vars_files:
+      - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+      - "group_vars/products/{{ ansible_product }}/main.yml"
+      - "group_vars/products/{{ ansible_product }}/shared.yml"
+      - "group_vars/products/{{ ansible_product }}/{{ ansible_cloud_type }}.yml"
+      - "inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+      - "group_vars/!_anyCloud/anyCloud.yml"
+      - "group_vars/all.yml"
+  vars_prompt:
+    - name: "ANSIBLE_OPERATOR_CHOICE_TO_DESTROY"
+      prompt: "Provide your last word to confirm the Destroy the Inventory, if know what you are doing, - type 'yes', then tap 'Enter' for initiate Destroy!"
+      default: "no"
+      private: no
+  roles:
+
+      # - name: Include role Network Zone maintain
+      #   role: ./!_cloud/dc_integration/vsphere/network
+
+      - name: Include role Cloud Instance Zone 
+        role: '!_cloud/dc_integration/vsphere/instance/destroy'
+

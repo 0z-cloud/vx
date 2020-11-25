@@ -1,0 +1,48 @@
+
+- name: '|[_E_V_E_]| Absent old dir Eve'
+  shell: rm -rf /eve/src/eve
+  
+- name: '|[_E_V_E_]| Raw call the commands - git clone Eve'
+  shell: cd /eve/src && git clone https://github.com/lf-edge/eve.git
+
+- name: '|[_E_V_E_]| Raw call the commands - Start building Eve necessary tools'
+  make:
+    chdir: /eve/src/eve/
+    target: build-tools
+    params:
+      NUM_THREADS: 4
+  register: eve_make_build_tools_start
+
+- name: '|[_E_V_E_]| Show After Eve Status Build Tools'
+  debug:
+    msg: "{{ eve_make_build_tools_start.stdout_lines }}"
+
+- name: '|[_E_V_E_]| Raw call the commands - Make live Eve'
+  make:
+    chdir: /eve/src/eve/
+    target: live
+    params:
+      NUM_THREADS: 4
+  register: eve_make_live
+  # because needed to be catched by CI text analyze tool, in some times are useful see a end of the crashes or results in broken-cases states
+  ignore_errors: true
+
+- name: '|[_E_V_E_]| Show After Eve Status Make Live'
+  debug:
+    msg: "{{ eve_make_live.stdout_lines }}"
+
+- name: '|[_E_V_E_]| Raw call the commands - Run Eve in background'
+  make:
+    chdir: /eve/src/eve/
+    target: run
+    params:
+      NUM_THREADS: 4
+      QEMU_MEMORY: 4096
+      PFLASH: true
+  register: eve_make_run
+  # Same, for see the results
+  ignore_errors: true
+
+- name: '|[_E_V_E_]| Show After Eve Status Make Live'
+  debug:
+    msg: "{{ eve_make_run.stdout_lines }}"

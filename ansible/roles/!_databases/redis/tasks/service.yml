@@ -1,0 +1,26 @@
+- name: configure redis start script
+  template:
+    src: service.sh
+    dest: "/etc/init.d/{{ instance.name }}"
+    owner: root
+    group: root
+    mode: 0755
+  notify: [ 'Restart redis' ]
+
+- name: configure redis config.
+  template:
+    src: "{{ item }}"
+    dest: "{{ instance.paths.conf }}/{{ item }}"
+    owner: root
+    group: "{{ instance.group }}"
+    mode: 0755
+  with_items:
+    - redis.conf
+    - cluster.conf
+  notify: [ 'Restart redis' ]
+
+- name: Start redis
+  service:
+    name: "{{ instance.name }}"
+    state: started
+    enabled: true

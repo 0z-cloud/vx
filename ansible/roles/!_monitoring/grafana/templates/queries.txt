@@ -1,0 +1,109 @@
+100 - (avg by (cpu) (irate(node_cpu_seconds_total{mode="idle", instance=~"$server"}[5m])) * 100)
+
+node_memory_MemFree_bytes{instance=~"$server"}
+
+sum by (instance) (irate(node_disk_written_bytes_total{instance=~"$server"}[5m]))
+
+sum by (instance) (irate(node_disk_io_time_ms{instance=~"$server"}[5m]))
+
+sum by (instance) (irate(node_disk_io_time_seconds_total{instance=~"$server"}[5m]))
+
+
+((node_memory_MemTotal_bytes{instance=~"$server.*"}[5m] - node_memory_MemAvailable_bytes{instance=~"$server.*"}[5m]) / node_memory_MemTotal_bytes{instance=~"$server.*"}) * 100
+
+((node_memory_MemFree_bytes{instance=~"$server.*"}[5m] - node_memory_MemAvailable_bytes{instance=~"$server.*"}[5m]) / node_memory_MemTotal_bytes{instance=~"$server.*"}) * 100
+
+
+
+
+
+
+
+
+min(node_filesystem_free{device!="rootfs",instance=~"$server"} / node_filesystem_size{device!="rootfs",instance=~"$server"})
+
+node_filesystem_free_bytes
+
+min(node_filesystem_free_bytes{device!="rootfs",instance=~"$server:.*"} / node_filesystem_size_bytes{device!="rootfs",instance=~"$server:.*"})
+
+
+(node_memory_MemFree{instance=~"$server"} / node_memory_MemTotal{instance=~"$server"}) * 100
+
+
+(node_memory_MemFree{instance=~"$server:.*"} / node_memory_MemTotal{instance=~"$server:.*"}) * 100
+
+(node_memory_MemTotal_bytes{instance=~"$server:.*"} / node_memory_MemAvailable_bytes{instance=~"$server:.*"}) * 100
+
+
+
+instance=~"$server:.*"
+
+
+node_memory_MemFree_bytes{instance=~"$server.*"}
+
+100 - (avg by (cpu) (irate(node_cpu_seconds_total{mode="idle",instance=~"$server.*"}[5m])) * 100)
+
+100 - (avg by (cpu) (irate(node_cpu_seconds_total{mode="idle", instance=~"$server"}[5m])) * 100)
+
+100 - (avg by (cpu) (irate(node_cpu_seconds_total{mode="idle", instance=~"$server:.*"}[5m])) * 100)
+
+
+
+(node_memory_MemTotal_bytes{instance=~"$server:.*"} / node_memory_MemTotal_bytes{instance=~"$server:.*"}) * 100
+
+
+(node_memory_MemTotal_bytes{instance=~"$server:.*"} / node_memory_MemAvailable_bytes{instance=~"$server:.*"})
+
+node_memory_MemFree_bytes{instance=~"$server:.*"}
+
+
+
+
+sum by (instance) (irate(node_disk_read_bytes_total{instance=~"$server:.*"}[5m]))
+
+sum by (instance) (irate(node_disk_written_bytes_total{instance=~"$server:.*"}[5m]))
+
+sum by (instance) (irate(node_disk_io_time_seconds_total{instance=~"$server:.*"}[5m]))
+
+
+irate(node_network_receive_bytes_total{instance=~"$server:.*,device!~"lo"}[5m])
+
+irate(node_network_transmit_bytes_total{instance=~"$server:.*",device!~"lo"}[5m])
+
+
+
+time() - node_boot_time_seconds{instance=~"$server:.*"}
+
+
+min((node_filesystem_size_bytes{fstype=~"xfs|ext4",instance=~"$server:.*"} - node_filesystem_free_bytes{fstype=~"xfs|ext4",instance=~"$server:.*"} ) / node_filesystem_size_bytes{fstype=~"xfs|ext4",instance=~"$server:.*"})
+
+
+node_load1{instance=~"$server:.*"} / count by(job, instance)(count by(job, instance, cpu)(node_cpu_seconds_total{instance=~"$server:.*"}))
+
+node_load1{instance=~"$server:.*"} / count by(job, instance)(count by(job, instance, cpu)(node_cpu_seconds_total{instance=~"$server:.*"}))
+
+node_filesystem_size_bytes{fstype="aufs"} - node_filesystem_free_bytes{fstype="aufs"}
+
+
+node_filesystem_size_bytes{device!="rootfs",instance=~"$server:.*"} - node_filesystem_free_bytes{{device!="rootfs",instance=~"$server:.*"}
+
+
+min(node_filesystem_free_bytes{device!="rootfs",instance=~"$server:.*"} / node_filesystem_size_bytes{device!="rootfs",instance=~"$server:.*"})
+
+
+container_memory_rss{name=~".*"}
+
+
+node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes
+
+
+node_memory_MemTotal_bytes - (node_memory_Active_bytes + node_memory_MemFree_bytes + node_memory_Inactive_bytes)
+
+
+-sum(rate(node_disk_bytes_read[$interval])) by (device)
+-sum(rate(node_disk_read_bytes_total[$interval])) by (device)
+
+sum(rate(node_disk_written_bytes_total[$interval])) by (device)
+
+
+label_values(container_group)

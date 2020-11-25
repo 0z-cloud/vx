@@ -1,0 +1,4 @@
+- name: Show EVE the Run Result's info about Env
+  debug:
+    msg: "{{ eve_info }}"
+  with_dict: "{{ cloud_bootstrap.servers }}"

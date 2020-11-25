@@ -1,0 +1,14 @@
+- name: Awaiting for server to come back
+  sudo: yes
+  gather_facts: no
+  hosts: "{{ HOSTS }}"
+  tasks:
+    - name: Debug
+      debug:
+        msg: "{{ inventory_hostname }}"
+    - name: Awaiting for server
+      wait_for: 
+        host: "{{ inventory_hostname }}" 
+        port: 22 
+        delay: 15  
+        timeout: 300

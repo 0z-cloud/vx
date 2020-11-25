@@ -1,0 +1,7 @@
+- name: Install multiple of packages
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - sshpass
+    - unzip

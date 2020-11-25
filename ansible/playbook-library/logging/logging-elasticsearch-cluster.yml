@@ -1,0 +1,10 @@
+---
+
+- name: Installing Elasticsearch Cluster for Logging
+  become: true
+  gather_facts: true 
+  hosts: logging-elasticsearch-cluster
+  roles: 
+    - name: Run logging elasticsearch cluster role
+      role: roles/!_logging/logging-elasticsearch-cluster
+  tags: [elasticsearch-cluster-install]

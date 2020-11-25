@@ -1,0 +1,2 @@
+- include_tasks: "server.yml"
+  when: "'cloud-bind-frontend-dns' in group_names"

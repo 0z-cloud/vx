@@ -1,0 +1,115 @@
+### Default project directories mappings
+
+logging_kibana:
+  directories:
+    main: /opt/logging/kibana/{{ ansible_environment }}
+    configs: /opt/logging/kibana/{{ ansible_environment }}/configs
+    data: /opt/logging/kibana/{{ ansible_environment }}/data
+  system_security:
+    linux:
+      user_group: kibana
+
+logging_es_cluster:
+   directories:
+      main: /opt/logging/elasticsearch/{{ ansible_environment }}
+      configs: /opt/logging/elasticsearch/{{ ansible_environment }}/configs
+      data: /opt/logging/elasticsearch/{{ ansible_environment }}/data
+      logs: /opt/logging/elasticsearch/{{ ansible_environment }}/logs
+      run: /opt/logging/elasticsearch/{{ ansible_environment }}/run
+      etc: /opt/logging/elasticsearch/{{ ansible_environment }}/etc
+      elasticsearch: /opt/logging/elasticsearch/{{ ansible_environment }}/etc/elasticsearch
+   system_security:
+      linux:
+         user_group: elasticsearch
+   api:
+      username: elasticsearchapi
+      password: elasticsearchapisad012jrni
+
+clamav_settings:
+   directories:
+      main: /wrk/clamav
+      bin: /wrk/clamav/bin
+      database: /wrk/clamav/database
+      workplace: /wrk/clamav/exec
+   logs:
+      update_log: /wrk/clamav/logs
+   security:
+      linux_username: clamav
+
+apt_mirror_settings:
+   directories:
+      main: /apt_mirror
+   website_repo_path: /mirror/archive.ubuntu.com/
+
+wazuh_es:
+   directories:
+      main: /opt/wazuh/elasticsearch/{{ ansible_environment }}
+      configs: /opt/wazuh/elasticsearch/{{ ansible_environment }}/configs
+      data: /opt/wazuh/elasticsearch/{{ ansible_environment }}/data
+      logs: /opt/wazuh/elasticsearch/{{ ansible_environment }}/logs
+   system_security:
+      linux:
+         user_group: wazuh
+   api:
+      username: wazuhapi
+      password: wazuhapisad012jrni
+
+wazuh_kibana:
+   directories:
+      main: /opt/wazuh/kibana/{{ ansible_environment }}
+      configs: /opt/wazuh/kibana/{{ ansible_environment }}/configs
+      data: /opt/wazuh/kibana/{{ ansible_environment }}/data
+   system_security:
+      linux:
+         user_group: wazuh
+
+
+elasticsearch_stack_settings:
+   directories:
+      etc: "{{ cloud_dir }}/{{ ansible_environment }}/opt/es-cluster/etc/"
+      data: "{{ cloud_dir }}/{{ ansible_environment }}/opt/es-cluster/data/"
+      logs: "{{ cloud_dir }}/{{ ansible_environment }}/opt/es-cluster/logs/"
+      catalina_logs: "{{ cloud_dir }}/{{ ansible_environment }}/opt/es-cluster/catalina_logs/"
+   inside_container_directories:
+      data: '/var/lib/elasticsearch'
+      logs: '/var/log/elasticsearch'
+   cluster_name: 'elasticsearch'
+   containers_prefix: 'elasticsearch'
+   node_port: '9300'
+   http_port: '9200'
+   client_port: '9500'
+
+fluentd_service_settings:
+   directories:
+        opt: /opt/fluentd/{{ ansible_environment }}/
+        etc: /opt/fluentd/{{ ansible_environment }}/etc
+        positions: /opt/fluentd/{{ ansible_environment }}/positions
+   nginx_mountpoint: /var/log/nginx
+   syslog_mountpoint: /var/log/syslog
+
+selenium_service_docker:
+   directories:
+      files: /opt/selenium-qa-docker/{{ ansible_environment }}{% if version_ansible_build_id is defined %}/{{ version_ansible_build_id }}{% endif %}/files
+
+wazuh_agent:
+   directories:
+      main: /opt/wazuh/agent/{{ ansible_environment }}
+   system_security:
+      linux:
+         user_group: wazuh
+
+wazuh_manager:
+   directories:
+      main: /opt/wazuh/manager/{{ ansible_environment }}
+      mapping_current: /opt/wazuh/manager/{{ ansible_environment }}/wazuh
+      custom_configs: /opt/wazuh/manager/{{ ansible_environment }}/custom
+      ossec: /opt/wazuh/manager/{{ ansible_environment }}/wazuh/ossec
+      ossec_data: /opt/wazuh/manager/{{ ansible_environment }}/wazuh/ossec_data
+      config_mountpoint: /opt/wazuh/manager/{{ ansible_environment }}/wazuh/config
+   system_security:
+      linux:
+         user_group: wazuh
+   api:
+      username: wazuhapi
+      password: wazuhapisad012jrni
+   filebeat_module: wazuh-filebeat-0.1.tar.gz

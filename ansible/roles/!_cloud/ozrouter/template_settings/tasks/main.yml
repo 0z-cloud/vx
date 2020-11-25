@@ -1,0 +1,112 @@
+- name: Create the directories for settings ISO
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0755
+  with_items: 
+    - "{{ oz_router_iso_settings_directories_configs }}"
+    - "{{ oz_router_iso_settings_directories_iso_dir }}"
+
+# - name: Set custom facts by passed variable instance name
+
+- name: Template the startup customization script for ozRouter bootstrap
+  template:
+    src: cloud_init_endless.sh
+    dest: "{{ oz_router_iso_settings_directories_configs }}/cloud_init_endless.sh"
+    mode: 0777
+
+- name: Template the dhcp main configuration for ozRouter bootstrap
+  template:
+    src: dhcpd.conf.j2
+    dest: "{{ oz_router_iso_settings_directories_configs }}/dhcpd.conf"
+    mode: 0666
+
+- name: Template the dhcp interfaces configuration for ozRouter bootstrap
+  template:
+    src: isc-dhcp-server.interfaces.sh
+    dest: "{{ oz_router_iso_settings_directories_configs }}/isc-dhcp-server"
+    mode: 0777
+
+- name: Template the env configuration for ozRouter bootstrap
+  template:
+    src: env.sh
+    dest: "{{ oz_router_iso_settings_directories_configs }}/env.sh"
+    mode: 0777
+
+- name: Template the netplan configuration for ozRouter bootstrap
+  template:
+    src: netplan.autogen.sh
+    dest: "{{ oz_router_iso_settings_directories_configs }}/netplan.autogen.sh"
+    mode: 0777
+
+- name: Template client connection configuration file on master router env configuration for ozRouter bootstrap
+  template:
+    src: client_on_master.conf.j2
+    dest: "{{ oz_router_iso_settings_directories_configs }}/client_on_master.conf"
+    mode: 0666
+
+- name: Template vmware customization configuration file for ozRouter bootstrap
+  template:
+    src: vmware_customization.sh
+    dest: "{{ oz_router_iso_settings_directories_configs }}/vmware_customization.sh"
+    mode: 0777
+
+- name: Template vpn reconfiguration script for ozRouter bootstrap
+  template:
+    src: vpn.sh
+    dest: "{{ oz_router_iso_settings_directories_configs }}/vpn.sh"
+    mode: 0777
+
+- name: Template vpn reconfiguration script for ozRouter bootstrap
+  template:
+    src: cloud_settings_initialization_iso.sh.j2
+    dest: "{{ oz_router_iso_settings_directories_configs }}/cloud_settings_initialization_iso.sh"
+    mode: 0777
+  
+
+- name: oZrouter | Register contents for oZrouter VMware Customization Script to Bootstrap
+  shell: cat /tmp/vmware_customization.sh
+  register: ozrouter_customization_shell_result_raw
+
+# - name: DEBUG shell result raw oZrouter | Register
+#   debug:
+#     msg: "{{ ozrouter_customization_shell_result_raw.stdout | join }}"
+#   when: debug_log is defined
+
+# - name: DEBUG shell result raw anycloud_result_routed_network_name | Register
+#   debug:
+#     msg: "{{ anycloud_result_routed_network_name }}"
+#   #when: debug_log is defined
+
+
+- name: Remove current ISO file from host
+  file:
+    path: "{{ oz_router_iso_settings_directories_iso_dir }}/{{ oz_router_iso_settings_iso_name }}"
+    state: absent
+
+- name: Regenerate the configurations to ISO source path
+  shell: mkisofs -lJR -o {{ oz_router_iso_settings_directories_iso_dir }}/{{ oz_router_iso_settings_iso_name }} {{ oz_router_iso_settings_directories_configs }}
+
+- name: Remove ISO with settings from target
+  vcd_catalog_item:
+    catalog_name: "0z"
+    item_name: "{{ oz_router_iso_settings_iso_name }}"
+    file_name : "{{ oz_router_iso_settings_directories_iso_dir }}/{{ oz_router_iso_settings_iso_name }}"
+    state: "absent"
+  register: absent_catalog_item_result
+  ignore_errors: true
+
+- name: Upload ISO with settings for target and included to role invocation VM Instance
+  vcd_catalog_item:
+    catalog_name: "0z"
+    item_name: "{{ oz_router_iso_settings_iso_name }}"
+    file_name : "{{ oz_router_iso_settings_directories_iso_dir }}/{{ oz_router_iso_settings_iso_name }}"
+    state: "present"
+  register: upload_catalog_item_result
+
+- name: Show states for upload/remove the media ISO with settings
+  debug:
+    msg: "{{ item }}"
+  with_items:
+    - "upload_result: {{ upload_catalog_item_result }}"
+    - "remove_result: {{ absent_catalog_item_result }}"

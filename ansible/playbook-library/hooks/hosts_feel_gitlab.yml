@@ -1,0 +1,12 @@
+- name: Run the fill the hosts for registry and gitlab to itself
+  become: true
+  hosts: "{{ HOSTS }}"
+  tasks:
+    - name: Check point gitlab and docker registry to itself
+      lineinfile: 
+        dest: /etc/hosts
+        line: "{{ ansible_default_ipv4['address'] }}    {{ item }}"
+        state: present
+      with_items:
+        - "{{ ansible_global_gitlab_registry_site_name }}"
+        - "{{ ansible_global_gitlab_site_name }}"

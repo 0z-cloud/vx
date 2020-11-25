@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    field.cattle.io/creatorId: user-rxbgq
+    pv.kubernetes.io/bind-completed: "yes"
+    pv.kubernetes.io/bound-by-controller: "yes"
+    volume.beta.kubernetes.io/storage-provisioner: openebs.io/local
+    volume.kubernetes.io/selected-node: worker2
+  creationTimestamp: null
+  finalizers:
+  - kubernetes.io/pvc-protection
+  labels:
+    cattle.io/creator: norman
+  name: drone-server-data
+  selfLink: /api/v1/namespaces/drone/persistentvolumeclaims/drone-server-data
+spec:
+  accessModes:
+  - ReadWriteOnce
+  dataSource: null
+  resources:
+    requests:
+      storage: 30Gi
+  storageClassName: openebs-hostpath
+  volumeMode: Filesystem
+  volumeName: pvc-df23a057-9c1a-11e9-890b-b42e994820d9
+status: {}

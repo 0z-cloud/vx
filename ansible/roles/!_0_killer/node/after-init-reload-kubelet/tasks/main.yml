@@ -1,0 +1,13 @@
+
+
+
+- name: Shell daemon-reload and kubelet restart with little deplay
+  shell: |
+    systemctl daemon-reload
+    systemctl restart kubelet
+  delegate_to: "{{ item }}"
+  when: inventory_hostname == item
+  with_items: 
+      - "{{ groups['kubernetes-master'] }}"
+  loop_control:
+      pause: 45

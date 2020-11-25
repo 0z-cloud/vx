@@ -1,0 +1,31 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    certmanager.k8s.io/cluster-issuer: letsencrypt-prod
+    field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":443,"protocol":"HTTPS","serviceName":"rpay-engine:business-docs","ingressName":"rpay-engine:business-docs","hostname":"business-docs.dev.rocketho.me","path":"/","allNodes":true}]'
+    ingress.kubernetes.io/force-ssl-redirect: "true"
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: "true"
+  creationTimestamp: null
+  generation: 1
+  labels:
+    app: business-docs
+    io.cattle.field/appId: rpay-engine
+  name: business-docs
+  selfLink: /apis/extensions/v1beta1/namespaces/rpay-engine/ingresses/business-docs
+spec:
+  rules:
+  - host: business-docs.dev.rocketho.me
+    http:
+      paths:
+      - backend:
+          serviceName: business-docs
+          servicePort: 80
+        path: /
+  tls:
+  - hosts:
+    - business-docs.dev.rocketho.me
+    secretName: letsencrypt-business-docs
+status:
+  loadBalancer: {}

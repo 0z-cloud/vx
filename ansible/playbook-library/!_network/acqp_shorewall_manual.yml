@@ -1,0 +1,5 @@
+- name: Setup shorewall on vrrp routers
+  hosts: "{{ HOSTS | default('vrrp-routers') }}"
+  roles:
+    - name: Run vrrp router role on vortex Environment
+      role: ./!_network/shorewall/vortex/manual

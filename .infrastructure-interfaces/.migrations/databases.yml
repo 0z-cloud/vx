@@ -1,0 +1,137 @@
+- hosts: "old"
+
+  tasks:
+    - name: install PyMySQL python extension
+      pip:
+        name: PyMySQL
+        state: forcereinstall
+
+    - file:
+        path: /tmp/dumps
+        state: absent
+
+    - file:
+        path: /tmp/dumps
+        state: directory
+
+    - shell: |
+        mysql -N -u root -pvortex -e "select TABLE_SCHEMA from information_schema.TABLES WHERE TABLE_SCHEMA NOT IN('performance_schema', 'mysql', 'sys', 'information_schema') GROUP BY TABLE_SCHEMA"
+      register: dblist
+
+    - debug:
+        msg: "{{ dblist }}"
+
+    - mysql_db:
+        name: "{{ item }}"
+        state: dump
+        target: "/tmp/dumps/{{ item }}.sql"
+        login_user: root
+        login_password: vortex
+      with_items: "{{ dblist.stdout_lines }}"
+
+    - shell: |
+        mysql -N -h 172.16.31.200 -u web_write -p123 -e "select TABLE_SCHEMA from information_schema.TABLES WHERE TABLE_SCHEMA NOT IN('performance_schema', 'mysql', 'sys', 'information_schema') GROUP BY TABLE_SCHEMA"
+      register: dblist2
+
+    - mysql_db:
+        name: "{{ item }}"
+        state: dump
+        target: "/tmp/dumps/{{ item }}.sql"
+        login_host: 172.16.31.200
+        login_user: web_write
+        login_password: 123
+      with_items: "{{ dblist2.stdout_lines }}"
+
+    - find:
+        paths: /tmp/dumps
+        patterns: '*.sql'
+      register: find_result
+
+    - synchronize:
+        mode: pull
+        src: "{{ item }}"
+        dest: "/tmp/dumps/"
+      with_items:
+        - "{{ find_result.files | json_query('[*].path') }}"
+
+- hosts: "new"
+
+  tasks:
+    - set_fact:
+        dumps_dir: "/db-migration-dumps"
+
+    - name: install PyMySQL python extension
+      pip:
+        name: PyMySQL
+        state: forcereinstall
+
+    - find:
+        paths: /tmp/dumps
+        patterns: '*.sql'
+      delegate_to: 127.0.0.1
+      register: find_result
+      become: false
+
+    - file:
+        path: "{{ dumps_dir }}"
+        state: absent
+
+    - file:
+        path: "{{ dumps_dir }}"
+        state: directory
+
+    - debug:
+        msg: "{{ find_result.files | json_query('[*].path') }}"
+
+    - set_fact:
+        databases: "{{ find_result.files | json_query('[*].path') | replace('/tmp/dumps/', '') | replace('.sql', '') }}"
+
+    - debug:
+        msg: "{{ databases }}"
+
+    - copy:
+        src: "/tmp/dumps/{{ item }}.sql"
+        dest: "{{ dumps_dir }}/{{ item }}.sql"
+      with_items:
+        - "{{ databases }}"
+
+    - mysql_db:
+        name: "{{ item }}"
+        login_host: 127.0.0.1
+        login_user: root
+        login_password: root
+        state: absent
+      with_items: "{{ databases }}"
+
+    - apt:
+        name: mysql-client
+        state: present
+
+    - mysql_db:
+        name: "{{ item }}"
+        login_host: 127.0.0.1
+        login_user: root
+        login_password: root
+        state: present
+      with_items: "{{ databases }}"
+
+    - mysql_db:
+        name: "{{ item }}"
+        login_host: 127.0.0.1
+        login_user: root
+        login_password: root
+        state: import
+        target: "{{ dumps_dir }}/{{ item }}.sql"
+      with_items: "{{ databases }}"
+      async: 2400
+      poll: 10
+      register: import_sleeper
+
+    - async_status:
+        jid: "{{ import_sleeper.ansible_job_id }}"
+      until: import_sleeper.finished
+      retries: 240
+
+    - apt:
+        name: mysql-client
+        state: absent

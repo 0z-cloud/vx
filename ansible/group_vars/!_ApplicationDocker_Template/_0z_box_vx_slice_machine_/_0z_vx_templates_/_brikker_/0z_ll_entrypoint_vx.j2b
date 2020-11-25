@@ -1,0 +1,4 @@
+{% block placeholder %}{% if value['entrypoint'] is defined %}{% raw %}
+      entrypoint: {% endraw %}{{ value['entrypoint'] }}{% raw %}
+{% endraw %}
+{% endif %}{% endblock %}

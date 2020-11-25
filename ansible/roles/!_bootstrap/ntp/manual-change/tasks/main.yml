@@ -1,0 +1,25 @@
+- name: NTP MANUAL | RAW SHOW GATEWAY
+  debug:
+    msg: "{{ hostvars[inventory_hostname].ansible_default_ipv4.gateway }}"
+
+- name: GREP LINE IN FILE
+  raw: "cat /etc/default/ntpdate | grep NTPSERVERS"
+  register: NTPSERVERS
+ 
+- name: PRINT NTPSERVERS
+  debug:
+    msg: "{{ NTPSERVERS.stdout_lines }}"
+
+- name: Change line in file
+  lineinfile:
+    path: /etc/default/ntpdate
+    regexp: '^NTPSERVERS='
+    line: 'NTPSERVERS="{{ hostvars[inventory_hostname].ansible_default_ipv4.gateway }}"'
+
+- name: GREP LINE IN FILE
+  raw: "cat /etc/default/ntpdate | grep NTPSERVERS"
+  register: NTPSERVERS
+ 
+- name: PRINT NTPSERVERS
+  debug:
+    msg: "{{ NTPSERVERS.stdout_lines }}"

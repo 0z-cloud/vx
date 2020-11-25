@@ -1,0 +1,88 @@
+- name: INFO | START PART PRIMARY NETWORK
+  debug:
+    msg: "PRIMARY NETWORK GO TO EXEC"
+
+- name: DESTROY | Leave all from current clusters
+  raw: docker swarm leave --force
+  ignore_errors: true
+  when: leave_cluster is defined
+
+- name: GET | Try retern current master state token is present on first master in cluster
+  raw: docker swarm join-token -q manager 2> /dev/null
+  register: docker_swarm_status_join_token_manager
+  when: "inventory_hostname == primary_swarm_hostname"
+  ignore_errors: true
+
+- name: DEBUG | Docker swarm status from join token manager
+  debug:                                                
+    msg: "Returned exit code - {{ docker_swarm_status_join_token_manager.rc }}"
+  when: "inventory_hostname == primary_swarm_hostname"
+
+- name: START INIT | docker swarm init --advertise-addr IP ADDRESS
+  raw: docker swarm init --advertise-addr {{ ansible_default_ipv4['address'] }}
+  when: "inventory_hostname == primary_swarm_hostname and docker_swarm_status_join_token_manager.rc == 1"
+
+- name: DOCKER INIT MASTER | Get the Manager Cluster Token for join
+  raw: docker swarm join-token -q manager 2> /dev/null
+  register: docker_swarm_status_join_token_manager
+  when: "inventory_hostname == primary_swarm_hostname"
+
+- name: ADD HOST | Adding docker swarm status from join token manager transfer fact to other hosts"
+  add_host:
+    name: "MASTER_KEY_TOKEN_HOLDER"
+    docker_swarm_status_join_token_manager: "{{ docker_swarm_status_join_token_manager.stdout_lines }}"
+    ipv4_address: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
+  when: "inventory_hostname == primary_swarm_hostname"
+
+- name: DEBUG | Show docker swarm status join token manager 
+  debug:
+    msg: "[Master] {{ hostvars['MASTER_KEY_TOKEN_HOLDER']['docker_swarm_status_join_token_manager'] }}"
+
+- name: DEBUG | Show swarm master join token manager master IP
+  debug:
+    msg: "[Master] {{ hostvars['MASTER_KEY_TOKEN_HOLDER']['ipv4_address'] }}"
+
+- name: DOCKER INIT MASTER | Get the Worker Cluster Token for join
+  raw: docker swarm join-token -q worker 2> /dev/null
+  register: docker_swarm_status_join_token_worker
+  when: "inventory_hostname == primary_swarm_hostname"
+
+- name:  ADD HOST | Adding docker swarm status join token for worker transfer fact to other hosts
+  add_host:
+    name: "CLIENT_KEY_TOKEN_HOLDER"
+    docker_swarm_status_join_token_worker: "{{ docker_swarm_status_join_token_worker.stdout_lines }}"
+  when: "inventory_hostname == primary_swarm_hostname"
+
+- name: DEBUG | Show docker swarm status join token for worker
+  debug:
+    msg: "[Client] {{ hostvars['CLIENT_KEY_TOKEN_HOLDER']['docker_swarm_status_join_token_worker'] }}"
+
+- name: DEBUG | JOIN MANAGERS 
+  debug:
+    msg: "docker swarm join --token {{ hostvars['MASTER_KEY_TOKEN_HOLDER']['docker_swarm_status_join_token_manager'] | join }} {{ hostvars['MASTER_KEY_TOKEN_HOLDER']['ipv4_address'] }}:2377"
+  when: "inventory_hostname != primary_swarm_hostname and inventory_hostname not in docker_swarm_cluster_clients_group"
+  
+- name: DEBUG | JOIN WORKERS 
+  debug:
+    msg: "docker swarm join --token {{ hostvars['MASTER_KEY_TOKEN_HOLDER']['docker_swarm_status_join_token_worker'] | join }} {{ hostvars['MASTER_KEY_TOKEN_HOLDER']['ipv4_address'] }}:2377"
+  when: "inventory_hostname in docker_swarm_cluster_clients_group"
+
+- name: JOIN MANAGERS 
+  raw: "docker swarm join --token {{ hostvars['MASTER_KEY_TOKEN_HOLDER']['docker_swarm_status_join_token_manager'] | join }} {{ hostvars['MASTER_KEY_TOKEN_HOLDER']['ipv4_address'] }}:2377"
+  register: join_manager_result
+  when: "inventory_hostname != primary_swarm_hostname and inventory_hostname not in docker_swarm_cluster_clients_group"
+
+- name: JOIN WORKERS 
+  raw: "docker swarm join --token {{ hostvars['MASTER_KEY_TOKEN_HOLDER']['docker_swarm_status_join_token_worker'] | join }} {{ hostvars['MASTER_KEY_TOKEN_HOLDER']['ipv4_address'] }}:2377"
+  register: join_worker_result
+  when: "inventory_hostname in docker_swarm_cluster_clients_group"
+
+- name: DEBUG | JOIN MANAGERS 
+  debug:
+    msg: "{{ join_manager_result.stdout_lines | join }}"
+  when: "inventory_hostname != primary_swarm_hostname and inventory_hostname not in docker_swarm_cluster_clients_group"
+
+- name: DEBUG | JOIN WORKERS 
+  debug:
+    msg: "{{ join_worker_result.stdout_lines | join }}"
+  when: "inventory_hostname in docker_swarm_cluster_clients_group"

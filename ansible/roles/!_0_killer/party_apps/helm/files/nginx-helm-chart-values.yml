@@ -1,0 +1,17 @@
+---
+controller:
+  name:controller
+  image:
+       repository:artifactory.global.standardchartered.com/kubernetes-ingress-controller/nginx-ingress-controller
+stats:
+  enabled:true
+metrics:
+  enabled:true
+service:
+  type:NodePort
+  nodePorts:
+    http:32080
+    https:32443
+extraArgs:
+  enable-ssl-chain-completion:"false"
+  enable-ssl-passthrough:"true"

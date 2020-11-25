@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  annotations:
+    pv.kubernetes.io/provisioned-by: openebs.io/local
+  creationTimestamp: null
+  finalizers:
+  - kubernetes.io/pv-protection
+  name: pvc-c27e9f7d-9cbb-11e9-890b-b42e994820d9
+  selfLink: /api/v1/persistentvolumes/pvc-c27e9f7d-9cbb-11e9-890b-b42e994820d9
+spec:
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 30Gi
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    name: drone-agent-data
+    namespace: drone
+    resourceVersion: "1419937"
+    uid: c27e9f7d-9cbb-11e9-890b-b42e994820d9
+  hostPath:
+    path: /var/openebs/local/pvc-c27e9f7d-9cbb-11e9-890b-b42e994820d9
+    type: DirectoryOrCreate
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - worker1
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: openebs-hostpath
+  volumeMode: Filesystem
+status: {}

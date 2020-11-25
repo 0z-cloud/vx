@@ -1,0 +1,6 @@
+- name: NTP Check task
+  #become: true
+  hosts: "{{ HOSTS | default('linux-hosts') }}"
+  roles:
+    - name: NTP Check Role
+      role: ./!_bootstrap/ntp/check

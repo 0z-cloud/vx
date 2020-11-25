@@ -1,0 +1,53 @@
+# my global config
+global:
+  scrape_interval:     15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  # scrape_timeout is set to the global default (10s).
+
+  # Attach these labels to any time series or alerts when communicating with
+  # external systems (federation, remote storage, Alertmanager).
+  external_labels:
+      monitor: 'codelab-monitor'
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+# rule_files:
+#   - "alerts.rules/cpu_load.conf"
+#   - "alerts.rules/memory_load.conf"
+#   - "alerts.rules/hdd_load.conf"
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+
+scrape_configs:
+   {% if swarm_disabled_inventory is not defined %}
+- job_name: 'cadvisor'
+     scrape_interval: 5s
+     metrics_path: /metrics
+     scheme: http
+     static_configs:
+     - targets: ['{{ groups['cadvisor'] | map('extract', hostvars, ['cadvisor_overlay_network_ip']) | list | join (":8080', '") }}:{{ cadvisor_service_listen_port }}']{% else %}
+- job_name: 'cadvisor'
+     scrape_interval: 5s
+     metrics_path: /metrics
+     scheme: http
+     static_configs:
+     - targets: ['{{ groups['cadvisor'] | map('extract', hostvars, ['ansible_default_ipv4', 'address']) | list | join (":8080', '") }}:{{ cadvisor_service_listen_port }}']
+{% endif %}  
+   {% if swarm_disabled_inventory is not defined %}
+- job_name: 'nodex'
+     static_configs:
+     - targets: ['{{ groups['node-exporter'] | map('extract', hostvars, ['nodex_overlay_network_ip']) | list | join (":9100', '") }}:9100']{% else %}
+- job_name: 'nodex'
+     static_configs:
+     - targets: ['{{ groups['node-exporter'] | map('extract', hostvars,  ['ansible_default_ipv4', 'address']) | list | join (":9100', '") }}:9100']
+    {% endif %}
+{% for dict_item in percona_mysql_exporter_databases %}{% for key, value in dict_item.items() %}
+{% raw %}
+   - job_name: 'prometheus-mysql-exporter-{% endraw %}{{ key }}'
+     scrape_interval: 60s
+     metrics_path: /
+     scheme: http
+     static_configs:
+     - targets: ['{{ groups['percona-cluster'] | map('extract', hostvars,  ['ansible_default_ipv4', 'address']) | list | join }}:{{ value.metrics_port }}']
+{% endfor %}
+{% endfor %}

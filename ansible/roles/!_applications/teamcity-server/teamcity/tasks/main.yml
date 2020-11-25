@@ -1,0 +1,44 @@
+- name: Create TeamCity directories for env specific configurations
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0755
+  with_dict: "{{ teamcity_settings.directories | default({}) }}"
+
+- name: Create database.properties for TC Database Connection
+  template:
+     src: database.properties.j2
+     dest: "{{ postgresql_settings.directories.config_path }}/database.properties"
+
+- name: Create server.xml for TC binding
+  template:
+     src: server.xml.j2
+     dest: "{{ postgresql_settings.directories.config_path }}/server.xml"
+
+- name: Pull jetbrains/teamcity-server Docker image to host installer
+  docker_image:
+      name: jetbrains/teamcity-server:2019.1
+      tag: latest
+      force: true
+      
+## NEED TO FIX NGINX FQDN
+
+- name: re/Create a TeamCity Service docker container
+  docker_container:
+      name: "TeamCity-{{ ansible_environment }}-{{ ansible_nodename }}"
+      image: "jetbrains/teamcity-server:2019.1"
+      hostname: "TeamCity-{{ ansible_environment }}-{{ ansible_nodename }}"
+      volumes:
+        - "{{ teamcity_settings.directories.data_dir }}:/data/teamcity_server/datadir"
+      privileged: yes
+      pull: true
+      restart_policy: unless-stopped
+      ports: 
+        - "{{ teamcity_service_listen_port }}:{{ teamcity_service_listen_port }}"
+      detach: True
+      recreate: yes
+      env:
+        POSTGRES_USER: "{{ teamcity_settings.user }}"
+        POSTGRES_PASSWORD: "{{ teamcity_settings.password }}"
+        POSTGRES_DB: "{{ teamcity_settings.database }}"
+      state: started

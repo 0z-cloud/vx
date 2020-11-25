@@ -1,0 +1,6 @@
+- name: Rsyslog Configuration Playbook
+  become: true
+  hosts: "{{ HOSTS | default('all') }}"
+  roles:
+    - name: Current rsyslog tags change
+      role: ./!_security/rsyslog/current

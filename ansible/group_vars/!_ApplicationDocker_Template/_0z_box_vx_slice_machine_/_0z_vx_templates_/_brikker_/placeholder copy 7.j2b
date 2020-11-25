@@ -1,0 +1,6 @@
+# BRIKKER VX CLOUD ANSIBLE FILE
+# {% block placeholder %}
+# value = default value in main.j2
+# {% endblock %}
+# value3 = 789
+

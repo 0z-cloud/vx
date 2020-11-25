@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="09cd3795-8fba-47ef-9803-6d4f73657dd5" xsi:noNamespaceSchemaLocation="https://www.jetbrains.com/teamcity/schemas/2018.1/project-config.xsd">
+  <name>Wirecapital</name>
+  <parameters>
+    <param name="A_DEPLOY_PASSWORD" value="A_DEPLOY_PASSWORD" spec="text description='A_DEPLOY_PASSWORD' label='A_DEPLOY_PASSWORD' validationMode='any' display='prompt'" />
+    <param name="A_VAULT_PASSWORD" value="A_VAULT_PASSWORD" spec="text description='A_VAULT_PASSWORD' label='A_VAULT_PASSWORD' validationMode='any' display='prompt'" />
+    <param name="dp" value="credentialsJSON:f9795113-8a2f-4fbd-a3a3-0901244648b9" spec="password description='Deploy Password' label='Deploy Password' display='normal'" />
+    <param name="message" value="credentialsJSON:510be2f1-e618-4826-b698-2b3fa6fd7f4c" spec="password description='Encrypted rest of SHA message to this commit' label='message' display='normal'" />
+  </parameters>
+  <cleanup />
+</project>
+

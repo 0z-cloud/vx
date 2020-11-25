@@ -1,0 +1,76 @@
+---
+
+- set_fact:
+    _helper_scripts:
+      - grant-local-root.ldif
+      - disable_anon_backend.ldif
+      - dis-anon-frontend.ldif
+    _helper_last:
+      - Manager.ldif
+      - SwitchAccess.ldif
+      - Admins.ldif
+    _user_list:
+      - vortex
+      - testswitchaccess
+      #- disallow-anon-bind.ldif
+      #- test.ldif
+#     - disallow-anon-bind.ldif
+      # - grant-local-root.ldif
+      # - dis-anon-frontend.ldif
+      # - disable_anon_backend.ldif
+
+
+- name: ldif helper are updated
+  copy:
+    src: "{{ item }}"
+    dest: "{{ slapd_ldif_helper_dir }}/{{ item }}"
+    owner: root
+    group: root
+    mode: 0770
+  with_items: "{{ _helper_scripts }}"
+
+- name: ldif helper are updated
+  copy:
+    src: "{{ item }}"
+    dest: "{{ slapd_ldif_helper_dir }}/{{ item }}"
+    owner: root
+    group: root
+    mode: 0770
+  with_items: "{{ _helper_last }}"
+
+- name: Create user.ldif
+  template:
+    src: user.ldif
+    dest: "{{ slapd_ldif_helper_dir }}/user.ldif"
+    owner: root
+    group: root
+    mode: 0770
+
+- name: Create ldap.conf
+  template:
+    src: ldap.conf
+    dest: "/etc/ldap/ldap.conf"
+    owner: root
+    group: root
+    mode: 0770
+
+- name: Anononmous access is denied
+  raw: ldapmodify -Q -Y EXTERNAL -H ldapi:/// -f "{{ slapd_ldif_helper_dir }}/{{ item }}"
+  with_items: "{{ _helper_scripts }}"
+
+- name: Anononmous access is denied
+  raw: ldapmodify -Q -Y EXTERNAL -H ldapi:/// -f "{{ slapd_ldif_helper_dir }}/{{ item }}"
+  with_items: "{{ _helper_last }}"
+
+- name: Get all current DNs
+  raw: ldapsearch -H ldapi:// -Y EXTERNAL -b "cn=config" -LLL -Q "olcDatabase=*" dn
+  register: ldapsearch
+
+- name: Debug ldapsearch
+  debug:
+    msg: "{{ ldapsearch }}"
+
+- name: Restart ldap
+  service: 
+    name: slapd
+    state: restarted

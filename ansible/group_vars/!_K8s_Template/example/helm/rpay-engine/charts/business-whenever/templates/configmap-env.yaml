@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "business-when.name" . }}-env
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ template "business-when.name" . }}
+    chart: {{ template "business-when.chart" . }}
+data:
+{{ toYaml .Values.env | indent 2 }}  

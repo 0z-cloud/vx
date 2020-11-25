@@ -1,0 +1,70 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    annotations:
+      field.cattle.io/creatorId: user-rxbgq
+      pv.kubernetes.io/bind-completed: "yes"
+      pv.kubernetes.io/bound-by-controller: "yes"
+      volume.beta.kubernetes.io/storage-provisioner: openebs.io/local
+      volume.kubernetes.io/selected-node: worker1
+    creationTimestamp: "2019-07-02T11:23:04Z"
+    finalizers:
+    - kubernetes.io/pvc-protection
+    labels:
+      cattle.io/creator: norman
+    name: drone-agent-data
+    namespace: drone
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    dataSource: null
+    resources:
+      requests:
+        storage: 30Gi
+    storageClassName: openebs-hostpath
+    volumeMode: Filesystem
+    volumeName: pvc-c27e9f7d-9cbb-11e9-890b-b42e994820d9
+  status:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 30Gi
+    phase: Bound
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    annotations:
+      field.cattle.io/creatorId: user-rxbgq
+      pv.kubernetes.io/bind-completed: "yes"
+      pv.kubernetes.io/bound-by-controller: "yes"
+      volume.beta.kubernetes.io/storage-provisioner: openebs.io/local
+      volume.kubernetes.io/selected-node: worker2
+    creationTimestamp: "2019-07-01T16:11:23Z"
+    finalizers:
+    - kubernetes.io/pvc-protection
+    labels:
+      cattle.io/creator: norman
+    name: drone-server-data
+    namespace: drone
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    dataSource: null
+    resources:
+      requests:
+        storage: 30Gi
+    storageClassName: openebs-hostpath
+    volumeMode: Filesystem
+    volumeName: pvc-df23a057-9c1a-11e9-890b-b42e994820d9
+  status:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 30Gi
+    phase: Bound
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""

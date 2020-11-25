@@ -1,0 +1,77 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "9"
+    field.cattle.io/creatorId: user-rxbgq
+    field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":443,"protocol":"HTTPS","serviceName":"drone:ingress-158817a0e5d138e3d3e6f2f880a2609b","ingressName":"drone:drone-ingress","hostname":"drone.rocketho.me","path":"/","allNodes":true}]'
+  creationTimestamp: null
+  generation: 1
+  labels:
+    cattle.io/creator: norman
+    workload.user.cattle.io/workloadselector: deployment-drone-drone-server
+  name: drone-server
+  selfLink: /apis/extensions/v1beta1/namespaces/drone/deployments/drone-server
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      workload.user.cattle.io/workloadselector: deployment-drone-drone-server
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        cattle.io/timestamp: "2019-07-02T10:09:51Z"
+        workload.cattle.io/state: '{"d29ya2VyMg==":"c-4rvhr:m-01925b7892e2"}'
+      creationTimestamp: null
+      labels:
+        workload.user.cattle.io/workloadselector: deployment-drone-drone-server
+    spec:
+      containers:
+      - envFrom:
+        - configMapRef:
+            name: drone-server-config
+            optional: false
+        - secretRef:
+            name: drone-secret
+            optional: false
+        image: drone/drone
+        imagePullPolicy: Always
+        name: drone-server
+        resources: {}
+        securityContext:
+          allowPrivilegeEscalation: true
+          privileged: true
+          procMount: Default
+          readOnlyRootFilesystem: false
+          runAsNonRoot: false
+        stdin: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        tty: true
+        volumeMounts:
+        - mountPath: /var/run/docker.sock
+          name: docker-sock
+        - mountPath: /data
+          name: drone-server-data
+      dnsPolicy: ClusterFirst
+      nodeName: worker2
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - hostPath:
+          path: /var/run/docker.sock
+          type: Socket
+        name: docker-sock
+      - name: drone-server-data
+        persistentVolumeClaim:
+          claimName: drone-server-data
+status: {}

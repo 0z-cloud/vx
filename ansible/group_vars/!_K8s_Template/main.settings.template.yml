@@ -1,0 +1,34 @@
+# Docker version
+K8S_DOCKER_VERSION: "5:19.03.6~3-0~ubuntu-bionic"
+
+# Kubernetes dynamic configuration settings
+kube_version: "{{ K8S_SOFTWARE_VERSION }}"
+token: "{{ K8S_SOFTWARE_TOKEN }}"
+init_opts: "{{ K8S_INIT_OPTIONS }}"
+kubeadm_opts: "{{ K8S_EXTRA_API_KUBEADM_OPTIONS }}"
+
+# Network implementation('flannel', 'calico', 'canal')
+network: "{{ K8S_NETWORK_TYPE }}"
+service_cidr: "{{ SERVICE_NETWORK_CIDR }}"
+pod_network_cidr: "{{ POD_NETWORK_CIDR }}"
+network_interface: "{{ CLOUD_PRIVATE_NETWORK_INTERFACE }}"
+enable_dashboard: "{{ K8S_DASHBOARD_STATE }}"
+
+# A list of insecure registries you might need to define
+# insecure_registries: []
+insecure_registries: ['gcr.io']
+
+systemd_dir: /lib/systemd/system
+system_env_dir: /etc/sysconfig
+network_dir: /etc/kubernetes/network
+kubeadmin_config: /etc/kubernetes/admin.conf
+kube_addon_dir: /etc/kubernetes/addon
+
+# Additional feature to install
+additional_features:
+  helm: "{{ K8S_HELM_STATE }}"
+  metallb: "{{ K8S_METALB_STATE }}"
+  healthcheck: "{{ K8S_HEALTHCHECK_STATE }}"
+
+# temporary directory used by additional features
+tmp_dir: /tmp/kubeadm-ansible-files

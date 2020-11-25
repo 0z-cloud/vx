@@ -1,0 +1,4 @@
+- name: Install necessary packages DNS
+  apt:
+    name: "{{ bind_cloud_settings.packages }}"
+    state: present

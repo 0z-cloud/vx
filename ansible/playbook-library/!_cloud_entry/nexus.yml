@@ -1,0 +1,15 @@
+- name: Install Nexus Repository and Registry Services
+  hosts: nexus-service
+  vars_files:
+    - "group_vars/products/{{ ansible_product }}/main.yml"
+    - "group_vars/products/{{ ansible_product }}/{{ ansible_cloud_type }}.yml"
+    - "group_vars/products/{{ ansible_product }}/shared.yml"
+    - "group_vars/products/{{ ansible_product }}/zone.yml"
+    - "group_vars/!_anyCloud/anyCloud.yml"
+    - "group_vars/all.yml"
+    - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/dns/{{ REPLACED_HOSTS | default('master-bind-master-backend') }}/{{ REPLACED_HOSTS | default('master-bind-master-backend') }}.yml"
+    - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+    - "inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+  roles:
+    - name: Calling nexus role
+      role: ./!__cloud_repo__/nexus

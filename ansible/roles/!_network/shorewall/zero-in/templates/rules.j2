@@ -1,0 +1,52 @@
+########## 
+# RULES       INCLUDE       
+
+# Firewall
+INCLUDE       rules.fw
+
+# WAN
+INCLUDE       rules.wan
+
+# DNAT
+INCLUDE       rules.wan-dnat
+
+# NET  
+INCLUDE       rules.net
+
+# NGINX  
+INCLUDE       rules.nginx
+
+# SEC
+INCLUDE       rules.sec
+
+# bas
+INCLUDE       rules.bas
+
+# REPO
+INCLUDE       rules.repo
+
+# VRRP
+INCLUDE       rules.vrrp
+
+# VIP
+INCLUDE       rules.vip
+
+# VPN
+INCLUDE       rules.vpn
+
+# CDE
+INCLUDE       rules.cde
+
+{% if second_network_zone == 'cluster' %}
+# CLUSTER
+INCLUDE       rules.cluster
+{% endif %}
+
+# DOCKER
+INCLUDE       rules.docker
+INCLUDE       rules.bridge
+INCLUDE       rules.ess
+INCLUDE       rules.geov
+
+# ALL
+INCLUDE       rules.all

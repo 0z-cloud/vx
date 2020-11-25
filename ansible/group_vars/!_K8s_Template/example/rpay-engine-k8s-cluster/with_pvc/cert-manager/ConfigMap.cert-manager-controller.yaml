@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  annotations:
+    control-plane.alpha.kubernetes.io/leader: '{"holderIdentity":"cert-manager-687d7fdf8c-flr2q-external-cert-manager-controller","leaseDurationSeconds":60,"acquireTime":"2019-07-03T11:53:14Z","renewTime":"2019-07-09T14:26:13Z","leaderTransitions":8}'
+  creationTimestamp: null
+  name: cert-manager-controller
+  selfLink: /api/v1/namespaces/cert-manager/configmaps/cert-manager-controller

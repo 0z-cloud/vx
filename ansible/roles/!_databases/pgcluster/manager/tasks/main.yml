@@ -1,0 +1,39 @@
+---
+
+- name: Inject and merge defaults settings with postgres_cluster_settings
+  set_fact:
+    postgres_cluster_settings: "{{ postgres_cluster_settings_defaults | combine(postgres_cluster_settings) }}"
+  tags: [always]
+
+- name: Create hosts file from template for container
+  template:
+     src: hosts.j2 
+     dest: "{{ postgres_cluster_settings.directories.config_path }}/hosts"
+
+- name: re/Create a PG Manager Cluster Control Service docker container
+  docker_container:
+      name: pgmanager-{{ ansible_environment }}-{{ ansible_hostname }}
+      #image: "{{ ansible_global_gitlab_registry_site_name }}/{{ ansible_git_project_path }}/pgmanager:{{ default_docker_image_environment_tag }}"
+      image: severalnines/clustercontrol
+      hostname: "pgmanager-{{ ansible_environment }}-{{ ansible_hostname }}"
+      volumes:
+        - "{{ postgres_cluster_settings.directories.config_path }}/hosts:/etc/hosts"
+      ports:
+        - "{{ pgmanager_service_listen_port }}:80"
+        # - "{{ pgmanager_service_listen_port }}:{{ pgmanager_service_internal_listen_port }}"
+      env:
+        PG_BACKEND_NODE_LIST: "{% for host in groups['postgres-pgcontrol-cluster'] %}{{ hostvars[host].pgcluster_node_index }}:{{ hostvars[host].pgcluster_node_name }}:{{ postgres_cluster_settings.pg_port }}:1:/data:ALLOW_TO_FAILOVER{% if not loop.last %},{% endif %}{% endfor %}"
+        #PG_BACKEND_NODE_LIST: 0:pg01:5432:1:/data:ALLOW_TO_FAILOVER,1:pg02:5432:1:/data:ALLOW_TO_FAILOVER,2:pg03:5432:1:/data:ALLOW_TO_FAILOVER
+        REPMGRPWD: rep123
+        DBHOST: pgpool
+        # POSTGRES_PASSWORD: "{{ postgres_cluster_settings.root_password }}"
+        # POSTGRES_USER: "{{ postgres_cluster_settings.postgres_user }}"
+        # MYSQL_ROOT_PASSWORD: "{{ postgres_settings.root_password }}"
+        # CLUSTER_NAME: "{{ postgres_settings.wsrep_cluster_name }}"
+      privileged: yes
+      restart_policy: always
+      detach: True
+      recreate: yes
+      state: started
+      # network_mode: host
+      user: root

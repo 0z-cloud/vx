@@ -1,0 +1,10 @@
+- name: re/Create a new alicloud VPC resource
+  ali_vpc:
+    alicloud_region: '{{ item.value.anycloud_landscape_region }}'
+    state: 'present'
+    cidr_block: '{{ item.value.anycloud_virtual_zone_cidr_block }}'
+    vpc_name: '{{ item.value.anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_name }}'
+    description: '{{ item.value.anycloud_virtual_cloud_description }}'
+    alicloud_secret_key: "{{ anycloud_api_secret_key }}"
+    alicloud_access_key: "{{ anycloud_api_access_key }}"
+  with_dict: "{{ cloud_bootstrap.vpc_zones }}"

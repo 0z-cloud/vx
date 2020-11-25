@@ -1,0 +1,53 @@
+---
+
+slapd_system_packages:
+  # These are for slapd itself
+  - slapd 
+  - ldap-utils
+  # These are so we we can install python-ldap
+  - libsasl2-dev
+  - libldap2-dev
+  - libssl-dev
+  - python-pip
+  - python-dev 
+  - python3-dev 
+  - libevent-dev
+  
+slapd_python_packages:
+  - python-ldap
+
+slapd_user:  openldap
+slapd_group: openldap
+
+slapd_conf_dir: /etc/ldap
+
+slapd_config_data_default_dir: "{{ slapd_root_conf_dir }}/slapd.d"
+
+slapd_default_data_dir: /var/lib/ldap
+slapd_data_dir: "{{ slapd_default_data_dir }}"
+
+slapd_apparmor_dir: /etc/apparmor.d
+slapd_apparmor_name: usr.sbin.slapd
+
+slapd_openssh: true
+
+slapd_set_password:   true
+slapd_reset_password: true
+slapd_admin_password: "asd819hr1br12br18qQ"         # will cause an error on first run unless set!
+
+slapd_disable_anon_bind: false
+
+slapd_indices:
+  - "objectClass,uidNumber,gidNumber,sudoUser eq,pres"
+  - "ou,cn,mail,surname,givenname,uid,memberUid,nisMapName,nisMapEntry  eq,pres,sub"
+  
+slapd_acls: []
+
+slapd_custom_schemas: []
+
+# See http://www.openldap.org/doc/admin24/slapdconf2.html
+slapd_log_level:      stats
+slapd_log_dir:        /var/log/ldap
+slapd_syslog_dir:     /etc/rsyslog.d
+slapd_syslog_service: rsyslog
+slapd_logrotate_dir:  /etc/logrotate.d

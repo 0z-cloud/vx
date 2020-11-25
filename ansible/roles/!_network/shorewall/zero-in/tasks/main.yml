@@ -1,0 +1,220 @@
+- name: Add apt repository keys
+  apt_key:
+    keyserver: keyserver.ubuntu.com
+    id: "{{ item }}"
+  with_items:
+    - AA8E81B4331F7F50
+    - EF0F382A1A7B6500
+    - 7638D0442B90D010
+    - DCC9EFBF77E11517
+    - 04EE7237B7D453EC
+
+- name: Place debian shorewall list to apt
+  template:
+    src: ./services/apt/debian_shorewall.list
+    dest: /etc/apt/sources.list.d/debian_shorewall.list
+
+- name: Place debian shorewall preferences to apt
+  template:
+    src: ./services/apt/preferences
+    dest: /etc/apt/preferences.d/preferences
+
+- name: INIT | Apt check and install bridge-utils packages
+  apt: 
+    name: "{{ item }}"
+    state: installed
+    update_cache: yes
+  with_items:
+    - bridge-utils
+
+- name: INIT | Apt check and install shorewall packages
+  apt: 
+    name: "{{ item }}"
+    state: installed
+    update_cache: yes
+  with_items:
+    - shorewall=5.2.3.2-1
+    - shorewall-core=5.2.3.2-1
+
+- name: SHELL | Check the docker swarm networks are a present
+  shell: docker network ls | grep -v none | grep -v host | awk '{print $2}' | tail -n +2
+  register: docker_networks
+  ignore_errors: true
+
+# - name: DEBUG | Docker networks
+#   debug:
+#     msg: "{{ docker_networks }}"
+#   when: docker_networks.stdout != "" 
+#   #and debug_playbook_stdout is defined
+
+# - name: DEBUG | Docker network item by item
+#   debug:
+#     msg: "{{ item }}"
+#   with_items: "{{ docker_networks.stdout_lines }}"
+#   #when: debug_playbook_stdout is defined
+
+- name: SHELL | Get the Docker Swarm Subnets
+  shell: "docker network inspect -f {% raw %}'{{.Name}}: {{range .IPAM.Config}}{{.Subnet}}{{end}}'{% endraw %} {{ item }}"
+  with_items: "{{ docker_networks.stdout_lines }}"
+  register: docker_networks_array
+  when: docker_networks.stdout != ""
+
+- name: SHELL | Get the Docker Swarm interfaces
+  shell: "docker network inspect -f {% raw %}'{{.Name}}: {{.Options}}'{% endraw %} {{ item }} | grep -Pzo 'name:(.*\\])*' | sed -e 's/name\\://g' | sed -e 's/\\]//g' | awk '{print $1}' | sed -e 's/\\x00/\\n/g'"
+  with_items: "{{ docker_networks.stdout_lines }}"
+  register: docker_networks_array_interfaces
+  when: docker_networks.stdout != ""
+  ignore_errors: true
+
+- name: GET BRIDGES
+  shell: brctl show {{ item }} | awk '{print $1,$4}' | tail -n +2 | sed -e 's/{{ item }} //g' | sed 's/^/{{ item }}_/g' | sed 's/ //'
+  register: "bridges_interfaces"
+  with_items:
+    - docker_gwbridge
+    - docker0
+
+# - name: DEBUG | Docker BRIDGES interfaces array item by item
+#   debug:
+#     msg: "{{ item.stdout_lines }}"
+#   with_items: "{{ bridges_interfaces.results }}"
+
+# - name: DEBUG | Docker networks interfaces array item by item
+#   debug:
+#     msg: "{{ item.stdout_lines }}"
+#   with_items: "{{ docker_networks_array_interfaces.results }}"
+#   when: item.stdout != ''
+
+# - name: DEBUG | Docker networks array item by item
+#   debug:
+#     msg: "{{ item.stdout_lines }}"
+#   with_items: "{{ docker_networks_array.results }}"
+
+# - name: SHOREWALL DIRECTIONS | Template
+#   template: 
+#     src: DIRECTIONS_MAP.out.j2
+#     dest: /tmp/DIRECTIONS_MAP.out
+
+# - name: SHELL
+#   shell: cat /tmp/DIRECTIONS_MAP.out
+#   register: DIRECTIONS_MAP
+
+# - name: DEBUG | DIRECTIONS_MAP networks
+#   debug:
+#     msg: "{{ DIRECTIONS_MAP.stdout_lines }}"
+#   when: DIRECTIONS_MAP.stdout != ""
+
+- name: CREATE SHOREWALL SEPARATE CONFIGURATIONS | Template
+  template: 
+    src: "./rules/rules.{{ item }}.j2"
+    dest: "/etc/shorewall/rules.{{ item }}"
+  with_items:
+    - all
+    - bas
+    - bridge
+    - docker
+    - cde
+    - cluster
+    - dmz
+    - fw
+    - ess
+    - geov
+    - net
+    - nginx
+    - repo
+    - sec
+    - vip
+    - vpn
+    - vrrp
+    - wan-dnat
+    - wan
+
+# - name: SHELL CAT RULES FOR SHOW
+#   shell: "cat /etc/shorewall/rules.{{ item }}"
+#   with_items:
+#     - all
+#     - bas
+#     - bridge
+#     - docker
+#     - cde
+#     - cluster
+#     - dmz
+#     - fw
+#     - ess
+#     - net
+#     - nginx
+#     - repo
+#     - sec
+#     - vip
+#     - vpn
+#     - vrrp
+#     - wan-dnat
+#     - wan
+#   register: DIRECTIONS_MAP_RULES
+
+- name: CREATE SHOREWALL MAIN CONFIGURATION FILE | Template
+  template: 
+    src: "shorewall.conf.j2"
+    dest: "/etc/shorewall/shorewall.conf"
+
+- name: CREATE SHOREWALL SEPARATE CONFIGURATIONS | Template
+  template: 
+    src: "{{ item }}.j2"
+    dest: "/etc/shorewall/{{ item }}"
+  with_items:
+    - zones
+    - hosts
+    - interfaces
+    - rules
+    - masq
+    - params
+    - conntrack
+    - policy
+
+# - name: SHELL CAT PRIMARY CONFIGS FOR SHOW
+#   shell: "cat /etc/shorewall/{{ item }}"
+#   with_items:
+#     - zones
+#     - hosts
+#     - interfaces
+#     - rules
+#     - masq
+#     - params
+#     - conntrack
+#     - policy
+#     - shorewall
+
+  # register: DIRECTIONS_MAP_SEP
+
+# - name: DEBUG | DIRECTIONS_MAP_SEP networks
+#   debug:
+#     msg: "{{ DIRECTIONS_MAP_SEP }}"
+
+# - name: DEBUG | DIRECTIONS_MAP_SEP networks
+#   debug:
+#     msg: "{{ DIRECTIONS_MAP_RULES }}"
+
+- name: SHOREWALL | Raw check
+  shell: shorewall check
+  register: shorewall_check
+
+- name: Debug
+  debug:
+    msg: "{{ shorewall_check }}"
+
+- name: Template Docker Service daemon.json for disable Iptables direct changes
+  template:
+    src: ./services/docker/docker.daemon.json.j2
+    dest: /etc/docker/daemon.json
+  register: docker_change_default_daemon_json
+
+- name: Template Docker Defaults Service Startup for disable Iptables direct changes
+  template:
+    src: ./services/docker/docker.defaults.conf
+    dest: /etc/default/docker
+  register: docker_change_default_daemon_json
+
+- name: Restart Docker service if daemon.json changed
+  service:
+    name: docker
+    state: restarted
+  when: docker_change_default_daemon_json.changed

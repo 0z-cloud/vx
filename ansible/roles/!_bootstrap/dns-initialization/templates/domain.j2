@@ -1,0 +1,78 @@
+{% raw %}
+$ORIGIN {% endraw %}{{ consul_merge_domain_name }}{% raw %}
+$TTL 86400 ; 1 day
+@ IN SOA {% endraw %}{{ hostvars[inventory_hostname].ansible_nodename }}{% raw %} hostmaster (
+        2018070104 ; serial
+                60 ; refresh (60 seconds)
+                900 ; retry (15 minutes)
+            604800 ; expire (1 week)
+                60 ; minimum (60 seconds)
+)
+;
+{% endraw %}
+
+{% if bind_cloud_settings.other_environments_subdomains is defined %}
+
+{% for item in bind_cloud_settings.other_environments_subdomains %} 
+
+{% for host in groups['cloud-bind-frontend-dns'] %}
+
+{{ item }}                             IN        NS      {{ hostvars[host]['cloud_ns_name'] }}.{{ consul_merge_domain_name }}              
+      
+{% endfor %}
+{% endfor %}
+{% endif %}
+
+; A DNS SECTION			                                ------------------------------------
+{% for host in groups['cloud-bind-frontend-dns'] %}
+                                                      IN	     NS	     {{ hostvars[host]['cloud_ns_name'] }}.{{ consul_merge_domain_name }}
+{% endfor %}
+
+{% for host in groups['cloud-bind-frontend-dns'] %}
+{% if hostvars[host]['second_ip'] is defined %}
+{{ hostvars[host]['cloud_ns_name'] }}.{{ consul_merge_domain_name }} IN      A       {{ hostvars[host]['ansible_default_ipv4']['address'] }}
+{{ hostvars[host].ansible_nodename }}                 IN      A       {{ hostvars[host]['second_ip'] }}
+glusterfs.{{ hostvars[host].ansible_nodename }}       IN      A       {{ hostvars[host]['second_ip'] }}
+{% else %}
+{{ hostvars[host]['cloud_ns_name'] }}.{{ consul_merge_domain_name }} IN      A       {{ hostvars[host]['ansible_default_ipv4']['address'] }}
+{{ hostvars[host].ansible_nodename }}                 IN      A       {{ hostvars[host]['ansible_default_ipv4']['address'] }}
+glusterfs.{{ hostvars[host].ansible_nodename }}       IN      A       {{ hostvars[host]['ansible_default_ipv4']['address'] }}
+{% endif %}
+{% endfor %}
+
+; HA DNS SECTION			                            ------------------------------------
+{% for item in bind_cloud_settings.mixed_static_with_dynamic_entries %}
+;{{ item.record }}{{ item.value }}
+{% endfor %}
+
+{% if bind_cloud_settings.extra_static_with_dynamic_entries is defined %}
+; EXTRA DNS SECTION			                            ------------------------------------
+{% for item in bind_cloud_settings.extra_static_with_dynamic_entries %}
+{{ item.record }}{{ item.value }}
+{% endfor %}
+{% endif %}
+
+; PRIMARY SITE SERVICES PUBLISH
+{% for dict_item in unification_dns_primary_services %}{% for key, value in dict_item.items() %}
+{% for v in value.external_ip %}
+{{ key | replace('\n', '') }}                IN      A       {{ v }}
+{% endfor %}
+{% endfor %}
+{% endfor %}
+
+; EXTERNAL SERVICES PUBLISH
+{% for dict_item in unification_services %}{% for key, value in dict_item.items() %}
+{% if value.external_ip is defined %}
+{% for v in value.external_ip %}
+{{ key | replace('\n', '') }}                IN      A       {{ v }}
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% endfor %}
+
+; HOSTS SECTION
+{% for host in groups['all'] %}
+{% if host not in groups['cloud-bind-frontend-dns'] %}
+{{ hostvars[host].ansible_nodename }}                 IN      A       {{ hostvars[host]['ansible_default_ipv4']['address'] }}
+{% endif %}
+{% endfor %}

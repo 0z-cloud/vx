@@ -1,0 +1,8 @@
+- name: Run the fetch-sql-logs role 
+  become: true
+  hosts: "{{ HOSTS }}"
+  roles:
+    - name: Run the fetch-sql-logs role
+      role: ./!_hooks/fetch_something/fetch-sql-logs
+  tags: 
+    - fetch-sql-logs

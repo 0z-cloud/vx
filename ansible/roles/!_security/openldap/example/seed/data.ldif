@@ -1,0 +1,31 @@
+# Services
+dn: ou=services,dc=example,dc=com
+ou: services
+description: Services maintained by gronke.org
+objectClass: organizationalUnit
+
+dn: cn=gogs,ou=services,dc=example,dc=com
+cn: gogs
+sn: gogs_service
+description: Gogs service account
+# echo -n "test" | xargs -n 1 slapd -h {SSHA} -s
+userPassword: {SSHA}q7KZ1J1WEF106aPVdoTrgwFl4MTzkMgv
+objectClass: person
+
+# Users
+dn: ou=people,dc=example,dc=com
+ou: people
+description: Real users of my Organization
+objectClass: organizationalUnit
+
+dn: cn=Stefan Grönke,ou=people,dc=example,dc=com
+objectClass: person
+objectClass: inetOrgPerson
+cn: Stefan Grönke
+gn: Stefan
+sn: Grönke
+uid: gronke
+# echo -n "secret" | xargs -n 1 slapd -h {SSHA} -s
+userPassword: {SSHA}riJ7VSrQR3vGOuqai4Wy9PijPtyYc4RE
+mail: stefan@gronke.net
+description: Author of the Example

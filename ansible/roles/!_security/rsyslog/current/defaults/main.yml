@@ -1,0 +1,170 @@
+
+application_logs_tags:
+  vortex-reports-01:
+    - audispd
+    - apache-access
+    - apache-error
+    - apache-access
+    - merchant-apache-error
+    - laravel
+    - merchantapp
+  vortex-gateway-01:
+    - gateway-error
+    - gateway-access
+    - audispd
+    - gateway-444-error
+    - gateway-444-access
+    - transaction-do-error
+    - transaction-do-access
+    - transaction-do-444-error
+    - transaction-do-444-access
+  vortex-transfers-alfabank-01:
+    - audispd
+    - transfers-alfabank_access
+    - transfers-alfabank_error
+    - laravel
+  vortex-public-api-01:
+    - public-api_access
+    - public-api_error
+    - bik-service_access
+    - bik-service_error
+    - laravel-api
+    - laravel-bik
+    - audispd
+  vortex-topup-gsm-gate-01:
+    - audispd
+    - topup-gsm-gate-laravel
+    - topup_tele2_access
+    - topup_tele2_error
+  vortex-gateway-02:
+    - audispd
+    - gateway-error
+    - gateway-access
+    - gateway-444-error
+    - gateway-444-access
+    - transaction-do-access
+    - transaction-do-error
+    - transaction-do-444-error
+    - transaction-do-444-access
+  vortex-services-01:
+    - audispd
+    - bik-service_access
+    - bik-service_error
+    - botman-service_access
+    - botman-service_error
+    - laravel-bik
+    - laravel-botman
+  vortex-adminweb-01:
+    - audispd
+    - apache-access
+    - apache-error
+  vortex-secureweb-02:
+    - audispd
+    - apache-access
+    - apache-error
+    - application-log
+  vortex-clientweb-01:
+    - audispd
+    - apache-access
+    - apache-error
+  vortex-tomcat-02:
+    - audispd
+  vortex-storage-02:
+    - audispd
+  vortex-storage-01:
+    - audispd
+  vortex-tomcat-01:
+    - audispd
+  vortex-secureweb-01:
+    - apache-access
+    - apache-error
+    - audispd
+    - application-log
+  vortex-reports-01:
+    - audispd
+    - apache-access
+    - apache-error
+    - apache-access
+    - merchant-apache-error
+    - laravel
+    - merchantapp
+  vortex-rabbit-02:
+    - audispd
+  vortex-repo-01:
+    - audispd
+    - repo_access
+    - repo_error
+  vortex-rabbit-01:
+    - audispd
+  vortex-proc-pos-02:
+    - audispd
+  vortex-proc-pos-01:
+    - audispd
+  vortex-private-api-01:
+    - private-api_access
+    - private-api_error
+    - laravel-private-api
+    - audispd
+  vortex-pay-google-01:
+    - audispd
+    - pay_google_access
+    - pay_google_error
+    - laravel
+  vortex-percona-slave:
+    - audispd
+  vortex-mobicom-01:
+    - mobicom_access
+    - mobicom_error
+    - laravel
+    - audispd
+  vortex-percona-04:
+    - audispd
+  vortex-memcache-01:
+    - audispd
+  vortex-keyserver-01:
+    - audispd
+  vortex-keepalived-03:
+    - audispd
+  vortex-keepalived-02:
+    - audispd
+  vortex-keepalived-01:
+    - audispd
+  vortex-payments-gateway-cards-01:
+    - creditpilot_cards_access
+    - creditpilot_cards_error
+    - laravel
+    - audispd
+  vortex-clientweb-02:
+    - audispd
+    - apache-access
+    - apache-error
+  vortex-brs-proc-01:
+    - audispd
+  vortex-adminweb-02:
+    - audispd
+    - apache-access
+    - apache-error
+  vortex-admin-01:
+    - audispd
+    - nagios
+  vortex-percona-temp:
+    - audispd
+  vortex-webapp-example-webservice-01:
+    - example-webservice_access
+    - example-webservice_error
+    - example-webservice-webapp-laravel
+    - audispd
+  vortex-logs-data-01:
+    - audispd
+  vortex-admin-ng-01:
+    - admin_ng_access
+    - admin_ng_error
+    - laravel
+    - audispd
+  vortex-webapp-merchant-01:
+    - merchant_access
+    - merchant_error
+    - merchant-webapp-laravel
+    - audispd
+  vortex-percona-01:
+    - audispd

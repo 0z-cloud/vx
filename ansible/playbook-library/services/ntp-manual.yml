@@ -1,0 +1,6 @@
+- name: NTP Manual task
+  become: true
+  hosts: "{{ HOSTS | default('linux-hosts') }}"
+  roles:
+    - name: NTP Manual
+      role: ./!_bootstrap/ntp/manual-change

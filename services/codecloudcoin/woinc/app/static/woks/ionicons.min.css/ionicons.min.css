@@ -1,0 +1,35 @@
+.your-icon {
+    position: relative;
+    top: 1px;
+    display: inline-block;
+    font-style: normal;
+    font-weight: normal;
+    line-height: 1;
+    float: left;
+    display: block; /* This is required */
+}
+
+.your-icon.icon-home {
+    background: url(../../images/icon.png);
+    background-size: cover;
+}
+
+.your-icon.normal {
+    width: 32px;
+    height: 32px;
+}
+
+.your-icon.small {
+    width: 16px;
+    height: 16px;
+}
+
+.your-icon.medium {
+    width: 64px;
+    height: 64px;
+}
+
+.your-icon.large {
+    width: 128px;
+    height: 128px;
+}

@@ -1,0 +1,6 @@
+
+- name: Include playbook step 1
+  include: swarm_stack_steps/step1.yml
+
+- name: Include playbook step 2
+  include: swarm_stack_steps/step2.yml

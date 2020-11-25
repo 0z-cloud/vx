@@ -1,0 +1,302 @@
+unificated_keepalive_services:
+  shared_settings:
+    notification_email: "admin@vortex.com"
+    notification_email_from: "keepalived@vortex.com"
+    smtp_server: "127.0.0.1"
+    smtp_connect_timeout: 30
+    router_id: "{{ inventory_hostname }}"
+  vrrp_sync_group:
+    name: 
+      ALL:
+        vrrp_group: "vortex-web"
+        instance: "keepalived-vortex-web"
+        name: "vortex-web"
+        auth_pass: "cds012e90"
+        virtual_ipaddress:
+            - 172.16.72.21
+            - 172.16.72.22
+            - 172.16.72.23
+            - 172.16.72.24
+            - 172.16.72.25
+            - 172.16.72.27
+            - 172.16.72.28
+            - 172.16.72.19
+        interface: "ens160"
+        priority: 150
+        virtual_router_id: 50
+      PAY:
+        vrrp_group: "vortex-service"
+        instance: "keepalived-servers-service"
+        name: "vortex-service"
+        auth_pass: "31337PASS1"
+        virtual_ipaddress:
+            - 172.16.72.30
+        interface: "ens160"
+        priority: 150
+        virtual_router_id: 60
+  backend_services:
+    gateway-web:
+      protocol: "TCP"
+      vrrp_sync_group: PAY
+      smtp_alert: true
+      delay_loop: 
+        enabled: true
+        delay_loop: 6
+      persistence_timeout: 
+        enabled: false
+        persistence_timeout: 900
+      virtual_server: 
+        ip: 172.16.72.23
+        check: TCP_CHECK
+        port: 443
+        weight: 100
+      backend_server: 
+        group: "gateway-servers"
+        connect_port: "443"
+        connect_timeout: 5
+        ip: default
+      comment: "https://gateway.vortex.com"
+    messanger-web:
+      protocol: "TCP"
+      vrrp_sync_group: PAY
+      delay_loop: 
+        enabled: true
+        delay_loop: 6
+      persistence_timeout: 
+        enabled: false
+        persistence_timeout: 900
+      virtual_server: 
+        ip: 172.16.72.25
+        check: TCP_CHECK
+        port: 443
+        weight: 100
+      backend_server: 
+        group: "gateway-servers"
+        connect_port: "443"
+        connect_timeout: 5
+        ip: messanger
+      comment: "https://messenger.vortex.com"
+    private-web-https:
+      protocol: "TCP"
+      vrrp_sync_group: PAY
+      delay_loop: 
+        enabled: false
+        delay_loop: 6
+      persistence_timeout: 
+        enabled: false
+        persistence_timeout: 900
+      virtual_server:
+        ip: 172.16.72.21
+        check: TCP_CHECK
+        port: 443
+        weight: 100
+      backend_server: 
+        group: "private-servers"
+        connect_port: "443"
+        connect_timeout: 5
+        ip: default
+      comment: "https://secure.vortex.com"
+    private-http:
+      protocol: "TCP"
+      vrrp_sync_group: PAY
+      delay_loop: 
+        enabled: true
+        delay_loop: 6
+      persistence_timeout: 
+        enabled: true
+        persistence_timeout: 900
+      virtual_server: 
+        ip: 172.16.72.21
+        check: TCP_CHECK
+        port: 80
+        weight: 100
+      backend_server:
+        group: "private-servers"
+        connect_port: "80"
+        connect_timeout: 5
+        ip: default
+      comment: "https://secure.vortex.com"
+    porta-https:
+      protocol: "TCP"
+      vrrp_sync_group: PAY
+      delay_loop: 
+        enabled: true
+        delay_loop: 6
+      persistence_timeout: 
+        enabled: true
+        persistence_timeout: 900
+      virtual_server: 
+        ip: 172.16.72.22
+        check: TCP_CHECK
+        port: 443
+        weight: 100
+      backend_server: 
+        group: "portal-servers"
+        connect_port: "443"
+        connect_timeout: 5
+        ip: default
+      comment: "https://portal.vortex.com"
+    portal-http:
+      protocol: "TCP"
+      vrrp_sync_group: PAY
+      delay_loop: 
+        enabled: true
+        delay_loop: 6
+      persistence_timeout: 
+        enabled: true
+        persistence_timeout: 900
+      virtual_server: 
+          ip: 172.16.72.22
+          check: TCP_CHECK
+          port: 80
+          weight: 100
+      backend_server:
+          group: "portal-servers"
+          connect_port: "80"
+          connect_timeout: 5
+          ip: default
+      comment: "https://portal.vortex.com"
+    client-https:
+      protocol: "TCP"
+      vrrp_sync_group: PAY
+      delay_loop: 
+        enabled: true
+        delay_loop: 6
+      persistence_timeout: 
+        enabled: true
+        persistence_timeout: 900
+      virtual_server: 
+          ip: 172.16.72.24
+          check: TCP_CHECK
+          port: 443
+          weight: 100
+      backend_server:
+          group: "client-servers"
+          connect_port: "443"
+          connect_timeout: 5
+          ip: default
+      comment: "https://client.vortex.com"
+    client-http:
+      protocol: "TCP"
+      vrrp_sync_group: PAY
+      delay_loop: 
+        enabled: true
+        delay_loop: 6
+      persistence_timeout: 
+        enabled: true
+        persistence_timeout: 900
+      virtual_server: 
+          ip: 172.16.72.24
+          check: TCP_CHECK
+          port: 443
+          weight: 100
+      backend_server:
+          group: "client-servers"
+          connect_port: "443"
+          connect_timeout: 5
+          ip: default
+      comment: "https://client.vortex.com"
+    core-http:
+      protocol: "TCP"
+      vrrp_sync_group: ALL
+      delay_loop: 
+        enabled: true
+        delay_loop: 10
+      persistence_timeout: 
+        enabled: false
+        persistence_timeout: 900
+      virtual_server: 
+          ip: 172.16.72.30
+          check: TCP_CHECK
+          port: 8080
+          weight: 100
+      backend_server:
+          group: "core-servers"
+          connect_port: "8080"
+          connect_timeout: 15
+          ip: default
+      comment: "https://core.vortex.com"
+    payment-endpoint:
+      protocol: "TCP"
+      vrrp_sync_group: PAY
+      delay_loop: 
+        enabled: true
+        delay_loop: 10
+      persistence_timeout: 
+        enabled: true
+        persistence_timeout: 180
+      virtual_server: 
+          ip: 172.16.72.30
+          check: TCP_CHECK
+          port: 8096
+          weight: 100
+      backend_server:
+          group: "payment-servers"
+          connect_port: "8089"
+          connect_timeout: 5
+          ip: default
+      comment: "Payment balancing main"
+    bridge-bank-endpoint:
+      protocol: "TCP"
+      vrrp_sync_group: ALL
+      delay_loop: 
+        enabled: true
+        delay_loop: 10
+      persistence_timeout: 
+        enabled: true
+        persistence_timeout: 20
+      virtual_server: 
+          ip: 172.16.72.30
+          check: HTTP_GET
+          url_extends_by: "bridge_bank/api_call?request=test"
+          digest: acadfda0f2c65f0120841f91aca65ba8f9
+          port: 8096
+          weight_pointer: "{{ BM_HTTP_ENDPOINT_WEIGHT }}"
+      backend_server:
+          group: "payment-servers"
+          connect_port: "8096"
+          connect_timeout: 5
+          ip: default
+      comment: "corenet balancing for BM"
+    bridge-bank-http-endpoint:
+      protocol: "TCP"
+      vrrp_sync_group: ALL
+      delay_loop: 
+        enabled: true
+        delay_loop: 10
+      persistence_timeout: 
+        enabled: true
+        persistence_timeout: 20
+      virtual_server: 
+          ip: 172.16.72.30
+          check: HTTP_GET
+          url_extends_by: bridge_bank_http/api_call?request=test"
+          digest: acadfda0f2c65f0120841f91aca65ba8fs
+          port: 8099
+          weight_pointer: "{{ BRIDGE_BANK_HTTP_ENDPOINT_WEIGHT }}"
+      backend_server:
+          group: "payment-servers"
+          connect_port: "8099"
+          connect_timeout: 5
+          ip: default
+      comment: "corenet balancing for MTS"
+    payments-http-endpoint:
+      protocol: "TCP"
+      vrrp_sync_group: ALL
+      delay_loop: 
+        enabled: true
+        delay_loop: 10
+      persistence_timeout: 
+        enabled: false
+        persistence_timeout: 180
+      virtual_server: 
+          ip: 172.16.72.30
+          check: TCP_CHECK
+          port: 8095
+          weight: 100
+      backend_server:
+          group: "payment-servers"
+          connect_port: "8095"
+          connect_timeout: 5
+          ip: default
+      comment: "Payments balancing main"

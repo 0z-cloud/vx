@@ -1,0 +1,12 @@
+
+- name: Debug  
+  debug:
+    msg: "*** Set current version ***"
+- name: Set Application Version
+  copy:
+    content: "{{ GITLAB_JOB }}"
+    dest: "{{ APPLICATION_DIRECTORY }}/releases/.version"
+- name: Set Application Version In webapp
+  copy:
+    content: "{{ GITLAB_JOB }}"
+    dest: "{{ RELEASE_DIRECTORY }}/.version"

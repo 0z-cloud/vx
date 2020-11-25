@@ -1,0 +1,8 @@
+[program:{{ item.program }}]
+process_name=%(program_name)s_%(process_num)02d
+command=php {{ APPLICATION_DIRECTORY }}/current/artisan queue:work{% if item.connection is defined %} {{ item.connection }}{%endif%} --queue={{ item.name }} --timeout=60 --sleep=3{% if item.tries is defined %} --tries={{ item.tries }}{%endif%}
+
+user={{ RELEASE_OWNER }}
+autostart=true
+autorestart=true
+numprocs={{ item.processes }}

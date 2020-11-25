@@ -1,0 +1,93 @@
+## DEBUG 3-WAY vCLOUD MODEL FOR NETWORKS
+#### SPECIAL Special Groups KEY/VALUE NETWORK LOCK API POINT
+
+- name: Debug Special Groups returned list
+  no_log: True
+  debug:
+    msg: "{{ vloud_special_groups_cloud_token_storage_result }}"
+  when: debug_playbook_stdout is defined
+
+- name: Debug Special Groups returned list
+  debug:
+    msg: "{{ item['description'] }}"
+  when: "debug_playbook_stdout is defined and ('Subnet:' in item['description'] and debug_playbook_stdout is defined)"
+  with_items: "{{ vloud_special_groups_cloud_token_storage_result.msg }}"
+
+- name: Show result Special Groups returned list
+  debug:
+    msg: "{{ item }}"
+  with_dict: "{{ vcloud_anycloud_zone_extra_subnets_adapters_networks  }}"
+  when: "debug_playbook_stdout is defined and (item.key == 'routed' or item.key == 'direct' or item.key == 'isolated' or item.key == 'vpnmesh')"
+
+- name: DEBUG Catalog_Zone_Object_Subnets_Results
+  debug:
+    msg: "{{ item }}"
+  with_items: "{{ Catalog_Zone_Object_Subnets_Results.msg }}"
+  when: debug_playbook_stdout is defined
+
+######### NETWORKS DICTS ###################################################################################################
+- name: "[DEBUG]:3-way] dict anycloud_zone_extra_subnets_adapters_networks with vCloud Getted Routed networks"
+  debug:
+    msg: "{{ subnet_attention.split('\n') }}"
+  with_dict: "{{ anycloud_zone_extra_subnets_adapters_networks }}"
+  when: debug_playbook_stdout is defined
+
+- name: "[DEBUG]:3-way] loud_zone_extra_subnets_ with vCloud Getted Routed networks"
+  debug:
+    msg: "{{ subnet_attention.split('\n') }}"
+  with_dict: "{{ loud_zone_extra_subnets_ }}"
+  when: debug_playbook_stdout is defined
+
+##########################################################################################################################################
+
+- name: SHOW ANYcloud EXTRA NETWORKS
+  debug: 
+    msg: "{{ item }}"
+  with_items:
+      - "{{ anycloud_extra_fetched_networks }}"
+      - "{{ anycloud_extra_urandom_networks }}"
+  when: debug_log is defined
+
+- name: Debug vcloud_anycloud_zone_extra_subnets_adapters_networks values
+  debug:
+    msg: "TARGETED RESULT SETTINGS APPLYED/CHECKED is {{ vcloud_anycloud_zone_extra_subnets_adapters_networks }}"
+  when: debug_log is defined
+
+- name: '[FETCH STAGE] Show result Special Groups returned list'
+  debug:
+    msg: "{{ item }}"
+  with_dict: "{{ vcloud_anycloud_zone_extra_subnets_adapters_networks }}"
+  when: "debug_log is defined and (item.key == 'routed' or item.key == 'direct' or item.key == 'isolated' or item.key == 'vpnmesh')"
+
+# DEBUG
+
+- name: '[FETCH] DEBUG BEFORE SLEEP'
+  debug:
+    msg: "{{ item }}"
+  with_dict: "{{ vcloud_anycloud_zone_extra_subnets_adapters_networks }}"
+  when: debug_log is defined
+
+- name: '[!!!!FETCH ROUTED!!!!] DEBUG ROUTED I PHASE'
+  debug:
+    msg: "{{ item }}"
+  with_dict: "{{ vcloud_anycloud_zone_extra_subnets_adapters_networks }}"
+  when: "debug_log is not defined and (item.key == 'routed')"
+
+# CLOUD GET
+
+- name: FETCH DEBUG | Special Groups returned list from DC
+  debug:
+    msg: "{{ vloud_special_groups_cloud_token_storage_result }}"
+  when: debug_log is defined 
+
+- name: ITEM!!!!FETCH DEBUG | Special Groups returned list
+  debug:
+    msg: "{{ item }}"
+  with_items: "{{ vloud_special_groups_cloud_token_storage_result.msg }}"
+  when: "debug_log is defined and ( 'Subnet:' in item['description'] and 'direct_' in item['name'] )"
+
+- name: ITEM!!!!FETCH DEBUG description | Special Groups returned list
+  debug:
+    msg: "{{ item.description | replace('Subnet: ', '')}}"
+  with_items: "{{ vloud_special_groups_cloud_token_storage_result.msg }}"
+  when: "debug_log is defined and ('Subnet:' in item['description'] and 'direct_' in item['name'] )"

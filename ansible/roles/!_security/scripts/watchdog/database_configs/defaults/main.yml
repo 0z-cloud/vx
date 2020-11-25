@@ -1,0 +1,86 @@
+database_settings_files:
+  false: true
+  apache:
+    secureweb_main_applications:
+      - secure.vortex
+    adminweb_main_applications:
+      - admin.vortex
+    clientweb_main_applications:
+      - client.new
+  laravel:
+    private_applications:
+      - antifraud
+      - bik
+      - bin
+      - financial-reports
+      - html
+      - merchant-reports
+      - monitoring
+      - example-webservice
+      - private-api
+      - topups-gsm
+    public_applications:
+      - admin-ng
+      - botman
+      - gateway_mcom
+      - html
+      - merchant
+      - mobicom
+      - pay-google-tele2
+      - public-api
+  prefix: /META-INF/context.xml
+  base_path: /var/lib/tomcat11/webapps/
+  core_path: /java_core/webapps/
+  java_shared_configs:
+    - test
+    - context.xml
+  java_main_applications:
+    - processing_pcenter_mts
+    - processing_inplat_megafon
+    - processing_sandbox
+    - processing_webmoney_full
+    - processing_qiwi
+    - processing_round
+    - processing_qiwi_straight_redirect
+    - processing_service
+    - processing_wirecard
+    - processing_minb
+    - processing_dengi_online
+    - antifraud_web
+    - processing_tele2
+    - processing_azericard
+    - tele2_reestr
+    - processing_openway_guis
+    - messenger_smsc
+    - processing_openway_rncb
+    - processing_iso8583bm
+    - processing_inplat_http
+    - front_web
+    - processing_openway
+    - processing_mdm
+    - messenger_sandbox
+    - processing_pasta
+    - processing_beeline
+    - processing_vtb
+    - processing_vtb_common
+    - processing_pscb_bank
+    - processing_sflabs_mts
+    - processing_bin_bank
+    - processing_tele2_teko
+    - processing_yandex_dengi
+    - reestr_service
+  java_special_applications:
+    brs:
+       - processing_service
+       - processing_mc_vpc_ecomm
+    velobike:
+       - processing_pos
+    keyserver:
+       - KeyServer
+    proc_pos:
+       - processing_iso8583bm
+       - processing_pos
+       - processing_pos_ns
+       - processing_pos_rnkb
+       - processing_service
+       

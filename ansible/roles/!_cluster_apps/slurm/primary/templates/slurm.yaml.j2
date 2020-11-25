@@ -1,0 +1,211 @@
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: slurm-master-ssh
+#  namespace: {{ slurm_namespace }}
+#  labels:
+#    app: slurm
+#    role: slurm-master
+#spec:
+#  type: NodePort
+#  ports:
+#  - port: 2222
+#    targetPort: 22
+#    nodePort: {{ slurm_ssh_port }}
+#    name: slurm-ssh
+#  selector:
+#    role: slurm-master
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: slurm-mysql
+  namespace: {{ slurm_namespace }}
+  labels:
+    app: slurm
+spec:
+  ports:
+    - port: 3306
+  selector:
+    app: slurm
+    tier: mysql
+  clusterIP: None
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: slurm
+  namespace: {{ slurm_namespace }}
+  labels:
+    app: slurm
+spec:
+  clusterIP: None
+  ports:
+  - port: 6817
+    name: slurmctld
+  - port: 6818
+    name: slurmd
+  - port: 22345
+    name: drain
+  - port: 22346
+    name: reconfigure
+  - port: 22347
+    name: queue-size
+  selector:
+   app: slurm
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: slurm-mysql
+  namespace: {{ slurm_namespace }}
+  labels:
+    app: slurm
+spec:
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: slurm
+        tier: mysql
+    spec:
+      nodeSelector:
+        slurmstorage: mysql
+      containers:
+      - image: mysql:5.7.19
+        name: mysql
+        env:
+          # $ kubectl create secret generic mysql-pass --from-file=password.txt
+          # make sure password.txt does not have a trailing newline
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: slurm-mysql-pass
+              key: password.txt
+        ports:
+        - containerPort: 3306
+          name: mysql
+        volumeMounts:
+        - name: local-slurm-mysql
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: local-slurm-mysql
+        hostPath:
+          path: /volumes/mysql-data
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: slurm
+  namespace: {{ slurm_namespace }}
+spec:
+  serviceName: "slurm"
+  replicas: {{ slurm_workers }}
+  template:
+    metadata:
+      labels:
+        app: slurm
+        role: slurm-node
+    spec:
+      dnsConfig:
+        searches:
+          - slurm.{{ slurm_namespace }}.svc.cluster.local
+          - {{ slurm_namespace }}.svc.cluster.local
+          - svc.cluster.local
+      containers:
+      - name: slurmd
+        image: "{{ slurm_worker_image }}"
+        imagePullPolicy: Always
+        command: ["/bin/bash"]
+        #args: ["-c", "chown slurm:slurm /data; bash /preStart.sh; /usr/bin/supervisord --nodaemon"]
+        args: ["-c", "chown slurm:slurm /data; mkdir /tmp/slurm && chmod a+rwx /tmp/slurm; /usr/bin/supervisord --nodaemon"]
+        ports:
+        - containerPort: 6818
+        volumeMounts:
+        - name: slurm-config-volume
+          mountPath: /usr/local/etc
+        - name: slurm-storage-1
+          mountPath: /data
+        livenessProbe:
+          exec:
+            command:
+            - /bin/bash
+            - /liveness.sh
+          initialDelaySeconds: 15
+          periodSeconds: 5
+        lifecycle:
+          preStop:
+            exec:
+              command: ["bash", "/preStop.sh"]
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+      terminationGracePeriodSeconds: 40
+      volumes:
+      - name: slurm-config-volume
+        persistentVolumeClaim:
+          claimName: slurm-config-volume
+      - name: slurm-storage-1
+        persistentVolumeClaim:
+          claimName: slurm-storage-1
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: slurm-master
+  namespace: {{ slurm_namespace }}
+spec:
+  serviceName: slurm
+  replicas: {{ slurm_masters }}
+  template:
+    metadata:
+      labels:
+        app: slurm
+        role: slurm-master
+    spec:
+      dnsConfig:
+        searches:
+          - slurm.{{ slurm_namespace }}.svc.cluster.local
+          - {{ slurm_namespace }}.svc.cluster.local
+          - svc.cluster.local      
+      containers:
+      - name: slurmctl
+        image: "{{ slurm_master_image }}"
+        imagePullPolicy: Always
+        command: ["/bin/bash"]
+        args: ["-c", "chown slurm:slurm /data; mkdir /tmp/slurm && chmod a+rwx /tmp/slurm; cp /var/lib/slurm/default_config/slurm.conf /usr/local/etc/slurm.conf; /usr/bin/supervisord --nodaemon"]
+        #args: ["-c", "chown slurm:slurm /data; /usr/bin/supervisord --nodaemon"]
+        ports:
+        - containerPort: 22
+        - containerPort: 6817
+        - containerPort: 22345
+        - containerPort: 22346
+        - containerPort: 22347
+        volumeMounts:
+        - name: slurm-config-map
+          #mountPath: /usr/local/etc/slurm.conf
+          mountPath: /var/lib/slurm/default_config/slurm.conf
+          subPath: slurm.conf
+        - name: slurm-config-volume
+          mountPath: /usr/local/etc
+        - name: slurm-storage-1
+          mountPath: /data
+        livenessProbe:
+          exec:
+            command:
+            - /bin/bash
+            - /liveness.sh
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: slurm-config-map
+        configMap:
+          name: slurm-config
+      - name: slurm-config-volume
+        persistentVolumeClaim:
+          claimName: slurm-config-volume
+      - name: slurm-storage-1
+        persistentVolumeClaim:
+          claimName: slurm-storage-1

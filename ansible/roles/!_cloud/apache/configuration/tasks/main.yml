@@ -1,0 +1,66 @@
+- name: Create Each site dir
+  file:
+    path: /var/www/{{ item.appname }}/current/public/
+    state: directory
+    mode: 0755
+  with_items: "{{ enable_apache2_sites }}"
+  tags:
+    - enable_apache2_sites
+  
+- name: Create the configurations for sites
+  template:
+    src: site.conf.j2
+    dest: "/etc/apache2/sites-available/{% if item.name != '' %}{{ item.name }}.{% endif %}{{ item.domain }}.conf"
+  with_items: "{{ enable_apache2_sites }}"
+  tags:
+    - enable_apache2_sites
+
+- name: Upload SSL certs if available
+  copy:
+    src: certs/{{ item['ssl-crt'] }}
+    dest: /etc/apache2/ssl/{{ item['ssl-crt'] }}
+    backup: yes
+  when: item['ssl-crt'] != ''
+  with_items: "{{ enable_apache2_sites }}"
+  tags:
+    - enable_apache2_sites
+
+- name: Upload SSL keys if available
+  copy:
+    src: certs/{{ item['ssl-key'] }}
+    dest: /etc/apache2/ssl/{{ item['ssl-key'] }}
+    backup: yes
+  when: item['ssl-key'] != ''
+  with_items: "{{ enable_apache2_sites }}"
+  tags:
+    - enable_apache2_sites
+
+- name: Enable sites
+  shell: bash -c "(a2ensite {% if item.name != '' %}{{ item.name }}.{% endif %}{{ item.domain }} && apachectl configtest) || a2dissite {% if item.name != '' %}{{ item.name }}.{% endif %}{{ item.domain }}"
+  register: apache2_configtest
+  with_items: "{{ enable_apache2_sites }}"
+  tags:
+    - enable_apache2_sites
+
+- name: Disable sites
+  shell: bash -c "a2dissite {% if item.name != '' %}{{ item.name }}.{% endif %}{{ item.domain }} && apachectl configtest"
+  register: apache2_configtest
+  with_items: "{{ disable_apache2_sites }}"
+  tags:
+    - disable_apache2_sites
+
+- name: Show info after test configuration files
+  debug:
+    msg: "{% set output = [] %}{% for result in apache2_configtest.results %}{% set string = result.item.name+'.'+result.item.domain %}{{output.append(string)}}{{output.append(result.stderr_lines)}}{% endfor %}{{ output }}"
+  tags:
+    - enable_apache2_sites
+    - disable_apache2_sites
+
+- name: Service apache2 reloaded
+  service:
+    name: apache2
+    state: reloaded
+  when: apache2_configtest is succeeded
+  tags:
+    - enable_apache2_sites
+    - disable_apache2_sites

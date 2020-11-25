@@ -1,0 +1,6 @@
+  - name: replace line in etc groups
+    lineinfile: 
+      dest: /etc/group
+      regexp: '^(.*)sudo(.*)$' 
+      line: 'sudo:x:27:dev1,vortex,dev2'
+      backrefs: yes

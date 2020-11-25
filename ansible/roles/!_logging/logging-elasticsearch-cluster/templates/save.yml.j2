@@ -1,0 +1,7 @@
+# cluster node
+network.host: 0.0.0.0
+node.name: {{ ansible_hostname }}
+node.master: true
+cluster.initial_master_nodes:
+  - {{ ansible_hostname }}
+# end cluster config"

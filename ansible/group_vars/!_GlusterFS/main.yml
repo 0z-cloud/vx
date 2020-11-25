@@ -1,0 +1,24 @@
+glusterfs_settings:
+  directories:
+    cloud_dir: /mnt/{{ GLUSTERFS_CLUSTER_HOSTS }}
+    bricks_dir: /bricks/brick1/{{ GLUSTERFS_CLUSTER_HOSTS }}
+    opt_dir: /opt/{{ GLUSTERFS_CLUSTER_HOSTS }}
+    # volume_data: /var/lib/glusterd/
+    volume_name: '{{ GLUSTERFS_CLUSTER_HOSTS }}'
+    mount_point: "/mnt/{{ GLUSTERFS_CLUSTER_HOSTS }}"
+  bricks_array: 
+    - /bricks/brick1/{{ GLUSTERFS_CLUSTER_HOSTS }}
+    - /bricks/brick2/{{ GLUSTERFS_CLUSTER_HOSTS }}
+    - /bricks/brick3/{{ GLUSTERFS_CLUSTER_HOSTS }}
+  packages:
+    - glusterfs-server 
+    - glusterfs-client
+    # - nfs-kernel-server
+    # - nfs-common
+    # # - samba 
+    # # - samba-client 
+    # # - samba-common 
+    # - glusterfs-server 
+    # - glusterfs-common 
+    # - glusterfs-client
+    # - ca-certificates

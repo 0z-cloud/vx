@@ -1,0 +1,30 @@
+- name: Grep log location, if see error its good =)
+  shell: " grep 'org.apache.juli.FileHandler.directory' {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}/conf/logging.properties"
+  register: ansible_grep_connector_file_handler
+  ignore_errors: true
+
+- name: Check the ansible_grep_connector_file_handler, if PCI compliance ok, we ignore that and go next
+  fail:
+    msg: "Whoops! File {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}/conf/logging.properties conetent not PCI Compliant - please set org.apache.juli.FileHandler.directory"
+  when: ansible_grep_connector_file_handler.rc != 0
+
+- name: Grep log location, if see error its good =)
+  shell: " grep 'org.apache.juli.FileHandler.prefix' {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}/conf/logging.properties"
+  register: ansible_grep_connector_file_handler_prefix
+  ignore_errors: true
+
+- name: Check the ansible_grep_connector_file_handler_prefix, if PCI compliance ok, we ignore that and go next
+  fail:
+    msg: "Whoops! File {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}/conf/logging.properties conetent not PCI Compliant - please set org.apache.juli.FileHandler.prefix"
+  when: ansible_grep_connector_file_handler_prefix.rc != 0
+  
+- name: Grep log location, if see error its good =)
+  shell: " grep 'org.apache.juli.FileHandler.limit' {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}/conf/logging.properties"
+  register: ansible_grep_connector_file_handler_limit
+  ignore_errors: true
+
+- name: Check the ansible_grep_connector_file_handler_limit, if PCI compliance ok, we ignore that and go next
+  fail:
+    msg: "Whoops! File {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}/conf/logging.properties conetent not PCI Compliant - please set org.apache.juli.FileHandler.limit"
+  when: ansible_grep_connector_file_handler_limit.rc != 0
+  

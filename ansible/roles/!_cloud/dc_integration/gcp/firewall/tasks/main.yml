@@ -1,0 +1,13 @@
+- name: Create Firewall Rule with Source Range
+  gce_net:
+    name: my-network
+    fwname: "allow-internal"
+    state: "present"
+    src_range: ['10.0.0.0/16']
+    subnet_name: public-subnet
+    allowed: 'tcp'
+    service_account_email: "{{ service_account_email }}"
+    project_id: "{{ project_id }}"
+    credentials_file: "{{ credentials_file }}"   
+  tags:
+  - recipe6

@@ -1,0 +1,65 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: "2019-06-26T20:29:44Z"
+    labels:
+      component: apiserver
+      provider: kubernetes
+    name: kubernetes
+    namespace: default
+  spec:
+    ports:
+    - name: https
+      port: 443
+      protocol: TCP
+      targetPort: 6443
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      openebs.io/storage-class-ref: |
+        name: openebs-jiva-default
+        resourceVersion: 96610
+    creationTimestamp: "2019-06-27T12:27:22Z"
+    labels:
+      openebs.io/cas-template-name: jiva-volume-create-default-0.9.0
+      openebs.io/cas-type: jiva
+      openebs.io/controller-service: jiva-controller-svc
+      openebs.io/persistent-volume: pvc-e27e5f0a-98d6-11e9-890b-b42e994820d9
+      openebs.io/persistent-volume-claim: jenkins
+      openebs.io/storage-engine-type: jiva
+      openebs.io/version: 0.9.0
+      pvc: jenkins
+    name: pvc-e27e5f0a-98d6-11e9-890b-b42e994820d9-ctrl-svc
+    namespace: default
+  spec:
+    ports:
+    - name: iscsi
+      port: 3260
+      protocol: TCP
+      targetPort: 3260
+    - name: api
+      port: 9501
+      protocol: TCP
+      targetPort: 9501
+    - name: exporter
+      port: 9500
+      protocol: TCP
+      targetPort: 9500
+    selector:
+      openebs.io/controller: jiva-controller
+      openebs.io/persistent-volume: pvc-e27e5f0a-98d6-11e9-890b-b42e994820d9
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""

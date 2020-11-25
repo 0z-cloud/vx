@@ -1,0 +1,47 @@
+apiVersion: v1
+data:
+  canal_iface: ""
+  cni_network_config: |-
+    {
+      "name": "k8s-pod-network",
+      "cniVersion": "0.3.0",
+      "plugins": [
+        {
+          "type": "calico",
+          "log_level": "WARNING",
+          "datastore_type": "kubernetes",
+          "nodename": "__KUBERNETES_NODE_NAME__",
+          "ipam": {
+            "type": "host-local",
+            "subnet": "usePodCidr"
+          },
+          "policy": {
+              "type": "k8s"
+          },
+          "kubernetes": {
+              "kubeconfig": "/etc/kubernetes/ssl/kubecfg-kube-node.yaml"
+          }
+        },
+        {
+          "type": "portmap",
+          "snat": true,
+          "capabilities": {"portMappings": true}
+        }
+      ]
+    }
+  masquerade: "true"
+  net-conf.json: |
+    {
+      "Network": "10.42.0.0/16",
+      "Backend": {
+        "Type": "vxlan"
+      }
+    }
+kind: ConfigMap
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","data":{"canal_iface":"","cni_network_config":"{\n  \"name\": \"k8s-pod-network\",\n  \"cniVersion\": \"0.3.0\",\n  \"plugins\": [\n    {\n      \"type\": \"calico\",\n      \"log_level\": \"WARNING\",\n      \"datastore_type\": \"kubernetes\",\n      \"nodename\": \"__KUBERNETES_NODE_NAME__\",\n      \"ipam\": {\n        \"type\": \"host-local\",\n        \"subnet\": \"usePodCidr\"\n      },\n      \"policy\": {\n          \"type\": \"k8s\"\n      },\n      \"kubernetes\": {\n          \"kubeconfig\": \"/etc/kubernetes/ssl/kubecfg-kube-node.yaml\"\n      }\n    },\n    {\n      \"type\": \"portmap\",\n      \"snat\": true,\n      \"capabilities\": {\"portMappings\": true}\n    }\n  ]\n}","masquerade":"true","net-conf.json":"{\n  \"Network\": \"10.42.0.0/16\",\n  \"Backend\": {\n    \"Type\": \"vxlan\"\n  }\n}\n"},"kind":"ConfigMap","metadata":{"annotations":{},"name":"canal-config","namespace":"kube-system"}}
+  creationTimestamp: null
+  name: canal-config
+  selfLink: /api/v1/namespaces/kube-system/configmaps/canal-config

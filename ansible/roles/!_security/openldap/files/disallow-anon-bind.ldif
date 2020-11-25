@@ -1,0 +1,32 @@
+# disable anonymous bind
+dn: olcDatabase={0}config,cn=config
+changetype: modify
+replace: olcDisallows
+olcDisallows: bind_anon
+
+# disable anon frontend
+dn: olcDatabase={-1}frontend,cn=config
+changetype: modify
+replace: olcRequires
+olcRequires: authc
+
+# disable anon backend
+dn: olcDatabase={1}bdb,cn=config
+changetype: modify
+replace: olcRequires
+olcRequires: authc
+
+dn: olcDatabase={1}hdb,cn=config
+add: olcAccess
+olcAccess: to attrs=userPassword 
+    by dn="cn=admin,dc=vortex,dc=co" write 
+    by self write 
+    by * none
+olcAccess: to dn.base="" 
+    by users read 
+    by * none
+olcAccess: to * 
+    by dn="cn=admin,dc=vortex,dc=co" write 
+    by * none
+    
+    

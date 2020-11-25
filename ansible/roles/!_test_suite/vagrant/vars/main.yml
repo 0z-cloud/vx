@@ -1,0 +1,9 @@
+ufw_port_for_all:
+  - 22
+
+ufw_port_for_networks:
+  - port: 80
+    sources:
+      - 10.0.0.0/8
+      - 172.16.0.0/12
+      - 192.168.0.0/16

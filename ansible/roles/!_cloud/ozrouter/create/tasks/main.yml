@@ -1,0 +1,97 @@
+- name: Check and install requirements
+  include_tasks: install.yml
+
+# - name: NEEDED VALUES DEBUG TO CHECK
+#   debug:
+#     msg: "{{ item }}"
+#   with_items:
+#     - "VPN_SUBNET_PRIVATE_DNS_SERVER: {{ VPN_SUBNET_PRIVATE_DNS_SERVER }}"
+#     - "VPN_SERVER_NAME: {{ VPN_SERVER_NAME }}"
+#     - "VPN_SERVER_VPN_PORT: {{ VPN_SERVER_VPN_PORT }}"
+#     - "VPN_SUBNET_INTERCONNECT: {{ VPN_SUBNET_INTERCONNECT }}"
+#     - "VPN_SUBNET_PRIVATE: {{ VPN_SUBNET_PRIVATE }}"
+#     - "VPN_SUBNET_PRIVATE_WITHOUT_LAST_OCTET: {{ VPN_SUBNET_PRIVATE_WITHOUT_LAST_OCTET }}"
+#     - "VPN_SUBNET_INTERCONNECT_WITHOUT_LAST_OCTET: {{ VPN_SUBNET_INTERCONNECT_WITHOUT_LAST_OCTET }}"
+#     - "VPN_SERVER_WEB_PORT: {{ VPN_SERVER_WEB_PORT }}"
+#     - "VPN_SUBNET_PRIVATE_START: {{ VPN_SUBNET_PRIVATE_START }}"
+#     - "VPN_SUBNET_PRIVATE_END: {{ VPN_SUBNET_PRIVATE_END }}"
+#     - "VPN_SUBNET_PRIVATE_ROUTER: {{ VPN_SUBNET_PRIVATE_ROUTER }}"
+
+- name: Shell login by vcd python vCloud Director Appliance Management Application
+  shell: vcd login {{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }} {{ anycloud_defaults_virtual_organization }} -v {{ anycloud_defaults_virtual_datacenter }} -p '{{ anycloud_adapter_api_password }}' {{ anycloud_adapter_api_user }}
+  register: vcd_login_result
+
+# - name: Debug vcd_login_result
+#   debug:
+#     msg: "{{ vcd_login_result }}"
+
+- name: Include gathering info from vCloud Director
+  include_tasks: set_vars.yml
+
+# - name: Show result values
+#   debug:
+#     msg: "{{ item.name }} {{ item.value }}"
+#   loop:
+#     - { name: 'whole_edge_interfaces_info', value: '{{ whole_edge_interfaces_info }}' }
+#     - { name: 'whole_edge_info', value: '{{ whole_edge_info }}' }
+#     - { name: 'whole_vdc_info', value: '{{ whole_vdc_info }}' }
+#     - { name: 'whole_org_info', value: '{{ whole_org_info }}' }
+#     - { name: 'whole_vcd_list', value: '{{ whole_vcd_list }}' }
+#     - { name: 'vcd_login_result', value: '{{ vcd_login_result }}' }
+#     - { name: 'subnets_excluded_and_must_to_be_check', value: '{{ subnets_excluded_and_must_to_be_check }}' }
+#     - { name: 'whole_firewall_rules', value: '{{ whole_firewall_rules }}' }
+#     - { name: 'edge_whole_fetched_ips', value: '{{ edge_whole_fetched_ips }}' }
+
+# - name: "Generate a random VPN Server Port on lookup that plugin directry"
+#   debug:
+#     msg: "{{ lookup('random_vpn_server_port') }}"
+
+# - name: Print only public IP from object
+#   debug:
+#     msg: "{{ item }}"
+#   with_items: |
+#     {% for ele in edge_whole_fetched_ips.stdout_lines %}
+#     {{ ele | join }}
+#     {% endfor %}
+#   #when: "{{ item | ipaddr('public') }}"
+
+# - name: Debug what it is
+#   debug:
+#     msg: "{{ edge_whole_fetched_ips }}"
+
+# - name: Print only public IP from object
+#   debug:
+#     msg: "{{ item | join }}"
+#   with_items: "{{ edge_whole_fetched_ips.stdout_lines | join }}"
+#   when: (item | join | ipaddr('public'))
+
+- name: Register only public IP from object
+  set_fact:
+    public_ips_from_edge: []
+
+- name: Register only public IP from object
+  set_fact:
+    public_ips_from_edge: "{{ public_ips_from_edge + [ item | join ] }}"
+  with_items: "{{ edge_whole_fetched_ips.stdout_lines | join }}"
+  when: (item | join | ipaddr('public'))
+
+# - name: Show result of public IPs list
+#   debug:
+#     msg: "{{ public_ips_from_edge }}"
+
+# # {{ test_list | ipaddr('public') }}
+# ['192.24.2.1', '2001:db8:32c:faad::/64']
+
+# # {{ test_list | ipaddr('private') }}
+# ['192.168.32.0/24', 'fe80::100/10']
+
+# - name: 
+
+- name: '[!!!!DEBUG RESULT ISOLATED!!!!] DEBUG ISOLATED VI PHASE'
+  set_fact:
+      PRIMARY_MASTER_PUBLIC_NAT: "{% for host in groups['oz-primary-master-vpn-mesh-endpoint-host'] %}{{ hostvars[host].public_nat_ip }}{% endfor %}"
+      PRIMARY_MASTER_PRIVATE_BEHIND_NAT: "{% for host in groups['oz-primary-master-vpn-mesh-endpoint-host'] %}{{ hostvars[host].ansible_host }}{% endfor %}"
+############
+
+- name: Filling and generation configurations from templates
+  include_tasks: templates.yml

@@ -1,0 +1,13 @@
+python_pip:
+    - pyvmomi 
+    - pyvim 
+    - requests 
+    - vca-cli
+    
+system_pkg:
+    - build-essential 
+    - libffi-dev 
+    - libssl-dev 
+    - libxml2-dev 
+    - libxslt-dev 
+    - python-dev

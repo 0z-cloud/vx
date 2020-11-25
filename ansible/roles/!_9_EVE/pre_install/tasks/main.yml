@@ -1,0 +1,49 @@
+- name: Install necessary apt packages
+  apt:
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+  with_items: 
+   - qemu-utils
+   - qemu-system-x86 
+   - make
+   - golang
+   - qemu-kvm
+   - qemu
+   - cmake
+   - qemu-system-misc 
+   - qemu-guest-agent 
+   - qemu-efi 
+   - qemu-block-extra
+   - libvirt-daemon
+   - libvirt-daemon-driver-qemu
+   - libvirt-daemon-system
+   - libvirt-dev
+   - libvirt-clients
+   - bridge-utils
+   - virt-manager
+   - virtinst
+   - libpcap-dev
+- name: Create directory
+  file:
+    path: /eve/src/
+    state: directory
+    mode: 0755
+
+- name: Enable service necessary services
+  systemd:
+    name: "{{ item }}"
+    enabled: yes
+    masked: no
+  with_items:
+    - libvirtd
+    - qemu-kvm
+
+- name: Restart service necessary services
+  systemd:
+    name: "{{ item }}"
+    state: restarted
+    daemon_reload: yes
+  with_items:
+    - libvirtd
+    - qemu-kvm

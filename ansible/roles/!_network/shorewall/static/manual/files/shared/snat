@@ -1,0 +1,31 @@
+#
+# Shorewall - SNAT/Masquerade File
+#
+# For information about entries in this file, type "man shorewall-snat"
+#
+# See http://shorewall.net/manpages/shorewall-snat.html for additional information
+###################################################################################################################
+#ACTION         SOURCE                          DEST                            PROTO   PORT   IPSEC  MARK   USER    SWITCH  ORIGDEST   PROBABILITY
+#######---------######--------------------------####-------------------------->
+
+# TO WAN FROM WEB
+MASQUERADE      10.16.211.0/24                    $WAN                            icmp
+MASQUERADE      10.16.211.0/24                    $WAN                            tcp     80,443
+
+# FROM WEB TO SQL
+MASQUERADE      10.16.211.0/24                    $SQL                            icmp
+MASQUERADE      10.16.211.0/24                    $SQL                            tcp     3306
+
+# VM TEMPLATE TO INTERNET
+#MASQUERADE	    10.16.131.71			            $WAN	                        tcp	    80,443
+
+# vortex-REPO-01 TO GET UPDATES
+#
+MASQUERADE      10.16.131.110			        $WAN                            tcp     80,443,873
+
+# ESXI VCSA TO INERNET
+MASQUERADE	    10.16.128.254			            $WAN                            tcp     80,443
+
+# FROM VPN TO DNS
+MASQUERADE      10.77.0.0/24                    $ELSE:10.16.131.51               udp     53
+MASQUERADE      172.16.3138.0/24                $ELSE:10.16.131.51               udp     53

@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    field.cattle.io/targetWorkloadIds: '["deployment:rpay-engine:test"]'
+    workload.cattle.io/targetWorkloadIdNoop: "true"
+    workload.cattle.io/workloadPortBased: "true"
+  creationTimestamp: null
+  labels:
+    cattle.io/creator: norman
+  name: test
+  ownerReferences:
+  - apiVersion: apps/v1beta2
+    controller: true
+    kind: deployment
+    name: test
+    uid: f91498f8-99ae-11e9-890b-b42e994820d9
+  selfLink: /api/v1/namespaces/rpay-engine/services/test
+spec:
+  clusterIP: None
+  ports:
+  - name: default
+    port: 42
+    protocol: TCP
+    targetPort: 42
+  selector:
+    workload.user.cattle.io/workloadselector: deployment-rpay-engine-test
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}

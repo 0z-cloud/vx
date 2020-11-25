@@ -1,0 +1,6 @@
+
+- name: Send a message to chat in playbook
+  telegram:
+    token: '606635648:AAF5sXYvEZJ0dNZ8AsNIyzwhit1qGcaqyFw'
+    chat_id: "-178835059"
+    msg: Ansible test message

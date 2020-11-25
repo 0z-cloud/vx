@@ -1,0 +1,5 @@
+- name: Setup simple firewall service for run specific tasks.
+  hosts: "{{ HOSTS }}"
+  roles:
+  - name: Run simple firewall service role
+    role: ./!_bootstrap/simple_firewall

@@ -1,0 +1,8 @@
+{
+  "check": {
+    "id": "{% for key, value in item.items() %}{{ key | replace('\n', '') }}{% endfor %}",
+    "name": "{% for key, value in item.items() %}{{ key | replace('\n', '') }}{% endfor %}",
+    "script": "/opt/consul/crazy_hop.d/{% for key, value in item.items() %}{{ key | replace('\n', '') }}{% endfor %}.{% for key, value in item.items() %}{{ value.exec | replace('\n', '') }}{% endfor %} -w 1,2,3 -c 2,3,4",
+    "interval": "1m"
+  }
+}

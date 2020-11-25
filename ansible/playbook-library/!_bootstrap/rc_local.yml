@@ -1,0 +1,5 @@
+- name: Setup rc-local service for run specific tasks.
+  hosts: "{{ HOSTS | default('all') }}"
+  roles:
+  - name: Run rc-local service role
+    role: ./!_bootstrap/rc_local

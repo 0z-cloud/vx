@@ -1,0 +1,159 @@
+- name: Bootstrap infrastructure from localhost to vCloud vCenter Appliance
+  hosts: localhost
+  vars_files:
+    - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+  # strategy: free
+  gather_facts: True
+  tasks:
+
+      - name: Load group_vars/product global shared settings
+        include_vars: group_vars/products/{{ ansible_product }}/{{ item }}.yml
+        with_items:
+          - main
+          - shared
+
+      - name: Load group_vars/product global shared settings
+        include_vars: group_vars/products/{{ ansible_product }}/{{ ansible_environment }}/{{ item }}.yml
+        with_items:
+          - attached
+          - main
+
+# - name: vCloud Director Ansible Auth
+#   hosts: localhost
+#   environment:
+#     env_user: "{{ anycloud_adapter_api_user }}"
+#     env_password: "{{ anycloud_adapter_api_password }}"
+#     env_host: "{{ anycloud_adapter_api_url_http_uri }}"            
+#     env_org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+#     env_api_version: '31.0'
+#     env_verify_ssl_certs: True
+
+- name: Starting Vagrant instance bootstrap and check
+  hosts: localhost
+  vars_files:
+      - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+      - "group_vars/products/{{ ansible_product }}/main.yml"
+      - "group_vars/products/{{ ansible_product }}/shared.yml"
+      - "inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+      - "group_vars/!_anyCloud/anyCloud.yml"
+      - "group_vars/all.yml"
+  # environment:
+  #   env_user: "{{ anycloud_adapter_api_user }}"
+  #   env_password: "{{ anycloud_adapter_api_password }}"
+  #   env_host: "{{ anycloud_adapter_api_url_endpoint }}"
+  #   env_org: "{{ anycloud_defaults_virtual_organization }}"
+  #   env_api_version: "{{ anycloud_adapter_api_url_version }}"
+  #   env_verify_ssl_certs: "{{ anycloud_adapter_api_url_verify_ssl }}"
+  #   api_version: "{{ anycloud_adapter_api_url_version }}"
+  tasks:
+
+    # - name: Template a vagrantfile for _selfbox_ host
+    #   template:
+    #     src: Vagrantfile.j2
+    #     dest: Vagrantfile
+
+      - name: Load group_vars/product global shared settings
+        include_vars: group_vars/products/{{ ansible_product }}/{{ ansible_cloud_type }}.yml
+
+      - name: Set new network
+        set_fact:
+          #vagrant_subnet: "{{ lookup('random_subnet') }}"
+          vagrant_subnet: "192.168.99."
+          template_subnet: ""
+
+      - name: Line public_ip_address in file change for dynamic inventory
+        debug:
+          msg: "{{ item }}"
+        with_dict: 
+          - "{{ cloud_bootstrap.servers }}"
+
+        # Very nice! Great!
+      - name: Get new ips for configured ip addresseses
+        set_fact:
+                vagrant_public_ips: "{{ vagrant_public_ips|default([]) + [{ 'name': item.value.name, 'original_ip': item.value.ip, 'public_ip': vagrant_subnet + item.value.ip.split('.')[3] | string }] }}"
+        with_dict: 
+          - "{{ cloud_bootstrap.servers }}"
+        when: item.value.ip is regex ("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]).){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$")
+      
+      - name: Get new ips for dynamic ip addresses
+        set_fact:
+                vagrant_public_ips: "{{ vagrant_public_ips|default([]) + [{ 'name': item.value.name, 'public_ip': vagrant_subnet ~ 200 | random(start=2) }] }}"
+        with_dict:
+          - "{{ cloud_bootstrap.servers }}"
+        when: item.value.ip is search ("REPLACED")
+
+      - name: Copy 0z inventory to temporary local inventory
+        copy:
+          src: "inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+          dest: "inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/.vagrant.cloud.run.yml"
+       
+      - name: Change public_ip_address for dynamic inventory
+        lineinfile:
+          path: inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/.vagrant.cloud.run.yml
+          regexp: '^(.*\ip: "{{ item.name }}_public_ip_address_REPLACED")'
+          line: '        ip: "{{ item.public_ip }}"'
+        with_items: 
+            - "{{ vagrant_public_ips }}"
+        # when: destroy_instances is not defined
+
+      - name: Change static ips to vagrant subnet
+        lineinfile:
+          path: inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/.vagrant.cloud.run.yml
+          regexp: '^(.*\ip: "{{ item.original_ip }}")'
+          line: '        ip: "{{ item.public_ip }}"'
+        with_items:
+          - "{{ vagrant_public_ips }}"
+        when: item.original_ip is defined
+
+      # Q: Is it necessary for vagrant ? 
+      # A: Most important, but you have a choice, but in normal - always necessary, because you need a private data cluster exchange network in each network groups zone, as example DMZ & CDE - each zone must have two networks, if you are want to use a clusters.
+      # - name: Line private_ip_address in file change for dynamic inventory
+      #   lineinfile:
+      #     path: inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/.vagrant.cloud.run.yml
+      #     regexp: '^(.*\_ip: "{{ item.name }}_private_ip_address_REPLACED")'
+      #     line: '            second_ip: "{{ item.private_ip_address }}"'
+      #   with_items: 
+      #       - "{{ vagrant_servers }}"
+      #   when: destroy_instances is not defined
+
+      - name: Template a vagrantfile for _selfbox_ istio hosts
+        template:
+          src: Vagrantfile.j2
+          dest: ./../../.cloud/Vagrantfile
+
+
+      - name: Get contents of Vagrantfile to variable
+        shell: cat ./../../.cloud/Vagrantfile
+        register: vargantfile_local_cloud_out
+
+
+      - name: Show contents of Vagrantfile to variable
+        debug: 
+          msg: "{{ vargantfile_local_cloud_out.stdout_lines }}"
+
+    # - name: Include role vCloud Director Organization of Project in Cloud maintain
+    #   role: ./!_cloud/dc_integration/vcd/!_org_get_facts
+
+    # - name: Include role vCloud Director 3-way network of Project in Cloud Chain
+    #   role: ./!_cloud/dc_integration/vcd/network/3-way
+
+    # - name: Include role vCloud Director VCD VDC EDGE Network Zone maintain
+    #   role: ./!_cloud/dc_integration/vcd/network/routed_distributed_subnet
+
+    # - name: Include role vCloud Director vApp bootstrap and validate
+    #   role: ./!_cloud/dc_integration/vcd/vpc/create
+
+    # - name: Include role vCloud Director Network Zone maintain
+    #   role: ./!_cloud/dc_integration/vcd/network/network_sector/create
+
+    # - name: Include role vCloud Director VMs in vApp bootstrap and validate
+    #   role: ./!_cloud/dc_integration/vcd/instance/create
+
+    # - name: Include role vCloud Director VMs in vApp nic update
+    #   role: ./!_cloud/dc_integration/vcd/instance/ether_nic
+
+    # # - name: Include role vCloud Director Extra Networks in Zone maintain
+    # #   role: ./!_cloud/dc_integration/vcd/network/network_zone/extra_nets
+
+    # - name: Include role vCloud Director vApp start and validate
+    #   role: ./!_cloud/dc_integration/vcd/vpc/start

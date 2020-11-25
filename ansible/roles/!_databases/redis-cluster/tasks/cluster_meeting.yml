@@ -1,0 +1,14 @@
+- name: copy gatherer
+  template:
+    src: gatherer.awk
+    dest: /tmp/gatherer.awk
+    mode: 0755
+
+- name: create map
+  template:
+    src: cluster.map
+    dest: /tmp/cluster.map
+    mode: 0644
+
+- name: apply map
+  shell: /tmp/gatherer.awk /tmp/cluster.map

@@ -1,0 +1,9 @@
+# {{ ansible_managed }}
+
+# Log slapd generated log messages to file
+#:programname,contains,"slapd" {{ slapd_log_dir }}/slapd.log
+local4.* {{ slapd_log_dir }}/slapd.log
+
+# comment out the following line to allow slapd messages through.
+# Doing so means you'll also get slapd messages in /var/log/syslog
+& ~

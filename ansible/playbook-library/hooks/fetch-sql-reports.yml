@@ -1,0 +1,8 @@
+- name: Run the fetch-sql-reports role on vortex-db-013
+  become: true
+  hosts: "{{ HOSTS | default('vortex-db-013') }}"
+  roles:
+    - name: Run the fetch-sql-reports role
+      role: ./!_hooks/fetch_something/fetch-sql-reports
+  tags: 
+    - fetch-sql-reports

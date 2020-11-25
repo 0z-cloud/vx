@@ -1,0 +1,26 @@
+---
+# Installing Some Role for Some Hosts
+- name: Started Judah...localhost
+  hosts: localhost
+  become: true
+  tasks:
+    - include_vars: ../ansible.yml
+  tags: always
+
+# Installing Some Role for Some Hosts
+- name: Started Judah...
+  hosts: bitrix-web
+  become: true
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/swarm-network/swarm-main.yml"
+  tasks:
+    - include_vars: ../ansible.yml
+  tags: always
+
+- name: Get Solution
+  become: true
+  hosts: bitrix-web
+  roles:
+    - name: Main Step 
+      role: get-solution
+  tags: [bitrix-web, always]

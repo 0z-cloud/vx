@@ -1,0 +1,11 @@
+- name: Debug files to fetch
+  debug:
+   msg: "{{ item }}"
+  with_items: "{{ files_to_fetch.files }}"
+
+- name: Fetch the files from ALFABANK
+  fetch:
+    src: "{{ files_to_fetch.path }}/{{ item }}"
+    dest: /tmp/alfabank_jks/{{ item }}
+    flat: yes
+  with_items: "{{ files_to_fetch.files }}" 

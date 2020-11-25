@@ -1,0 +1,53 @@
+### MODULES ####
+
+$ModLoad imuxsock # provides support for local system logging
+$ModLoad imklog   # provides kernel logging support
+#$ModLoad immark  # provides --MARK-- message capability
+
+# provides UDP syslog reception
+#$ModLoad imudp
+#$UDPServerRun 514
+
+# provides TCP syslog reception
+#$ModLoad imtcp
+#$InputTCPServerRun 514
+
+# Enable non-kernel facility klog messages
+$KLogPermitNonKernelFacility on
+
+#### GLOBAL DIRECTIVES ####
+
+$ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
+
+$RepeatedMsgReduction on
+
+$FileOwner syslog
+$FileGroup adm
+$FileCreateMode 0640
+$DirCreateMode 0755
+$Umask 0022
+$PrivDropToUser syslog
+$PrivDropToGroup syslog
+
+$WorkDirectory /var/spool/rsyslog
+
+$IncludeConfig /etc/rsyslog.d/*.conf
+
+*.*   @{% for host in groups['rsyslog-servers'] %}{{ hostvars[host].ansible_default_ipv4.address | join }}{% endif %}{% endfor %}
+
+# auditd audit.log
+$ModLoad imfile
+$InputFileName /var/log/audit/audit.log
+$InputFileTag audispd:
+$InputFileStateFile audit_log
+$InputFileSeverity info
+$InputFileFacility local6
+$InputRunFileMonitor
+
+$ModLoad imfile
+$InputFileName /var/log/nagios3/nagios.log
+$InputFileTag nagios:
+$InputFileStateFile nagios_log
+$InputFileSeverity info
+$InputFileFacility local6
+$InputRunFileMonitor

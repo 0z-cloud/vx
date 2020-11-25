@@ -1,0 +1,496 @@
+    - name: Login into vCenter and get cookies
+      uri:
+        url: "{{ anycloud_adapter_api_url_http_uri }}/rest/com/vmware/cis/session"
+        force_basic_auth: yes
+        validate_certs: no
+        method: POST
+        user: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+      register: login
+
+    - name: Get all hosts from vCenter using cookies from last task
+      uri:
+        url: "{{ anycloud_adapter_api_url_http_uri }}/rest/vcenter/host"
+        force_basic_auth: yes
+        validate_certs: no
+        headers:
+          Cookie: "{{ login.set_cookie }}"
+      register: vchosts
+
+    - name: Set the ESXi list of hosts empty variable for fill 
+      set_fact:
+        esxi_hosts_local_group_map: []
+
+    - name: Create the ESXi list of hosts based on empty variable for fill 
+      set_fact:
+        esxi_hosts_local_group_map: "{{ esxi_hosts_local_group_map + ([ item.value | join ]) }}"
+      with_dict: "{{ vchosts.json.value }}"
+      when: "'name' in item.key"
+
+    - name: Debug dataset esxi_hosts_local_group_map
+      debug:
+        msg: "{{ esxi_hosts_local_group_map }}"
+
+    - name: Gather cluster info from given datacenter
+      community.vmware.vmware_cluster_info:
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        datacenter: "{{ anycloud_adapter_api_datacenter }}"
+        validate_certs: no
+        schema: vsphere
+      register: cluster_info
+
+    # - name: Debug dataset cluster_info
+    #   debug:
+    #     msg: "{{ cluster_info }}"
+
+    - name: Make the folder on vCenter vSphere
+      vcenter_folder:
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        validate_certs: "no"
+        datacenter: "{{ anycloud_adapter_api_datacenter }}"
+        folder_name: "{{ vsphere_folder }}"
+        folder_type: vm
+        state: present
+      # delegate_to: localhost
+      register: vm_folder_creation_result
+
+      # {{ cloud_bootstrap.clusters.hypervisor.vsphere }}
+    - name: Debug dataset cloud_bootstrap.clusters 
+      debug:
+        msg: "{{ item.value.vsphere }}"
+      when: "'hypervisor' in item.key"
+      with_dict: "{{ cloud_bootstrap.clusters }}"
+
+    - name: Set the cluster variable by set_fact  
+      set_fact:
+        anycloud_hypervisor_cluster: "{{ item.value.vsphere }}"
+      when: "'hypervisor' in item.key"
+      with_dict: "{{ cloud_bootstrap.clusters }}"
+
+    - name: Create Cluster
+      community.vmware.vmware_cluster:
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        validate_certs: no
+        datacenter_name: "{{ anycloud_adapter_api_datacenter }}"
+        cluster_name: "{{ anycloud_hypervisor_cluster.lower() }}"
+        enable_ha: no
+        enable_drs: yes
+        enable_vsan: no
+      when: "'hypervisor' in item.key"
+      with_dict: "{{ cloud_bootstrap.clusters }}"
+
+    - name: with_together -> loop
+      ansible.builtin.debug:
+        msg: "{{ item.0 }} - {{ item.1 }}"
+      loop: "{{ cloud_bootstrap.clusters|zip(esxi_hosts_local_group_map)|list }}"
+
+    - name: "Create DRS Host group"
+      delegate_to: localhost
+      community.vmware.vmware_drs_group:
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        cluster_name: "{{ anycloud_hypervisor_cluster.lower() }}"
+        datacenter_name: "{{ anycloud_adapter_api_datacenter }}"
+        group_name: "Cluster_{{ ansible_product }}_{{ ansible_datacenter }}_{{ ansible_environment }}"
+        hosts: "{{ esxi_hosts_local_group_map }}"
+        state: present
+        validate_certs: "no"
+      when: "'hypervisor' in item.key"
+      with_dict: "{{ cloud_bootstrap.clusters }}"
+
+    - name: Add resource pool to vCenter
+      community.vmware.vmware_resource_pool:
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        validate_certs: no
+        datacenter: "{{ anycloud_adapter_api_datacenter }}"
+        cluster: "{{ anycloud_hypervisor_cluster.lower() }}"
+        resource_pool: "{{ ansible_resource_pool }}"
+        mem_shares: normal
+        mem_limit: -1
+        mem_reservation: 0
+        mem_expandable_reservations: yes
+        cpu_shares: normal
+        cpu_limit: -1
+        cpu_reservation: 0
+        cpu_expandable_reservations: yes
+        state: present
+
+    # - name: Create a Resource Pool
+    #   vmware_resource_pool:
+    #     hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+    #     username: "{{ anycloud_adapter_api_user }}"
+    #     password: "{{ anycloud_adapter_api_password }}"
+    #     validate_certs: no
+    #     datacenter: "{{ anycloud_adapter_api_datacenter }}"
+    #     cluster: "{{ anycloud_hypervisor_cluster.lower() }}"
+    #     resource_pool: "{{ item.ansible_resource_pool }}"
+    #     mem_shares: normal
+    #     mem_limit: -1
+    #     mem_reservation: 0
+    #     mem_expandable_reservations: yes
+    #     cpu_shares: normal
+    #     cpu_limit: -1
+    #     cpu_reservation: 0
+    #     cpu_expandable_reservations: yes
+    #     state: present
+    #   register: vm_rp_creation_result
+    #   when: "'hypervisor' in item.key"
+    #   with_dict: "{{ cloud_bootstrap.clusters }}"
+
+    - name: Debug dataset
+      debug:
+        msg: "{{ item.value['vsphere'] }}"
+      when: "'hypervisor' in item.key"
+      with_dict: "{{ cloud_bootstrap.clusters }}"
+
+    - name: Debug dataset
+      debug:
+        msg: "{{ item.value['vsphere'] }}"
+      when: "'ansible_inventory_vars' in item.key"
+      with_dict: "{{ cloud_bootstrap.servers }}"
+
+    - name: Debug dataset
+      debug:
+        msg: "{{ item.value['vsphere'] }}"
+      when: "'ansible_inventory_vars' in item.value"
+      with_dict: "{{ cloud_bootstrap.clusters }}"
+    # {{ lookup('vars', 'passed_ci_docker_tag_' + app) }}
+
+    - name: Add resource pool to vCenter
+      community.vmware.vmware_resource_pool:
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        validate_certs: no
+        datacenter: "{{ anycloud_adapter_api_datacenter }}"
+        cluster: "{{ anycloud_hypervisor_cluster.lower() }}"
+        resource_pool: "{{ ansible_resource_pool }}"
+        mem_shares: normal
+        mem_limit: -1
+        mem_reservation: 0
+        mem_expandable_reservations: yes
+        cpu_shares: normal
+        cpu_limit: -1
+        cpu_reservation: 0
+        cpu_expandable_reservations: yes
+        state: present
+          # delegate_to: localhost
+
+          # # Create a resource pool
+          #   - name: Add resource pool to vCenter
+          #     vmware_resource_pool:
+          #       validate_certs: no
+          #       # guest_id: ubuntu64Guest
+          #       # hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+          #       hostname: "{{ item }}"
+          #       username: "{{ vsphere_esxi_login }}"
+          #       password: "{{ anycloud_adapter_api_password }}"
+          #       datacenter: "{{ anycloud_adapter_api_datacenter }}"
+          #       cluster: "{{ anycloud_hypervisor_cluster.lower() }}"
+          #       resource_pool: "{{ vsphere_resourcepool }}"
+          #       mem_shares: normal
+          #       mem_limit: -1
+          #       mem_reservation: 0
+          #       mem_expandable_reservations: True
+          #       cpu_shares: normal
+          #       cpu_limit: -1
+          #       cpu_reservation: 0
+          #       cpu_expandable_reservations: True
+          #       state: present
+          #     when: "'.101' not in item"
+          #     with_items: "{{ esxi_hosts_local_group_map }}"
+
+    - name: VM Deployment re/Creation
+      community.vmware.vmware_guest:
+        # guest_id: ubuntu64Guest
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        datacenter: "{{ anycloud_adapter_api_datacenter }}"
+        cluster: "{{ anycloud_hypervisor_cluster.lower() }}"
+        # resource_pool: "{{ ansible_resource_pool }}"
+        # resource_pool: "{{ anycloud_hypervisor_cluster }}"
+        validate_certs: no
+        # force: true
+        # guest_id: ubuntu64Guest
+        folder: "/"
+        name: "{{ item.value.name }}"
+        # template: "{{ item.value.anycloud_vm_template_name }}"
+        state: "present"
+        # networks:
+        #   - name: "{{ item.value.network_name }}"
+        #     device_type: vmxnet3
+        #     connected: yes
+        #     type: dhcp
+        #     start_connected: yes
+        #   - name: "{{ item.value.network_name }}"
+        #     device_type: vmxnet3
+        #     start_connected: yes
+        #     connected: yes
+        #     type: dhcp
+        # customvalues:
+      register: create_instance_result
+      with_dict: "{{ cloud_bootstrap.servers }}"
+
+        # template: "{{ item.value.anycloud_vm_template_name }}"
+        #datacenter: "lf-vx-z1e-vcd"
+        # cluster: "{{ anycloud_hypervisor_cluster.lower() }}"
+        # resource_pool: "{{ item.value.ansible_resource_pool }}"
+        # wait_for_customization: yes
+        # wait_for_customization_timeout: "{{ cloud_bootstrap.anycloud_awaits_timeouts.for_customization_completes }}"
+        # wait_for_ip_address: yes
+        # wait_for_ip_address_timeout: "{{ cloud_bootstrap.anycloud_awaits_timeouts.for_ip_address }}"
+        # - name: "{{ item.value.network_name }}"
+        #   ip: "{{ item.value.ip }}"
+        #   netmask: "{{ item.value.network_subnet }}"
+        #   # network: "{{ item.value.network_name }}"
+        #   # gateway: "{{ item.value.gw }}"
+        #   # mac: "{{ lookup('random_mac') }}"
+        #   # domain: "{{ public_consul_domain }}"
+        #   # dns_servers: "{{ anycloud_results_vpc_zone_virtual_abstract.dns_servers | join(', ') }}"
+        #   #dns_servers: "{{ item.value.gw }}"
+        #   # start_connected: yes
+        #   # connected: yes
+        #   type: static
+        #   # label: "{{ item.value.network_name }}"
+        # - name: "{{ item.value.network_name }}"
+        #   # [second_network] }}"
+        #   ip: "{{ item.value.ansible_inventory_vars.second_ip }}"
+        #   netmask: "{{ item.value.ansible_inventory_vars.second_network_subnet }}"
+        #   network: "{{ item.value.network_name }}"
+        #   mac: "{{ lookup('random_mac') }}"
+        #   # start_connected: yes
+        #   # connected: yes
+        #   device_type: vmxnet3
+        #   type: static
+        #   # label: "{{ item.value.network_name }}"
+        # customization:
+        #   # ns_servers: "{{ item.value.gw }}"
+        #   # domain: "{{ public_consul_domain }}"
+        #   hostname: "{{ item.value.name }}"
+        #   # autologon: yes
+        #   password: 12345
+        #   fullname: template
+        #   # runonce:
+        #   #   - echo $HOME > /root/home.lock
+
+    - name: VM Deployment Update state for each VM
+      community.vmware.vmware_guest:
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        validate_certs: no
+        datacenter: "{{ anycloud_adapter_api_datacenter }}"
+        cluster: "{{ anycloud_hypervisor_cluster.lower() }}"
+        resource_pool: "{{ ansible_resource_pool }}"
+        # resource_pool: "{{ anycloud_hypervisor_cluster }}"
+        # resource_pool: "{{ item.value.ansible_resource_pool }}"
+        wait_for_customization: yes
+        wait_for_customization_timeout: "{{ cloud_bootstrap.anycloud_awaits_timeouts.for_customization_completes }}"
+        wait_for_ip_address: yes
+        wait_for_ip_address_timeout: "{{ cloud_bootstrap.anycloud_awaits_timeouts.for_ip_address }}"
+        folder: "/"
+        name: "{{ item.value.name }}"
+        guest_id: ubuntu64Guest
+        # template: "{{ item.value.anycloud_vm_template_name }}"
+        state: poweredon
+        networks:
+          - name: "{{ item.value.network_name }}"
+            ip: "{{ item.value.ip }}"
+            netmask: "{{ item.value.network_subnet }}"
+            network: "{{ item.value.network_name }}"
+            gateway: "{{ item.value.gw }}"
+            mac: "{{ lookup('random_mac') }}"
+            # domain: "{{ public_consul_domain }}"
+            # dns_servers: "{{ anycloud_results_vpc_zone_virtual_abstract.dns_servers | join(', ') }}"
+            dns_servers: "{{ item.value.gw }}"
+            start_connected: yes
+            connected: yes
+            type: static
+            # label: "{{ item.value.network_name }}-public"
+          - name: "{{ item.value.network_name }}"
+            # [second_network] }}"
+            ip: "{{ item.value.ansible_inventory_vars.second_ip }}"
+            netmask: "{{ item.value.ansible_inventory_vars.second_network_subnet }}"
+            network: "{{ item.value.network_name }}"
+            mac: "{{ lookup('random_mac') }}"
+            start_connected: yes
+            connected: yes
+            type: static
+            # label: "{{ item.value.network_name }}-private"
+        customization:
+          # ns_servers: "{{ item.value.gw }}"
+          # domain: "{{ public_consul_domain }}"
+          hostname: "{{ item.value.name }}"
+          # autologon: yes
+          password: "12345"
+          fullname: "template"
+          existing_vm: yes 
+        force: true
+      register: create_instance_result_up
+      with_dict: "{{ cloud_bootstrap.servers }}"
+
+
+    - name: Show results
+      debug:
+        msg: "{{ item }}"
+        
+        #  |
+        #   "{% if 'instance' in item.key %}
+        #   {{ item }}
+        #   {% endif %}
+        #   "
+      
+      with_dict:
+      
+      
+      
+       "{{ create_instance_result_up.results }}"
+
+
+    - name: Get virtual machine info
+      community.vmware.vmware_vm_info:
+        validate_certs: no
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        show_attribute: yes
+      register: vm_info
+
+    - name: Start 1 processing of translate recieved API Cloud Bootstrap / Check result state response for 0z-cloud
+      debug:
+        msg: "{{ vm_info }}"
+
+
+    - name: Upgrade VMware Tools using MoID
+      community.vmware.vmware_guest_tools_upgrade:
+        validate_certs: no
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        datacenter: "{{ anycloud_adapter_api_datacenter }}"
+        name: "{{ item.value.name }}"
+      delegate_to: localhost
+      with_dict: "{{ cloud_bootstrap.servers }}"
+
+    # - name: Set anycloud_blank_array_instance_results
+    #   set_fact:
+    #       anycloud_blank_array_instance_results: []
+
+    # - name: IWI Show server create_instance_result 
+    #   set_fact: 
+    #       anycloud_blank_array_instance_results: "{{ item.instance }}"
+    #   with_items: "{{ create_instance_result.results }}"
+
+    # - name: Ensure virtual machine is in the dynamic inventory
+    #   add_host:
+    #     name: "{{ vsphere_facts.ansible_facts.hw_eth0.ipaddresses[0] }}"
+    #     ansible_user: _______
+    #     ansible_ssh_private_key_file: _______
+    #     groups: virtual_machines
+
+    # - name: IWI Show server create_instance_result 
+    #   vmware_guest:
+    #     hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+    #     username: "{{ anycloud_adapter_api_user }}"
+    #     password: "{{ anycloud_adapter_api_password }}"
+    #     validate_certs: no
+    #     name: "{{ item.value.name }}"
+    #     vmware_guest_facts: yes
+    #     customization:
+    #         # ns_servers: "{{ item.value.gw }}"
+    #         domain: "{{ public_consul_domain }}"
+    #         hostname: "{{ item.value.name }}"
+    #         autologon: yes
+    #         password: 12345
+    #         autologoncount: 5
+    #         fullname: template
+    #         runonce:
+    #           - echo $HOME > /root/home.lock
+    #   register: vsphere_facts
+    #   with_dict: "{{ cloud_bootstrap.servers }}"
+
+    # - name: Start2 processing of translate recieved API Cloud Bootstrap / Check result state response for 0z-cloud
+    #   debug:
+    #     msg: "{{ vsphere_facts }}"
+
+    # - name: Start 1 processing of translate recieved API Cloud Bootstrap / Check result state response for 0z-cloud
+    #   debug:
+    #     msg: "{{ anycloud_blank_array_instance_results }}"
+
+
+    # # - set_fact:
+    # #     var3: "{{ var3 + [item[0]|combine(item[1])] }}"
+    # #   vars:
+    # #     var3: []
+    # #   loop: "{{ var1|zip(var2)|list }}"
+    # - name: Prepare processing of translate recieved API Cloud Bootstrap / Check result state response for 0z-cloud
+    #   set_fact:
+    #     anycloud_api_null_array_answer: []
+    # ############################################################################################################
+    # #
+    # - name: Start processing of translate recieved API Cloud Bootstrap / Check result state response for 0z-cloud
+    #   debug:
+    #     msg: | 
+    #           {% for dict_item in item %}
+
+    #           {% for key.items() in dict_item %}
+    #           {{ key }}
+    #           {% endfor %}
+    #           {% endfor %}
+    #   with_dict: "{{ create_instance_result.results }}"
+    #   when: "('instance' in item.key) or ('item' in item.key) or ('invocation' in item.key)"
+    
+    # # when: "('instance' in item.values()) or ('item' in item.values()) or ('invocation' in item.values())"
+    # ############################################################################################################
+    # #
+    # - name: Print resulting array without garbage data
+    #   debug:
+    #     msg: "{{ item }}"
+    #   with_dict: "{{ anycloud_api_null_array_answer }}"
+
+    # - name: Print resulting array without garbage data
+    #   debug:
+    #     msg: "{{ anycloud_api_null_array_answer }}"
+    # #
+    # ############################################################################################################
+    #
+    # - debug: aiaiaia
+    #     msg: |
+    #       "{{ anycloud_api_null_array_answer|
+    #               dict2items|
+    #               json_query('[*].value')
+    #               }}"
+    #
+    ############################################################################################################
+    #
+    # - name: step 1
+    #   set_fact:
+    #     temp_1: "{{ temp_1|default([]) + [{'role': item.1, 'hostgroup': item.0.name }] }}"
+    #   with_subelements:
+    #     - "{{ hostgroups }}"
+    #     - roles
+    # #
+    # - name: Debug 2
+    #   check_mode: no
+    #   blockinfile:
+    #     dest: hosts
+    #     marker: "# {mark} Auto block {{ item[0] }}"
+    #     block: |
+    #           [{{ item[0]}}]
+    #           {% for i in item[1] %}
+    #           {{ i.hostgroup }}
+    #           {% endfor %}
+    #   with_items:
+    #     - "{{ temp_1 | groupby('role') | list  }}"
+    #
+    ############################################################################################################

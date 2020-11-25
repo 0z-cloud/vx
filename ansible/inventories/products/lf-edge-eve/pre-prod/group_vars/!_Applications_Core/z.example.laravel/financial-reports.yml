@@ -1,0 +1,48 @@
+name: financial-reports
+published_port: "{{ financial_reports_service_listen_port }}"
+docker_image: "gitlab.vortex.ru:4567/vortex/financial-reports"
+docker_image_tag: latest
+replicas: 1
+
+db_migrate: "yes"
+
+queues:
+  - { program: "financial_reports", name: "default", processes: 1 }
+
+variables:
+  APP_NAME: "financial-reports"
+  APP_ENV: "stage"
+  APP_KEY: "base64:QtmkpGGxfkoEpdxwqgTo4JQ/Q6a69FZTuSZvcMnr6ko="
+  APP_DEBUG: "true"
+  APP_URL: "http://financial-reports"
+  DB_CONNECTION: "mysql"
+  DB_HOST: "percona.service.cloud.vortex.me"
+  DB_PORT: "3306"
+  DB_DATABASE: "financial_reports"
+  DB_USERNAME: "root"
+  DB_PASSWORD: "root"
+  DB_CORE_HOST: "percona.service.cloud.vortex.me"
+  DB_CORE_PORT: "3306"
+  DB_CORE_DATABASE: "vortex"
+  DB_CORE_USERNAME: "root"
+  DB_CORE_PASSWORD: "root"
+  DB_MCOM_HOST: "percona.service.cloud.vortex.me"
+  DB_MCOM_PORT: "3306"
+  DB_MCOM_DATABASE: "gateway_mcom"
+  DB_MCOM_USERNAME: "root"
+  DB_MCOM_PASSWORD: "root"
+  BROADCAST_DRIVER: "log"
+  CACHE_DRIVER: "file"
+  SESSION_DRIVER: "file"
+  QUEUE_DRIVER: "rabbitmq"
+  RABBITMQ_HOST: "127.0.0.1"
+  RABBITMQ_PORT: "5672"
+  RABBITMQ_VHOST: "financial_reports"
+  RABBITMQ_LOGIN: "financial_reports"
+  RABBITMQ_PASSWORD: "financial_reports"
+  PRIVATE_API_URL: "http://private-api.service.cloud.vortex.me:{{ private_api_service_listen_port }}"
+  SENTRY_LARAVEL_DSN: "http://f788ee02b96b4ac8b59043dfc93d1e08:369abbf0605b4488bb51376460aafea0@sentry.service.cloud.vortex.me:9000/9"
+
+secured_variables:
+  - {name: "app.key", value: "base64:QtmkpGGxfkoEpdxwqgTo4JQ/Q6a69FZTuSZvcMnr6ko="}
+

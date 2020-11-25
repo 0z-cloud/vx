@@ -1,0 +1,34 @@
+
+# - name: create prometeus alert rules
+#   copy:
+#       src: "{{ item }}"
+#       dest: "/opt/prometeus/{{ ansible_environment }}/alerts.rules/"
+#   with_fileglob:
+#     - "files/*"
+
+- name: "re/Create a PostgreSQL Service docker container"
+  docker_container:
+      name: "powerdns-PostgreSQL-{{ ansible_environment }}"
+      image: "postgres"
+      hostname: "powerdns-postgres-{{ ansible_environment }}"
+      ports:
+        - "5432:5432"
+      volumes:
+        - "{{ powerdns_postgresql_settings.directories.data_dir }}:/var/lib/postgresql/data/pgdata"
+        - "{{ powerdns_postgresql_settings.directories.config_path }}:/docker-entrypoint-initdb.d"
+        - "{{ powerdns_postgresql_settings.directories.script_path }}/pgpass:/root/.pgpass"
+        - "{{ powerdns_postgresql_settings.directories.quake_path }}:/quake"
+      # networks:
+      #   - name: "{{ swarm_masters.overlay_network.network_name }}"
+      #     ipv4_address: "{{ powerdns_postgresql_settings.overlay_ip }}"
+      env:
+        PGDATA: "/var/lib/postgresql/data/pgdata"
+        POSTGRES_PASSWORD: "{{ powerdns_postgresql_settings.password }}"
+      privileged: yes
+      pull: true
+      # docker_host: tcp://0.0.0.0:4000
+      # labels: com.docker.swarm.reschedule-policies=["on-node-failure"]
+      restart_policy: unless-stopped
+      recreate: yes 
+      state: started
+      memory: "{{ default_container_memory }}"

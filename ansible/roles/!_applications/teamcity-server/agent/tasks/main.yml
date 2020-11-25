@@ -1,0 +1,29 @@
+- name: Create TeamCity Agent directories for env specific configurations
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0755
+  with_dict: "{{ teamcity_agent_settings.directories | default({}) }}"
+
+- name: Pull jetbrains/teamcity-agent Docker image to host installer
+  docker_image:
+      name: jetbrains/teamcity-agent
+
+## NEED TO FIX NGINX FQDN
+
+- name: re/Create a TeamCity Service Agent docker container
+  docker_container:
+      name: "TeamCity-agent-{{ ansible_environment }}-{{ inventory_hostname }}"
+      image: "jetbrains/teamcity-agent"
+      hostname: "TeamCity-agent-{{ ansible_environment }}-{{ inventory_hostname }}"
+      volumes:
+        - "{{ teamcity_agent_settings.directories.data_dir }}:/data/teamcity_server/datadir"
+        - "/root/.ssh:/root/.ssh"
+      privileged: yes
+      pull: true
+      restart_policy: unless-stopped
+      detach: True
+      recreate: yes
+      env:
+        SERVER_URL: "https://{{ ansible_global_teamcity_site_name }}"
+      state: started

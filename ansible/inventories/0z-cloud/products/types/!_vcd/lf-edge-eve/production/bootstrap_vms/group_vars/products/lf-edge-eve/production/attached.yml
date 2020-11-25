@@ -1,0 +1,8 @@
+ansible_environment: production
+test_variable_01: vcloud.yml
+ansible_product: lf-edge-eve
+getlocal_groups: inventories/products/{{ ansible_product }}/production
+# ansible_vault_cloud_provider_initial_adapter_type: "vcd"
+ansible_vault_cloud_provider_initial_adapter_type: "gcp"
+group_vars_path_my: inventories/products/types/!_{{ ansible_vault_cloud_provider_initial_adapter_type }}/{{ ansible_product }}/{{ ansible_environment }}
+ansible_environment: production

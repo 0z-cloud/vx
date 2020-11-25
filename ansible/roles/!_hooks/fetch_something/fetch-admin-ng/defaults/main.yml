@@ -1,0 +1,5 @@
+files_to_fetch:
+  path: /var/www/admin-ng/shared/storage/app/
+  #path: /var/www/admin-ng/shared/storage/app/tele2mobile/
+  files: 
+    - report_mdm_processor.csv

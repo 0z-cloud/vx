@@ -1,0 +1,22 @@
+java_settings_defaults:
+    packages:
+       - oracle-java8-installer
+       - oracle-java8-unlimited-jce-policy
+       - oracle-java8-set-default
+       - libtomcat11-java
+       - libservlet3.0-java
+       - libgeronimo-jta-1.1-spec-java
+       - libecj-java
+       - libcommons-dbcp-java
+       - libcommons-pool-java
+       - libcommons-collections3-java
+       - java-common
+    configs:
+       java_security: "/usr/lib/jvm/java-8-oracle/jre/lib/security/java.security"
+    security:
+       jdk_tls_disabled_algorithms: "SSLv3, RC4, DH keySize < 768"
+       jdk_certpath_disabled_algorithms: "MD2, RSA keySize < 1024"
+    environment_vars:
+       JAVA_HOME: "{{ ansible_java_home_env_var }}"
+    directories:
+       scritps_dir: "/wrk/scripts/ansible/java"

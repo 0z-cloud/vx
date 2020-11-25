@@ -1,0 +1,97 @@
+- name: Create a cni certificate request
+  shell: openssl req -newkey rsa:4096 -keyout /opt/ca/pki/cni.key -nodes -out /opt/ca/pki/cni.csr -subj "/CN=calico-cni"
+
+- name: Sign the cni certificate request by Kubernetes internal keys
+  shell: sudo openssl x509 -req -in /opt/ca/pki/cni.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -CAcreateserial -out /opt/ca/pki/cni.crt -days 365
+
+- name: Register cluster network endpoint
+  shell: kubectl config view -o jsonpath='{.clusters[0].cluster.server}' | xargs -I ID echo ID
+  register: vip_api_k8_endpoint
+
+- name: Debug api connection string
+  debug:
+    msg: "{{ vip_api_k8_endpoint.stdout | trim }}"
+
+- name: Create kubeconfig for cni
+  shell: "{{ item }}"
+  with_items:
+    - kubectl config set-cluster kubernetes --certificate-authority=/etc/kubernetes/pki/ca.crt --embed-certs=true --server={{ vip_api_k8_endpoint.stdout | trim }} --kubeconfig=/opt/ca/kube/cni.kubeconfig
+    - kubectl config set-credentials calico-cni --client-certificate=/opt/ca/pki/cni.crt --client-key=/opt/ca/pki/cni.key --embed-certs=true --kubeconfig=/opt/ca/kube/cni.kubeconfig
+    - kubectl config set-context default --cluster=kubernetes --user=calico-cni --kubeconfig=/opt/ca/kube/cni.kubeconfig
+    - kubectl config use-context default --kubeconfig=/opt/ca/kube/cni.kubeconfig
+
+- name: Apply calico-rbac
+  shell: "{{ item }}"
+  with_items:
+    - kubectl apply -f /opt/ca/kube/cni/calico-rbac.yml
+    - kubectl create clusterrolebinding calico-cni --clusterrole=calico-cni --user=calico-cni
+
+- name: PHASE 1 | Download necessary calico tools and etc tasks
+  shell: "{{ item }}"
+  with_items:
+    - curl -L -o /opt/cni/bin/calico https://github.com/projectcalico/cni-plugin/releases/download/v3.8.0/calico-amd64
+    - chmod 755 /opt/cni/bin/calico
+    - curl -L -o /opt/cni/bin/calico-ipam https://github.com/projectcalico/cni-plugin/releases/download/v3.8.0/calico-ipam-amd64
+    - chmod 755 /opt/cni/bin/calico-ipam
+    - mkdir -p /etc/cni/net.d/
+    - cp /opt/ca/kube/cni.kubeconfig /etc/cni/net.d/calico-kubeconfig
+    - chmod 600 /etc/cni/net.d/calico-kubeconfig
+    - cp /opt/ca/kube/cni/calico-10.yml /etc/cni/net.d/10-calico.conflist
+
+- name: PHASE 2 | Typha configuration
+  shell: "{{ item }}"
+  with_items:
+    - openssl req -x509 -newkey rsa:4096 -keyout /opt/ca/pki/typhaca.key -nodes -out /opt/ca/pki/typhaca.crt -subj "/CN=Calico Typha CA" -days 365
+    - kubectl create configmap -n kube-system calico-typha-ca --from-file=/opt/ca/pki/typhaca.crt
+    - openssl req -newkey rsa:4096 -keyout /opt/ca/pki/typha.key -nodes -out /opt/ca/pki/typha.csr -subj "/CN=calico-typha"
+    - openssl x509 -req -in /opt/ca/pki/typha.csr -CA /opt/ca/pki/typhaca.crt -CAkey /opt/ca/pki/typhaca.key -CAcreateserial -out /opt/ca/pki/typha.crt -days 365
+    - kubectl create secret generic -n kube-system calico-typha-certs --from-file=/opt/ca/pki/typha.key --from-file=/opt/ca/pki/typha.crt
+    - kubectl create serviceaccount -n kube-system calico-typha
+    - kubectl apply -f /opt/ca/kube/cni/calico-typha.yml
+    - kubectl create clusterrolebinding calico-typha --clusterrole=calico-typha --serviceaccount=kube-system:calico-typha
+    - kubectl apply -f /opt/ca/kube/cni/calico-deploy.yml
+
+- name: PHASE 3 | Get pods by typha configuration
+  shell: "kubectl get pods -l k8s-app=calico-typha -n kube-system"
+  register: typha_get_pods_result
+
+- name: Debug typha_get_pods_result
+  debug:
+    msg: "{{ typha_get_pods_result.stdout | trim }}"
+
+- name: APPLY CONFIG CALICO-NODE | Create service typha
+  shell: "kubectl apply -f /opt/ca/kube/cni/calico-node.yml"
+  register: typha_get_pods_result
+
+- name: Register typha service endpoint
+  shell: kubectl get svc -n kube-system calico-typha -o jsonpath='{.spec.clusterIP}'
+  register: typha_endpoint_5473
+
+- name: Debug typha_endpoint_5473
+  debug:
+    msg: "{{ typha_endpoint_5473.stdout | join }}"
+
+- name: Check and rebuild typha service
+  shell: "{{ item }}"
+  with_items:
+    - TYPHA_CLUSTERIP=$(kubectl get svc -n kube-system calico-typha -o jsonpath='{.spec.clusterIP}')
+    - curl https://$TYPHA_CLUSTERIP:5473 -v --cacert /opt/ca/pki/typhaca.crt
+
+- name: Init last part of RBAC
+  shell: "{{ item }}"
+  with_items:
+    - openssl req -newkey rsa:4096 -keyout /opt/ca/pki/calico-node.key -nodes -out /opt/ca/pki/calico-node.csr -subj "/CN=calico-node"
+    - openssl x509 -req -in /opt/ca/pki/calico-node.csr -CA /opt/ca/pki/typhaca.crt -CAkey /opt/ca/pki/typhaca.key -CAcreateserial -out /opt/ca/pki/calico-node.crt -days 365
+    - kubectl create secret generic -n kube-system calico-node-certs --from-file=/opt/ca/pki/calico-node.key --from-file=/opt/ca/pki/calico-node.crt
+    - kubectl create serviceaccount -n kube-system calico-node
+    - kubectl apply -f /opt/ca/kube/cni/calico-node-serviceaccount.yml
+    - kubectl create clusterrolebinding calico-node --clusterrole=calico-node --serviceaccount=kube-system:calico-node
+    - kubectl apply -f /opt/ca/kube/cni/calico-daemonset.yml
+
+- name: Get status of kubectl get pod -l k8s-app=calico-node -n kube-system
+  shell: kubectl get pod -l k8s-app=calico-node -n kube-system
+  register: get_pod_calico_node
+
+- name: Debug get_pod_calico_node
+  debug:
+    msg: "{{ get_pod_calico_node.stdout | join }}"

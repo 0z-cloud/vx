@@ -1,0 +1,36 @@
+- name: CFSSL DOWNLOAD | Download cfssl Unix
+  shell: |
+      curl -o {{ ca_service_settings.directories.source }}/cfssl https://pkg.cfssl.org/R1.2/cfssl_linux-amd64
+      curl -o {{ ca_service_settings.directories.source }}/cfssljson https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64
+      chmod +x {{ ca_service_settings.directories.source }}/cfssl*
+  when: inventory_hostname in groups['kubernetes-master']
+
+- name: CFSSL DOWNLOAD | Local copy from source
+  shell: "cp {{ ca_service_settings.directories.source }}/{{ item }} /usr/local/bin/{{ item }}"
+  with_items: "{{ ca_service_settings.app_links }}"
+  ignore_errors: true
+  when: inventory_hostname in groups['kubernetes-master']
+
+- name: CFSSL DOWNLOAD | Local copy from source to local ca bin
+  shell: "cp {{ ca_service_settings.directories.source }}/{{ item }} {{ ca_service_settings.directories.bin }}{{ item }}"
+  with_items: "{{ ca_service_settings.app_links }}"
+  ignore_errors: true
+  when: inventory_hostname in groups['kubernetes-master']
+
+- name: ETCD DOWNLOAD | Download Etcd Unix
+  get_url:
+    url: "{{ etcd_service_settings.etcd_get_url }}"
+    dest: "{{ etcd_service_settings.directories.data }}"
+  when: download_etcd is defined or reset_cluster is defined and inventory_hostname in groups['kubernetes-master']
+
+- name: ETCD UNARCHIVE | Copy Etcd Binary to /bin
+  unarchive:
+     src: "{{ etcd_service_settings.directories.data }}/{{ etcd_service_settings.etcd_get_zip }}"
+     dest: "{{ etcd_service_settings.directories.source }}"
+     copy: no
+  when: download_etcd is defined or reset_cluster is defined and inventory_hostname in groups['kubernetes-master']
+
+- name: ETCD COPY TO BIN | Local copy from source
+  shell: "cp {{ etcd_service_settings.directories.source }}/{{ etcd_service_settings.etcd_arc_ver }}/etcd* /usr/local/bin/"
+  ignore_errors: true
+  when: download_etcd is defined or reset_cluster is defined and inventory_hostname in groups['kubernetes-master']

@@ -1,0 +1,26 @@
+- name: Get the cluster size  state of cluster container
+  shell: docker exec percona-{{ ansible_environment }}-{{ ansible_hostname }} mysql -uroot -proot -e "SHOW GLOBAL STATUS LIKE 'wsrep_cluster_size';"
+  retries: 3
+  delay: 30
+  register: wsrep_cluster_size
+  until: wsrep_cluster_size.rc == 0
+
+- name: Show wsrep_cluster_size
+  debug:
+    msg: "{{ wsrep_cluster_size }}"
+
+# - hosts: localhost
+#   tasks:
+#   - file: path=/tmp/zzz state=absent
+
+#   - name: testing timeout
+#     get_url:
+#       url: http://1.2.3.4/zzz
+#       dest: /tmp/zzz
+#     retries: 2
+#     delay: 3
+#     register: result            # <<<
+#     until: result is succeeded  # <<<
+
+#   - debug:
+#       msg: finished

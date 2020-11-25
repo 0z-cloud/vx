@@ -1,0 +1,9 @@
+- name: Run the pam_d role on all servers except firewall-host
+  become: true
+  hosts: "{{ HOSTS | default('firewall-host') }}"
+  roles:
+    - name: Run the pam.d role
+      role: ./!_security/pam_d
+  tags: 
+    - pamd_install
+    - firewall-host

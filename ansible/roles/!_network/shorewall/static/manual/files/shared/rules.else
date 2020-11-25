@@ -1,0 +1,136 @@
+# For information on the settings in this file, type "man shorewall-rules"
+######################################################################################################################################################################################################
+#ACTION		    SOURCE		            DEST		                        PROTO	    DEST	SOURCE		ORIGINAL	RATE		USER/	MARK	CONNLIMIT	TIME	HEADERS		SWITCH		HELPER
+
+# ACCEPT FROM DEVOPS TO VDP FOR WEB MANAGEMENT UI
+ACCEPT          else:10.16.131.250       esx:10.16.128.253                     tcp         8543
+
+# ACCEPT FROM DEVOPS WEB FORWARD TO OSSIM WEB UI
+ACCEPT		    else:10.16.131.250	    esx:10.16.128.252		                tcp	        443
+
+# ACCEPT NTP FROM ELSE
+ACCEPT		    else			        fw			                        tcp	        123
+ACCEPT          else                    fw                                  udp         123
+
+# ACCEPT SMTP SEND VIA RELAY mx.vortex.com
+ACCEPT		    else:10.16.131.51	    wan:213.247.248.2	                tcp	        25
+
+# ACCEPT FROM DEVOPS TO RABBITMQ MANAGEMENT WEB UI
+# INSECURED COMMENTED OUT ON 16.10.2018
+# ACCEPT		    else:10.16.131.250	    web:10.16.211.181,10.16.211.182         tcp         15672
+
+# ACCEPT ICMP FROM DNS
+ACCEPT		    else:10.16.131.51	    wan                                 icmp
+
+################ PLATFORM ADMINISTRATION ENTRY SETTINGS ##############
+################ ###################################### ###
+
+# DROP SSH FROM DEVOPS TO EXTERNAL SUBNETS (TO INTERNET)
+DROP		    else:10.16.131.250	    wan	                                tcp	        22
+
+# DEVOPS TO ELSE vlan BY NETWORK:HOST - SSH
+ACCEPT          else:10.16.131.250       else:10.16.131.51                    tcp	        22
+ACCEPT          else:10.16.131.250       else:10.16.131.110                   tcp	        22
+ACCEPT          else:10.16.131.250       else:10.16.131.150                   tcp	        22
+ACCEPT          else:10.16.131.250       else:10.16.131.251                   tcp	        22
+ACCEPT          else:10.16.131.250       else:10.16.131.2                     tcp	        22
+ACCEPT          else:10.16.131.250       else:10.16.131.3                     tcp	        22
+
+# DEVOPS TO DB vlan BY NETWORK:HOST - SSH
+ACCEPT          else:10.16.131.250       sql:10.16.120.13                    tcp	        22
+ACCEPT          else:10.16.131.250       sql:10.16.120.113                   tcp	        22
+ACCEPT          else:10.16.131.250       sql:10.16.120.213                   tcp	        22
+
+# DEVOPS TO KEY vlan BY NETWORK:HOST - SSH
+ACCEPT          else:10.16.131.250       key:10.16.226.70                    tcp	        22
+ACCEPT          else:10.16.131.250       key:10.16.226.10                    tcp	        22
+
+# DEVOPS TO WEB vlan BY NETWORK:HOST - SSH
+ACCEPT          else:10.16.131.250       web:10.16.211.34                     tcp	        22
+ACCEPT          else:10.16.131.250       web:10.16.211.35                    tcp	        22
+ACCEPT          else:10.16.131.250       web:10.16.211.101                   tcp	        22
+ACCEPT          else:10.16.131.250       web:10.16.211.161                   tcp	        22
+ACCEPT          else:10.16.131.250       web:10.16.211.171                   tcp	        22
+ACCEPT          else:10.16.131.250       web:10.16.211.181                   tcp	        22
+ACCEPT          else:10.16.131.250       web:10.16.211.182                   tcp	        22
+ACCEPT          else:10.16.131.250       web:10.16.211.200                   tcp	        22
+ACCEPT          else:10.16.131.250       web:10.16.211.201                   tcp	        22
+ACCEPT          else:10.16.131.250       web:10.16.211.202                   tcp	        22
+ACCEPT          else:10.16.131.250       web:10.16.211.211                   tcp	        22
+ACCEPT          else:10.16.131.250       web:10.16.211.212                   tcp	        22
+ACCEPT          else:10.16.131.250       web:10.16.211.231                   tcp	        22
+ACCEPT          else:10.16.131.250       web:10.16.211.232                   tcp	        22
+
+# DEVOPS TO ESX vlan BY NETWORK:HOST - SSH
+ACCEPT          else:10.16.131.250       esx:10.16.128.252                     tcp	        22
+ACCEPT          else:10.16.131.250       esx:10.16.128.253                     tcp	        22
+ACCEPT          else:10.16.131.250       esx:10.16.128.254                     tcp	        22
+
+# DEVOPS TO IPMI vlan BY NETWORK:HOST - SSH
+ACCEPT          else:10.16.131.250       ipmi:10.110.1.240                   tcp	        22
+ACCEPT          else:10.16.131.250       ipmi:10.110.1.250                   tcp	        22
+
+################ ###################################### ##############
+# PING TO ALL
+ACCEPT		    else:10.16.131.250		all	                                icmp
+
+################ PLATFORM ADMINISTRATION ENTRY SETTINGS END ##########
+################ ###################################### ##############
+
+################ ###################################### ##############
+# NTP FROM ELSE TO FW
+
+ACCEPT		    else:10.16.131.51		fw:10.16.131.1                       udp	        ntp,domain
+ACCEPT		    else:10.16.131.110		fw:10.16.131.1                       udp	        ntp,domain
+ACCEPT		    else:10.16.131.150		fw:10.16.131.1                       udp	        ntp,domain
+ACCEPT		    else:10.16.131.250		fw:10.16.131.1                       udp	        ntp,domain
+ACCEPT		    else:10.16.131.251		fw:10.16.131.1                       udp	        ntp,domain
+
+################ ###################################### ##############
+# MAIL SEND
+# Accept to sent mail from vortex-dns-01 to mail.vortex.ru
+ACCEPT          else:10.16.131.51	    wan:89.223.18.33                    tcp         25
+
+################ ###################################### ##############
+# Accept vortex-dns-01/02/gw to DNS
+ACCEPT		    else:10.16.131.51	    wan:77.88.8.8,8.8.4.4,1.1.1.1       udp         53
+
+################ ###################################### ##############
+# Accept vortex-repo-01 to sync repos from world
+
+# DEFAULT HTTP/HTTPS REPOS SYNC
+ACCEPT		    else:10.16.131.110		wan		                            tcp	        80,443
+
+# RSYNC REPOS
+ACCEPT		    else:10.16.131.110		wan		                            tcp	        873
+
+# GET PGP KEYS INFORMATION FROM UBUNTU KEYSERVERS
+ACCEPT		    else:10.16.131.110		wan		                            tcp	        11371
+
+################ ###################################### ##############
+# Accept vortex-devops-01 to vSphere for port forwarding UI Tools
+################ ###################################### ##############
+# vsphere
+ACCEPT		    else:10.16.131.250       esx:10.16.128.254                     tcp	        443,902,903,905,9443
+# vsphere
+ACCEPT		    else:10.16.131.250       esx:10.16.128.254                     tcp	        8543
+# vdp
+ACCEPT          else:10.16.131.250       esx:10.16.128.253                     tcp         5480
+# vcsa
+ACCEPT		    else:10.16.131.250       esx:10.16.128.254	                    tcp	        80,443
+
+################ ###################################### ##############
+# ACCEPT vortex-devops-01 to VPN Server PritUNL Web UI
+################ ###################################### ##############
+ACCEPT	        else:10.16.131.250      fw:10.91.91.103		                tcp         11443
+
+################ ###################################### ##############
+# Accept vortex-devops-01 to send telegram messages
+ACCEPT          else:10.16.131.250       wan:213.159.122.12	                tcp         8080
+
+################ ###################################### ##############
+# DISABLED. Uncomment only in maintanance emergency mode to accept vortex-devops-01 to check rabbit-mq
+# ACCEPT		else:10.16.131.250       web:10.16.211.181	                    tcp	        15672
+
+# ACCEPT vortex-teamcity-01 to private metrics
+ACCEPT		    else:10.16.131.251       web:10.16.211.161	                    tcp	        8080

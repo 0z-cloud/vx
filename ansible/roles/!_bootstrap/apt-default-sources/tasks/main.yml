@@ -1,0 +1,25 @@
+- name: Template apt sources.list
+  template:
+    src: sources.list.j2
+    dest: /etc/apt/sources.list
+
+- name: Enable universe repository
+  apt_repository:
+    repo: "{{ item }}"
+  loop:
+    - "deb http://archive.ubuntu.com/ubuntu/ {{ hostvars[inventory_hostname]['ansible_lsb'].codename | join }} universe"
+    - "deb http://archive.ubuntu.com/ubuntu/ {{ hostvars[inventory_hostname]['ansible_lsb'].codename | join }}-updates universe"
+    - "deb http://security.ubuntu.com/ubuntu/ {{ hostvars[inventory_hostname]['ansible_lsb'].codename | join }}-security universe"
+
+- name: Apt update cache
+  apt:
+    update_cache: true
+
+- name: Need to check ca-certificates
+  apt:
+    name: ca-certificates
+    state: present
+
+- name: Raw update ca-certificates
+  raw: update-ca-certificates
+

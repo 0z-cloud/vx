@@ -1,0 +1,13 @@
+
+- name: Change postfix message siza
+  raw: postconf -e message_size_limit=52428800
+  register: test_debug
+
+- name: Check postconf | grep message_size_limit
+  raw: postconf | grep message_size_limit
+  register: check_status
+
+- name: Debug result
+  debug: 
+    msg: "{{ check_status }}"
+    

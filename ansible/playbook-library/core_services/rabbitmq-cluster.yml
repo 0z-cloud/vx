@@ -1,0 +1,55 @@
+# - name: Install and configure rabitmq cluster
+#   hosts: "{{ HOSTS | default('vortex-rabbit-01') }}"
+#   become: true
+#   roles:
+#     - name: Install and configure rabbitmq-cluster
+#       role: rabbitmq-cluster
+
+- name: Install and configure rabbitmq master
+  hosts: "{{ HOSTS | default('vortex-rabbit-01') }}"
+  vars:
+    - rabbitmq_remove_guest: true
+    - rabbitmq_vhosts:
+      - name: /
+        state: present
+    - rabbitmq_users:
+      - user: admin
+        password: SECURE_PASSWORD
+        force: no
+        vhost: /
+        configure_priv: .*
+        read_priv: .*
+        write_priv: .*
+        tags: administrator
+    - rabbitmq_queues:
+      - name: queue_name
+        vhost: /
+        state: present
+        login_user: admin
+        login_password: SECURE_PASSWORD
+        durable: 'true'
+    - rabbitmq_exchanges:
+      - name: exchange_name
+        vhost: '/'
+        state: present
+        login_user: admin
+        login_password: SECURE_PASSWORD
+        exchange_type: direct
+        durable: 'true'
+    - rabbitmq_cluster: true
+    - rabbitmq_erlang_cookie: NEPTQRGCQDKAHSOSFDML
+    - rabbitmq_cluster_master: true
+  roles:
+    - name: Install and configure rabbitmq-cluster
+      role: ./!_databases/rabbitmq-cluster
+
+- name: Install and configure rabbitmq second
+  hosts: "{{ HOSTS | default('vortex-rabbit-02') }}"
+  vars:
+    - rabbitmq_cluster: true
+    - rabbitmq_erlang_cookie: NEPTQRGCQDKAHSOSFDML
+    - rabbitmq_cluster_master: false
+    - rabbitmq_master: vortex-rabbit-01
+  roles:
+    - name: Install and configure rabbitmq-cluster
+      role: ./!_databases/rabbitmq-cluster

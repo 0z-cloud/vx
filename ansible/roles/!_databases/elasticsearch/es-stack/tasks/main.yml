@@ -1,0 +1,31 @@
+- name: Create the directories for env specific configurations
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0755
+    owner: root
+    group: root
+  with_dict: "{{ elasticsearch_stack_settings.directories | default({}) }}"
+  tags: [configuration,es-service]
+
+- name: Create elasticsearch.yml from template without Swarm
+  template:
+      src: elasticsearch.yml.j2
+      dest: "{{ elasticsearch_stack_settings.directories.etc }}/elasticsearch.yml"
+
+- name: Create docker-entrypoint.sh from template
+  template:
+      src: docker-entrypoint.sh.j2
+      dest: "{{ elasticsearch_stack_settings.directories.etc }}/docker-entrypoint.sh"
+      mode: u+rwx
+
+- name: Create log4j2.xml from template
+  template:
+      src: log4j2.xml
+      dest: "{{ elasticsearch_stack_settings.directories.etc }}/log4j2.xml"
+      mode: u+rwx
+
+- name: Change owner for dirs to 1000:1000
+  shell: chown -R 1000:1000 {{ item.value }}
+  with_dict: "{{ elasticsearch_stack_settings.directories | default({}) }}"
+  tags: [configuration,es-service]

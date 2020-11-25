@@ -1,0 +1,11 @@
+- name: SSH update user task
+  become: true
+  hosts: "{{ HOSTS }}"
+  vars_prompt:
+    - name: "NEW_PASSWORD"
+      prompt: "Enter New Password"
+      private: yes
+      confirm: yes
+  roles:
+    - name: Change the SSH password
+      role: ./!_security/ssh_access/change_password

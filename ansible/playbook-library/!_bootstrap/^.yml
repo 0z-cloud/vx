@@ -1,0 +1,506 @@
+
+
+- hosts: "{{ HOSTS | default('master-bind-master-backend') }}:all:vlan_backend_node:nginx-frontend:vlan_network_balancer:vlan_frontend"
+  gather_facts: true 
+  tasks: []
+
+- name: Setup CoreDNS backend service for run specific tasks
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/dns/{{ HOSTS | default('master-bind-master-backend') }}/{{ HOSTS | default('master-bind-master-backend') }}.yml"
+
+  hosts: "{{ HOSTS | default('master-bind-master-backend') }}:all"
+  become: true
+  tasks:
+
+- name: Setup CoreDNS backend service for run specific tasks
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/dns/{{ HOSTS | default('master-bind-master-backend') }}/{{ HOSTS | default('master-bind-master-backend') }}.yml"
+
+  hosts: "{{ HOSTS | default('master-bind-master-backend') }}:all"
+  become: true
+  tasks:
+
+    - name: Produce an error since i dont have 'variablnotename'
+      raw: cat /tmp/cloud_info.yml
+      register: variablnotename
+
+    - name: DEBUG | 
+      vars:
+        dirlist: |
+           {% set dirlist = [] %}
+           {% for item in variablnotename %}
+           {% set line = item.split(',') %}
+
+           {% set dirlist = dirlist.append(line) %}
+           {% endfor %}{{ dirlist }}     
+      debug: 
+        msg: "{{ dirlist }}"
+
+
+    - name: stdout
+      debug:
+          msg: "{{ variablnotename.stdout | replace('\",', '') | from_yaml }}"
+      register: cleaned_stdout
+
+    - name: stdout
+      debug:
+          msg: "{{ cleaned_stdout.msg | replace('\\r\\n','') }}"
+      register: filtered
+
+    - name: stdout_lines set_fact first
+      set_fact:
+          windict: "{{ cleaned_stdout.msg | from_yaml }}"
+
+    - name: stdout_lines set_fact last
+      set_fact:
+          dsdict: "{{ cleaned_stdout | from_yaml }}"
+
+    - name: set fact
+      set_fact:
+        supervalue: "{{ lookup('vars', 'dsdict') }}"
+
+    - name: Get supervalue
+      debug:
+        msg: "{{ item.value }}"
+      with_dict: "{{ supervalue.msg }}"
+
+    - name: Get supervalue k
+      debug:
+        msg: "{{ item.value.servers }}"
+      with_dict: "{{ supervalue.msg }}"
+      when: "{{ item.key == 'cloud_bootstrap' and item.value.servers }}"
+      register: cloud_bootstrap_raw
+
+    - name: Result 0z-cloud getting the cloud configuration for iterate
+      set_fact:
+        oz_inventory_servers_array: "{{ lookup('dict', supervalue.msg, wantlist=True) }}"
+
+    - name: Result 0z-cloud getting the cloud configuration for iterate
+      debug:
+        msg: "{{ oz_inventory_servers_array }}"
+        
+# ansible-playbook --extra-vars ""
+
+
+
+- hosts: "{{ HOSTS | default('master-bind-master-backend') }}:all:vlan_backend_node:nginx-frontend:vlan_network_balancer:vlan_frontend"
+  gather_facts: true 
+  tasks: []
+
+
+# - hosts: "{{ HOSTS | default('master-bind-master-backend') }}:all:vlan_backend_node:nginx-frontend:vlan_network_balancer:vlan_frontend"
+#   gather_facts: true 
+#   tasks:
+#     - name:   
+#       include_vars: ../../../inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml
+#   #
+
+    # - name: Load dictionary to var
+    #   include_vars: ../../../inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}
+
+# remote_src=true
+
+# - hosts: localhost
+#   tasks:
+#     - name:
+#       debug: 
+#         msg: "{{ playbook_dir }}"
+# - hosts: localhost
+#   tasks:
+#     - name:
+#       set_fact: {% set dict_path = './inventories/0z-cloud/products/types/\!_' + ansible_cloud_type + '/' + ansible_product + '/' + ansible_environment  + '/bootstrap_vms/group_vars/all.yml' %}{{ lookup('template', dict_path) }}
+
+# - name: Fact gathering
+#   hosts: "{{ HOSTS | default('master-bind-master-backend') }}:all"
+#   tasks: []
+#   tags: [get_facts, always]
+
+- name: Setup CoreDNS backend service for run specific tasks
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/dns/{{ HOSTS | default('master-bind-master-backend') }}/{{ HOSTS | default('master-bind-master-backend') }}.yml"
+
+    # - "./inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}"
+    # - "{{ inventory_dir }}/group_vars/all.yml"
+    # - "./inventories/0z-cloud/products/types/\\!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+
+  hosts: "{{ HOSTS | default('master-bind-master-backend') }}:all"
+  become: true
+  tasks:
+#
+#
+
+    # - name: DEBUG
+    #   debug:
+    #     msg: "{{ item }}"
+    #   with_items: "{{ ansible_play_hosts_all }}"
+
+    # - name: DEBUG | ansible_environment
+    #   debug: 
+    #     msg: "{{ ansible_environment }}"
+
+    # - name: fetch template from single remote host
+    #   # run_once : true
+    #   template:
+    #     src: inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml
+    #     dest: /tmp/cloud_info.yml
+    #     # flat: yes
+    #     # fail_on_missing: yes
+    #     # remote_src: yes
+
+    # - name: DEBUG | 
+    #   vars:
+    #     PACKAGES: "{{ lookup('file', '/tmp/cloud_info.yml') | from_yaml }}"
+    #   debug: 
+    #     msg: "{{ item }}"
+    #   with_items: "{{ PACKAGES }}"
+
+    - name: Produce an error since i dont have 'variablnotename'
+      raw: cat /tmp/cloud_info.yml
+      register: variablnotename
+
+# lines = list()
+# for line in open('file.txt'):
+#     lines.append(line.strip().split(DELIMITER))
+
+    - name: DEBUG | 
+      vars:
+        dirlist: |
+           {% set dirlist = [] %}
+           {% for item in variablnotename %}
+           {% set line = item.split(',') %}
+
+           {% set dirlist = dirlist.append(line) %}
+           {% endfor %}{{ dirlist }}     
+      debug: 
+        msg: "{{ dirlist }}"
+
+    # - name: stdout_lines
+    #   set_fact:
+    #     stdout_result: "{{ variablnotename.stdout_lines | replace('\",','') }}"
+
+    # - name: stdout_lines
+    #   debug:
+    #       msg: "{{ item }}"
+    #   with_dict: "{{ stdout_result }}"
+
+    - name: stdout
+      debug:
+          msg: "{{ variablnotename.stdout | replace('\",', '') | from_yaml }}"
+      register: cleaned_stdout
+
+    - name: stdout
+      debug:
+          msg: "{{ cleaned_stdout.msg | replace('\\r\\n','') }}"
+      register: filtered
+
+    - name: stdout_lines set_fact first
+      set_fact:
+          windict: "{{ cleaned_stdout.msg | from_yaml }}"
+
+    # - name: stdout_lines
+    #   debug:
+    #       msg: "{{ variablnotename.stdout_lines | rstrip('\",') }}"
+
+    - name: stdout_lines set_fact last
+      set_fact:
+          dsdict: "{{ cleaned_stdout | from_yaml }}"
+
+
+    - name: set fact
+      set_fact:
+        supervalue: "{{ lookup('vars', 'dsdict') }}"
+
+    - name: Get supervalue
+      debug:
+        msg: "{{ item.value }}"
+      with_dict: "{{ supervalue.msg }}"
+
+    - name: Get supervalue k
+      debug:
+        msg: "{{ item.value.servers }}"
+      with_dict: "{{ supervalue.msg }}"
+      when: "{{ item.key == 'cloud_bootstrap' and item.value.servers }}"
+      register: cloud_bootstrap_raw
+
+    # - name: Get cloud_bootstrap_raw i
+    #   debug:
+    #     # msg: "{{ item }}"
+    #     msg: "{ '{{ item.key }}': { 'item.value': 'some_value' } }"
+    #   with_dict: "{{ supervalue.msg }}"
+    #   when: "{{ item.key == 'cloud_bootstrap' and item.value.servers }}"
+
+    #   with_items: "{% for key, value in supervalue.msg.items() %}{% if key == 'cloud_bootstrap' and value.servers %}{{ value.servers }}{% endif %}{% endfor %}"
+
+    - name: Result 0z-cloud getting the cloud configuration for iterate
+      set_fact:
+        oz_inventory_servers_array: |
+          {% set dict_result = () %}{% for dict_item in supervalue.msg.items() %}{% for key,value in dict_item.items() %}{% if dict_item.key == 'cloud_bootstrap' and dict_item.value.servers %}{{ dict_result | combine(dict_item, recursive=true) }}{% endif %}{% endfor %}{% endfor %}
+
+res[i].append(j)
+
+    res = defaultdict(list) 
+
+    - name: Check 0z-cloud array result
+      debug:
+        msg: "{{ item }}"
+      with_dict: "{{ oz_inventory_servers_array }}"
+
+
+for i, j in test_list: 
+     
+
+#         msg: "{% for k,v in item.value.items() %}{% set dict_result =  %}{% endfor %}{{ dict_result | from_yaml }}"
+
+
+
+    # - name: Result 0z-cloud getting the cloud configuration for iterate
+    #   set_fact:
+    #     oz_inventory_servers_array: "{{ oz_inventory_servers_array|default({}) | combine( {item.item.name: item.stdout} ) }}"
+    #   with_dict: "{{ supervalue.msg }}"
+    #   when: "{{ item.key == 'cloud_bootstrap' and item.value.servers }}"
+      # register: cloud_bootstrap_raw
+  # set_fact:
+  # full_dict: |
+  #   {% set a=full_dict['outer_dict'].pop('inner_dict') %}
+  #   {{ full_dict | combine({'outer_dict': {'inner_dict': new_inner_dict}}, recursive=True) }}
+
+
+    # - set_fact:
+    #     uber_dict: "dict_item"
+    #   vars:
+    #     new_item: "{ '{{ item.key }}': { 'some_key': 'some_value' } }"
+    #   with_dict: "{{ supervalue.msg }}"
+    #   when: "{{ item.key == 'cloud_bootstrap' and item.value.servers }}"
+
+    # - debug:
+    #     msg: "{{ uber_dict }}"
+
+
+    # - set_fact:
+    #     uber_dict: "{{ uber_dict | combine(new_item, recursive=true) }}"
+    #   vars:
+    #     new_item: "{ '{{ item.key }}': { 'some_key': 'some_value' } }"
+    #   with_dict: "{{ uber_dict }}"
+
+    # - debug:
+    #     msg: "{{ uber_dict }}"
+
+  # set_fact:
+  #   postconf_d: >-
+  #     {% set key, val = item.partition('=')[::2]|map('trim') -%}
+  #     {% if ',' in val -%}
+  #       {% set val = val.split(',')|map('trim')|list -%}
+  #     {% endif -%}
+  #     {{ postfix_default_main_cf | combine({key: val}) }}
+  # with_items: command.stdout_lines
+
+# - name: Populate genders
+#   set_fact:
+#     genders: "{{ genders|default({}) | combine( {item.item.name: item.stdout} ) }}"
+#   with_items: "{{ people.results }}"
+
+    # - name: Get elements
+    #   set_fact:
+    #     oz_inventory_servers_array: "{{ item }}"
+    #   with_items: "{{ cloud_bootstrap_raw }}"
+
+    # - name: Debug result array for future use
+    #   debug: 
+    #     msg: "{{ item }}"
+    #   with_items: "{{ oz_inventory_servers_array }}"
+
+#       # {{ item.value }}"
+#     - name: Debug cloud_bootstrap dict
+#       debug: 
+#         # msg: "{% set dict_result = {} %}{% for k,v in item.value.items() %}{% set from_tuple = dict(zip(v.values(),v.keys())) %}{% endfor %}{{ dict_result }}"
+#         msg: "{% set dict_result = {} %}{% for k,v in item.value.items() %}{% set dict_result =  %}{% endfor %}{{ dict_result | from_yaml }}"
+#       with_dict: "{{ cloud_bootstrap_raw.results }}"
+#       when: "{{ item.key == 'msg' }}"
+#       register: servers_values_dict
+
+#     - name: Try default way
+#       debug:
+#         # msg: "{% for k,v in item.value.items() %}{{ v.keys() }}{% endfor %}"
+#         msg: "{% set dict_result = {} %}{% for k,v in item.value.items() %}{% if k,v is defined %}{% for dict_item in v %}{{ dict_item }}{% endfor %}{% endif %}{% endfor %}"
+
+#       with_dict: "{{ servers_values_dict.results }}"
+#       #when: "{{ item.key == 'cloud_bootstrap' }}"
+#       when: "{{ item.value is defined and item.key == 'msg' and item.key != 'changed' }}"
+
+# #     - name: Debug servers_values_dict dictp = dict(zip(i.values(),i.keys()))
+
+# #       debug:                                  
+# #          msg: "{% set dict_result = {} %}{% for k,v in item.value.items() %}{% if k,v is defined %}{% for dict_item in v.keys() %}{{ dict_item }},{% endfor %}{% endif %}{% endfor %}"
+# #         # {% for value in item.value. %}
+# #         # msg: "{% for k,v in item.value.items() %}{% if k == 'servers' or v == 'servers' %}{{ k }}{% endif %}{% endfor %}"
+# #         #  msg: "{% set dict_result = {} %}{% for k,v in item.value.items() %}{% if k,v is defined %}{% for dict_item in v %}{{ dict_item }}{% endfor %}{% endif %}{% endfor %}"
+# #         # msg: "{{ item.value }}"{% if data is defined %}
+# #         # msg: "{% for dict_item in item.value.items() %}{% set from_tuple = dict((y, x) for x, y in dict_item)) %}{%for k,v in from_tuple %}{{ k }}{% endfor %}{% endfor %}"
+# #         # msg: "{% for dict_item in item.value %}{% if dict_item == 'cloud_bootstrap' %}{{ dict_item.servers }}{% endif %}{% endfor %}"{% set dict_result = dict([data]) %}{{ v }}
+# #         # msg: "{% if item.key == 'item' %}{% for dict_item in item.value %}{% if dict_item == 'cloud_bootstrap' %}{{ dict_item.servers }}{% endif %}{% endfor %}{% endif %}"{% for k,v in dict_item %}
+# #       with_dict: "{{ servers_values_dict.results }}"
+# #       when: "{{ item.value is defined and item.key == 'msg' and item.key != 'changed' }}"
+# #       register: servers_values_dict
+
+# #     - name: stdout_lines set_fact first overdict
+# #       set_fact:
+# #           overdict: "{{ servers_values_dict.msg | from_yaml }}"
+      
+# #     - name: set fact serversdict
+# #       set_fact:
+# #         serversdict: "{{ lookup('vars', 'servers_values_dict.results') }}"
+
+# #     - name: Show serversdict
+# #       debug: 
+# #         msg: "{{ serversdict }}"
+
+# #     # - name: Get elements
+# #     #   set_fact:
+# #     #     cloud_bootstrap_dict: "{% if item.key == 'cloud_bootstrap' %}{{ item.value }}{% endif %}"
+# #     #   with_dict: "{{ windict }}"
+
+# #     # - name: Get elements
+# #     #   debug:
+# #     #     msg: "{% if item.key == 'cloud_bootstrap' %}{{ item.value }}"
+# #     #   with_dict: "{{ cloud_bootstrap_dict }}"
+
+# #     - name: Create clean array
+# #       debug:
+# #         msg: "{{ item }}"
+# #       with_dict: |
+# #         {% for p in windict %}{% if p.key == 'cloud_bootstrap' %}{{ p.value }}{% endif %}{% endfor %}
+
+
+# #     # # - name: stdout_lines
+# #     # #   set_fact:
+# #     # #       ssdict: "{{ variablnotename.stdout_lines | replace('\",', '') }}"
+
+# #     # - name: load vars as yml
+# #     #   set_fact:
+# #     #     result_dict: "{{ ssdict | from_yaml }}"
+
+# # # strip().split('\t')
+
+# # #         {% set %{% for item in %}
+# # #         "{{ variablnotename }}"
+# # # when: inventory_hostname == 
+
+# # # - debug: msg="Password is {{ lookup('dict', dict_variable, wantlist=True) }}"
+
+
+# # #         lookup('dict', dict_variable, wantlist=True)
+
+# # # lines = [ line.strip().split(DELIMITER) for line in open('file.txt')]
+
+# #       # ignore_errors: True
+# #       # delegate_to: inventory_hostmame 
+# #       # remote_src: yes
+
+# # - name: Setup CoreDNS backend service for run specific tasks
+# #   vars:
+# #      anycloud_info_dict: |
+# #      "{{ lookup('file','/tmp/cloud_info.yml') | from_yaml }}"
+# #   vars_files:
+# #     - "{{ inventory_dir }}/group_vars/dns/{{ HOSTS | default('master-bind-master-backend') }}/{{ HOSTS | default('master-bind-master-backend') }}.yml"
+# #   hosts: "{{ HOSTS | default('master-bind-master-backend') }}:all"
+# #   become: true
+# #   tasks:
+
+# # {{ lookup('file','containers.yaml') | from_yaml }}
+# #     - name: Get a contents to fact
+# #       include_vars: 
+# #           file: '/tmp/cloud_info.yml'
+# #       cloud_info: "{{ lookup('file', '/tmp/cloud_info.yml') }}"
+# #       delegate_to: "{{ item }}"
+# #       when: item == inventory_hostname
+# #       with_items: "{{ ansible_play_hosts_all }}"
+# #       remote_src: yes
+# #       remote_src: yes
+
+#     # - name: DEBUG | 
+#     #   debug: 
+#     #     msg: "{{ anycloud_info_dict }}"
+  
+#     # - name: "Vault - copying server config file"
+#     #   template:
+#     #     src: ./inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml
+#     #     dest: /tmp/cloud_info.yml
+#     #     remote_src: yes
+#     #     mode: 0640
+#     #     owner: vault
+#     #     group: vault
+
+#     # - name: fetch template from single remote host
+#     #   run_once : true
+#     #   fetch:
+#     #     src: "inventories/0z-cloud/products/types/\!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+#     #     dest: /tmp/cloud_info.yml
+#     #     flat: yes
+#     #     fail_on_missing : yes
+
+#     # - name: Delegate shell task to localhost from remote
+#     #   shell: "echo ./inventories/0z-cloud/products/types/\\!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+#     #   delegate_to: ansible_host
+
+# # :{{ lookup('vars', 'passed_ci_docker_tag_' + app) }}
+# #     - name: Get yaml by lookup to set_fact on remote hosts
+#       # set_fact:
+#       #   0z_dict: {% set dict_path =  './inventories/0z-cloud/products/types/\!_' + {{ ansible_cloud_type }} + {{ ansible_product }} + {{ ansible_environment }}+ '/bootstrap_vms/group_vars/all.yml' %}{{ lookup('vars', 'dict_path') }}
+
+#   #       delegate_to: ansible_host
+#   # :{{ lookup('vars', 'passed_ci_docker_tag_' + app) }}
+#     # - name: Get current exec dir
+#     #   shell: $(pwd)
+#     #   register: awd
+  
+#     # - name: DEBUG | ansible_environment
+#     #   debug: 
+#     #     msg: "{{ awd.stdout_lines }}"
+
+#     # - name: DEBUG | ansible_environment
+#     #   debug: 
+#     #     msg: "{{ ansible_cloud_oz_group_vars_all_path }}"
+
+#     # - name: DEBUG | ansible_environment
+#     #   debug: 
+#     #     msg: "{{ ansible_environment }}"
+
+#     # - name: DEBUG | prepare path to 0z cloud group_vars
+#     #   shell: "ls -la ./inventories/0z-cloud/products/types/\\!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+#     #   register: ls_la_result
+#     #   delegate_to:
+#     # - name: DEBUG | ansible_environment
+#     #   debug: 
+#     #     msg: "{{ ls_la_result.stdout_lines }}"
+
+# #     - name: PREPARE | Include environment variables for environment cloud
+# #       include_vars: "{{ inventory_dir }}/group_vars/oz-cloud-back-mapping.yml"
+# #       delegate_to: 
+# #       delegate_facts: true
+
+# #     - name: DEBUG | 
+# #       debug: 
+# #         msg: "{{ inventory_dir }}"
+  
+# #     - name: Show all zero inventory bootstrap config
+# #       debug: "{{ item }}"
+# #       with_dict: "{{ cloud_bootstrap.servers }}"
+
+# #   # roles:
+# #   # - name: Run CoreDNS service role
+# #   #   role: ./!_bootstrap/core_dns
+
+
+# # groupvars beta bootstrap_vms
+# #                             ../../../../../../../../
+# #                         ./../../../../../../../../
+# # father 0z = beta
+
+# #                  ls -la ../../../../../../ 
+# #                     ./ansible/inventories/
+# #                                         ./
+
+# #               ../../../../
+# #             ./../../../../
+# # group_vars
+

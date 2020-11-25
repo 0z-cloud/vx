@@ -1,0 +1,62 @@
+## TO DO:
+
+## AFTER CHECK CURRENT VERSION OF CODE MOVE TO SYMLYNKS FROM RELEASE IF IT POSSIBLE
+
+# - name: Remove properties and application links
+#   file:
+#     path: "{{ item }}"
+#     state: absent
+#   with_items:
+#     - "{{ APLICATION_SYMLINK_DESTINATION_WEB_DEST }}/log4j.properties"
+#     - "{{ APLICATION_SYMLINK_DESTINATION_WEB_DEST }}/vortex.properties"
+#     - "{{ APLICATION_SYMLINK_DESTINATION_WEB_DEST }}/ru"
+
+# - name: Symlink release files
+#   file:
+#     src: "{{ item.path_src }}/{{ item.name }}"
+#     dest: "{{ APLICATION_SYMLINK_DESTINATION_WEB_DEST }}/{{ item.name }}"
+#     state: link
+#     owner: "{{ RELEASE_OWNER }}"
+#     group: "{{ RELEASE_GROUP }}"
+#   with_items:
+#   - { name: 'vortex.properties', path_src: '{{ RELEASE_DIRECTORY }}/build/WEB-INF/classes' }
+#   - { name: 'log4j.properties', path_src: '{{ RELEASE_DIRECTORY }}/build/WEB-INF/classes' }
+#   - { name: 'ru', path_src: '{{ RELEASE_DIRECTORY }}/build' }
+
+## END TO DO.
+
+- name: Wait 10 before start
+  shell: sleep 10
+
+- name: SERVICE | Start tomcat11 via respawn service
+  service:
+    name: tomcat-respawn
+    state: started
+  tags: restart
+  when: NOT_STARTUP is not defined
+
+- name: SERVICE | Start tomcat11 via respawn service
+  shell: /etc/init.d/tomcat-respawn start
+  tags: restart
+  when: NOT_STARTUP is not defined
+
+- name: SYSTEM | Sleep while tomcat up 60 sec
+  raw: sleep 60
+
+- name: Find old releases
+  find:
+    paths: "{{ APPLICATION_DIRECTORY }}/releases"
+    file_type: directory
+  register: old_releases
+
+- name: Delete old releases
+  file:
+    dest: "{{ item[1].path }}"
+    state: absent
+  with_indexed_items:
+    - "{{ (old_releases.files | sort(attribute='mtime', reverse=true))[3:] }}"
+
+# - name: TASK | Wget from key_server
+#   shell: |
+#       wget -q -O - "http://{{ hostvars[inventory_hostname].ansible_default_ipv4.address }}:8080/key_server/startserverwithpassphrase?n=1&phrase=123"
+#       wget -q -O - "http://{{ hostvars[inventory_hostname].ansible_default_ipv4.address }}:8080/key_server/startserverwithpassphrase?n=2&phrase=qwe&regenerateServer=true"

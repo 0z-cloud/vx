@@ -1,0 +1,1 @@
+{{ current_ossec_server_clients_count.results + 2 | map(attribute='stdout') | list }} {{ ansible_fqdn }} {{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }} {{ ossec_access_key_for_client }}

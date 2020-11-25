@@ -1,0 +1,91 @@
+# - name: Debug values
+#   debug:
+#     msg: "{% if item.value.initial_only_dns_servers is defined %}{{ item.value.initial_only_dns_servers }}{% else %}{{ anycloud_results_vpc_zone_virtual_abstract.dns_servers }}{% endif %}"
+#   with_dict: "{{ cloud_bootstrap.servers }}"
+
+- name: MULTI NET | Clone a VM from Template and customize, when more then one network
+  vmware_guest:
+    hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+    username: "{{ anycloud_adapter_api_user }}"
+    password: "{{ anycloud_adapter_api_password }}"
+    validate_certs: no
+    datacenter: "{{ anycloud_adapter_api_datacenter }}"
+    folder: "/"
+    name: "{{ item.value.name }}"
+    template: "{{ item.value.anycloud_vm_template_name }}"
+    # disk:
+    #   - datastore: "vortex-iscsi-15.45Tb"
+    #     size_gb: 812
+    #     type: "thin"
+    networks:
+      - name: "{{ item.value.network }}"
+        ip: "{{ item.value.ip }}"
+        netmask: 255.255.255.0
+        gateway: "{{ item.value.gw }}"
+        mac: "{{ lookup('random_mac') }}"
+        domain: "{{ anycloud_domain_result }}"
+        dns_servers: "{% if item.value.initial_only_dns_servers is defined %}{{ item.value.initial_only_dns_servers }}{% else %}{{ anycloud_results_vpc_zone_virtual_abstract.dns_servers }}{% endif %}"
+        start_connected: True
+        type: static
+      - name: "{{ item.value.second_network }}"
+        ip: "{{ item.value.second_ip }}"
+        netmask: 255.255.255.0
+        mac: "{{ lookup('generate_new_mac') }}"
+        start_connected: True
+        type: static
+    customization:
+      hostname: "{{ item.value.name }}"
+      dns_servers: "{% if item.value.initial_only_dns_servers is defined %}{{ item.value.initial_only_dns_servers }}{% else %}{{ anycloud_results_vpc_zone_virtual_abstract.dns_servers }}{% endif %}"
+      domain: "{{ anycloud_domain_result }}"
+    hardware:
+      memory_mb: "{{ item.value.memory_size_mb | default('1024') }}"
+      num_cpus: "{{ item.value.cpu_count | default('2') }}"
+    resource_pool: "{{ item.value.ansible_resource_pool | default('non_prod') }}"
+    state: poweredon
+  when: item.value.second_ip is defined and item.value.second_ip != '' and item.value.second_ip != 'null'
+  with_dict: "{{ cloud_bootstrap.servers }}"
+
+- name: ONE NET | Clone a VM from Template and customize, when one network
+  vmware_guest:
+    hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+    username: "{{ anycloud_adapter_api_user }}"
+    password: "{{ anycloud_adapter_api_password }}"
+    validate_certs: no
+    datacenter: "{{ anycloud_adapter_api_datacenter }}"
+    folder: "/"
+    name: "{{ item.value.name }}"
+    template: "{{ item.value.anycloud_vm_template_name }}"
+    # disk:
+    #   - datastore: "vortex-iscsi-15.45Tb"
+    #     size_gb: 812
+    #     type: "thin"
+    networks:
+      - name: "{{ item.value.network }}"
+        ip: "{{ item.value.ip }}"
+        netmask: "255.255.0.0"
+        gateway: "{{ item.value.gw }}"
+        # mac: "{{ lookup('generate_new_mac') }}"
+        domain: "{{ anycloud_domain_result }}"
+        # dns_servers: "{% if item.value.initial_only_dns_servers is defined %}{{ item.value.initial_only_dns_servers }}{% else %}{{ anycloud_results_vpc_zone_virtual_abstract.dns_servers }}{% endif %}"
+        start_connected: True
+        type: static
+        # ipv6: "2201:430:28f:2032::100"
+        # gatewayv6: "2201:430:28f:2032::1"
+        # typev6: static
+    customization:
+      hostname: "{{ item.value.name }}"
+      dns_servers: "{% if item.value.initial_only_dns_servers is defined %}{{ item.value.initial_only_dns_servers }}{% else %}{{ anycloud_results_vpc_zone_virtual_abstract.dns_servers }}{% endif %}"
+      domain: "{{ anycloud_domain_result }}"
+    hardware:
+      memory_mb: "{{ item.value.memory_size_mb | default('1024') }}"
+      num_cpus: "{{ item.value.cpu_count  | default('2') }}"
+    resource_pool: "{{ item.value.ansible_resource_pool | default('non_prod') }}"
+    state: present
+  when: (item.value.second_ip is defined and item.value.second_ip == '') or (item.value.second_ip is not defined) or (item.value.second_ip == 'null')
+  with_dict: "{{ cloud_bootstrap.servers }}"
+
+- name: Wait for system Initial bastion hosts to become and reachable
+  wait_for_connection:
+    timeout: 1200
+  when: item.value.initial_bastion_host is defined
+  with_dict: "{{ cloud_bootstrap.servers }}"

@@ -1,0 +1,6 @@
+#!/bin/sh
+mkdir -p /cloud_settings/iso
+mount -t iso9660 /dev/scd0 /cloud_settings/iso
+mkdir -p /cloud_settings/root_configs/
+cp -R /cloud_settings/iso/* /cloud_settings/root_configs/
+/cloud_settings/root_configs/cloud_settings_initialization_iso.sh

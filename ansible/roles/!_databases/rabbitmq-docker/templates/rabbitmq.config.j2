@@ -1,0 +1,20 @@
+[
+  {rabbit, [
+    {default_user, <<"{{ rabbitmq_settings.user }}">>},
+    {default_pass, <<"{{ rabbitmq_settings.password }}">>},
+    {cluster_nodes, {[{% for host in groups['rabbitmq-cluster'] %}{% raw %}'rabbit@{% endraw %}{{ hostvars[host].ansible_hostname }}{% raw %}'{% endraw %}{% if not loop.last %},{% endif %}{% endfor %}], disc}},
+    {tcp_listeners,[{"127.0.0.1",5672}]},
+    {tcp_listen_options,
+       [binary,
+         {packet,raw},
+         {reuseaddr,true},
+         {backlog,128},
+         {nodelay,true},
+         {exit_on_close,false},
+         {keepalive,true}]}
+  ]},
+  {kernel, [
+    {inet_dist_listen_max, 35672},
+    {inet_dist_listen_min, 35672}
+  ]}
+].

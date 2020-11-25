@@ -1,0 +1,4 @@
+shutdown_application: false
+db_migrate: false
+db_seed: false
+link_storage: false

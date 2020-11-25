@@ -1,0 +1,263 @@
+global_defs {
+   notification_email {
+        {{ unificated_keepalive_services.shared_settings.notification_email }}
+   }
+   notification_email_from {{ unificated_keepalive_services.shared_settings.notification_email }}
+   smtp_server {{ unificated_keepalive_services.shared_settings.smtp_server }}
+   smtp_connect_timeout {{ unificated_keepalive_services.shared_settings.smtp_connect_timeout }}
+   lvs_id {{ unificated_keepalive_services.shared_settings.lvs_id }}
+}
+
+{% for dict_item in unificated_keepalive_services.vrrp_sync_group.name %}
+{% for key,value in dict_item.items() %}
+{{ key }}
+
+{{ }}
+
+{% endfor %}
+{% endfor %}
+
+vrrp_sync_group PROC {
+   group {
+      vortex-proc
+#      GATE
+   }
+}
+
+
+vrrp_instance vortex-proc {
+        state MASTER
+        interface eth0
+        lvs_sync_daemon_inteface eth0
+        virtual_router_id 60
+        priority 150
+        advert_int 3
+        smtp_alert
+        authentication {
+                auth_type PASS
+                auth_pass 31337PASS1
+        }
+        virtual_ipaddress {
+                10.1.0.30
+#		172.31.64.121
+#		172.18.10.28
+#		10.77.242.225
+#		172.18.1.2
+#		172.19.1.1
+		}
+}
+#vrrp_instance GATE {
+#        state MASTER
+#        interface eth1
+#        lvs_sync_daemon_inteface eth1
+#        virtual_router_id 51
+#        priority 150
+#        advert_int 3
+#       smtp_alert
+#        authentication {
+#                auth_type PASS
+#                auth_pass 31337PASS2
+#        }
+#        virtual_ipaddress {
+#                10.1.1.2
+#        }
+#}
+
+virtual_server 10.1.0.30 8080 {
+        delay_loop 10
+        lvs_sched rr
+        lb_kind NAT
+        protocol TCP
+
+        real_server 10.1.1.31 8080 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 8080
+                        connect_timeout 15
+                        }
+                }
+        real_server 10.1.1.32 8080 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 8080
+                        connect_timeout 15
+                        }
+                }
+}
+#virtual_server 10.1.0.30 8083 {
+#        delay_loop 10
+#        lvs_sched rr
+#        lb_kind NAT
+#	persistence_timeout 1800
+#        protocol TCP
+#
+#        real_server 10.1.1.31 8083 {
+#                weight 100
+#                TCP_CHECK {
+#                        connect_port 8083
+#                        connect_timeout 5
+#                        }
+#                }
+#        real_server 10.1.1.32 8083 {
+#                weight 100
+#                TCP_CHECK {
+#                        connect_port 8083
+#                        connect_timeout 5
+#                        }
+#                }
+#}
+
+virtual_server 10.1.0.30 8083 {
+        delay_loop 10
+        lvs_sched rr
+        lb_kind NAT
+        persistence_timeout 180
+        protocol TCP
+
+        real_server 10.1.1.131 8083 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 8083
+                        connect_timeout 5
+                        }
+                }
+	real_server 10.1.1.132 8083 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 8083
+                        connect_timeout 5
+                        }
+                }
+}
+
+# Virtual for BM
+virtual_server 172.31.64.121 8080 {
+        delay_loop 10
+        lvs_sched lc
+        lb_kind NAT
+        persistence_timeout 20
+        protocol TCP
+
+        real_server 10.1.1.31 8080 {
+                weight 100
+                HTTP_GET {
+                        url {
+                        path  http://10.1.1.31:8080/front_web/gate?opcode=ping
+                        digest f0121aca65ba8c60738f9dfda0f2c084
+                        }
+                        connect_timeout 5
+                        }
+                }
+        real_server 10.1.1.32 8080 {
+                weight 200
+                HTTP_GET
+                        {
+                                url
+                                        {
+                                        path  http://10.1.1.32:8080/front_web/gate?opcode=ping
+                                        digest f0121aca65ba8c60738f9dfda0f2c084
+                                        }
+                                connect_timeout 5
+                        }
+                }
+
+}
+
+# Virtual for MTS
+virtual_server 172.18.10.28 8081 {
+        delay_loop 10
+        lvs_sched lc
+        lb_kind NAT
+        persistence_timeout 20
+        protocol TCP
+
+        real_server 10.1.1.31 8080 {
+                weight 100
+                HTTP_GET {
+                        url {
+                        path  http://10.1.1.31:8080/front_web/gate?opcode=ping
+                        digest f0121aca65ba8c60738f9dfda0f2c084
+                        }
+                        connect_timeout 5
+                        }
+                }
+        real_server 10.1.1.32 8080 {
+                weight 200
+                HTTP_GET {
+                        url {
+                        path  http://10.1.1.32:8080/front_web/gate?opcode=ping
+                        digest f0121aca65ba8c60738f9dfda0f2c084
+                        }
+                        connect_timeout 5
+                        }
+                }
+}
+
+# Virtual for Payme
+virtual_server 172.18.1.2 8083 {
+        delay_loop 10
+        lvs_sched rr
+        lb_kind NAT
+        protocol TCP
+
+        real_server 10.1.1.131 8083 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 8083
+                        connect_timeout 5
+                        }
+                }
+        real_server 10.1.1.132 8083 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 8083
+                        connect_timeout 5
+                        }
+                }
+}
+# Virtual for RNKB
+virtual_server 172.19.1.1 8084 {
+        delay_loop 10
+        lvs_sched rr
+        lb_kind NAT
+        protocol TCP
+
+        real_server 10.1.1.131 8084 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 8084
+                        connect_timeout 5
+                        }
+                }
+        real_server 10.1.1.132 8084 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 8084
+                        connect_timeout 5
+                        }
+                }
+}
+# Virtual for NewSymbol
+virtual_server 172.19.1.1 8085 {
+        delay_loop 10
+        lvs_sched rr
+        lb_kind NAT
+        protocol TCP
+
+        real_server 10.1.1.131 8085 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 8085
+                        connect_timeout 5
+                        }
+                }
+        real_server 10.1.1.132 8085 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 8085
+                        connect_timeout 5
+                        }
+                }
+}
+
+root@vortex-keepalived-03:/home/vortex#

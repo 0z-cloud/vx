@@ -1,0 +1,32 @@
+---
+
+- set_fact: 
+    ldap_seed_upload_dir: "/root/ldap"
+
+- name: ldap seed upload directory exists
+  file:
+    path: "{{ ldap_seed_upload_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0770
+
+- name: ldap seeds are uploaded
+  copy:
+    src: "./seed/{{ item }}"
+    dest: "{{ ldap_seed_upload_dir }}/{{ item }}"
+    owner: root
+    group: root
+    mode: 0770
+  with_items:
+    - acl.ldif
+    - data.ldif
+  register: _ldap_seets_uploaded
+
+- name: slapd data is seeded
+  shell: ldapadd -c -Y EXTERNAL -H ldapi:// -f "{{ ldap_seed_upload_dir }}/data.ldif"
+  when: _ldap_seets_uploaded.changed
+  ignore_errors: true
+
+- name: slapd ACL rules are configured
+  shell: ldapmodify -Y EXTERNAL -H ldapi:// -f "{{ ldap_seed_upload_dir }}/acl.ldif"

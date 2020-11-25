@@ -1,0 +1,215 @@
+lb_router_name: kubernetes
+
+unificated_keepalive_services:
+  shared_settings:
+    notification_email: "admin@vortex.me"
+    notification_email_from: "{{ hostvars[inventory_hostname].lb_notification_email_from }}"
+    smtp_server: "127.0.0.1"
+    smtp_connect_timeout: 30
+    lvs_id: "{{ hostvars[inventory_hostname].lb_lvs_id }}"
+  vrrp_sync_group:
+    - {
+      "IFS": {
+        'GATEWAY':
+          {
+            "auth_pass": "31337PASS2",
+            "virtual_ipaddress": "{{ ids_primary_vip_gateway }}{{ k8s_primary_vip_gateway_subnet_mask }}",
+            "interface": "{{ hostvars[inventory_hostname].lb_interface_02 }}",
+            "priority": "{{ hostvars[inventory_hostname].lb_router_priority }}",
+            "virtual_router_id": "51",
+            "lvs_sync_daemon_inteface": "enabled",
+            "smtp_alert": "enabled",
+            "nopreempt": "disabled", # enabled / disabled
+            "track_script": "check_apiserver"
+
+          },
+        'KUBERNETES':
+          {
+            "auth_pass": "31337PASS2",
+            "virtual_ipaddress": "{{ k8s_primary_vip_gateway }}{{ k8s_primary_vip_gateway_subnet_mask }}", # IP / get_by_backend_services
+            "interface": "{{ hostvars[inventory_hostname].lb_interface_02 }}",
+            "priority": "{{ hostvars[inventory_hostname].lb_router_priority }}",
+            "virtual_router_id": "52",
+            "lvs_sync_daemon_inteface": "enabled",
+            "smtp_alert": "enabled",
+            "nopreempt": "disabled",
+            "track_script": "check_apiserver"
+          },
+        'DNS':
+          {
+            "auth_pass": "31337PASS2",
+            "virtual_ipaddress": "{{ DNS_VIP_BIND_CLUSTER_IP }}{{ k8s_primary_vip_gateway_subnet_mask }}", # IP / get_by_backend_services
+            "interface": "{{ hostvars[inventory_hostname].lb_interface_02 }}",
+            "priority": "{{ hostvars[inventory_hostname].lb_router_priority }}",
+            "virtual_router_id": "53",
+            "lvs_sync_daemon_inteface": "enabled",
+            "smtp_alert": "enabled",
+            "nopreempt": "disabled",
+            "track_script": "check_apiserver"
+          }
+        }
+      }
+  backend_services:
+    - { "kubernetes-master:{{ K8S_CLUSTER_LISTEN_PORT }}": 
+        {
+          "network_zone_publication_type": "private", # Private (second interface binding) or private (public interface binding)
+          "virtual_router_id": "52", # You must don't forget about a correctky of you linking the virtual router id (see to top of that doc.)
+          "lb_kind": "NAT",
+          "lvs_sched": "rr",
+          "protocol": "TCP",
+          "delay_loop": {
+            "enabled": "true", # true / false
+            "delay_loop": "6"
+            },
+          "persistence_timeout": {
+            "enabled": "false",
+            "persistence_timeout": "900"
+            },
+          "virtual_server": {
+            "ip": "{{ k8s_primary_vip_gateway }}",
+            # "ipv4ws": "{{ k8s_primary_vip_gateway }}{{ k8s_primary_vip_gateway_subnet_mask }}",
+            "check": "TCP_CHECK",
+            "port": "{{ K8S_CLUSTER_LISTEN_PORT }}",
+            "weight": "100"
+            },
+          "backend_server": {
+            "group": "kubernetes-master", # This group from inventory
+            "connect_port": "{{ K8S_CLUSTER_LISTEN_PORT }}",
+            "connect_timeout": "5",
+            "ip": "default"
+            },
+          "comment": "https://kubernetes-master:{{ K8S_CLUSTER_LISTEN_PORT }}"
+        }
+    }
+    - { "kubernetes-shared:{{ K8S_CLUSTER_LISTEN_PORT }}": 
+        {
+          "network_zone_publication_type": "private", # Private (second interface binding) or private (public interface binding)
+          "virtual_router_id": "51",
+          "lb_kind": "NAT",
+          "lvs_sched": "rr",
+          "protocol": "TCP",
+          "delay_loop": {
+            "enabled": "true",
+            "delay_loop": "6"
+            },
+          "persistence_timeout": {
+            "enabled": "false",
+            "persistence_timeout": "900"
+            },
+          "virtual_server": {
+            "ip": "{{ ids_primary_vip_gateway }}",
+            # "ipv4ws": "{{ ids_primary_vip_gateway }}{{ k8s_primary_vip_gateway_subnet_mask }}",
+            "check": "TCP_CHECK",
+            "port": "{{ K8S_CLUSTER_LISTEN_PORT }}",
+            "weight": "100"
+            },
+          "backend_server": {
+            "group": "kubernetes-master", # This group from inventory
+            "connect_port": "{{ K8S_CLUSTER_LISTEN_PORT }}",
+            "connect_timeout": "5",
+            "ip": "default"
+            },
+          "comment": "https://kubernetes-shared:{{ K8S_CLUSTER_LISTEN_PORT }}"
+        }
+    }
+    - { "environment-vip-dns:{{ default_dns_service_listen_port }}": 
+        {
+          "network_zone_publication_type": "private", # Private (second interface binding) or private (public interface binding)
+          "virtual_router_id": "53",
+          "lb_kind": "NAT",
+          "lvs_sched": "rr",
+          "protocol": "TCP",
+          "delay_loop": {
+            "enabled": "true",
+            "delay_loop": "6"
+            },
+          "persistence_timeout": {
+            "enabled": "false",
+            "persistence_timeout": "900"
+            },
+          "virtual_server": {
+            "ip": "{{ DNS_VIP_BIND_CLUSTER_IP }}",
+            # "ipv4ws": "{{ ids_primary_vip_gateway }}{{ k8s_primary_vip_gateway_subnet_mask }}",
+            "check": "TCP_CHECK",
+            "port": "{{ default_dns_service_listen_port }}",
+            "weight": "1"
+            },
+          "backend_server": {
+            "group": "cloud-bind-frontend-dns", # This group from inventory
+            "connect_port": "{{ default_dns_service_listen_port }}",
+            "connect_timeout": "6",
+            "ip": "default"
+            },
+          "comment": "https://environment-vip-ns:{{ default_dns_service_listen_port }}"
+        }
+    }
+    # vrrp_script_services:
+    #   - {
+    #     "check_apiserver": {
+    #         "script": "check_apiserver.sh",
+    #         "interval": "2",
+    #         "weight": "-5",
+    #         "fall": "3",
+    #         "rise": "2"
+    #       }
+    #     }
+    # - { "kubernetes-master:{{ K8S_CLUSTER_LISTEN_PORT }}": 
+    #     {
+    #       "network_zone_publication_type": "private", # Private (second interface binding) or private (public interface binding)
+    #       "virtual_router_id": "52",
+    #       "lb_kind": "NAT",
+    #       "lvs_sched": "rr",
+    #       "protocol": "TCP",
+    #       "delay_loop": {
+    #         "enabled": "true",
+    #         "delay_loop": "2"
+    #         },
+    #       "persistence_timeout": {
+    #         "enabled": "false",
+    #         "persistence_timeout": "900"
+    #         },
+    #       "virtual_server": {
+    #         "ip": "{{ k8s_primary_vip_gateway }}",
+    #         "check": "TCP_CHECK",
+    #         "port": "{{ K8S_CLUSTER_LISTEN_PORT }}",
+    #         "weight": "100"
+    #         },
+    #       "backend_server": {
+    #         "group": "kubernetes-master", # This group from inventory
+    #         "connect_port": "{{ K8S_CLUSTER_LISTEN_PORT }}",
+    #         "connect_timeout": "2",
+    #         "ip": "default"
+    #         },
+    #       "comment": "https://kubernetes-master:{{ K8S_CLUSTER_LISTEN_PORT }}"
+    #     }
+    # }
+    # WIP SERVICE FOR INTERNAL BALANCE
+    # - { "cloud-core-dns:53": 
+    #     {
+    #       "virtual_router_id": "50",
+    #       "lb_kind": "NAT",
+    #       "lvs_sched": "rr",
+    #       "protocol": "TCP",
+    #       "delay_loop": {
+    #         "enabled": "true",
+    #         "delay_loop": "2"
+    #         },
+    #       "persistence_timeout": {
+    #         "enabled": "false",
+    #         "persistence_timeout": "900"
+    #         },
+    #       "virtual_server": {
+    #         "ip": "{{ ids_primary_vip_gateway }}",
+    #         "check": "TCP_CHECK",
+    #         "port": "53",
+    #         "weight": "100"
+    #         },
+    #       "backend_server": {
+    #         "group": "cloud-bind-frontend-dns", # This group from inventory
+    #         "connect_port": "53",
+    #         "connect_timeout": "2",
+    #         "ip": "default"
+    #         },
+    #       "comment": "cloud-core-dns:53"
+    #     }
+    # }

@@ -1,0 +1,5 @@
+ansible_environment: service
+test_variable_01: vcloud.yml
+ansible_product: vx
+getlocal_groups: inventories/products/vx/service
+group_vars_path_my: inventories/products/types/!_vcd/{{ ansible_product }}/{{ ansible_environment }}

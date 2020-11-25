@@ -1,0 +1,34 @@
+---
+# tasks file for roles/redis-cluster
+- name: print map
+  debug:
+    var: redis_cluster_map
+  run_once: true
+  tags:
+    - verbose
+
+- name: get status for cluster
+  shell: "redis-cli -h {{ redis_cluster_map[0].host }} -p {{ redis_cluster_map[0].port }} cluster info | grep assigned"
+  register: test_vasr
+  changed_when: False
+  when: redis_cluster_secured_by_password is not defined
+
+- name: get status for cluster
+  shell: "redis-cli -a {{ redis_cluster_secured_by_password }} -h {{ redis_cluster_map[0].host }} -p {{ redis_cluster_map[0].port }} cluster info | grep assigned"
+  register: test_vasr
+  changed_when: False
+  when: redis_cluster_secured_by_password is defined
+
+- name: setting var
+  set_fact:
+    cluster_state: "{{ test_vasr.stdout }}"
+
+- name: slot assigning
+  include: slots_assigning.yml
+  run_once: true
+  when: cluster_state != 'cluster_slots_assigned:16384'
+
+- name: build cluster from nodes
+  include: cluster_meeting.yml
+  run_once: true
+  when: cluster_state != 'cluster_slots_assigned:16384'

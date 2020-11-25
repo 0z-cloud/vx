@@ -1,0 +1,7 @@
+- name: Run the clamav check role
+  become: true
+  hosts: linux-hosts
+  roles:
+    - name: Run the clamav check role
+      role: ./!_security/clamav/check
+  tags: [clamav_check]

@@ -1,0 +1,8 @@
+- name: Fail, because not used tags
+  when: laravel_app_install is defined
+  fail:
+    msg: "For play use next tags: install_apache2 and enable_apache2_sites"
+
+- name: Fail, because not used tags
+  fail:
+    msg: "For play use next tags: install_apache2, enable_apache2_sites, enable_apache2_mods, disable_apache2_mods"

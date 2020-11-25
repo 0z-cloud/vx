@@ -1,0 +1,72 @@
+- name: Create directories for CoreDNS
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0755
+  with_dict: "{{ core_dns_cloud_settings.directories | default({}) }}"
+
+
+- name: Debug
+  debug:
+    msg: "{{ bind_cloud_settings }}"
+
+- name: Template CoreDNS configuration
+  template:
+    src: Corefile
+    dest: "{{ core_dns_cloud_settings.directories.configuration }}/Corefile"
+
+- name: Template local frontend hosts file configuration for lookup to itself
+  template:
+    src: hosts.j2
+    dest: "/etc/hosts"
+
+# - name: Make netplan great again
+#   template:
+#     src: netplan.conf.j2
+#     dest: /etc/netplan/99-netcfg-cloud.yaml
+
+# - name: Apply new netplan configuration
+#   shell: netplan apply
+
+- name: Pull an CoreDNS Docker image
+  docker_image:
+    name: coredns/coredns:1.6.4
+    pull: yes
+
+- name: Go offline bind
+  raw: /etc/init.d/bind9 stop
+  ignore_errors: true
+
+- name: Service bind disable
+  systemd:
+    name: bind9
+    enabled: false
+  ignore_errors: true
+
+# TODO ADD CONDITIONS
+# - name: Go keepalived restart
+#   raw: /etc/init.d/keepalived restart
+
+# - name: Go restart docker
+#   raw: systemctl restart docker
+
+- name: re/Create a CoreDNS Service docker container
+  docker_container:
+      name: coredns-{{ ansible_environment }}-{{ ansible_hostname }}
+      image: "coredns/coredns:1.6.4"
+      hostname: "{{ ansible_hostname }}"
+      command: -conf /etc/coredns/Corefile
+      volumes:
+        - "{{ core_dns_cloud_settings.directories.configuration }}/Corefile:/etc/coredns/Corefile"
+      ports:
+        - "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}:{{ core_dns_cloud_settings.ports.dns }}:{{ core_dns_cloud_settings.ports.dns }}/tcp"
+        - "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}:{{ core_dns_cloud_settings.ports.dns }}:{{ core_dns_cloud_settings.ports.dns }}/udp"
+        - "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}:{{ core_dns_cloud_settings.ports.web }}:{{ core_dns_cloud_settings.ports.web }}"
+      privileged: yes
+      restart_policy: always
+      detach: True
+      recreate: yes
+      #pull: true
+      #network_mode: host
+      state: started
+  tags: recreate

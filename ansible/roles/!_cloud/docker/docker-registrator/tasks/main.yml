@@ -1,0 +1,12 @@
+
+- name: Create a Registrator Service docker container
+  docker_container:
+      name: registrator-{{ansible_hostname}}
+      image: "amochtar/registrator"
+      command: "consul://{{ ansible_default_ipv4['address']}}:8500"
+      restart_policy: always
+      detach: True
+      volumes: /var/run/docker.sock:/tmp/docker.sock
+      docker_host: tcp://0.0.0.0:2375
+      recreate: yes 
+      state: started

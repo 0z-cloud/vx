@@ -1,0 +1,30 @@
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: Role
+metadata:
+  name: list-deployments
+  namespace: "{{ ansible_product }}-{{ ansible_environment }}-default"
+rules:
+  - apiGroups: [ apps ]
+    resources: [ deployments ]
+    verbs: [ get, list ]
+---
+
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: Role
+metadata:
+  name: list-deployments
+  namespace: "{{ ansible_product }}-{{ ansible_environment }}"
+rules:
+  - apiGroups: [ apps ]
+    resources: [ deployments ]
+    verbs: [ get, list ]
+---
+
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: list-deployments
+rules:
+  - apiGroups: [ apps ]
+    resources: [ deployments ]
+    verbs: [ get, list ]

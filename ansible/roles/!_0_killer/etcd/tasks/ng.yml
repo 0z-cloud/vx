@@ -1,0 +1,68 @@
+# - name: Create the directories for configuration
+#   file:
+#     path: "{{ item.value }}"
+#     state: directory
+#     mode: 0750
+#   with_dict: "{{ etcd_service_settings.directories | default({}) }}"
+#   tags: [configuration,etcd]
+
+- name: Create systemd config from template
+  template: 
+      src: etcd-systemd.service
+      dest: "/etc/systemd/system/etcd.service"
+
+- name: Download Etcd Unix
+  get_url:
+    url: "{{ etcd_service_settings.etcd_get_url }}"
+    dest: "{{ etcd_service_settings.directories.data }}"
+  when: download_etcd is defined 
+  # async: 1000
+  # poll: 0
+
+- name: Copy Etcd Binary to /bin
+  unarchive:
+     src: "{{ etcd_service_settings.directories.data }}/{{ etcd_service_settings.etcd_get_zip }}"
+     dest: "{{ etcd_service_settings.directories.source }}"
+     copy: no
+  when: download_etcd is defined 
+  # async: 1000
+  # poll: 0
+
+- name: Local copy from source
+  shell: "cp {{ etcd_service_settings.directories.source }}/{{ etcd_service_settings.etcd_arc_ver }}/etcd* /usr/local/bin/"
+  ignore_errors: true
+  when: download_etcd is defined 
+  # async: 1000
+  # poll: 0
+
+# - name: COPY ALL CERTS TO KUBE BACK 
+#   shell: cp -R {{ ca_service_settings.directories.ca }}/pki /etc/kubernetes/
+#   when: inventory_hostname in groups['kubernetes-master'][0]
+#   async: 1000
+#   poll: 0
+
+- name: System Reread Configs for systemd
+  systemd:
+    daemon_reload: yes
+
+- name: Enable Etcd service and ensure it is not masked
+  systemd:
+    name: etcd
+    enabled: yes
+    masked: no
+
+- name: Reload etcd service
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: etcd
+
+- name: Get status from etcd
+  command: etcdctl member list
+  register: etcdctl_status_member_list
+  when: debug_playbook_stdout is defined 
+
+- name: Show status from etcd
+  debug:
+    msg: "{{ etcdctl_status_member_list.stdout_lines }}"
+  when: debug_playbook_stdout is defined 

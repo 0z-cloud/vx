@@ -1,0 +1,43 @@
+---
+# tasks file for roles/vagrant
+- name: create hosts file
+  template:
+    src: hosts
+    dest: /etc/hosts
+    mode: 0644
+    owner: 0
+    group: 0
+
+- name: Set a hostname
+  hostname:
+    name: "{{ inventory_hostname }}"
+
+- name: Test internet connection
+  raw: ping -c 3 keyserver.ubuntu.com
+  register: internet_test_ping
+
+- name: Debug result of testing the internet connection
+  debug:
+    msg: "{{ internet_test_ping }}"
+
+- name: Raw set locales
+  raw: |
+    rm /etc/locales
+    cat > /etc/locales <<EOF
+    LANG=C
+    LANGUAGE=
+    LC_CTYPE="en_US.UTF-8"
+    LC_NUMERIC="C"
+    LC_TIME="C"
+    LC_COLLATE="en_US.UTF-8"
+    LC_MONETARY="C"
+    LC_MESSAGES="en_US.UTF-8"
+    LC_PAPER="C"
+    LC_NAME="C"
+    LC_ADDRESS="C"
+    LC_TELEPHONE="C"
+    LC_MEASUREMENT="C"
+    LC_IDENTIFICATION="C"
+    LC_ALL="en_US.UTF-8"
+    EOF
+    source /etc/locales

@@ -1,0 +1,237 @@
+- name: Create backup dir for configuration files /wrk/keepalived
+  file:
+    path: /wrk/keepalived
+    state: directory
+    mode: 0750
+  tags:
+    - gen_keepalived_conf
+
+- name: Copy original configuration file to a backup file
+  shell: cp /etc/keepalived/keepalived.conf /wrk/keepalived/keepalived.conf_`date +%Y%m%d_%H%M%S`
+  tags:
+    - gen_keepalived_conf
+
+- name: Debug
+  debug:
+    msg: "{{ ids_primary_vip_gateway }}"
+
+- name: Generate configuration from a template
+  template:
+    backup: yes
+    src: keepalive.conf.j2
+    dest: /etc/keepalived/keepalived.conf
+    mode: 0640
+  tags:
+    - gen_keepalived_conf
+
+- name: Generate service configuration from a template
+  template:
+    backup: yes
+    src: keepalived.service.j2
+    dest: /lib/systemd/system/keepalived.service
+    mode: 0640
+  tags:
+    - gen_keepalived_conf
+
+- name: Add iptableы rules for VRRP
+  shell: (iptables -C INPUT -p vrrp -d 224.0.0.0/24 -j ACCEPT || iptables -A INPUT -p vrrp -d 224.0.0.0/24 -j ACCEPT) && (iptables -C OUTPUT -p vrrp -d 224.0.0.0/24 -j ACCEPT || iptables -A OUTPUT -p vrrp -d 224.0.0.0/24 -j ACCEPT) && /usr/sbin/netfilter-persistent save
+  tags:
+    - add_vrrp_iptables_rules
+
+- name: Check added iptables rules INPUT chain
+  shell: bash -c "iptables -nvL INPUT | grep '224.0.0.0/24'"
+  register: iptables_rules_in
+  tags:
+    - add_vrrp_iptables_rules
+
+- name: Check added iptables rules OUTPUT chain
+  shell: bash -c "iptables -nvL OUTPUT | grep '224.0.0.0/24'"
+  register: iptables_rules_out
+  tags:
+    - add_vrrp_iptables_rules
+
+- name: Show added iptables rules from INPUT chain
+  debug:
+    msg: "{{ iptables_rules_in.stdout_lines }}"
+  tags:
+    - add_vrrp_iptables_rules
+
+- name: Show added iptables rules from OUTPUT chain
+  debug:
+    msg: "{{ iptables_rules_out.stdout_lines }}"
+  tags:
+    - add_vrrp_iptables_rules
+
+- name: Template keepalived check apiserver shell script
+  template:
+    src: ./!_mapped/{{ item }}
+    dest: /etc/keepalived/{{ item }}
+    mode: 0700
+  when: unificated_keepalive_services.vrrp_script_services is defined
+  with_items: |
+    {% set exitlist = [] %}
+    {% for dict_item in unificated_keepalive_services.vrrp_script_services %}
+    {% for key,value in dict_item.items() %}
+    {% set exitlist2 = exitlist.append(value['script']) %}
+    {% endfor %}{% endfor %}{{ exitlist }}
+  tags:
+    - gen_keepalived_conf_ng
+
+- name: Generate shell script for add iptables rules from a template
+  template:
+    backup: yes
+    src: keepalive_iptable_rules.j2
+    dest: /tmp/keepalive_iptable_rules.sh
+    mode: 0640
+  tags:
+    - add_nat_for_backend_servers
+
+- name: Apply iptables rules from script
+  shell: bash /tmp/keepalive_iptable_rules.sh
+  tags:
+    - add_nat_for_backend_servers
+
+- name: Check added iptables rules for NAT
+  shell: bash -c "iptables -nvL -t nat"
+  register: iptables_keepalive_nat
+  tags:
+    - add_nat_for_backend_servers
+
+- name: Show added iptables rules for NAT
+  debug:
+    msg: "{{ iptables_keepalive_nat.stdout_lines }}"
+  tags:
+    - add_nat_for_backend_servers
+
+# - name: Remove shell script /tmp/keepalive_iptable_rules.sh
+#   file:
+#     path: /tmp/keepalive_iptable_rules.sh
+#     state: absent
+#   tags:
+#     - add_nat_for_backend_servers
+
+- name: Save all iptable rules for apply after system reboot
+  shell: netfilter-persistent save
+  tags:
+    - iptable_rules_save
+
+- name: Input sysctl options net.ipv4.ip_nonlocal_bind=1 and apply them
+  lineinfile:                                                       
+    path: /etc/sysctl.conf
+    line: 'net.ipv4.ip_nonlocal_bind=1'
+  tags:
+    - add_sysctl_options
+
+- name: Add no need sysctl options
+  lineinfile:                                                       
+    path: /etc/sysctl.conf
+    regexp: '^{{ item }}$'
+    line: "{{ item }}"
+  with_items:
+    - "net.ipv4.ip_forward=1"
+    - "kernel.shmmax=17179869184"
+    - "kernel.shmall=4194304"
+    - "vm.overcommit_memory=1"
+    - "vm.overcommit_ratio=100"
+    - "net.ipv4.conf.{{ second_iface }}.arp_ignore=1"
+    - "net.ipv4.conf.{{ second_iface }}.arp_announce=2"
+
+# - name: Input sysctl options net.ipv4.ip_forward=1 and apply them
+#   lineinfile:
+#     path: /etc/sysctl.conf
+#     line: 'net.ipv4.ip_forward=1'
+#   tags:
+#     - add_sysctl_options
+
+# MUST TO FIX
+
+- name: Apply the sysctl.conf configuration
+  shell: sysctl -p
+  register: sysctl_apply_options
+  tags:
+    - add_sysctl_options
+  ignore_errors: true
+
+- name: Show applyed sysctl options
+  debug:
+    msg: "{{ sysctl_apply_options.stdout_lines }}"
+  tags:
+    - add_sysctl_options
+
+- name: Check added sysctl options
+  shell: bash -c "sysctl -a | egrep 'ip_nonlocal_bind|ipv4.ip_forward\ ='"
+  register: sysctl_options
+  tags:
+    - add_sysctl_options
+
+- name: Show added sysctl options
+  debug:
+    msg: "{{ sysctl_options.stdout_lines }}"
+  tags:
+    - add_sysctl_options
+
+# WIP
+# - name: Restart server
+#   become: yes
+#   shell: sleep 2 && /sbin/shutdown -r now "Ansible system apply settings necessary reboot"
+#   async: 1
+#   poll: 0
+
+- name: Reload keepalived service
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: keepalived
+
+# - name: Reload keepalived service
+#   service:
+#     name: keepalived
+#     state: reloaded
+#   tags:
+#     - reload_keelapived
+
+- name: Check state of keepalived
+  shell: ipvsadm -L --stats -n
+  register: ipvsadm_status
+  tags:
+    - status_keepalived
+
+- name: Show current state
+  debug: 
+    msg: "{{ ipvsadm_status.stdout_lines }}"
+  tags:
+    - status_keepalived
+
+# {% for dict_item in unificated_keepalive_services.vrrp_script_services %}
+# {% for key,value in dict_item.items() %}
+
+# - name: Remove no need sysctl options
+#   lineinfile:                                                       
+#     path: /etc/sysctl.conf
+#     regexp: '^{{ item }}$'
+#     state: absent
+#   with_items:
+#     - "net.ipv6.conf.all.accept_ra=0"
+#     - "net.ipv6.conf.default.accept_ra=0"
+#     - "net.ipv6.conf.all.accept_redirects=0"
+#     - "net.ipv6.conf.default.accept_redirects=0"
+    # - "net.ipv6.conf.all.accept_ra=0"
+    # - "net.ipv6.conf.default.accept_ra=0"
+    # - "net.ipv6.conf.all.accept_redirects=0"
+    # - "net.ipv6.conf.default.accept_redirects=0"
+    # - "net.ipv4.ip_nonlocal_bind=1"
+    # - "net.ipv4.conf.all.rp_filter=1"
+    # - "net.ipv4.icmp_echo_ignore_broadcasts=1"
+    # - "net.ipv4.conf.default.proxy_arp=1"
+    # - "net.ipv4.conf.ens160.arp_ignore = 1"
+    # - "net.ipv4.conf.ens160.arp_announce = 2"
+    # - "net.ipv4.conf.ens192.arp_ignore = 1"
+    # - "net.ipv4.conf.ens192.arp_announce = 2"
+    # - "kernel.shmmax=17179869184"
+    # - "kernel.shmall=4194304"
+    # - "vm.overcommit_memory=2"
+    #   # - "vm.overcommit_ratio=75"
+    # tags:
+    #   - del_sysctl_options
+#   tags:
+#     - del_sysctl_options

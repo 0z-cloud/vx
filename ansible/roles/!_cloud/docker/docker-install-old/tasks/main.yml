@@ -1,0 +1,71 @@
+- name: Remove docker project branch - main repository
+  apt_repository:
+    repo: "deb https://apt.dockerproject.org/repo ubuntu-{{ ansible_lsb.codename }} main"
+    state: absent
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Remove docker-ce download bin branch - main repository
+  apt_repository:
+    repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} main"
+    state: absent
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Run the equivalent of "apt-get update" as a separate step
+  apt:
+    update_cache: yes
+
+- name: Install software packages
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  with_items:
+    - apt-transport-https 
+    - ca-certificates 
+    - curl 
+    - software-properties-common
+    - git
+
+- name: Raw install - add key
+  raw: apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
+
+- name: Raw install - add deb rep
+  raw: apt-add-repository 'deb https://apt.dockerproject.org/repo ubuntu-{{ ansible_lsb.codename }} main'
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_version == '16.04'
+  
+- name: Raw install - add deb rep
+  raw: apt-add-repository 'deb https://apt.dockerproject.org/repo ubuntu-trusty main'
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_version == '14.04'
+
+- name: Raw install - apt get update
+  raw: apt-get update -y -qq
+
+- name: Shell regenerate locales
+  shell: |
+    cat > /etc/locales <<EOF
+          LANG=C
+          LANGUAGE=
+          LC_CTYPE="en_US.UTF-8"
+          LC_NUMERIC="C"
+          LC_TIME="C"
+          LC_COLLATE="en_US.UTF-8"
+          LC_MONETARY="C"
+          LC_MESSAGES="en_US.UTF-8"
+          LC_PAPER="C"
+          LC_NAME="C"
+          LC_ADDRESS="C"
+          LC_TELEPHONE="C"
+          LC_MEASUREMENT="C"
+          LC_IDENTIFICATION="C"
+          LC_ALL="en_US.UTF-8"
+        EOF
+    source /etc/locales
+
+- name: Raw install - install docker engine
+  raw: apt-get install -y docker-engine python-py python-pip
+
+- name: Pip install docker
+  pip:
+    name: docker
+    state: present
+    extra_args: --ignore-installed

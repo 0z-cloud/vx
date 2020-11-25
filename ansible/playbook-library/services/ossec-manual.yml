@@ -1,0 +1,16 @@
+- name: Ossec Manual task
+  become: true
+  hosts: "{{ HOSTS | default('linux-hosts') }}"
+  roles:
+    - name: Ossec Manual
+      role: ./!_security/ossec/manual-change
+      
+- name: Remove rkhunter task
+  become: true
+  hosts: "{{ HOSTS | default('linux-hosts') }}"
+  tasks:
+    - name: rkhunter remove Manual
+      apt: 
+        name: rkhunter
+        state: absent
+  

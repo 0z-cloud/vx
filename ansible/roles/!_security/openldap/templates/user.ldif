@@ -1,0 +1,28 @@
+{% for item in _user_list %}
+# User primary group
+dn: cn={{ item }},ou=groups,dc=dev,dc=local
+cn: {{ item }}
+objectClass: top
+objectClass: posixGroup
+gidNumber: 10000
+
+# User account
+dn: uid={{ item }},ou=people,dc=vortex,dc=co
+cn: {{ item }}
+givenName: {{ item }}
+sn: {{ item }}
+uid: {{ item }}
+uidNumber: 10000
+gidNumber: 10000
+homeDirectory: /home/{{ item }}
+mail: {{ item }}@dev.local
+objectClass: top
+objectClass: posixAccount
+objectClass: shadowAccount
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: person
+loginShell: /bin/bash
+userPassword: {CRYPT}*
+
+{% endfor %}

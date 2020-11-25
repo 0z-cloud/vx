@@ -1,0 +1,206 @@
+package defaults
+
+import (
+	"strconv"
+	"time"
+
+	log "github.com/sirupsen/logrus"
+)
+
+const (
+
+	// directories and files
+	
+    DefaultDist             = "{{ EVE_CLOUD_DEFAULT_DIST }}"                                    // root directory
+	DefaultImageDist        = "{{ EVE_CLOUD_DEFAULT_IMAGE_DIST }}"                              // directory for images inside dist
+	DefaultEserverDist      = "{{ EVE_CLOUD_ESERVER_DIST }}"                                    // directory to mount eserver images
+	DefaultRedisDist        = "{{ EVE_CLOUD_REDIS_DIST }}"                                      // directory for volume of redis inside dist
+	DefaultRegistryDist     = "{{ EVE_CLOUD_REGISTRY_DIST }}"                                   // directory for volume of registry inside dist
+	DefaultAdamDist         = "{{ EVE_CLOUD_DEFAULT_ADAM_DIST }}"                               // directory for volume of adam inside dist
+	DefaultEVEDist          = "{{ EVE_CLOUD_DEFAULT_EVE_DIST }}"                                // directory for build EVE inside dist
+	DefaultCertsDist        = "{{ EVE_CLOUD_DEFAULT_CERT_DIST }}"                               // directory for certs inside dist
+	DefaultBinDist          = "{{ EVE_CLOUD_DEFAULT_BIN_DIST }}"                                // directory for binaries inside dist
+	DefaultEdenHomeDir      = "{{ EVE_CLOUD_DEFAULT_EDEN_HOME_DIR }}"                           // directory inside HOME directory for configs
+	DefaultCurrentDirConfig = "{{ EVE_CLOUD_DEFAULT_EDEN_CONFIG_CURRENT_DIR }}"                 // file for search config in current directory
+	DefaultContextFile      = "{{ EVE_CLOUD_DEFAULT_EDEN_CONTEXT }}"                            // file for saving current context inside DefaultEdenHomeDir
+	DefaultContextDirectory = "{{ EVE_CLOUD_DEFAULT_EDEN_ROOT_PATH_FOR_CONTEXT_MAPS }}"         // directory for saving contexts inside DefaultEdenHomeDir
+	DefaultQemuFileToSave   = "{{ EVE_CLOUD_DEFAULT_EDEN_QEMU_FILE_TO_SAVE }}"                  // qemu config file inside DefaultEdenHomeDir
+	DefaultSSHKey           = "{{ EVE_CLOUD_DEFAULT_EDEN_ROOT_SSH_KEY }}"                       // file for save ssh key
+	DefaultConfigHidden     = "{{ EVE_CLOUD_DEFAULT_EDEN_ROOT_HIDDEN_CONFIG }}"                 // file to save config get --all
+	DefaultConfigSaved      = "{{ EVE_CLOUD_DEFAULT_EDEN_ROOT_SAVED_CONFIG }}"                  // file to save config during 'eden setup'
+
+
+{{ EVE_CLOUD_DEFAULT_ADAM_DIST }}
+
+	DefaultContext = "{{ EVE_CLOUD_DEFAULT_EDEN_DEFAULT_CONTEXT }}"                             // default context name
+
+	// domains, ips, ports
+	DefaultDomain       = "{{ EVE_CLOUD_DEFAULT_EDEN_DEFAULT_DOMAIN }}"
+	DefaultIP           = "{{ EVE_CLOUD_DEFAULT_EDEN_DEFAULT_IP }}"
+	DefaultEVEIP        = "{{ EVE_CLOUD_DEFAULT_EDEN_DEFAULT_EVE_IP }}"
+	DefaultEserverPort  = {{ EVE_CLOUD_DEFAULT_EDEN_DEFAULT_ESERVER_PORT }}
+	DefaultTelnetPort   = {{ EVE_CLOUD_DEFAULT_EDEN_DEFAULT_TELNET_PORT}}
+	DefaultSSHPort      = {{ EVE_CLOUD_DEFAULT_EDEN_DEFAULT_SSH_PORT }}
+	DefaultEVEHost      = "{{ EVE_CLOUD_DEFAULT_EDEN_DEFAULT_EVE_HOST }}"
+	DefaultRedisHost    = "{{ EVE_CLOUD_DEFAULT_EDEN_DEFAULT_REDIS_EVE_HOST }}"
+	DefaultRedisPort    = {{ EVE_CLOUD_DEFAULT_EDEN_DEFAULT_REDIS_EVE_PORT }}
+	DefaultAdamPort     = {{ EVE_CLOUD_DEFAULT_EDEN_DEFAULT_REDIS_ADAM_PORT }}
+	DefaultRegistryPort = {{ EVE_CLOUD_DEFAULT_EDEN_DEFAULT_REDIS_REGISTRY_PORT }}
+
+	// tags, versions, repos
+
+    // DefaultEVETag tag for EVE image
+	DefaultEVETag               = "{{ EVE_CLOUD_DEFAULT_EVE_TAG }}"                       
+
+	DefaultAdamTag              = "{{ EVE_CLOUD_DEFAULT_ADAM_TAG }}"
+	DefaultRedisTag             = "{{ EVE_CLOUD_DEFAULT_REDIS_TAG }}"
+	DefaultRegistryTag          = "{{ EVE_CLOUD_DEFAULT_RGISTRY_TAG }}"
+	DefaultLinuxKitVersion      = "{{ EVE_CLOUD_DEFAULT_LINUXKIT_VERSION }}"
+	DefaultImage                = "{{ EVE_CLOUD_DEFAULT_IMAGE }}
+	DefaultAdamContainerRef     = "{{ EVE_CLOUD_DEFAULT_ADAM_CONTAINER_REFERENCE }}"
+	DefaultRedisContainerRef    = "{{ EVE_CLOUD_DEFAULT_REDIS_CONTAINER_REFERENCE }}"
+	DefaultRegistryContainerRef = "{{ EVE_CLOUD_DEFAULT_REGISTRY_CONTAINER_REFERENCE }}"
+	DefaultImageTag             = "{{ EVE_CLOUD_DEFAULT_TAG_IMAGE }}"
+	DefaultEveRepo              = "{{ EVE_CLOUD_DEFAULT_EVE_REPO_URI }}"
+	DefaultEveRegistry          = "{{ EVE_CLOUD_DEFAULT_EVE_REGISTRY }}"
+	DefaultRegistry             = "{{ EVE_CLOUD_DEFAULT_PRIMARY_REGISTRY }}"
+
+	DefaultEServerTag            = "{{ EVE_CLOUD_DEFAULT_ESEREVER_TAG }}"
+	DefaultEServerContainerRef   = "{{ EVE_CLOUD_DEFAULT_ESEREVER_CONTAINER_REFERENCE }}"
+
+	// DefaultRepeatCount is repeat count for requests
+	DefaultRepeatCount           = {{ EVE_CLOUD_DEFAULT_REPEAT_COUNT }}
+
+	// DefaultRepeatTimeout is time wait for next attempt
+	DefaultRepeatTimeout         = {{ EVE_CLOUD_DEFAULT_REPEAT_TIMEOUT }}
+
+	DefaultUUID                  = "{{ EVE_CLOUD_DEFAULT_UUID }}"
+	DefaultFileToSave            = "{{ EVE_CLOUD_DEFAULT_FILE_TO_SAVE }}"
+	DefaultIsLocal               = {{ EVE_CLOUD_DEFAULT_IS_LOCAL }}
+	DefaultEVEHV                 = "{{ EVE_CLOUD_DEFAULT_BACKEND_HYPERVISOR }}"
+	DefaultQemuCpus              = {{ EVE_CLOUD_DEFAULT_QEMU_CPU }}
+	DefaultQemuMemory            = {{ EVE_CLOUD_DEFAULT_QEMU_RAM }}
+	DefaultEVESerial             = "{{ EVE_CLOUD_DEFAULT_EVE_SERIAL }}"
+	DefaultImageID               = "{{ EVE_CLOUD_DEFAULT_EVE_IMAGE_SERIAL_ID }}"
+	DefaultDataStoreID           = "{{ EVE_CLOUD_DEFAULT_EVE_IMAGE_DATASTORE_ID }}"
+	DefaultBaseID                = "{{ EVE_CLOUD_DEFAULT_EVE_IMAGE_BASE_ID }}"
+	NetDHCPID                    = "{{ EVE_CLOUD_DEFAULT_NET_DHCP_ID }}"
+	NetNoDHCPID                  = "{{ EVE_CLOUD_DEFAULT_NET_NO_DHCP_ID }}"
+	NetWiFiID                    = "{{ EVE_CLOUD_DEFAULT_NET_WIRELESS_ID }}"
+	DefaultTestProg              = "{{ EVE_CLOUD_DEFAULT_TEST_PROGRAM }}"
+	DefaultTestScenario          = "{{ EVE_CLOUD_DEFAULT_TEST_SCINARIO }}"
+	DefaultRootFSVersionPattern  = {{ EVE_CLOUD_DEFAULT_ROOT_FS_VERSION_PATTERN }}
+	DefaultControllerModePattern = {{ EVE_CLOUD_DEFAULT_CONTROLE_MODE_PATTERN }}
+	DefaultPodLinkPattern        = {{ EVE_CLOUD_DEFAULT_POD_LINK_PATTERN }}
+	DefaultRedisContainerName    = "{{ EVE_CLOUD_DEFAULT_REDIS_CONTAINER_NAME }}"
+	DefaultAdamContainerName     = "{{ EVE_CLOUD_DEFAULT_ADAM_CONTAINER_NAME }}"
+	DefaultRegistryContainerName = "{{ EVE_CLOUD_DEFAULT_REGISTRY_CONTAINER_NAME }}"
+	DefaultEServerContainerName  = "{{ EVE_CLOUD_DEFAULT_ESERVER_CONTAINER_NAME }}"
+	DefaultDockerNetworkName     = "{{ EVE_CLOUD_DEFAULT_DOCKER_NETWORK_NAME }}"
+	DefaultLogLevelToPrint       = {{ EVE_CLOUD_DEFAULT_LOG_LEVEL_OVERALL }}
+	DefaultX509Country           = "{{ EVE_CLOUD_DEFAULT_PEM_COUNTRY }}"
+	DefaultX509Company           = "{{ EVE_CLOUD_DEFAULT_PEM_COMPANY }}"
+	DefaultAppsLogsRedisPrefix   = "{{ EVE_CLOUD_DEFAULT_APPS_LOGS_REDIS_PREFIX }}"
+	DefaultLogsRedisPrefix       = "{{ EVE_CLOUD_DEFAULT_INSTANCE_REDIS_LOGS_PREFIX }}"
+	DefaultInfoRedisPrefix       = "{{ EVE_CLOUD_DEFAULT_INFO_REDIS_PREFIX }}"
+	DefaultMetricsRedisPrefix    = "{{ EVE_CLOUD_DEFAULT_METRICS_REDIS_PREFIX }}"
+	DefaultRequestsRedisPrefix   = "{{ EVE_CLOUD_DEFAULT_REQUESTS_REDIS_PREFIX }}"
+
+	DefaultQemuAccelDarwin = "{{ EVE_CLOUD_DEFAULT_QEMU_ACCEL_DARWIN }}"
+	DefaultQemuAccelLinux  = "{{ EVE_CLOUD_DEFAULT_QEMU_ACCEL_LINUX }}"
+
+	DefaultAppSubnet = "{{ EVE_CLOUD_DEFAULT_APPS_NET_SUBNET }}"
+
+	DefaultEVEModel = "{{ EVE_CLOUD_DEFAULT_EVE_MODEL }}"
+
+	DefaultRPIModel = "{{ EVE_CLOUD_DEFAULT_RPI_MODEL }}"
+
+	DefaultGCPModel = "{{ EVE_CLOUD_DEFAULT_CLOUD_ADAPTER_INSIDE }}"
+
+	DefaultEVEName = "{{ EVE_CLOUD_DEFAULT_EVE_NAME }}"
+
+	DefaultEVERemote = {{ EVE_CLOUD_DEFAULT_EVE_REMOTE }}
+
+	DefaultEVEImageSize = {{ EVE_CLOUD_DEFAULT_EVE_IMAGE_SIZE }}
+
+	DefaultAppMem = {{ EVE_CLOUD_DEFAULT_EVE_APP_MEM }}
+	DefaultAppCpu = {{ EVE_CLOUD_DEFAULT_EVE_APP_CPU }}
+
+	DefaultDummyExpect = "{{ EVE_CLOUD_DEFAULT_EVE_DUMMPY_EXCEPT }}"
+
+	DefaultVolumeSize = {{ EVE_CLOUD_DEFAULT_EVE_VOLUME_SIZE}}
+	DefaultEmptyVolumeLinkDocker = "{{ EVE_CLOUD_DEFAULT_EVE_EMPTY_VOLUME_LINK_DOCKER }}"
+	DefaultEmptyVolumeLinkQcow2  = "{{ EVE_CLOUD_DEFAULT_EVE_EMPTY_VOLUME_LINK_QCOW2 }}"
+
+	// defaults for gcp
+
+	DefaultGcpImageName   = "{{ EVE_CLOUD_DEFAULT_EVE_GCP_IMAGE_NAME }}"
+	DefaultGcpBucketName  = "{{ EVE_CLOUD_DEFAULT_EVE_GCP_BUCKET_NAME }}"
+	DefaultGcpProjectName = "{{ EVE_CLOUD_DEFAULT_EVE_GCP_PROJECT_NAME }}"
+	DefaultGcpZone        = "{{ EVE_CLOUD_DEFAULT_EVE_GCP_ZONE_REGIONE_NAME }}"
+	DefaultGcpMachineType = "{{ EVE_CLOUD_DEFAULT_EVE_GCP_INSTANCE_SIZE_TYPE }}"
+)
+
+var (
+	DefaultQemuHostFwd  = map[string]string{strconv.Itoa(DefaultSSHPort): "{{ EVE_CLOUD_DEFAULT_EVE_DECLARED_SSH_PORT }}"}
+	DefaultCobraToViper = map[string]string{
+		"redis.dist":  "redis-dist",
+		"redis.tag":   "redis-tag",
+		"redis.port":  "redis-port",
+		"redis.force": "redis-force",
+
+		"adam.dist":         "adam-dist",
+		"adam.tag":          "adam-tag",
+		"adam.port":         "adam-port",
+		"adam.domain":       "domain",
+		"adam.ip":           "ip",
+		"adam.eve-ip":       "eve-ip",
+		"adam.force":        "adam-force",
+		"adam.v1":           "api-v1",
+		"adam.redis.adam":   "adam-redis-url",
+		"adam.remote.redis": "adam-redis",
+
+		"registry.tag":  "registry-tag",
+		"registry.port": "registry-port",
+		"registry.dist": "registry-dist",
+
+		"eve.arch":         "eve-arch",
+		"eve.os":           "eve-os",
+		"eve.accel":        "eve-accel",
+		"eve.hv":           "eve-hv",
+		"eve.serial":       "eve-serial",
+		"eve.pid":          "eve-pid",
+		"eve.log":          "eve-log",
+		"eve.firmware":     "eve-firmware",
+		"eve.repo":         "eve-repo",
+		"eve.registry":     "eve-registry",
+		"eve.tag":          "eve-tag",
+		"eve.uefi-tag":     "eve-uefi-tag",
+		"eve.hostfwd":      "eve-hostfwd",
+		"eve.dist":         "eve-dist",
+		"eve.base-dist":    "eve-base-dist",
+		"eve.qemu-config":  "qemu-config",
+		"eve.uuid":         "uuid",
+		"eve.image-file":   "image-file",
+		"eve.dtb-part":     "dtb-part",
+		"eve.config-part":  "config-part",
+		"eve.base-version": "os-version",
+		"eve.devmodel":     "devmodel",
+
+		"eden.images.dist":   "image-dist",
+		"eden.images.docker": "docker-yml",
+		"eden.images.vm":     "vm-yml",
+		"eden.download":      "download",
+		"eden.eserver.ip":    "eserver-ip",
+		"eden.eserver.port":  "eserver-port",
+		"eden.eserver.tag":   "eserver-tag",
+		"eden.eserver.force": "eserver-force",
+		"eden.certs-dist":    "certs-dist",
+		"eden.bin-dist":      "bin-dist",
+		"eden.ssh-key":       "ssh-key",
+		"eden.test-bin":      "prog",
+		"eden.test-scenario": "scenario",
+
+		"gcp.key": "key",
+	}
+)

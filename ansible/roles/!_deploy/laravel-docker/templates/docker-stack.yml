@@ -1,0 +1,105 @@
+version: '3.7'
+
+services:
+  web:
+    image: {{ laravel_application.docker_image }}:{{ laravel_application.docker_image_tag }}
+    environment:
+      - CONTAINER_ROLE=web
+      - APP_NAME={{ laravel_application.name }}
+      - APP_ENV=stage
+      - APP_DEBUG=true
+      - LOG_CHANNEL=errorlog
+      - MEMCACHED_HOST={{ laravel_application.name }}_memcached
+      - MEMCACHED_PORT=11211
+      - CONSUL_HTTP_ADDR=http://{{ inventory_hostname }}:8500
+      - CONFIG_ENCRYPTION_KEY_PART_1={{ config_encryption_key_part1 }}
+    secrets:
+      - source: {{ application_secret_name }}
+        target: /var/www/.env
+    networks:
+      - app
+    ports:
+      - "{{ laravel_application.published_port }}:{{ laravel_application.target_port | default('80') }}"
+    volumes:
+      - {{ glusterfs_settings.directories.cloud_dir }}/laravel/{{ laravel_application.name }}/storage:/var/www/storage
+    depends_on:
+      - memcached
+    deploy:
+      mode: replicated
+      replicas: {{ laravel_application.replicas }}
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 128M
+        reservations:
+          cpus: '0.25'
+          memory: 20M
+
+  scheduler:
+    image: {{ laravel_application.docker_image }}:{{ laravel_application.docker_image_tag }}
+    environment:
+      - CONTAINER_ROLE=scheduler
+      - APP_NAME={{ laravel_application.name }}
+      - APP_ENV=stage
+      - APP_DEBUG=true
+      - LOG_CHANNEL=errorlog
+      - MEMCACHED_HOST={{ laravel_application.name }}_memcached
+      - MEMCACHED_PORT=11211
+      - CONSUL_HTTP_ADDR=http://{{ inventory_hostname }}:8500
+      - CONFIG_ENCRYPTION_KEY_PART_1={{ config_encryption_key_part1 }}
+    secrets:
+      - source: {{ application_secret_name }}
+        target: /var/www/.env
+    networks:
+      - app
+    volumes:
+      - {{ glusterfs_settings.directories.cloud_dir }}/laravel/{{ laravel_application.name }}/storage:/var/www/storage
+    depends_on:
+      - web
+      - memcached
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 128M
+        reservations:
+          cpus: '0.25'
+          memory: 20M
+
+  memcached:
+    image: "memcached:1.5"
+    networks:
+      - app
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 128M
+        reservations:
+          cpus: '0.25'
+          memory: 20M
+
+secrets:
+  {{ application_secret_name }}:
+    external: true
+
+networks:
+  app:
+    driver: overlay
+

@@ -1,0 +1,8 @@
+- name: Copy Specifying Build Artifacts to Agent destination path
+  fetch:
+    src: /eve/src/eden/dist/bin/eden-linux-amd64
+    dest: "/tmp/vx-eden-linux-amd64"
+    flat: yes
+  # with_items: 
+  #   - eden
+  #   - eden-linux-amd64

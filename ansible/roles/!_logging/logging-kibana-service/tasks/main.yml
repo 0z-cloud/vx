@@ -1,0 +1,40 @@
+- name: Inject defaults
+  set_fact:
+    logging_kibana: "{{ logging_kibana_defaults | combine(logging_kibana) }}"
+  tags: [always]
+
+- name: Create the directories
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0777
+  with_dict: "{{ logging_kibana.directories | default({}) }}"
+
+- name: Create kibana config from template
+  template: 
+    src: kibana.yml.j2
+    dest: "{{ logging_kibana.directories.configs }}/kibana.yml"
+  tags: generate
+
+- name: Install Logging Kibana
+  docker_container:
+    name: "logging-kibana-{{ ansible_environment }}-{{ inventory_hostname }}"
+    # image: "{{ ansible_global_gitlab_registry_site_name }}/{{ ansible_git_project_path }}/kibana:{{ default_docker_image_environment_tag }}"
+    image: sebp/elk:740
+    hostname: "logging-kibana-{{ ansible_hostname }}.{{ public_consul_domain }}"
+    volumes:
+      - "{{ logging_kibana.directories.configs }}/kibana.yml:/opt/kibana/config/kibana.yml"
+    ports:
+      - "{{ logging_kibana_internal_service_listen_port }}:5601"
+    env:
+      ELASTICSEARCH_START: "0"
+      LOGSTASH_START: "0"
+      SERVER_NAME: "kibana.{{ public_consul_domain }}"
+      ELASTICSEARCH_HOSTS: "http://logging-elasticsearch-cluster.{{ public_consul_domain }}"
+    ulimits:
+      - 'memlock:-1:-1'
+    pull: yes
+    network_mode: host
+    state: started
+    restart_policy: unless-stopped
+    recreate: yes

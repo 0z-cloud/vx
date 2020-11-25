@@ -1,0 +1,20 @@
+/var/log/nginx/*.log {
+        daily
+        missingok
+        rotate {{ environment_rsyslog_rotate_days }}
+        compress
+        delaycompress
+        notifempty
+        create 640 nginx adm
+        sharedscripts
+        postrotate
+                if [ -f /var/run/nginx.pid ]; then
+                        kill -USR1 `cat /var/run/nginx.pid`
+                fi
+
+		        # docker ps | grep fluent | awk '{print $1}' | xargs -I ID docker restart ID
+                # docker service scale vortex-production_elasticsearch=0
+                # docker service scale vortex-production_elasticsearch=1
+
+        endscript
+}

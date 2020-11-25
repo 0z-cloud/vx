@@ -1,0 +1,208 @@
+{% raw %}version: '3.7'
+
+networks:
+  default:
+    driver: overlay
+    attachable: true
+{% endraw %}
+{% if PCI_NETWORKS_LIST is defined %}
+{% for item in PCI_NETWORKS_LIST %}{% raw %}
+  {% endraw %}{{ item.network }}{% raw %}:
+    driver: overlay
+    attachable: true
+  {% endraw %}
+{% endfor %}
+{% endif %}
+{% raw %}
+volumes:
+  postgres-data:
+    driver: local
+  business-gems:
+    driver: local
+  business-docs-gems:
+    driver: local
+  core-gems:
+    driver: local
+  settings-gems:
+    driver: local
+  guard-gems:
+    driver: local
+
+services:
+
+############################################################################################################################################
+#### SECTION 1: EXTENDED SERVICES
+############################################################################################################################################
+
+{% endraw %}
+
+{% for key,value in all_services_remap_docker_compose_generate.items() %}{% for app,data in all_services_settings_map.items()%}{% if key == app %}
+{% if 'database' not in value['container_type'] %}{% raw %}
+  {% endraw %}{{ key }}{% raw %}:
+      image: {% endraw %}{{ ANSIBLE_REGISTRY_URL }}{% raw %}/{% endraw %}{{ ansible_git_project_path }}{% raw %}/{% endraw %}{{ value['image'] }}{% raw %}:{% endraw %}{{ lookup('vars', 'passed_ci_docker_tag_' + app) }}{% raw %}
+{% endraw %}{% if value['command'] is defined %}{% raw %}
+      command: "{% endraw %}{{ value['command'] }}{% raw %}"
+{% endraw %}
+{% endif %}
+{% if value['volumes'] is defined %}{% raw %}
+      volumes: 
+{% endraw %}{% for volume in value['volumes'] %}{% raw %}
+        - {% endraw %}{{ volume | join }}{% raw %}
+{% endraw %}
+{% endfor %}
+{% endif %}
+{% if value['environment'] is defined %}{% raw %}
+      environment:
+{% endraw %}{% for de in value['environment'] %}{% raw %}
+        {% endraw %}{{ de | join }}{% raw %}
+{% endraw %}
+{% endfor %}
+{% endif %}
+{% if value['depends_on'] is defined %}{% raw %}
+      depends_on: 
+{% endraw %}{% for depend in value['depends_on'] %}{% raw %}
+        - {% endraw %}{{ depend | join }}{% raw %}
+{% endraw %}
+{% endfor %}
+{% endif %}
+{% if value['no_healthcheck'] is defined %}{% raw %}
+      healthcheck:
+        disable: true
+{% endraw %}
+{% endif %}
+{% if value['ports'] is defined %}{% raw %}
+      ports: 
+{% endraw %}{% for port in value['ports'] %}{% raw %}
+        - {{ port }}
+{% endraw %}
+{% endfor %}
+{% endif %}
+{% if value['entrypoint'] is defined %}{% raw %}
+      entrypoint: {% endraw %}{{ value['entrypoint'] }}{% raw %}
+{% endraw %}{% endif %}
+{% if data is defined %}{% raw %}
+      environment: 
+        SERVICE_VERSION: {% endraw %}{{ lookup('vars', 'passed_ci_docker_tag_' + app) }}{% raw %}
+{% endraw %}{% for d in data %}{% raw %}
+        {% endraw %}{{ d | join }}{% raw %}
+{% endraw %}
+{% endfor %}
+{% endif %}{% if 'mariadb' not in key or 'elasticsearch' not in key %}{% raw %}
+      logging:
+        driver: syslog
+        options:
+          tag: "docker_{% endraw %}{{ ansible_environment }}{% raw %}-{% endraw %}{{ key }}{% raw %}"
+{% endraw %}
+{% endif %}
+{% if value['scale'] is defined %}{% raw %}
+      deploy:
+        mode: replicated
+        replicas: {% endraw %}{{ value['scale'] }}{% raw %}
+        update_config:
+          parallelism: 1
+          delay: 120s
+        restart_policy:
+          condition: on-failure
+          delay: 120s
+          window: 120s
+        placement:
+          constraints:
+            - node.role == manager
+{% endraw %}
+{% if value['resources'] is defined %}{% raw %}
+        resources:
+          limits:
+            cpus: "{% endraw %}{{ value['resources'].limits.cpus }}{% raw %}"
+            memory: "{% endraw %}{{ value['resources'].limits.memory }}{% raw %}"
+          reservations:
+            cpus: "{% endraw %}{{ value['resources'].limits.cpus }}{% raw %}"
+            memory: "{% endraw %}{{ value['resources'].limits.memory }}{% raw %}"
+{% endraw %}
+{% endif %}
+
+{% endif %}{% endif %}{% endif %}{% endfor %}
+
+{% endfor %}
+
+
+{% if special_all_services_remap_docker_compose_generate is defined %}{% if special_all_services_settings_map is defined %}
+{% for key,value in special_all_services_remap_docker_compose_generate.items() %}{% for app,data in special_all_services_settings_map.items()%}{% if key == app %}
+{% if 'database' not in value['container_type'] %}{% raw %}
+  {% endraw %}{{ key }}{% raw %}:
+      image: {% endraw %}{{ ANSIBLE_REGISTRY_URL }}{% raw %}/{% endraw %}{{ ansible_git_project_path }}{% raw %}/{% endraw %}{{ value['image'] }}{% raw %}:{% endraw %}{{ lookup('vars', 'passed_ci_docker_tag_' + app) }}{% raw %}
+{% endraw %}{% if value['command'] is defined %}{% raw %}
+      command: "{% endraw %}{{ value['command'] }}{% raw %}"
+{% endraw %}
+{% endif %}
+{% if value['volumes'] is defined %}{% raw %}
+      volumes: 
+{% endraw %}{% for volume in value['volumes'] %}{% raw %}
+        - {% endraw %}{{ volume | join }}{% raw %}
+{% endraw %}{% endfor %}
+{% endif %}
+{% if value['environment'] is defined %}{% raw %}
+      environment:
+{% endraw %}{% for de in value['environment'] %}{% raw %}
+        {% endraw %}{{ de | join }}{% raw %}
+{% endraw %}{% endfor %}
+{% endif %}
+{% if value['depends_on'] is defined %}{% raw %}
+      depends_on: 
+{% endraw %}{% for depend in value['depends_on'] %}{% raw %}
+        - {% endraw %}{{ depend | join }}{% raw %}
+{% endraw %}{% endfor %}
+{% endif %}
+{% if value['no_healthcheck'] is defined %}{% raw %}
+      healthcheck:
+        disable: true
+{% endraw %}{% endif %}
+{% if value['ports'] is defined %}{% raw %}
+      ports: 
+        - {% endraw %}{{ value['ports'] }}{% raw %}
+{% endraw %}
+{% endif %}
+{% if value['entrypoint'] is defined %}{% raw %}
+      entrypoint: {% endraw %}{{ value['entrypoint'] }}{% raw %}
+{% endraw %}{% endif %}
+{% if data is defined %}{% raw %}
+      environment: 
+        SERVICE_VERSION: {% endraw %}{{ lookup('vars', 'passed_ci_docker_tag_' + app) }}{% raw %}
+{% endraw %}{% for d in data %}{% raw %}
+        {% endraw %}{{ d | join }}{% raw %}
+{% endraw %}{% endfor %}
+{% endif %}{% if 'mariadb' not in key or 'elasticsearch' not in key %}{% raw %}
+      logging:
+        driver: syslog
+        options:
+          tag: "docker_{% endraw %}{{ ansible_environment }}{% raw %}-{% endraw %}{{ key }}{% raw %}"
+{% endraw %}{% endif %}
+{% if value['scale'] is defined %}{% raw %}
+      deploy:
+        mode: replicated
+        replicas: {% endraw %}{{ value['scale'] }}{% raw %}
+        update_config:
+          parallelism: 1
+          delay: 120s
+        restart_policy:
+          condition: on-failure
+          delay: 120s
+          window: 120s
+        placement:
+          constraints:
+            - node.role == manager
+{% endraw %}
+{% if value['resources'] is defined %}{% raw %}
+        resources:
+          limits:
+            cpus: "{% endraw %}{{ value['resources'].limits.cpus }}{% raw %}"
+            memory: "{% endraw %}{{ value['resources'].limits.memory }}{% raw %}"
+          reservations:
+            cpus: "{% endraw %}{{ value['resources'].limits.cpus }}{% raw %}"
+            memory: "{% endraw %}{{ value['resources'].limits.memory }}{% raw %}"
+{% endraw %}
+{% endif %}
+
+{% endif %}{% endif %}{% endif %}{% endfor %}
+
+{% endfor %}
+{% endif %}{% endif %}

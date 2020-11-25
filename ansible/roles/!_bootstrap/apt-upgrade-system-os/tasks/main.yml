@@ -1,0 +1,16 @@
+- name: Apt update cache
+  apt:
+    update_cache: true
+
+- name: Upgrade all packages to the latest version
+  apt:
+    name: "*"
+    state: latest
+
+- name: Update all packages to the latest version
+  apt:
+    upgrade: dist
+
+- name: Reboot host and waiting for server to startup complete
+  reboot:
+    reboot_timeout: 3600

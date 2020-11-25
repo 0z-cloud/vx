@@ -1,0 +1,39 @@
+# VIP
+#
+# For information on the settings in this file, type "man shorewall-rules"
+######################################################################################################################################################################################################
+# ACTION		    SOURCE		            DEST							        PROTO	DEST	SOURCE		ORIGINAL	RATE		USER/	MARK	CONNLIMIT	TIME		HEADERS		SWITCH		HELPER
+#
+
+{% if inventory_hostname in groups['network-balancer-stack'] %}                       
+
+# ICMP												
+ACCEPT              vip                    fw							            icmp
+
+# NTP
+ACCEPT              vip                    fw							            udp     ntp,domain
+ACCEPT              vip                    fw							            udp     ntp,domain
+
+# DNS
+ACCEPT              vip                    vip							            udp	    53
+ACCEPT              vip                    vip							            udp	    53
+
+# vip BETWEEN IDS ON vip INTERFACE
+ACCEPT              fw                     vip                                      vip
+ACCEPT              vip                    fw                                       vip
+
+# SSH BETWEEN ROUTERS FOR MAINTANANCE
+ACCEPT              fw                     vip                                      tcp	    22
+ACCEPT              vip                    fw                                       tcp     22
+
+ACCEPT              fw                     vip                                      tcp	    22
+ACCEPT              vip                    fw                                       tcp     22
+
+# ENABLE CONNECTION FROM FRONTEND TO BALANCER VIP
+ACCEPT              nginx                    vip                                     tcp     {{ redis_backend_service_listen_port }}
+ACCEPT              nginx                    vip                                     tcp     {{ pgbouncer_backend_service_listen_port }}
+ACCEPT              nginx                    vip                                     tcp     {{ mongo_backend_service_listen_port }}
+ACCEPT              nginx                    vip                                     tcp     {{ minio_backend_service_listen_port }}
+ACCEPT              nginx                    vip                                     tcp     {{ elasticsearch_backend_service_listen_port }}
+
+{% endif %}

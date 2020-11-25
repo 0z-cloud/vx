@@ -1,0 +1,37 @@
+---
+
+- name: re/Check/Install K8S with Kubespray 
+  include: ../kubespray/cluster.yml
+
+- name: Installing the Slurm Monitoring Application
+  hosts: "{{ HOSTS }}" # K8S MASTERS
+  run_once: yes
+  roles:
+    - name: Installing monitoring application (Grafana, InfluxDB, Heap Tool)
+      role: roles/!_cluster_apps/slurm/heapster
+  tags: [monitoring]
+
+- name: reCheck and ask status from GlusterFS hosts about Kernel Module
+  hosts: "{{ HOSTS }}" # GLUSTERFS GROUP
+  tasks:
+    - name: Ensure dm_thin_pool kernel module is enabled
+      modprobe:
+        name: dm_thin_pool
+        state: present
+  tags: [glusterfs]
+
+- name: reInstall/Obtaining status from GlusterFS Cluster Storage Sub-system
+  hosts: "{{ HOSTS }}" # K8S MASTERS
+  run_once: yes
+  roles:
+    - name: Call the GlusterFS role
+      role: roles/!_cluster_apps/slurm/glusterfs
+  tags: [glusterfs]
+
+- name: reInstall/Obtaining status from SLURM Cluster System
+  hosts: "{{ HOSTS }}" # K8S MASTERS
+  run_once: yes
+  roles:
+    - name: Call to re/check and re/install/validate SLURM by Primary Role 
+      role: roles/!_cluster_apps/slurm/primary
+  tags: [slurm]

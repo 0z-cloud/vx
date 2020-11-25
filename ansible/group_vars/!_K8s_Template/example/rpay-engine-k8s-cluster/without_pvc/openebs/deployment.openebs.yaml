@@ -1,0 +1,423 @@
+apiVersion: v1
+items:
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+    creationTimestamp: "2019-06-27T12:23:10Z"
+    generation: 1
+    labels:
+      app: admission-webhook
+      chart: openebs-0.9.0
+      component: admission-webhook
+      heritage: Tiller
+      io.cattle.field/appId: openebs
+      release: openebs
+    name: openebs-admission-server
+    namespace: openebs
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: admission-webhook
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: admission-webhook
+          name: admission-webhook
+          openebs.io/component-name: admission-webhook
+          openebs.io/version: 0.9.0
+      spec:
+        containers:
+        - args:
+          - -tlsCertFile=/etc/webhook/certs/cert.pem
+          - -tlsKeyFile=/etc/webhook/certs/key.pem
+          - -alsologtostderr
+          - -v=8
+          - 2>&1
+          image: quay.io/openebs/admission-server:0.9.0
+          imagePullPolicy: IfNotPresent
+          name: admission-webhook
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /etc/webhook/certs
+            name: webhook-certs
+            readOnly: true
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: openebs
+        serviceAccountName: openebs
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: webhook-certs
+          secret:
+            defaultMode: 420
+            secretName: admission-server-certs
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+    creationTimestamp: "2019-06-27T12:23:10Z"
+    generation: 1
+    labels:
+      app: openebs
+      chart: openebs-0.9.0
+      component: apiserver
+      heritage: Tiller
+      io.cattle.field/appId: openebs
+      name: maya-apiserver
+      release: openebs
+    name: openebs-apiserver
+    namespace: openebs
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: openebs
+        release: openebs
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: openebs
+          component: apiserver
+          name: maya-apiserver
+          openebs.io/component-name: maya-apiserver
+          openebs.io/version: 0.9.0
+          release: openebs
+      spec:
+        containers:
+        - env:
+          - name: OPENEBS_IO_INSTALL_DEFAULT_CSTOR_SPARSE_POOL
+            value: "false"
+          - name: OPENEBS_IO_CSTOR_POOL_SPARSE_DIR
+            value: /opt/openebs/sparse
+          - name: OPENEBS_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          - name: OPENEBS_SERVICE_ACCOUNT
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: spec.serviceAccountName
+          - name: OPENEBS_MAYA_POD_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.name
+          - name: OPENEBS_IO_JIVA_CONTROLLER_IMAGE
+            value: quay.io/openebs/jiva:0.9.0
+          - name: OPENEBS_IO_JIVA_REPLICA_IMAGE
+            value: quay.io/openebs/jiva:0.9.0
+          - name: OPENEBS_IO_JIVA_REPLICA_COUNT
+            value: "3"
+          - name: OPENEBS_IO_CSTOR_TARGET_IMAGE
+            value: quay.io/openebs/cstor-istgt:0.9.0
+          - name: OPENEBS_IO_CSTOR_POOL_IMAGE
+            value: quay.io/openebs/cstor-pool:0.9.0
+          - name: OPENEBS_IO_CSTOR_POOL_MGMT_IMAGE
+            value: quay.io/openebs/cstor-pool-mgmt:0.9.0
+          - name: OPENEBS_IO_CSTOR_VOLUME_MGMT_IMAGE
+            value: quay.io/openebs/cstor-volume-mgmt:0.9.0
+          - name: OPENEBS_IO_VOLUME_MONITOR_IMAGE
+            value: quay.io/openebs/m-exporter:0.9.0
+          - name: OPENEBS_IO_CSTOR_POOL_EXPORTER_IMAGE
+            value: quay.io/openebs/m-exporter:0.9.0
+          - name: OPENEBS_IO_ENABLE_ANALYTICS
+            value: "true"
+          - name: OPENEBS_IO_ANALYTICS_PING_INTERVAL
+            value: 24h
+          image: quay.io/openebs/m-apiserver:0.9.0
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            exec:
+              command:
+              - /usr/local/bin/mayactl
+              - version
+            failureThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 60
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: openebs-apiserver
+          ports:
+          - containerPort: 5656
+            protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: openebs
+        serviceAccountName: openebs
+        terminationGracePeriodSeconds: 30
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+    creationTimestamp: "2019-06-27T12:23:10Z"
+    generation: 1
+    labels:
+      app: openebs
+      chart: openebs-0.9.0
+      component: localpv-provisioner
+      heritage: Tiller
+      io.cattle.field/appId: openebs
+      release: openebs
+    name: openebs-localpv-provisioner
+    namespace: openebs
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: openebs
+        release: openebs
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: openebs
+          component: localpv-provisioner
+          name: openebs-localpv-provisioner
+          openebs.io/component-name: openebs-localpv-provisioner
+          openebs.io/version: 0.9.0
+          release: openebs
+      spec:
+        containers:
+        - env:
+          - name: OPENEBS_NAMESPACE
+            value: openebs
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: spec.nodeName
+          - name: OPENEBS_IO_BASE_PATH
+          image: quay.io/openebs/provisioner-localpv:0.9.0
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            exec:
+              command:
+              - pgrep
+              - .*localpv
+            failureThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 60
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: openebs-localpv-provisioner
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: openebs
+        serviceAccountName: openebs
+        terminationGracePeriodSeconds: 30
+    updatedReplicas: 1
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+    creationTimestamp: "2019-06-27T12:23:10Z"
+    generation: 1
+    labels:
+      app: openebs
+      chart: openebs-0.9.0
+      component: provisioner
+      heritage: Tiller
+      io.cattle.field/appId: openebs
+      release: openebs
+    name: openebs-provisioner
+    namespace: openebs
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: openebs
+        release: openebs
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: openebs
+          component: provisioner
+          name: openebs-provisioner
+          openebs.io/component-name: openebs-provisioner
+          openebs.io/version: 0.9.0
+          release: openebs
+      spec:
+        containers:
+        - env:
+          - name: OPENEBS_NAMESPACE
+            value: openebs
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: spec.nodeName
+          - name: OPENEBS_MAYA_SERVICE_NAME
+            value: openebs-apiservice
+          image: quay.io/openebs/openebs-k8s-provisioner:0.9.0
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            exec:
+              command:
+              - pgrep
+              - .*openebs
+            failureThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 60
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: openebs-provisioner
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: openebs
+        serviceAccountName: openebs
+        terminationGracePeriodSeconds: 30
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+    creationTimestamp: "2019-06-27T12:23:10Z"
+    generation: 1
+    labels:
+      app: openebs
+      chart: openebs-0.9.0
+      component: snapshot-operator
+      heritage: Tiller
+      io.cattle.field/appId: openebs
+      release: openebs
+    name: openebs-snapshot-operator
+    namespace: openebs
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: openebs
+        release: openebs
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: openebs
+          component: snapshot-operator
+          name: openebs-snapshot-operator
+          openebs.io/component-name: openebs-snapshot-operator
+          openebs.io/version: 0.9.0
+          release: openebs
+      spec:
+        containers:
+        - env:
+          - name: OPENEBS_NAMESPACE
+            value: openebs
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: spec.nodeName
+          - name: OPENEBS_MAYA_SERVICE_NAME
+            value: openebs-apiservice
+          image: quay.io/openebs/snapshot-controller:0.9.0
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            exec:
+              command:
+              - pgrep
+              - .*controller
+            failureThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 60
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: openebs-snapshot-controller
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        - env:
+          - name: OPENEBS_NAMESPACE
+            value: openebs
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: spec.nodeName
+          - name: OPENEBS_MAYA_SERVICE_NAME
+            value: openebs-apiservice
+          image: quay.io/openebs/snapshot-provisioner:0.9.0
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            exec:
+              command:
+              - pgrep
+              - .*provisioner
+            failureThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 60
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: openebs-snapshot-provisioner
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: openebs
+        serviceAccountName: openebs
+        terminationGracePeriodSeconds: 30
+    updatedReplicas: 1
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""

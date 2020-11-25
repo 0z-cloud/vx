@@ -1,0 +1,14 @@
+- name: BASIC INIT | Update node hostname
+  hostname:
+    name: "{{ inventory_hostname }}"
+    use: systemd
+  tags: bootstrap
+
+- name: BASIC INIT | Update node hostname by hostnamectl
+  shell: "hostnamectl set-hostname {{ inventory_hostname }}"
+  tags: bootstrap
+
+- name: BASIC INIT | Template the hosts file
+  template:
+    src: hosts.j2
+    dest: /etc/hosts

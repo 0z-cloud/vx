@@ -1,0 +1,26 @@
+docker run -d -p 8099:80 --name testlink --net=testlink-tier bitnami/testlink
+
+docker run -d -p 8099:80 --name testlink \
+ -e TESTLINK_PASSWORD=testlink \
+ --net testlink-tier \
+ --volume /bitnami/testlink:/bitnami/testlink \
+ --volume /bitnami/apache:/bitnami/apache \
+ --volume /bitnami/php:/bitnami/php \
+ bitnami/testlink:latest
+
+
+ docker run -d --name mariadb -e ALLOW_EMPTY_PASSWORD=yes \
+ --net testlink-tier \
+ --volume /bitnami/mysql:/bitnami \
+ bitnami/mariadb:latest
+
+ $ docker run -d -p 80:80 -p 443:443 --name testlink \
+ --net testlink-tier \
+ --volume bitnami:/bitnami \
+ bitnami/testlink:latest
+
+
+ docker run -d -p 8090:80 -p 8091:443 --name testlink -e TESTLINK_PASSWORD=testlink \
+ --net testlink-tier \
+ --volume /bitnami/testlink:/bitnami \
+ bitnami/testlink:latest

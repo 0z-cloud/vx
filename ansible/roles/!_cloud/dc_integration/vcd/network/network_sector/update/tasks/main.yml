@@ -1,0 +1,220 @@
+# - name: Deeee
+#   debug:
+#     msg: "{{ item }}"
+#   with_items:
+#     - "user - {{ anycloud_adapter_api_user }}"
+#     - "password - {{ anycloud_adapter_api_password }}"
+#     - "host http uri - {{ anycloud_adapter_api_url_http_uri }}" 
+#     - "host - {{ anycloud_adapter_api_url_endpoint }}"
+#     - "api_version - {{ anycloud_adapter_api_url_version }}"
+#     - "verify_ssl_certs - {{ anycloud_adapter_api_url_verify_ssl }}"
+#     - "org - {{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+#     - "org_name - {{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+#     - "vdc_name - {{ anycloud_defaults_virtual_datacenter }}"
+#     - "vdc - {{ anycloud_defaults_virtual_datacenter }}"
+#     - "gateway_name - {{ anycloud_virtual_cloud_name }}"
+#     - "network_name - {{ anycloud_defaults_cloud_name }}"
+#     - "description - {{ anycloud_virtual_cloud_description }}"
+#     - "parent_network_name - {{ anycloud_result_edge_router }}"
+#     - "primary_dns_ip - {{ anycloud_defaults_vpc_zone_virtual_abstract.dns_servers[0] }}"
+#     - "secondary_dns_ip - {{ anycloud_defaults_vpc_zone_virtual_abstract.dns_servers[1] }}"
+#     - "network_cidr - {{ anycloud_defaults_virtual_cloud_primary_network_virtual_communication_cidr }}"
+#     - "dns_suffix - {{ anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_dns_suffix }}"
+#     - "ip_range_start - {{ anycloud_defaults_virtual_edge_start_static_pool }}"
+#     - "ip_range_end: {{ anycloud_defaults_virtual_edge_end_static_pool }}"
+#     - "dhcp_ip_range_end: {{ anycloud_defaults_virtual_edge_end_dhcp_pool }}"
+#     - "dhcp_ip_range_start: {{ anycloud_defaults_virtual_edge_start_dhcp_pool }}"
+
+- name: Get list of networks current particular operate target vApp(vpc)
+  vcd_vapp:
+      vapp_name: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+      vdc: "{{ anycloud_defaults_virtual_datacenter }}"
+      operation: "list_networks"
+  register: result_list_networks
+
+# - name: "[any.box.network][DEBUG]: Checking Result of Getting list of networks current particular operate target vApp(vpc)"
+#   debug:
+#     msg: '{{ result_list_networks }}'
+
+# - name: DEBUG
+#   debug:
+#     msg: "{{ item }}"
+#   with_items:
+#     - "anycloud_virtual_cloud_description: {{ anycloud_virtual_cloud_description }}"
+#     - "anycloud_defaults_virtual_edge_end_dhcp_pool: {{ anycloud_defaults_virtual_edge_end_dhcp_pool }}"
+#     - "anycloud_defaults_virtual_edge_start_dhcp_pool: {{ anycloud_defaults_virtual_edge_start_dhcp_pool }}"
+#     - "public_consul_domain: {{ public_consul_domain }}"
+#     - "anycloud_result_edge_router: {{ anycloud_result_edge_router }}"
+#     - "anycloud_adapter_api_url_endpoint: {{ anycloud_adapter_api_url_endpoint }}"
+#     - "anycloud_defaults_virtual_edge_end_static_pool: {{ anycloud_defaults_virtual_edge_end_static_pool }}"
+#     - "anycloud_defaults_virtual_edge_start_static_pool: {{ anycloud_defaults_virtual_edge_start_static_pool }}"
+#     - "anycloud_defaults_virtual_cloud_primary_network_virtual_communication_cidr: {{ anycloud_defaults_virtual_cloud_primary_network_virtual_communication_cidr }}"
+#     - "anycloud_defaults_cloud_name: {{ anycloud_defaults_cloud_name }}"
+#     - "anycloud_defaults_virtual_organization: {{ anycloud_defaults_virtual_organization }}"
+#     - "anycloud_defaults_vpc_zone_virtual_abstract: {{ anycloud_defaults_vpc_zone_virtual_abstract }}"
+#     - "anycloud_defaults_virtual_organization: {{ anycloud_defaults_virtual_organization }}"
+#     - "anycloud_adapter_api_password: {{ anycloud_adapter_api_password }}"
+#     - "anycloud_defaults_vpc_zone_virtual_abstract: {{ anycloud_defaults_vpc_zone_virtual_abstract }}"
+#     - "anycloud_adapter_api_user: {{ anycloud_adapter_api_user }}"
+#     - "anycloud_defaults_virtual_datacenter: {{ anycloud_defaults_virtual_datacenter }}"
+
+- name: ROUTED NETWORK TO EDGE | Create external from context vApp - vdc network 
+  vcd_vdc_network:
+    api_version: '30.0'
+    description: "{{ anycloud_virtual_cloud_description }}"
+    dhcp_enabled: True
+    dhcp_ip_range_end: "{{ anycloud_defaults_virtual_edge_end_dhcp_pool }}"
+    dhcp_ip_range_start: "{{ anycloud_defaults_virtual_edge_start_dhcp_pool }}"
+    default_lease_time: '500'
+    max_lease_time: '1000'
+    direct: False
+    distributed_interface: True
+    dns_suffix: "{{ public_consul_domain }}"
+    force: True
+    gateway_name: "{{ anycloud_result_edge_router }}"
+    guest_vx_vlan_allowed: False
+    host: "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}" # {{ anycloud_adapter_api_url_endpoint }}
+    ip_range_end: "{{ anycloud_defaults_virtual_edge_end_static_pool }}"
+    ip_range_start: "{{ anycloud_defaults_virtual_edge_start_static_pool }}"
+    isolated: False
+    network_cidr: "{{ anycloud_defaults_virtual_cloud_primary_network_virtual_communication_cidr }}"
+    network_name: "{{ anycloud_defaults_cloud_name }}"
+    org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+    org_name: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+    parent_network_name: "{{ anycloud_result_edge_router }}"
+    password: "{{ anycloud_adapter_api_password }}"
+    primary_dns_ip: "{{ anycloud_defaults_vpc_zone_virtual_abstract.dns_servers[0] }}"
+    retain_net_info_across_deployments: True
+    routed: True
+    secondary_dns_ip: "{{ anycloud_defaults_vpc_zone_virtual_abstract.dns_servers[1] }}"
+    shared: True
+    state: present
+    # sub_interface: False
+    user: "{{ anycloud_adapter_api_user }}"
+    vdc_name: "{{ anycloud_defaults_virtual_datacenter }}"
+    verify_ssl_certs: True
+  register: result_subnet_as_network_connected_to_edge
+ 
+# - name: Debug result_subnet_as_network_connected_to_edge
+#   debug:
+#     msg: "{{ result_subnet_as_network_connected_to_edge }}"
+
+# - name: Calls vcd_vdc_gateway
+#   vcd_vdc_gateway:
+#     api_version: '31.0'
+#     configure_ip_settings: True
+#     create_as_advanced_gw: True
+#     default_gateway: True
+#     default_gateway_ip: "{{ anycloud_defaults_virtual_cloud_primary_network_virtual_communication_gwip }}"
+#     default_gw_for_dns_relay: True
+#     description: "{{ anycloud_virtual_cloud_description }}"
+#     dr_enabled: True
+#     #edge_gateway_type: "{{ }}"
+#     #ext_net_to_participated_subnet_with_ip_settings: "{{ }}"
+#     #ext_net_to_rate_limit: "{{ }}"
+#     #ext_net_to_subnet_with_ip_range: "{{ }}"
+#     external_networks: "{{ anycloud_defaults_cloud_name }}"
+#     extnw_for_default_gw: "{{ anycloud_defaults_cloud_name }}"
+#     flips_mode: False
+#     # gateway_backing_config: "{{ }}"
+#     gateway_name: "{{ anycloud_defaults_cloud_name }}"
+#     ha_enabled: False
+#     host: "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}"
+#     new_gateway_name: "{{ anycloud_defaults_cloud_name }}"
+#     org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+#     org_name: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+#     password: "{{ anycloud_adapter_api_password }}"
+#     state: "{{ item }}"
+#     sub_allocate_ip_pools: True
+#     user: "{{ anycloud_adapter_api_user }}"
+#     vdc_name: "{{ anycloud_defaults_virtual_datacenter }}"
+#     verify_ssl_certs: True
+#   with_items:
+#     - absent
+#     - present
+#     - update
+  
+
+
+# - name: create edge gateway
+#   vcd_vdc_gateway:
+#     user: "{{ anycloud_adapter_api_user }}"
+#     vdc_name: "{{ anycloud_defaults_virtual_datacenter }}"
+#     org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+#     password: "{{ anycloud_adapter_api_password }}"
+#     host: "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}"
+#     gateway_name: "{{ anycloud_defaults_cloud_name }}"
+#     external_networks:
+#       - "{{ anycloud_defaults_cloud_name }}"
+#     state: present
+#   register: output
+
+# - name: create edge gateway output
+#   debug:
+#     msg: '{{ output }}'
+
+# - name: create vdc network | Direct
+#   vcd_vdc_network:
+#     user: "{{vcd_user}}"
+#     password: "{{vcd_password}}"
+#     host: "{{vcd_host}}"
+#     api_version: "{{api_version}}"
+#     verify_ssl_certs: "{{verify_ssl_certs}}"
+#     org: "{{system_org}}"
+#     org_name: "{{customer_org}}"
+#     vdc_name: "{{vdc_name}}"
+#     network_name: "my direct network"
+#     description: "directly connected network"
+#     parent_network_name: "CLOUDLAB EXTERNAL NETWORK"
+#     shared: True
+#     direct: True
+#     state: "{{state}}"
+
+# - name: Create Gateway link from vApp network to vdc-edge network with static IP address and Rate Limit
+#   vcd_vdc_gateway:
+#     user:  "{{ anycloud_adapter_api_user }}"
+#     password: "{{ anycloud_adapter_api_url_endpoint }}"
+#     host: "{{ anycloud_adapter_api_url_endpoint }}"
+#     org_name: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+#     org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}" # need to check how its real behaivor passing in differents situations
+#     api_version: '31.0'
+#     verify_ssl_certs: True
+#     vdc_name: "{{ anycloud_defaults_virtual_datacenter }}"
+#     gateway_name: "module_test_3"
+#     description: "{{ anycloud_virtual_cloud_description }}"
+#     external_networks:
+#       - "{{ anycloud_defaults_cloud_name }}"
+#     gateway_backing_config: compact
+#     default_gateway: True
+#     extnw_for_default_gw: "{{ anycloud_defaults_cloud_name }}"
+#     default_gateway_ip: "{{ anycloud_defaults_virtual_cloud_primary_network_virtual_communication_gwip }}"
+#     default_gw_for_dns_relay: True
+#     #ha_enabled: True
+#     create_as_advanced_gw: True
+#     dr_enabled: True
+#     configure_ip_settings: True
+#     ext_net_to_rate_limit: {
+#         "{{ anycloud_defaults_cloud_name }}": {
+#             "100": "100"
+#         }
+#     }
+#     state: present
+    # ext_net_to_participated_subnet_with_ip_settings: {
+    #     "{{ anycloud_defaults_cloud_name }}": {
+    #         "10.221.10.161/27": "10.221.10.170"
+    #     }
+    # }
+
+# - name: Create link from vApp network to connected via edge vdc network
+#   vcd_vapp_network:
+#     user: "{{ anycloud_adapter_api_user }}"
+#     password: "{{ anycloud_adapter_api_password }}"
+#     host: "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}"
+#     org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+#     api_version: 30
+#     verify_ssl_certs: False
+#     network: "{{ anycloud_defaults_cloud_name }}"
+#     vapp: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}" 
+#     vdc: "{{ anycloud_defaults_virtual_datacenter }}"
+#     parent_network: "{{ anycloud_defaults_cloud_name }}"
+#     state: present

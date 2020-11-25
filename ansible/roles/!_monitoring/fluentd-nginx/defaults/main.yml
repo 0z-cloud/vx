@@ -1,0 +1,7 @@
+fluentd_service_settings:
+   directories:
+        opt: /opt/fluentd/{{ ansible_environment }}/
+        etc: /opt/fluentd/{{ ansible_environment }}/etc
+        positions: /opt/fluentd/{{ ansible_environment }}/positions
+   nginx_mountpoint: /var/log/nginx
+   syslog_mountpoint: /var/log/syslog

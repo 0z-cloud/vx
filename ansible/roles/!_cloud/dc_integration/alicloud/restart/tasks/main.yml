@@ -1,0 +1,113 @@
+
+- name: Get the existing VPC
+  ali_vpc_facts:
+    region: '{{ item.value.anycloud_landscape_region }}'
+    #vpc_name: "{{ anycloud_virtual_cloud_name }}"
+    vpc_name: '{{ item.value.anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_name }}'
+    alicloud_secret_key: "{{ anycloud_api_secret_key }}"
+    alicloud_access_key: "{{ anycloud_api_access_key }}"
+  register: vpcs
+  with_dict: "{{ cloud_bootstrap.vpc_zones }}"
+
+- name: Set Facts VPC_ID_FOR vpc_id
+  set_fact:
+    VPC_ID_FOR: "{{ item }}"
+  with_items: |
+      {% for dict_item in vpcs.results %}{% for k,v in dict_item.items() %}{% if k == 'ids' %}{{ v | join | regex_replace('vpc.+?(?=)(?=\\)', '\\1') }}{% endif %}{% endfor %}{% endfor %}
+  register: VPC_ID
+
+- name: Checking the security group
+  ali_security_group:
+    alicloud_region: '{{ item.value.anycloud_landscape_region }}'
+    name: '{{ anycloud_zone_sector_section_primary_security_group }}'
+    group_name: "{{ anycloud_zone_sector_section_primary_security_group }}"
+    description: '{{ anycloud_zone_sector_section_primary_security_group }}'
+    vpc_id: '{{ VPC_ID_FOR }}'
+    rules: '{{ group_inboundRules }}'
+    rules_egress: '{{ group_outboundRules }}'
+    alicloud_secret_key: "{{ anycloud_api_secret_key }}"
+    alicloud_access_key: "{{ anycloud_api_access_key }}"
+  register: createsgeresult
+
+- name: Quering security group
+  ali_security_group:
+    alicloud_region: "{{ anycloud_landscape_region }}"
+    name: '{{ anycloud_zone_sector_section_primary_security_group }}'
+    group_id: '{{ createsgeresult.group.group_id }}'
+    group_name: "{{ anycloud_zone_sector_section_primary_security_group }}"
+    alicloud_secret_key: "{{ anycloud_api_secret_key }}"
+    alicloud_access_key: "{{ anycloud_api_access_key }}"
+    state: present
+    vpc_id: "{{ createsgeresult.group.vpc_id }}"
+  register: quetysgeresult
+
+- name: Checking the existing vswitch
+  ali_vswitch:
+    # cidr_block = {{ anycloud_virtual_zone_cidr_block }}
+    cidr_block: '{{ item.value.anycloud_defaults_virtual_cloud_cidr }}'
+    vpc_id: '{{ VPC_ID_FOR }}'
+    name: '{{ item.value.anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_name }}'
+    alicloud_secret_key: "{{ anycloud_api_secret_key }}"
+    alicloud_access_key: "{{ anycloud_api_access_key }}"
+    alicloud_region: "{{ anycloud_landscape_region }}"
+    alicloud_zone: "{{ anycloud_landscape_region_sub_zone }}"
+  register: vswitch
+  with_dict: "{{ cloud_bootstrap.switches }}"
+
+- name: Add fact for the anycloud_communication_device_id
+  set_fact: 
+    anycloud_communication_device_id: "{{ item['vswitch']['vswitch_id'] }}"
+  with_items: 
+    - "{{ vswitch['results'] }}"
+
+- name: Show Alicloud region
+  debug:
+    msg: "{{ anycloud_landscape_region }}"
+
+- name: Stop an ECS instance for maintanance
+  ali_instance:
+    security_groups: "{{ createsgeresult.group.group_id }}"
+    anycloud_landscape_region: "{{ anycloud_landscape_region }}"
+    image: '{{ item.value.anycloud_vm_template_name }}'
+    type: '{{ item.value.anycloud_vm_performance_configuration }}'
+    instance_name: '{{ item.value.name }}'
+    description: '{{ item.value.name }}'
+    host_name: '{{ item.value.name }}'
+    password: '{{ anycloud_vm_access_pass }}'
+    count: '{{ anycloud_one_instance_duplicates_count }}'
+    # internet_charge_type = {{ anycloud_internet_charge_type }} = PayByTraffic
+    internet_charge_type: "{{ anycloud_internet_charge_type }}"
+    # instance_charge_type = {{ anycloud_instance_charge_type }} = PostPaid
+    instance_charge_type: "{{ anycloud_instance_charge_type }}"
+    allocate_public_ip: '{{ anycloud_allocate_public_ip }}'
+    max_bandwidth_in: '{{ anycloud_defaults_max_bandwidth_in }}'
+    max_bandwidth_out: '{{ anycloud_defaults_max_bandwidth_out }}'
+    vswitch_id: '{{ anycloud_communication_device_id }}'
+    alicloud_secret_key: "{{ anycloud_api_secret_key }}"
+    alicloud_access_key: "{{ anycloud_api_access_key }}"
+    state: stopped
+  register: stop_instance_result
+  with_dict: "{{ cloud_bootstrap.servers }}"
+
+- name: Startback an ECS instance
+  ali_instance:
+    security_groups: "{{ createsgeresult.group.group_id }}"
+    anycloud_landscape_region: "{{ anycloud_landscape_region }}"
+    image: '{{ item.value.anycloud_vm_template_name }}'
+    type: '{{ item.value.anycloud_vm_performance_configuration }}'
+    instance_name: '{{ item.value.name }}'
+    description: '{{ item.value.name }}'
+    host_name: '{{ item.value.name }}'
+    password: '{{ anycloud_vm_access_pass }}'
+    count: '{{ anycloud_one_instance_duplicates_count }}'
+    internet_charge_type: "{{ anycloud_internet_charge_type }}"
+    instance_charge_type: "{{ anycloud_instance_charge_type }}"
+    allocate_public_ip: '{{ anycloud_allocate_public_ip }}'
+    max_bandwidth_in: '{{ anycloud_defaults_max_bandwidth_in }}'
+    max_bandwidth_out: '{{ anycloud_defaults_max_bandwidth_out }}'
+    vswitch_id: '{{ anycloud_communication_device_id }}'
+    alicloud_secret_key: "{{ anycloud_api_secret_key }}"
+    alicloud_access_key: "{{ anycloud_api_access_key }}"
+    state: running
+  register: start_instance_result
+  with_dict: "{{ cloud_bootstrap.servers }}"

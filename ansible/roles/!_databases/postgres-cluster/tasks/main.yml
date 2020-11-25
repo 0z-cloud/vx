@@ -1,0 +1,121 @@
+---
+
+- name: Create bootstrap primary hostname group
+  add_host: 
+    name: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
+    hostname: "{{ hostvars[item]['ansible_hostname'] }}"
+    groups: POSTGRES_CLUSTER_BOOTSTRAP
+  delegate_to: "{{ item }}"
+  with_items: "{{ ansible_play_hosts }}"
+
+- name: Create full hostnames group
+  add_host: 
+    name: "{{ hostvars[item]['ansible_default_ipv4']['address'] }}"
+    hostname: "{{ hostvars[item]['ansible_hostname'] }}"
+    groups: POSTGRES_CLUSTER_FULL
+  delegate_to: "{{ item }}"
+  with_items: "{{ ansible_play_hosts }}"
+
+- name: Debug new group POSTGRES_CLUSTER_FULL
+  debug:
+    msg: "{{ hostvars[item]['ansible_hostname'] }}"
+  with_items: "{{ groups['POSTGRES_CLUSTER_FULL'] }}"
+  when: inventory_hostname in groups['POSTGRES_CLUSTER_FULL']
+
+- name: Debug new group POSTGRES_CLUSTER_BOOTSTRAP
+  debug:
+    msg: "{{ hostvars[item]['ansible_hostname'] }}"
+  with_items: "{{ groups['POSTGRES_CLUSTER_BOOTSTRAP'] }}"
+  when: inventory_hostname in groups['POSTGRES_CLUSTER_BOOTSTRAP']
+
+- name: Inject and merge defaults settings with postgres_cluster_settings
+  set_fact:
+    postgres_cluster_settings: "{{ postgres_cluster_settings_defaults | combine(postgres_cluster_settings) }}"
+  tags: [always]
+
+- name: Create "postgres" group
+  group:
+    name: postgres
+    state: present
+
+- name: Create postgres User
+  user: 
+    name: postgres
+    shell: /bin/bash
+    groups: postgres
+    append: yes
+
+- name: Create the directories
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0755
+    owner: postgres
+    group: root
+  with_dict: "{{ postgres_cluster_settings.directories | default({}) }}"
+
+- name: Create hosts file from template for container
+  template:
+     src: hosts.j2 
+     dest: "{{ postgres_cluster_settings.directories.config_path }}/hosts"
+
+# PREPARE
+
+- name: re/Create a First Postgres Cluster Service docker container
+  docker_container:
+      name: postgres-{{ ansible_environment }}-{{ ansible_hostname }}
+      image: "pgsql:latest"
+      hostname: "postgres-{{ ansible_environment }}-{{ ansible_hostname }}"
+      volumes:
+        - "{{ postgres_cluster_settings.directories.data_path }}:/var/lib/postgresql/data:rw"
+        - "{{ postgres_cluster_settings.directories.config_path }}/hosts:/etc/hosts"
+      ports:
+        - "{{ postgres_cluster_settings.pg_port }}:{{ postgres_cluster_settings.pg_port }}"
+        # - "{{ postgres_settings.cluster_port }}:{{ postgres_settings.cluster_port }}"
+        # - "{{ postgres_settings.streams_port }}:{{ postgres_settings.streams_port }}"
+        # - "{{ postgres_settings.extrass_port }}:{{ postgres_settings.extrass_port }}"
+      env:
+        POSTGRES_PASSWORD: "{{ postgres_cluster_settings.root_password }}"
+        POSTGRES_USER: "{{ postgres_cluster_settings.postgres_user }}"
+        # MYSQL_ROOT_PASSWORD: "{{ postgres_settings.root_password }}"
+        # CLUSTER_NAME: "{{ postgres_settings.wsrep_cluster_name }}"
+      privileged: yes
+      restart_policy: always
+      detach: True
+      recreate: yes
+      state: started
+      network_mode: host
+      user: root
+  #when: inventory_hostname in groups['POSTGRES_CLUSTER_BOOTSTRAP'][0]
+
+# - name: check/create data store container
+#   docker_container:
+#     name: "{{ datastore_container_name }}"
+#     image: >-
+#       postgres{{ ':%s' % postgres_docker_tag if postgres_docker_tag else '' }}
+#     state: present
+#     volumes:
+#       - /var/lib/postgresql/data
+#     command: "true"
+#   when: use_datastore_container
+
+# - name: check/create postgresql container
+#   docker_container:
+#     name: "{{ postgres_container_name }}"
+#     image: >-
+#       postgres{{ ':%s' % postgres_docker_tag if postgres_docker_tag else '' }}
+#     state: started
+#     restart_policy: always
+#     env: "{{ postgres_docker_env if postgres_docker_env else omit }}"
+#     volumes_from: >-
+#       {{ [datastore_container_name] if use_datastore_container else omit }}
+#     exposed_ports: "{{ ['%s:5432' % expose_host_port] if expose_host_port else omit }}"
+
+# - name: inspect postgres docker
+#   command: >
+#     docker inspect --type=container
+#     --format='{{ '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' }}'
+#     {{ postgres_container_name }}
+#   register: postgres_address_result
+
+# - set_fact: postgres_container_address={{ postgres_address_result.stdout }}

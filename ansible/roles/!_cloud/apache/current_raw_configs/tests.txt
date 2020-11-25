@@ -1,0 +1,210 @@
+##################################################################################################################################################################################################################
+
+### PROCESSING
+
+#request: curl -X GET --resolve 'processing.vortex.com:443:10.1.1.252' "https://processing.vortex.com:443/processing_service/GetCardDataTroyka/?card_uid=04575B927B2380"
+#expect:
+        <?xml version='1.0' encoding='UTF-8'?><response><error_code>-1</error_code><description>Response data is not correct.</description><cardUID>04575B927B2380</cardUID><cardNum>null</cardNum></response>
+        
+#request: curl -X GET --resolve 'processing.vortex.com:1443:10.1.1.252' "https://processing.vortex.com:1443/processing_service/GetCardDataTroyka/?card_uid=04575B927B2380"
+#expect:
+        <?xml version='1.0' encoding='UTF-8'?><response><error_code>-1</error_code><description>Response data is not correct.</description><cardUID>04575B927B2380</cardUID><cardNum>null</cardNum></response>
+        
+##################################################################################################################################################################################################################
+
+#request: 
+  - curl -X GET --resolve 'processing.vortex.com:443:10.1.1.252' "https://processing.vortex.com:443/PosTransactionCheckStatus/?merchant_id=819&transaction_id=3854815"
+  - curl -X GET --resolve 'processing.vortex.com:1443:10.1.1.252' "https://processing.vortex.com:1443/PosTransactionCheckStatus/?merchant_id=819&transaction_id=3854815"
+#expect:
+        <payments><payment> <merchant_id>819</merchant_id> <transaction_id>3854815</transaction_id> <date>2017-09-07 14:24:47</date> <date_post>2017-09-07 14:24:48</date_post> <status>rebill</status> <merchant_name>null</merchant_name> <pan_mask>4276384079</pan_mask> <amount>100.0</amount> <amount_free>0.0</amount_free> <fee>0.0</fee> <order>556745</order> <rrn>725004000916</rrn> <auth_code>554950</auth_code> <currency>643</currency> <pos_bank>temporary undefined</pos_bank></payment></payments>
+
+#request:
+  - curl -X GET --resolve 'processing.vortex.com:1443:10.1.1.252' "https://processing.vortex.com:1443/processing_service/GetCardDataTroyka/?opcode=ping"
+  - curl -X GET --resolve 'processing.vortex.com:443:10.1.1.252' "https://processing.vortex.com:443/processing_service/GetCardDataTroyka/?opcode=ping"
+#expect:
+       <?xml version='1.0' encoding='UTF-8'?><response><error_code>-1</error_code><description>Empty incomming request data</description></response>
+
+#request: 
+  - curl -X GET --resolve 'processing.vortex.com:443:10.1.1.192' "https://processing.vortex.com:443/PosTransactionCheckStatus/?merchant_id=819&transaction_id=3854815"
+  - curl -X GET --resolve 'processing.vortex.com:1443:10.1.1.192' "https://processing.vortex.com:1443/PosTransactionCheckStatus/?merchant_id=819&transaction_id=3854815"
+#expect:
+        <payments><payment> <merchant_id>819</merchant_id> <transaction_id>3854815</transaction_id> <date>2017-09-07 14:24:47</date> <date_post>2017-09-07 14:24:48</date_post> <status>rebill</status> <merchant_name>null</merchant_name> <pan_mask>4276384079</pan_mask> <amount>100.0</amount> <amount_free>0.0</amount_free> <fee>0.0</fee> <order>556745</order> <rrn>725004000916</rrn> <auth_code>554950</auth_code> <currency>643</currency> <pos_bank>temporary undefined</pos_bank></payment></payments>
+
+#request:
+  - curl -X GET --resolve 'processing.vortex.com:1443:10.1.1.192' "https://processing.vortex.com:1443/processing_service/GetCardDataTroyka/?opcode=ping"
+  - curl -X GET --resolve 'processing.vortex.com:443:10.1.1.192' "https://processing.vortex.com:443/processing_service/GetCardDataTroyka/?opcode=ping"
+#expect:
+       <?xml version='1.0' encoding='UTF-8'?><response><error_code>-1</error_code><description>Empty incomming request data</description></response>
+
+##################################################################################################################################################################################################################
+
+### GATEWAY
+
+#request: 
+  - curl -X GET --resolve 'gateway.vortex.com:1443:10.1.1.232' "https://gateway.vortex.com:1443/callback/64/"
+  - curl -X GET --resolve 'gateway.vortex.com:443:10.1.1.232' "https://gateway.vortex.com:443/callback/64/"
+#expect:
+        {"result":{"code":402,"description":"Некорректный запрос"},"success":false}
+
+##################################################################################################################################################################################################################
+
+#request:
+  - curl -X GET --resolve 'gateway.vortex.com:1443:10.1.1.232' "https://gateway.vortex.com:1443/?opcode=114&processor_id=22&threshold=70&token=34d92240770c3eb78da587f840b85b1c"
+  - curl -X GET --resolve 'gateway.vortex.com:443:10.1.1.232' "https://gateway.vortex.com:443/?opcode=114&processor_id=22&threshold=70&token=34d92240770c3eb78da587f840b85b1c"
+#expect:
+        <response>
+        0
+        </response>
+
+##################################################################################################################################################################################################################
+
+#request:
+  - curl -X GET --resolve 'gateway.vortex.com:1443:10.1.1.232' "https://gateway.vortex.com:1443/secure3d/?opcode=114"
+  - curl -X GET --resolve 'gateway.vortex.com:443:10.1.1.232' "https://gateway.vortex.com:443/secure3d/?opcode=114"
+#expect:
+        <?xml version="1.0" encoding="UTF-8"?>
+        <response><status>KO</status><response_code>A108</response_code><description>processor_id or threshold are empty..</description></response>
+
+#request:
+  - curl -X GET --resolve 'gateway.vortex.com:443:10.1.1.232' "https://gateway.vortex.com:443/incoming/?opcode=ping"
+  - curl -X GET --resolve 'gateway.vortex.com:1443:10.1.1.232' "https://gateway.vortex.com:1443/incoming/?opcode=ping"
+#expect:
+        <response>OK</response>
+
+##################################################################################################################################################################################################################
+
+#request:
+  - curl -X GET --resolve 'gateway.vortex.com:443:10.1.1.232' "https://gateway.vortex.com:443/incoming/?opcode=114"
+  - curl -X GET --resolve 'gateway.vortex.com:1443:10.1.1.232' "https://gateway.vortex.com:1443/incoming/?opcode=114"
+#expect:
+        <?xml version="1.0" encoding="UTF-8"?>
+        <response><status>KO</status><response_code>A108</response_code><description>processor_id or threshold are empty..</description></response>
+        
+#request:
+        curl -X GET --resolve 'gateway.vortex.com:1443:10.1.1.232' "https://gateway.vortex.com:1443/gate/?opcode=114"
+        curl -X GET --resolve 'gateway.vortex.com:443:10.1.1.232' "https://gateway.vortex.com:443/gate/?opcode=114"
+#expect:
+        <?xml version="1.0" encoding="UTF-8"?>
+        <response><status>KO</status><response_code>A108</response_code><description>processor_id or threshold are empty..</description></response>
+
+#request:
+        curl -X GET --resolve 'gateway.vortex.com:1443:10.1.1.232' "https://gateway.vortex.com:1443/gate/?opcode=ping"
+        curl -X GET --resolve 'gateway.vortex.com:443:10.1.1.232' "https://gateway.vortex.com:443/gate/?opcode=ping"
+#expect:
+        <response>OK</response>
+        
+##################################################################################################################################################################################################################
+
+#request:
+  - curl -X GET --resolve 'messenger.vortex.com:1443:10.1.1.252' "https://messenger.vortex.com:1443/?opcode=ping"
+  - curl -X GET --resolve 'messenger.vortex.com:443:10.1.1.252' "https://messenger.vortex.com:443/?opcode=ping"
+#expect:
+        <response>OK</response>
+
+##################################################################################################################################################################################################################
+
+
+##################################################################################################################################################################################################################
+
+### PROCESSING
+
+#request: curl -X GET --resolve 'processing.vortex.com:443:10.1.1.251' "https://processing.vortex.com:443/processing_service/GetCardDataTroyka/?card_uid=04575B927B2380"
+#expect:
+        <?xml version='1.0' encoding='UTF-8'?><response><error_code>-1</error_code><description>Response data is not correct.</description><cardUID>04575B927B2380</cardUID><cardNum>null</cardNum></response>
+        
+#request: curl -X GET --resolve 'processing.vortex.com:1443:10.1.1.251' "https://processing.vortex.com:1443/processing_service/GetCardDataTroyka/?card_uid=04575B927B2380"
+#expect:
+        <?xml version='1.0' encoding='UTF-8'?><response><error_code>-1</error_code><description>Response data is not correct.</description><cardUID>04575B927B2380</cardUID><cardNum>null</cardNum></response>
+        
+##################################################################################################################################################################################################################
+
+#request: 
+  - curl -X GET --resolve 'processing.vortex.com:443:10.1.1.251' "https://processing.vortex.com:443/PosTransactionCheckStatus/?merchant_id=819&transaction_id=3854815"
+  - curl -X GET --resolve 'processing.vortex.com:1443:10.1.1.251' "https://processing.vortex.com:1443/PosTransactionCheckStatus/?merchant_id=819&transaction_id=3854815"
+#expect:
+        <payments><payment> <merchant_id>819</merchant_id> <transaction_id>3854815</transaction_id> <date>2017-09-07 14:24:47</date> <date_post>2017-09-07 14:24:48</date_post> <status>rebill</status> <merchant_name>null</merchant_name> <pan_mask>4276384079</pan_mask> <amount>100.0</amount> <amount_free>0.0</amount_free> <fee>0.0</fee> <order>556745</order> <rrn>725004000916</rrn> <auth_code>554950</auth_code> <currency>643</currency> <pos_bank>temporary undefined</pos_bank></payment></payments>
+
+#request:
+  - curl -X GET --resolve 'processing.vortex.com:1443:10.1.1.251' "https://processing.vortex.com:1443/processing_service/GetCardDataTroyka/?opcode=ping"
+  - curl -X GET --resolve 'processing.vortex.com:443:10.1.1.251' "https://processing.vortex.com:443/processing_service/GetCardDataTroyka/?opcode=ping"
+#expect:
+       <?xml version='1.0' encoding='UTF-8'?><response><error_code>-1</error_code><description>Empty incomming request data</description></response>
+
+#request: 
+  - curl -X GET --resolve 'processing.vortex.com:443:10.1.1.191' "https://processing.vortex.com:443/PosTransactionCheckStatus/?merchant_id=819&transaction_id=3854815"
+  - curl -X GET --resolve 'processing.vortex.com:1443:10.1.1.191' "https://processing.vortex.com:1443/PosTransactionCheckStatus/?merchant_id=819&transaction_id=3854815"
+#expect:
+        <payments><payment> <merchant_id>819</merchant_id> <transaction_id>3854815</transaction_id> <date>2017-09-07 14:24:47</date> <date_post>2017-09-07 14:24:48</date_post> <status>rebill</status> <merchant_name>null</merchant_name> <pan_mask>4276384079</pan_mask> <amount>100.0</amount> <amount_free>0.0</amount_free> <fee>0.0</fee> <order>556745</order> <rrn>725004000916</rrn> <auth_code>554950</auth_code> <currency>643</currency> <pos_bank>temporary undefined</pos_bank></payment></payments>
+
+#request:
+  - curl -X GET --resolve 'processing.vortex.com:1443:10.1.1.191' "https://processing.vortex.com:1443/processing_service/GetCardDataTroyka/?opcode=ping"
+  - curl -X GET --resolve 'processing.vortex.com:443:10.1.1.191' "https://processing.vortex.com:443/processing_service/GetCardDataTroyka/?opcode=ping"
+#expect:
+       <?xml version='1.0' encoding='UTF-8'?><response><error_code>-1</error_code><description>Empty incomming request data</description></response>
+
+##################################################################################################################################################################################################################
+
+### GATEWAY
+
+#request: 
+  - curl -X GET --resolve 'gateway.vortex.com:1443:10.1.1.231' "https://gateway.vortex.com:1443/callback/64/"
+  - curl -X GET --resolve 'gateway.vortex.com:443:10.1.1.231' "https://gateway.vortex.com:443/callback/64/"
+#expect:
+        {"result":{"code":402,"description":"Некорректный запрос"},"success":false}
+
+##################################################################################################################################################################################################################
+
+#request:
+  - curl -X GET --resolve 'gateway.vortex.com:1443:10.1.1.231' "https://gateway.vortex.com:1443/?opcode=114&processor_id=22&threshold=70&token=34d92240770c3eb78da587f840b85b1c"
+  - curl -X GET --resolve 'gateway.vortex.com:443:10.1.1.231' "https://gateway.vortex.com:443/?opcode=114&processor_id=22&threshold=70&token=34d92240770c3eb78da587f840b85b1c"
+#expect:
+        <response>
+        0
+        </response>
+
+##################################################################################################################################################################################################################
+
+#request:
+  - curl -X GET --resolve 'gateway.vortex.com:1443:10.1.1.231' "https://gateway.vortex.com:1443/secure3d/?opcode=114"
+  - curl -X GET --resolve 'gateway.vortex.com:443:10.1.1.231' "https://gateway.vortex.com:443/secure3d/?opcode=114"
+#expect:
+        <?xml version="1.0" encoding="UTF-8"?>
+        <response><status>KO</status><response_code>A108</response_code><description>processor_id or threshold are empty..</description></response>
+
+#request:
+  - curl -X GET --resolve 'gateway.vortex.com:443:10.1.1.231' "https://gateway.vortex.com:443/incoming/?opcode=ping"
+  - curl -X GET --resolve 'gateway.vortex.com:1443:10.1.1.231' "https://gateway.vortex.com:1443/incoming/?opcode=ping"
+#expect:
+        <response>OK</response>
+
+##################################################################################################################################################################################################################
+
+#request:
+  - curl -X GET --resolve 'gateway.vortex.com:443:10.1.1.231' "https://gateway.vortex.com:443/incoming/?opcode=114"
+  - curl -X GET --resolve 'gateway.vortex.com:1443:10.1.1.231' "https://gateway.vortex.com:1443/incoming/?opcode=114"
+#expect:
+        <?xml version="1.0" encoding="UTF-8"?>
+        <response><status>KO</status><response_code>A108</response_code><description>processor_id or threshold are empty..</description></response>
+        
+#request:
+        curl -X GET --resolve 'gateway.vortex.com:1443:10.1.1.231' "https://gateway.vortex.com:1443/gate/?opcode=114"
+        curl -X GET --resolve 'gateway.vortex.com:443:10.1.1.231' "https://gateway.vortex.com:443/gate/?opcode=114"
+#expect:
+        <?xml version="1.0" encoding="UTF-8"?>
+        <response><status>KO</status><response_code>A108</response_code><description>processor_id or threshold are empty..</description></response>
+
+#request:
+        curl -X GET --resolve 'gateway.vortex.com:1443:10.1.1.231' "https://gateway.vortex.com:1443/gate/?opcode=ping"
+        curl -X GET --resolve 'gateway.vortex.com:443:10.1.1.231' "https://gateway.vortex.com:443/gate/?opcode=ping"
+#expect:
+        <response>OK</response>
+        
+##################################################################################################################################################################################################################
+
+#request:
+  - curl -X GET --resolve 'messenger.vortex.com:1443:10.1.1.251' "https://messenger.vortex.com:1443/?opcode=ping"
+  - curl -X GET --resolve 'messenger.vortex.com:443:10.1.1.251' "https://messenger.vortex.com:443/?opcode=ping"
+#expect:
+        <response>OK</response>
+
+##################################################################################################################################################################################################################

@@ -1,0 +1,146 @@
+# ВЫЗОВ ДОБАВЛЕНИЯ ОБЪЕКТА SECURITY/GROUPS(ROLES), ИМЯ ОБЪЕКТА = КЛЮЧ, DESCRIPTION = ЗНАЧЕНИЕ 
+# РОЛЬ КАК ОБЪЕКТ ДЛЯ БЛОКИРОВКИ И УСТАНОВЛЕНИЯ ФАКТА НАЛИЧИЯ СЕТЕЙ ДЛЯ ПРОДУКТА/ЗОНЫ - КЛЮЧ / ЗНАЧЕНИЕ
+# ВОЗВРАЩАЕТ СОСТОЯНИЕ - $(ИЗМЕНЕНО) - Catalog_Zone_Object_ports_Results.changed - да / нет -> \n
+# ЕСЛИ: changed is true ТОГДА итерируемые сети добавлены как объект k/v\ -> 
+# ЕСЛИ: changed is false ТОГДА итерируемые сети заменены на полученные объекты из k/v\ -> 
+# ОБРАБОТЧИК СОСТОЯНИЯ: port_dispetcher.yml
+############################################################################################
+# VCD CLI LOGIN TO API
+############################################################################################
+
+- name: Shell login by vcd python vCloud Director Appliance Management Application
+  shell: vcd login {{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }} {{ anycloud_defaults_virtual_organization }} -v {{ anycloud_defaults_virtual_datacenter }} -p {{ anycloud_adapter_api_password }} {{ anycloud_adapter_api_user }}
+  register: vcd_login_result
+
+############################################################################################
+# СОБИРАЕМ ДАННЫЕ ВЕЗДЕ ГДЕ ЕСТЬ ПОДСЕТИ/ПОРТЫ, СОБИРАЕМ ОБЩИЙ ОБЪЕКТ
+############################################################################################
+
+- name: Include get info tasks part
+  include_tasks: get_special_from_vcd.yml
+
+############################################################################################
+# ГЕНЕРИРУЕМ ПОРТЫ АВТОМАТИЧЕСКИ, ПРОВЕРЯЕМ
+############################################################################################
+
+- name: 3-WAY Ports | Include the 3-way ports for services keys renew
+  include_tasks: oz-ports.yml
+
+############################################################################################
+### PORTS CHECK AND LOOPBACK CHANGE IF IN EXCEPT LIST
+############################################################################################
+
+# - name: PORT | Include Mock Test Except if Debug Defined
+#   include_tasks: mock_tests_except_port.yml
+#   when: DEBUG_PIPELINE_PLAYBOOK is defined
+
+- name: PORT | Checking generated Ports not in current blacklist
+  debug:
+    msg: "NAME: {{ anycloud_zone_extra_subnets_adapters_vpn_ozrouter_ports[item]['name'] }} PORT: {{ anycloud_zone_extra_subnets_adapters_vpn_ozrouter_ports[item]['port'] }}"
+  with_items: "{{ anycloud_zone_extra_subnets_adapters_vpn_ozrouter_ports.keys() | list }}"
+  when: "anycloud_zone_extra_subnets_adapters_vpn_ozrouter_ports[item]['port'] not in restricted_ports_list | list"
+  register: port_check_result_in_restricted_list
+
+# - name: PORT | Show port_check_result_in_restricted_list Return Code
+#   debug:
+#     msg: "{{ anycloud_zone_extra_subnets_adapters_vpn_ozrouter_ports[item.item] }}"
+#   with_items: "{{ port_check_result_in_restricted_list.results }}"
+#   when: item.skipped is not true
+
+- name: PORT | Set fact on duplicate port_check_result_in_restricted_list Return Code
+  include_tasks: get_special_callback_port.yml
+  with_items: "{{ port_check_result_in_restricted_list.results }}"
+  when: "item.skipped is not defined"
+
+############################################################################################
+### PORTS CHECK END
+############################################################################################
+
+############################################################################################
+# ГЕНЕРИРУЕМ ПОДСЕТИ АВТОМАТИЧЕСКИ
+############################################################################################
+
+- name: METAEXCHANGE | 3-WAY Subnets | Include the 3-way subnets for networks keys renew
+  include_tasks: 3-way-subnets.yml
+
+############################################################################################
+# SUBNETS CHECK: ПРОВЕРКА ОЖИДАЕМЫХ ПОДСЕТЕЙ
+############################################################################################
+
+# # GENERATED: from adapter || see info at point > {1} 
+# # WHEN IS DEFINED - USES AS IN TOP PREFERRER FOR GET TO PLAY FROM DICTS
+# - name: Set Facts about oZvRouter Zones
+#   set_fact:
+#       oz_anycloud_zone_extra_subnets_adapters_vpn_ozrouter_subnets: "{{ anycloud_zone_extra_subnets_adapters_networks | combine(anycloud_zone_extra_subnets_adapters_vpn_ozrouter_subnets_vpn) }}"
+#       # LOADED: from metadata || see info at point > {1} 
+#       oz_anycloud_zone_extra_subnets_metadata_vpn_ozrouter_subnets: "{{ anycloud_zone_extra_subnets_metadata_storage_networks | combine(anycloud_zone_extra_subnets_metadata_vpn_ozrouter_subnets_vpn) }}"
+
+# # MOCK TEST WITH ITSELF INFINITY LOOP
+# - name: SUBNET | Include Mock Test Except if Debug Defined
+#   include_tasks: mock_tests_except_subnet.yml
+#   when: DEBUG_PIPELINE_PLAYBOOK is defined
+
+# ПРОВЕРЯЕМ СГЕНЕРИРОВАННЫЕ СЕТИ НА ПРЕДМЕТ ДУБЛИРОВАНИЯ
+- name: SUBNET | Checking generated NETWORKS not in current blacklist
+  debug:
+    msg: "NAME: {{ anycloud_zone_extra_subnets_adapters_networks[item]['name'] }} SUBNET: {{ anycloud_zone_extra_subnets_adapters_networks[item]['subnet'] }}"
+  with_items: "{{ anycloud_zone_extra_subnets_adapters_networks.keys() | list }}"
+  when: "anycloud_zone_extra_subnets_adapters_networks[item]['subnet'] not in restricted_subnets_list | list"
+  register: subnets_check_result_in_restricted_list
+
+# - name: SUBNET | Show subnets_check_result_in_restricted_list Return Code
+#   debug:
+#     msg: "{{ anycloud_zone_extra_subnets_adapters_networks[item.item] }}"
+#   with_items: "{{ subnets_check_result_in_restricted_list.results }}"
+#   when: item.skipped is true
+
+# - name: Set fact on duplicate subnets_check_result_in_restricted_list Return Code
+#   include_tasks: get_special_callback_subnet.yml
+#   with_items: "{{ subnets_check_result_in_restricted_list.results }}"
+#   when: item.skipped is true
+
+############################################################################################
+# ЗАВЕРШЕНО: ПРОВЕРКА ОЖИДАЕМЫХ ПОДСЕТЕЙ 
+############################################################################################
+
+############################################################################################
+# МЭ: ПРОВЕРКА И/ИЛИ ОБНОВЛЕНИЕ ЗАПИСЕЙ ТРАНСЛЯЦИИ ПОРТОВ MESH-NETWORK PHASE 1
+############################################################################################
+
+- name: FIREWALL | CHECK AND PUBLISH NEEDED PORTS
+  include_tasks: firewall_check.yml
+
+############################################################################################
+# ОБНОВЛЕНИЕ ОБЪЪЕКТОВ КЛЮЧ/ЗНАЧЕНИЕ ДЛЯ ПЕРЕМЕННОЙ: ПОРТ
+############################################################################################
+
+- name: '[PRESENT CHECK FIRST][LOOK IT] Important! Check objects with ports already presents as Special Groups in vCloud Instance with a message'
+  vcd_roles:
+    user: "{{ anycloud_adapter_api_user }}"
+    password: "{{ anycloud_adapter_api_password }}"
+    host: "{{ anycloud_adapter_api_url_endpoint }}"
+    org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+    api_version: 30.0
+    verify_ssl_certs: "{{ anycloud_adapter_api_url_verify_ssl }}"
+    role_name: "{{ anycloud_zone_extra_subnets_adapters_vpn_ozrouter_ports[item]['name'] }}"
+    role_description: "port: {{ anycloud_zone_extra_subnets_adapters_vpn_ozrouter_ports[item]['port'] }}"
+    state: "present"
+  with_items: "{{ anycloud_zone_extra_subnets_adapters_vpn_ozrouter_ports.keys() | list }}"
+  register: Catalog_Zone_Object_ports_Results
+  #with_dict: "{{ anycloud_zone_extra_subnets_adapters_vpn_ozrouter_ports }}"
+
+# - name: Catalog_Zone_Object_ports_Results | Show look it result object
+#   #no_log: True
+#   debug:
+#     msg: "{{ Catalog_Zone_Object_ports_Results }}"
+#   #when: debug_playbook_stdout is defined
+#   when: debug_log is defined
+
+# - name: PRESENT SPECIAL DEBUG |  Special Groups returned list
+#   #no_log: True
+#   debug:
+#     msg: "{{ item }}"
+#   with_dict: "{{ Catalog_Zone_Object_ports_Results.results }}"
+#   #when: debug_playbook_stdout is defined
+#   when: debug_log is defined
+

@@ -1,0 +1,35 @@
+- name: CREATE CA CONFIGURATIONS | Templating all configs
+  template:
+    src: "{{ item }}"
+    dest: /opt/ca/templates/{{ item }}
+  with_items:
+    - ca-csr-master.json
+    - ca-config.json
+    - kubernetes-csr.json
+  when: inventory_hostname in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: ETCD CREATE CA BY CFSSL | Gen CA primary certificate
+  shell: cfssl gencert -initca /opt/ca/templates/ca-csr-master.json | cfssljson -bare /opt/ca/etcd/ca
+  register: ca_primary_gen
+  when: inventory_hostname in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: ETCD CREATE CA DEBUG | Show result of generating CA root certificate
+  debug:
+    msg: "{{ ca_primary_gen.stderr_lines }}"
+  when: debug_playbook_stdout is defined and inventory_hostname in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: ETCD GENERATE KUBERNETES CERT | Generate Kubernetes Certificate
+  shell: |
+    cfssl gencert \
+    -ca=/opt/ca/etcd/ca.pem \
+    -ca-key=/opt/ca/etcd/ca-key.pem \
+    -config=/opt/ca/templates/ca-config.json \
+    -hostname={{ INSIDE_K8_LOAD_BALANCER_DNS }},{{ k8_cloud_domain_name }},{{ public_consul_domain }},{{ LOAD_BALANCER_DNS }},{{ K8S_CLUSTER_ADDRESS }},{{ CALICO_ETCD_CLUSTER_IP }},127.0.0.1,kubernetes.default,{% for host in groups['kubernetes-master'] %}{{ hostvars[host]['second_ip'] | join }}{% if not loop.last %},{% endif %}{% endfor %} -profile=kubernetes /opt/ca/templates/kubernetes-csr.json | cfssljson -bare /opt/ca/etcd/kubernetes
+  register: kubernetes_cert_primary_gen
+  when: inventory_hostname in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: ETCD GENERATE KUBERNETES CERT RESULT DEBUG | Show result of generating Kubernetes primary certificate
+  debug:
+    msg: "{{ kubernetes_cert_primary_gen.stderr_lines }}"
+  when: debug_playbook_stdout is defined and inventory_hostname in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+

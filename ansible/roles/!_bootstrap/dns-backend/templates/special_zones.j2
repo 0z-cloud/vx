@@ -1,0 +1,22 @@
+zone "cloud.{{ public_consul_domain }}" {
+        type static-stub;
+        server-addresses {
+                {% for host in groups['consul-masters']%}
+                {{ hostvars[host]['ansible_default_ipv4']['address'] }};
+                {% endfor %}
+                };
+        };
+
+zone "service.cloud.{{ public_consul_domain }}" {
+        type static-stub;
+        server-addresses {
+                {% for host in groups['consul-masters']%}
+                {{ hostvars[host]['ansible_default_ipv4']['address'] }};
+                {% endfor %}
+                };
+        };
+
+zone "{{ public_consul_domain }}" {
+	type master;
+	file "{{ bind_cloud_settings.bind_etc }}/pri/{{ public_consul_domain }}";
+};

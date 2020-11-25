@@ -1,0 +1,16 @@
+- name: BASIC INIT | Set datasource none for disable auto update
+  shell: "echo 'datasource_list: [ None ]' | sudo -s tee /etc/cloud/cloud.cfg.d/90_dpkg.cfg"
+  ignore_errors: true
+
+- name: APT | Purge cloud-init package
+  apt:
+    name: cloud-init
+    state: absent
+
+- name: CLEAN | Remove the cloud init default configuration
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items: 
+    - "/etc/cloud/"
+    - "/var/lib/cloud/"

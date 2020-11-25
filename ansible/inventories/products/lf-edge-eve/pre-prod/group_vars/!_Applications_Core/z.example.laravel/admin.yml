@@ -1,0 +1,63 @@
+name: admin
+published_port: "{{ admin_service_listen_port }}"
+docker_image: "gitlab.vortex.ru:4567/vortex/admin"
+docker_image_tag: latest
+replicas: 1
+
+laravel_queues:
+  - { queue: "default", workers: 1 }
+  - { queue: "callbacks", workers: 1 }
+
+db_migrate: true
+db_seed: true
+link_storage: true
+
+variables:
+  APP_NAME: "admin"
+  APP_ENV: "stage"
+  APP_KEY: "base64:5G1FQmTjxyPGtcQw2OFNLur5DsAf3aZBZ24tChpQTcM="
+  APP_DEBUG: "true"
+  APP_URL: "http://admin.service.cloud.vortex.me:{{ admin_service_listen_port }}"
+  DB_CONNECTION: "mysql"
+  DB_HOST: "percona.service.cloud.vortex.me"
+  DB_PORT: "3306"
+  DB_DATABASE: "admin"
+  DB_USERNAME: "admin"
+  DB_PASSWORD: "admin"
+  CORE_DB_HOST: "percona.service.cloud.vortex.me"
+  CORE_DB_PORT: "3306"
+  CORE_DB_DATABASE: "vortex"
+  CORE_DB_USERNAME: "root"
+  CORE_DB_PASSWORD: "root"
+  CORE_DB_READ_HOST: "${CORE_DB_HOST}"
+  CORE_DB_WRITE_HOST: "${CORE_DB_HOST}"
+  POS_DB_HOST: "percona.service.cloud.vortex.me"
+  POS_DB_PORT: "3306"
+  POS_DB_DATABASE: "posterm"
+  POS_DB_USERNAME: "root"
+  POS_DB_PASSWORD: "root"
+  POS_DB_READ_HOST: "percona.service.cloud.vortex.me"
+  POS_DB_WRITE_HOST: "percona.service.cloud.vortex.me"
+  EASILY_DB_HOST: "percona.service.cloud.vortex.me"
+  EASILY_DB_PORT: "3306"
+  EASILY_DB_DATABASE: "easily"
+  EASILY_DB_USERNAME: "root"
+  EASILY_DB_PASSWORD: "root"
+  EASILY_DB_READ_HOST: "percona.service.cloud.vortex.me"
+  EASILY_DB_WRITE_HOST: "percona.service.cloud.vortex.me"
+  BROADCAST_DRIVER: "log"
+  CACHE_DRIVER: "file"
+  SESSION_DRIVER: "file"
+  QUEUE_DRIVER: "sync"
+  MAIL_DRIVER: "smtp"
+  MAIL_HOST: "smtp.mailtrap.io"
+  MAIL_PORT: "2525"
+  MAIL_USERNAME: "b609011ea66d62"
+  MAIL_PASSWORD: "af1215791463a4"
+  SUPPORT_EMAIL: "support@admin.vortex.me"
+  MCOM_GATEWAY_URL: "http://gateway-mcom.service.cloud.vortex.me:{{ gateway_mcom_service_listen_port }}"
+  SENTRY_LARAVEL_DSN: "http://d1f3b52a2ba243768ecd9d6ae99cbd01:5b6bab1fb19b4d44b470f7b8632e2b57@sentry.service.cloud.vortex.me:9000/2"
+
+secured_variables:
+  - {name: "app.key", value: "base64:5G1FQmTjxyPGtcQw2OFNLur5DsAf3aZBZ24tChpQTcM="}
+

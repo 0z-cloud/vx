@@ -1,0 +1,13 @@
+- name: Get all facts
+  hosts: all
+  tasks: []
+  tags: always
+
+- name: Running !_test_suite/python_qa
+  hosts: localhost
+  become: true
+  vars_files:
+    - "group_vars/!_Python_QA/inventory_tests.yml"
+  roles:
+    - name: Call PythonQA test suite settings generation role
+      role: "./!_test_suite/python_qa"

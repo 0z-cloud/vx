@@ -1,0 +1,815 @@
+#!/bin/bash
+START_TIME=`date +%Y-%m-%d`
+WORKING_DIR="/wrk/watchdog_db"
+CURRENT_HOSTNAME=`hostname`
+
+MAILING_USER="watchdog-db-scanner@vortex.com"
+MAILING_HOSTNAME_URI="smtp://10.16.131.51:25"
+MAILING_DESTINATION="pci-devops@vortex.com"
+
+PASTLOG_DIRECTORY="/wrk/watchdog_db/logs"
+
+LOG_FILE_NAME="watchdog_db_scanning.log"
+WATCHDOG_FILES_PAST_RESULTS="${WORKING_DIR}/watchdog_past.db"
+LOG_FILE="${WORKING_DIR}/${LOG_FILE_NAME}"
+WATCHDOG_FILES_LIST="${WORKING_DIR}/watchdog_db.db"
+
+LOG_FILE_GZ="${WORKING_DIR}/watchdog_db_scanning.log.gz"
+WATCHDOG_FILES_LIST_GZ="${WORKING_DIR}/watchdog_db.db.gz"
+
+HTML_MESSAGE_BODY="${WORKING_DIR}/mail_data.txt"
+HTML_MESSAGE_BODY2="${WORKING_DIR}/mail_data2.txt"
+
+SELFTEST_HOUR="12"
+
+SELFTEST_MINUTES_START="0"
+SELFTEST_MINUTES_END="1"
+
+ROTATE_TO_MD5=`date "+%d_%h_%Y_%H_%M_%S"`
+
+FILE_TO_CHECK="/var/log/audit/audit.log"
+
+ROTATING_FILE_NAME=$FILE_TO_CHECK+$ROTATE_TO_MD5
+ROTATING_LOG_ARCHIVE_NAME=$LOG_FILE_NAME+$ROTATE_TO_MD5
+
+TODAY=`date +"%d"`
+HOUR=`date +"%H"`
+MINUTES_NOW=`date +%M`
+
+FINDED_ARRAY_WITH_AUDIT_MESSAGES=()
+FINDED_ARRAY_WITH_AUDIT_MESSAGES_P_LIST=()
+
+FINDED_ARRAY_WITH_AUDIT_MESSAGES_FILES_NAMES=()
+FINDED_ARRAY_WITH_AUDIT_MESSAGES_FILES_NAMES_P_LIST=()
+
+IFS='
+'
+
+logit()
+{
+    echo "[${USER}][`date`] - ${*}" >> ${LOG_FILE}
+}
+
+sending_raw_log_mail(){
+  
+ for audit_message_row in ${FINDED_ARRAY_WITH_AUDIT_MESSAGES[*]}; do
+ FINDED_ARRAY_WITH_AUDIT_MESSAGES_P_LIST+=("<p> ${audit_message_row} </p>")
+ done
+
+echo "<html>
+  <body>
+      <div>
+        <p>Hello, Admins!                                             </p>
+        <p>         Sensitive Data Protection Attention Alert Raw Log </p>
+        <p>-----------------------------------------------------------</p>
+        <p>-----------------------------------------------------------</p>
+          ${FINDED_ARRAY_WITH_AUDIT_MESSAGES_P_LIST[*]}
+        <p>-----------------------------------------------------------</p>
+        <p>Have a nice day!                                           </p>
+        <p>With best regards,                                         </p>
+        <p>SDP Attention Job                                          </p>
+      </div>
+  </body>
+  </html>" > message2
+
+mail_from="SDP RAW LOG! <$MAILING_USER>"
+mail_to="Admins vortex <$MAILING_DESTINATION>"
+mail_subject="Sensitive Data Protection RAW LOG from $CURRENT_HOSTNAME"
+mail_reply_to="Admins vortex <$MAILING_USER>"
+mail_cc=""
+
+message2_base64=$(cat message2 | base64)
+
+echo "From: $mail_from
+To: $mail_to
+Subject: $mail_subject
+Reply-To: $mail_reply_to
+Cc: $mail_cc
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary=\"MULTIPART-MIXED-BOUNDARY\"
+
+--MULTIPART-MIXED-BOUNDARY
+Content-Type: multipart/alternative; boundary=\"MULTIPART-ALTERNATIVE-BOUNDARY\"
+
+--MULTIPART-ALTERNATIVE-BOUNDARY
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+$message2_base64
+--MULTIPART-ALTERNATIVE-BOUNDARY--" > "$HTML_MESSAGE_BODY2"
+
+echo "--MULTIPART-MIXED-BOUNDARY--" >> "$HTML_MESSAGE_BODY2"
+
+  curl_send_raw_email;
+
+}
+
+curl_send_raw_email(){
+  
+  curl -s "$MAILING_HOSTNAME_URI" \
+           --mail-from "$MAILING_USER" \
+           --mail-rcpt "$MAILING_DESTINATION" \
+           --ssl \
+           -T "$HTML_MESSAGE_BODY2" -k --anyauth
+  res=$?
+  if test "$res" != "0"; then
+     logit "------------------------------------------" 
+     echo "Sending failed with: $res"
+     logit "Sending failed with: $res"
+     logit "------------------------------------------" 
+  else
+     logit "------------------------------------------"
+     echo "Sending raw log OK"
+     logit "Sending raw log OK"
+     logit "------------------------------------------" 
+  fi
+  
+}
+
+email_selftest(){
+  
+logit "elmail_selftest start"
+   
+   # SEND SELFTEST EMAIL
+   
+echo "<html>
+<body>
+    <div>
+        <p>Hello, Admins!                                             </p>
+        <p>         Sensitive Data Protection Attention Alert Message </p>
+        <p>-----------------------------------------------------------</p>
+        <p> MESSAGE                                                   </p>
+        <p>         Selftest completed                                </p>
+        <p>-----------------------------------------------------------</p>
+        <p> SELFTEST STATUS: OK                                       </p>
+        <p>-----------------------------------------------------------</p>
+        <p>Have a nice day!                                           </p>
+        <p>With best regards,                                         </p>
+        <p>SDP Attention Job                                          </p>
+    </div>
+</body>
+</html>" > message.html
+
+
+mail_from="SDP Selftest! <$MAILING_USER>"
+mail_to="Admins vortex <$MAILING_DESTINATION>"
+mail_subject="Sensitive Data Protection Attention Selftest on $CURRENT_HOSTNAME"
+mail_reply_to="Admins vortex <$MAILING_USER>"
+mail_cc=""
+
+
+message_base64=$(cat message.html | base64)
+
+echo "From: $mail_from
+To: $mail_to
+Subject: $mail_subject
+Reply-To: $mail_reply_to
+Cc: $mail_cc
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary=\"MULTIPART-MIXED-BOUNDARY\"
+
+--MULTIPART-MIXED-BOUNDARY
+Content-Type: multipart/alternative; boundary=\"MULTIPART-ALTERNATIVE-BOUNDARY\"
+
+--MULTIPART-ALTERNATIVE-BOUNDARY
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+$message_base64
+--MULTIPART-ALTERNATIVE-BOUNDARY--" > "$HTML_MESSAGE_BODY"
+
+echo "--MULTIPART-MIXED-BOUNDARY--" >> "$HTML_MESSAGE_BODY"
+
+curl -s "$MAILING_HOSTNAME_URI" \
+           --mail-from "$MAILING_USER" \
+           --mail-rcpt "$MAILING_DESTINATION" \
+           --ssl \
+           -T "$HTML_MESSAGE_BODY" -k --anyauth
+      res=$?
+      if test "$res" != "0"; then
+         echo "Sending failed with: $res"
+      else
+         echo "Sending selfcheck OK"
+      fi
+  
+}
+
+if [ ! -d "$WORKING_DIR" ]; then
+  mkdir ${WORKING_DIR}
+fi
+
+if [ ! -d "$PASTLOG_DIRECTORY" ]; then
+  mkdir ${PASTLOG_DIRECTORY}
+fi
+
+### FIRST CLEAN LOG
+
+if [ ! -f "$LOG_FILE" ]; then
+  logit "------------------------------------------"
+  echo "FILE: no $LOG_FILE exists"
+  logit "FILE: no $LOG_FILE exists"
+  logit "------------------------------------------"
+else
+
+  echo "Stop audit service before rotate"
+  logit "Stop audit service before rotate"
+
+  #service auditd stop
+  
+  echo "Service audit stopped"
+  logit "Service audit stopped"
+
+  cp $LOG_FILE $PASTLOG_DIRECTORY/$ROTATING_LOG_ARCHIVE_NAME
+  rm $LOG_FILE
+  
+  echo "Start audit service after rotate"
+  logit "Start audit service after rotate"
+
+  #service auditd start
+  
+  echo "Service audit started"
+  logit "Service audit started"
+
+  echo "FILE: Recreated $LOG_FILE"
+  logit "FILE: Recreated $LOG_FILE"
+  logit "--------------C--O--P--Y------------------" 
+  logit "--------------D--O--N--E------------------" 
+fi
+
+echo "START: scanning script"
+logit "START: scanning script"
+
+if [ ! -f "$LOG_FILE_GZ" ]; then
+
+  echo "FILE: no $LOG_FILE_GZ exists"
+  logit "FILE: no $LOG_FILE_GZ exists"
+  
+else
+
+  echo "FILE: $LOG_FILE_GZ exists, go remove"
+  logit "FILE: $LOG_FILE_GZ exists, go remove"
+  rm ${LOG_FILE_GZ}
+  echo "FILE: $LOG_FILE_GZ removed"
+  logit "FILE: $LOG_FILE_GZ removed"
+  
+fi
+
+if [ ! -f "$WATCHDOG_FILES_PAST_RESULTS" ]; then
+  logit "------------------------------------------" 
+  echo "WATCHDOG_FILES_PAST_RESULTS NOT PRESENTED"
+  logit "WATCHDOG_FILES_PAST_RESULTS NOT PRESENTED"
+  logit "------------------------------------------" 
+  BEFORE_RUN_STATUS="OK"
+  echo "BEFORE_RUN_STATUS $BEFORE_RUN_STATUS"
+  logit "BEFORE_RUN_STATUS $BEFORE_RUN_STATUS"
+  logit "------------------------------------------" 
+else
+  logit "------------------------------------------" 
+  echo "WATCHDOG_FILES_PAST_RESULTS PRESENTED"
+  logit "WATCHDOG_FILES_PAST_RESULTS PRESENTED"
+  logit "------------------------------------------" 
+  BEFORE_RUN_STATUS="FAIL"
+  echo "BEFORE_RUN_STATUS $BEFORE_RUN_STATUS"
+  logit "BEFORE_RUN_STATUS $BEFORE_RUN_STATUS"
+  logit "------------------------------------------" 
+fi
+
+if [ ! -f "$WATCHDOG_FILES_LIST_GZ" ]; then
+
+  echo "FILE: no $WATCHDOG_FILES_LIST_GZ exists"
+  logit "FILE: no $WATCHDOG_FILES_LIST_GZ exists"
+  
+else
+
+  echo "FILE: $WATCHDOG_FILES_LIST_GZ exists, go remove"
+  logit "FILE: $WATCHDOG_FILES_LIST_GZ exists, go remove"
+  rm ${WATCHDOG_FILES_LIST_GZ}
+  echo "FILE: $WATCHDOG_FILES_LIST_GZ removed"
+  logit "FILE: $WATCHDOG_FILES_LIST_GZ removed"
+  
+fi
+
+if [ ! -f "$WATCHDOG_FILES_LIST" ]; then
+
+  echo "FILE: no $WATCHDOG_FILES_LIST exists"
+  logit "FILE: no $WATCHDOG_FILES_LIST exists"
+  
+else
+
+  echo "FILE: $WATCHDOG_FILES_LIST exists, go remove"
+  logit "FILE: $WATCHDOG_FILES_LIST exists, go remove"
+  rm ${WATCHDOG_FILES_LIST}
+  echo "FILE: $WATCHDOG_FILES_LIST removed"
+  logit "FILE: $WATCHDOG_FILES_LIST removed"
+  
+fi
+
+if [ ! -f "$HTML_MESSAGE_BODY" ]; then
+  logit "------------------------------------------" 
+  echo "FILE: no $HTML_MESSAGE_BODY exists"
+  logit "FILE: no $HTML_MESSAGE_BODY exists"
+  logit "------------------------------------------" 
+else
+  logit "------------------------------------------" 
+  echo "FILE: $HTML_MESSAGE_BODY exists, go remove"
+  logit "FILE: $HTML_MESSAGE_BODY exists, go remove"
+  rm ${HTML_MESSAGE_BODY}
+  echo "FILE: $HTML_MESSAGE_BODY removed"
+  logit "FILE: $HTML_MESSAGE_BODY removed"
+  logit "------------------------------------------" 
+fi
+
+if [ ! -f "$HTML_MESSAGE_BODY2" ]; then
+  logit "------------------------------------------" 
+  echo "FILE: no $HTML_MESSAGE_BODY2 exists"
+  logit "FILE: no $HTML_MESSAGE_BODY2 exists"
+  logit "------------------------------------------" 
+else
+  logit "------------------------------------------" 
+  echo "FILE: $HTML_MESSAGE_BODY2 exists, go remove"
+  logit "FILE: $HTML_MESSAGE_BODY2 exists, go remove"
+  rm ${HTML_MESSAGE_BODY2}
+  echo "FILE: $HTML_MESSAGE_BODY2 removed"
+  logit "FILE: $HTML_MESSAGE_BODY2 removed"
+  logit "------------------------------------------" 
+fi
+
+
+#
+{% raw %}
+except_watchdog_password_files_user_id="{%- endraw -%}{{ except_watchdog_password_files_user_id.stdout_lines | join | replace('\n', '') }}"
+
+{% raw %}
+except_watchdog_password_files_group_id="{%- endraw -%}{{ except_watchdog_password_files_group_id.stdout_lines | join | replace('\n', '') }}"
+
+username_to_except="{{ watchdog_password_files_except_user }}"
+
+echo "START WATCHDOG DB AUDIT MONITORING"
+logit "START WATCHDOG DB AUDIT MONITORING"
+
+echo "USER ID for EXCEPT = $except_watchdog_password_files_user_id"
+echo "GROUP ID for EXCEPT = $except_watchdog_password_files_group_id"
+logit "USER ID for EXCEPT = $except_watchdog_password_files_user_id"
+logit "GROUP ID for EXCEPT = $except_watchdog_password_files_group_id"
+
+
+array_with_files=(
+  {% if java_watch_dog is defined %}{{ java_system_main_settings_array.context }}
+  {% endif %}
+  {% if apache_watch_dog is defined %}
+  main.php
+  {% endif %}
+  {% if apache_laravel_watch_dog is defined %}
+  \.env
+  {% endif %}
+)
+
+emailing_admins(){
+
+ for audit_message_list_item in ${FINDED_ARRAY_WITH_AUDIT_MESSAGES_FILES_NAMES[*]}; do
+ FINDED_ARRAY_WITH_AUDIT_MESSAGES_FILES_NAMES_P_LIST+=("<p> ${audit_message_list_item} </p>")
+ done
+# html message to send
+echo "<html>
+<body>
+    <div>
+        <p>Hello, Admins!                                             </p>
+        <p>         Sensitive Data Protection Attention Alert Message </p>
+        <p>-----------------------------------------------------------</p>
+        <p> MESSAGE                                                   </p>
+        <p>         WATCHDOG DB Attention                             </p>
+        <p> Please see the logs files attached ! ! !                  </p>
+        <p>-----------------------------------------------------------</p>
+        <p>-----------------------------------------------------------</p>
+        <p>SCAN STATUS: $SCAN_OVERALL_RESULT                          </p>
+        <p>USER_CHECK_RESULT: $USER_CHECK_RESULT                      </p>
+        <p>GROUP_CHECK_RESULT: $GROUP_CHECK_RESULT                    </p>
+        <p>-----------------------------------------------------------</p>
+        <p>Access to files list below:                                </p>
+        ${FINDED_ARRAY_WITH_AUDIT_MESSAGES_FILES_NAMES_P_LIST[*]}
+        <p>-----------------------------------------------------------</p>
+        <p>Access by User id: $user_audit_message_body_id             </p>
+        <p>Access by Group id: $group_audit_message_body_id           </p>
+        <p>Sudo exec User id: $sudo_user_audit_message_body_id        </p>
+        <p>-----------------------------------------------------------</p>
+        <p>Access by User name: $USER_GET                             </p>
+        <p>Access by Group name: $GROUP_GET                           </p>
+        <p>Access by sudo as username: $SUDO_USER_GET                 </p>
+        <p>Access by no sudo username: $WITHOUT_SUDO_USER_GET         </p>
+        <p>-----------------------------------------------------------</p>
+        <p>SCANNED DATE: $START_TIME                                  </p>
+        <p>-----------------------------------------------------------</p>
+        <p>Have a nice day!                                           </p>
+        <p>With best regards,                                         </p>
+        <p>SDP Attention Job                                          </p>
+    </div>
+</body>
+</html>" > message.html
+
+mail_from="SDP Attention! <$MAILING_USER>"
+mail_to="Admins vortex <$MAILING_DESTINATION>"
+mail_subject="Sensitive Data Protection Attention on $CURRENT_HOSTNAME"
+mail_reply_to="Admins vortex <$MAILING_USER>"
+mail_cc=""
+
+function add_file {
+    echo "Content-Type: $1
+Content-Transfer-Encoding: base64" >> "$HTML_MESSAGE_BODY"
+
+    if [ ! -z "$2" ]; then
+        echo "Content-Disposition: inline
+Content-Id: <$2>" >> "$HTML_MESSAGE_BODY"
+    else
+        echo "Content-Disposition: attachment; filename=\"$4\"
+" >> "$HTML_MESSAGE_BODY"
+    fi
+    echo "$3
+
+" >> "$HTML_MESSAGE_BODY"
+}
+
+message_base64=$(cat message.html | base64)
+
+echo "From: $mail_from
+To: $mail_to
+Subject: $mail_subject
+Reply-To: $mail_reply_to
+Cc: $mail_cc
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary=\"MULTIPART-MIXED-BOUNDARY\"
+
+--MULTIPART-MIXED-BOUNDARY
+Content-Type: multipart/alternative; boundary=\"MULTIPART-ALTERNATIVE-BOUNDARY\"
+
+--MULTIPART-ALTERNATIVE-BOUNDARY
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+$message_base64
+--MULTIPART-ALTERNATIVE-BOUNDARY--" > "$HTML_MESSAGE_BODY"
+
+    echo "START: packing to archive logs files and sending mail message"
+    logit "START: packing to archive logs files and sending mail message"
+
+    if [ ! -f "$LOG_FILE" ]; then
+      echo "FILE: no $LOG_FILE exists"
+      logit "FILE: no $LOG_FILE exists"
+
+    else
+      echo "FILE: $LOG_FILE exists, go gzip and attach"
+      logit "FILE: $LOG_FILE exists, go gzip and attach"
+      gzip -k -- ${LOG_FILE}
+      LOG_FILE_MD5=`md5sum $LOG_FILE_GZ | awk '{print $1}'`
+      LOG_FILE_64=$(cat ${LOG_FILE_GZ} | base64)
+      echo "--MULTIPART-MIXED-BOUNDARY" >> "$HTML_MESSAGE_BODY"
+      echo "Content-Type: multipart/mixed; boundary=\"${LOG_FILE_MD5}\"" >> "$HTML_MESSAGE_BODY"
+      echo "
+                 " >> "$HTML_MESSAGE_BODY"
+      echo "--${LOG_FILE_MD5}" >> "$HTML_MESSAGE_BODY"
+      add_file "application/zip" "" "$LOG_FILE_64" "LOG_FILE_GZ.gz"
+      echo "--${LOG_FILE_MD5}--" >> "$HTML_MESSAGE_BODY"
+      echo "FILE: $LOG_FILE added and compressed"
+      logit "FILE: $LOG_FILE added and compressed"
+    fi
+
+    if [ ! -f "$WATCHDOG_FILES_LIST" ]; then
+      echo "FILE: no $WATCHDOG_FILES_LIST exists"
+      logit "FILE: no $WATCHDOG_FILES_LIST exists"
+
+    else
+      echo "FILE: $WATCHDOG_FILES_LIST exists, go gzip and attach"
+      logit "FILE: $WATCHDOG_FILES_LIST exists, go gzip and attach"
+      gzip -k -- ${WATCHDOG_FILES_LIST}
+      WATCHDOG_FILES_LIST_MD5=`md5sum $WATCHDOG_FILES_LIST_GZ | awk '{print $1}'`
+      echo "--MULTIPART-MIXED-BOUNDARY" >> "$HTML_MESSAGE_BODY"
+      echo "Content-Type: multipart/alternative; boundary=\"${WATCHDOG_FILES_LIST_MD5}\"" >> "$HTML_MESSAGE_BODY"
+      WATCHDOG_FILES_LIST_64=$(cat ${WATCHDOG_FILES_LIST_GZ} | base64)
+      echo "
+                 " >> "$HTML_MESSAGE_BODY"
+      echo "--${WATCHDOG_FILES_LIST_MD5}" >> "$HTML_MESSAGE_BODY"
+      add_file "application/zip" "" "$WATCHDOG_FILES_LIST_64" "WATCHDOG_FILES_LIST_GZ.gz"
+      echo "--${WATCHDOG_FILES_LIST_MD5}--" >> "$HTML_MESSAGE_BODY"
+      echo "FILE: $WATCHDOG_FILES_LIST added and compressed"
+      logit "FILE: $WATCHDOG_FILES_LIST added and compressed"
+    fi
+
+    echo "--MULTIPART-MIXED-BOUNDARY--" >> "$HTML_MESSAGE_BODY"
+
+    curl -s "$MAILING_HOSTNAME_URI" \
+         --mail-from "$MAILING_USER" \
+         --mail-rcpt "$MAILING_DESTINATION" \
+         --ssl \
+         -T "$HTML_MESSAGE_BODY" -k --anyauth
+    res=$?
+    if test "$res" != "0"; then
+       echo "sending failed with: $res"
+    else
+       echo "OK"
+    fi
+
+}
+
+for file_name in ${array_with_files[*]}; do
+
+    echo "ROW: ${file_name}"
+    logit "ROW: ${file_name}"
+
+    # Checking the audit log to contain records with awaiting rows
+
+    {% if apache_laravel_watch_dog is defined %}
+    currnet_row_array_messages_to_check=`cat ${FILE_TO_CHECK} | grep -F "${file_name}" | awk '{print $2}' | awk -F ":" '{print $2}' | awk -F ")" '{print $1}'`
+    {% else %}
+    currnet_row_array_messages_to_check=`cat ${FILE_TO_CHECK} | grep ${file_name} | awk '{print $2}' | awk -F ":" '{print $2}' | awk -F ")" '{print $1}'`
+    {% endif %}
+
+    for audit_message in ${currnet_row_array_messages_to_check[*]}; do
+    
+      echo "AUDIT_MESSAGE: ${audit_message}"
+      logit "AUDIT_MESSAGE: ${audit_message}"
+      
+      # Getting audit full message
+      audit_message_body=`/sbin/ausearch -a ${audit_message} --input-logs`
+
+      if [ -z "$audit_message_body" ]; then
+      
+          echo "AUSEARCH RESULT STATE NULL, NO ACTION, LINUX CORE DESCRIPTOR CALL"
+          logit "AUSEARCH RESULT STATE NULL, NO ACTION, LINUX CORE DESCRIPTOR CALL"
+      
+      else
+
+          echo "AUSEARCH RESULT STATE NOT NULL, NEED ACTION AND VALIDATE"
+          logit "AUSEARCH RESULT STATE NOT NULL, NEED ACTION AND VALIDATE"
+
+          echo "AUSEARCH RESULT: $audit_message_body"
+          logit "AUSEARCH RESULT: $audit_message_body"
+          
+          user_audit_message_body_id=`echo ${audit_message_body} | awk -F "uid=" '{print $2}' | awk '{print $1}'`
+          group_audit_message_body_id=`echo ${audit_message_body} | awk -F "gid=" '{print $2}' | awk '{print $1}'`
+          
+          user_audit_message_body_ouid=`echo ${audit_message_body} | awk -F "ouid=" '{print $2}' | awk '{print $1}'`
+          group_audit_message_body_ogid=`echo ${audit_message_body} | awk -F "ogid=" '{print $2}' | awk '{print $1}'`
+          
+          message_body_auid=`echo ${audit_message_body} | awk -F "auid=" '{print $2}' | awk '{print $1}'`
+          message_body_euid=`echo ${audit_message_body} | awk -F "euid=" '{print $2}' | awk '{print $1}'`
+          message_body_suid=`echo ${audit_message_body} | awk -F "suid=" '{print $2}' | awk '{print $1}'`
+          message_body_egid=`echo ${audit_message_body} | awk -F "egid=" '{print $2}' | awk '{print $1}'`
+          message_body_sgid=`echo ${audit_message_body} | awk -F "sgid=" '{print $2}' | awk '{print $1}'`
+
+          sudo_user_audit_message_body_id=`echo ${audit_message_body} | awk -F "auid=" '{print $2}' | awk '{print $1}'`
+          
+          sudo_exec_audit_message_command=`echo ${audit_message_body} |  awk -F "comm=" '{print $2}' | awk '{print $1}'`
+          sudo_exec_audit_message_command_name=`echo ${audit_message_body} |  awk -F "name=" '{print $2}' | awk '{print $1}'`
+          
+          selfcheck_ossec_cond_command=`echo ${audit_message_body} |  awk -F "comm=" '{print $2}' | awk '{print $1}'`
+
+          selfcheck_condition_a0_arg_c2=`echo ${audit_message_body} | awk -F "argc=2" '{print $2}' | awk '{print $1}' | grep -q 'a0="grep"' && echo 1 || echo 0`
+          selfcheck_condition_a0_arg_c3=`echo ${audit_message_body} | awk -F "argc=3" '{print $2}' | awk '{print $1}' | grep -q 'a0="grep"' && echo 1 || echo 0`
+          selfcheck_condition_a0_arg_c4=`echo ${audit_message_body} | awk -F "argc=3" '{print $2}' | awk '{print $1}' | grep -q 'a0="stat"' && echo 1 || echo 0`
+          
+          selfcheck_condition_a1=`echo ${audit_message_body} | awk -F 'a0="grep"' '{print $2}' | awk '{print $1}' | awk -F 'a1=' '{print $2}' | sed 's/"//g'`
+          selfcheck_condition_a2=`echo ${audit_message_body} | awk -F 'a0="grep"' '{print $2}' | awk '{print $1}' | awk -F 'a2=' '{print $2}' | sed 's/"//g'`
+
+          selfcheck_quit_to_go=`echo ${audit_message_body} | awk -F "a1=" '{print $2}' | awk '{print $1}' | sed 's/"//g' | grep -q "\-q" && echo 1 || echo 0`
+          
+          selfcheck_to_go=`echo ${selfcheck_condition_a1} | grep -q "${file_name}" && echo 1 || echo 0`
+          
+          selfcheck_ossec_cond_go=`echo ${sudo_exec_audit_message_command} | grep -q 'ossec-syscheckd' && echo 1 || echo 0`
+          
+          selfgrep_check_condition=`echo ${audit_message_body} | awk -F 'a0="grep"' '{print $2}' | awk -F "comm=" '{print $2}' | awk '{print $1}' | sed 's/"//g'`
+
+          if [[ $selfgrep_check_condition -eq "grep" ]]; then
+            selfgrep_check_condition_fail="1"
+          fi
+
+          selfcheck_f_type=`echo ${audit_message_body} | awk -F "a2=" '{print $2}' | awk '{print $1}' | sed 's/"//g'`
+
+          echo "selfcheck_f_type: ${selfcheck_f_type}"
+
+          if [[ $selfcheck_f_type -eq "-F" ]]; then
+            selfgrep_check_condition_fail_munus_f="1"
+          fi
+
+          echo "selfgrep_check_condition_fail: $selfgrep_check_condition_fail"
+          echo "selfgrep_check_condition_fail_munus_f: $selfgrep_check_condition_fail_munus_f"
+
+          echo "selfcheck_to_go: $selfcheck_to_go"
+          echo "selfcheck_quit_to_go: $selfcheck_quit_to_go"
+          echo "selfcheck_condition_a0_arg_c2: $selfcheck_condition_a0_arg_c2"
+          echo "selfcheck_condition_a0_arg_c3: $selfcheck_condition_a0_arg_c3"
+          echo "selfcheck_condition_a1: $selfcheck_condition_a1"
+          echo "sudo_exec_audit_message_command_name: $sudo_exec_audit_message_command_name"
+          echo "sudo_exec_audit_message_command: $sudo_exec_audit_message_command"
+
+          echo "user_audit_message_body_ouid: $user_audit_message_body_ouid"
+          echo "group_audit_message_body_ogid: $group_audit_message_body_ogid"
+
+          echo "message_body_auid: $message_body_auid"
+          echo "message_body_euid: $message_body_euid"
+          echo "message_body_suid: $message_body_suid"
+          echo "message_body_egid: $message_body_egid"
+          echo "message_body_sgid: $message_body_sgid"
+
+          logit "selfgrep_check_condition_fail_munus_f: $selfgrep_check_condition_fail_munus_f"
+          logit "selfgrep_check_condition_fail: $selfgrep_check_condition_fail"
+          logit "selfcheck_to_go: $selfcheck_to_go"
+          logit "selfcheck_quit_to_go: $selfcheck_quit_to_go"
+          logit "selfcheck_condition_a0_arg_c2: $selfcheck_condition_a0_arg_c2"
+          logit "selfcheck_condition_a0_arg_c3: $selfcheck_condition_a0_arg_c3"
+          logit "selfcheck_condition_a1: $selfcheck_condition_a1"
+          logit "sudo_exec_audit_message_command_name: $sudo_exec_audit_message_command_name"
+          logit "sudo_exec_audit_message_command: $sudo_exec_audit_message_command"
+
+          logit "user_audit_message_body_ouid: $user_audit_message_body_ouid"
+          logit "group_audit_message_body_ogid: $group_audit_message_body_ogid"
+
+          logit "message_body_auid: $message_body_auid"
+          logit "message_body_euid: $message_body_euid"
+          logit "message_body_suid: $message_body_suid"
+          logit "message_body_egid: $message_body_egid"
+          logit "message_body_sgid: $message_body_sgid"
+
+          if [[ "$selfcheck_condition_a0_arg_c4" -eq "1" ]]; then
+              
+              echo "ITS FALSE POSITIVE EXCLUDE TYPE 0, for STAT to files, NO NEED REACTION"
+              logit "ITS SELF TEST MESSAGES TYPE 0, NO NEED REACTION"
+              
+          elif [[ "$selfcheck_to_go" -eq "1" ]] && [[ $selfcheck_condition_a0_arg_c2 -eq "1" ]]; then
+          
+              echo "ITS SELF TEST MESSAGES TYPE 1, NO NEED REACTION"
+              logit "ITS SELF TEST MESSAGES TYPE 1, NO NEED REACTION"
+          
+          elif [[ "$selfcheck_quit_to_go" -eq "1" ]] && [[ $selfcheck_condition_a0_arg_c3 -eq "1" ]]; then
+          
+              echo "ITS SELF TEST MESSAGES TYPE 2, NO NEED REACTION"
+              logit "ITS SELF TEST MESSAGES TYPE 2, NO NEED REACTION"
+          
+          elif [[ "$selfcheck_ossec_cond_go" -eq "1" ]]; then
+          
+              echo "ITS OSSEC SELF TEST MESSAGES TYPE 3, NO NEED REACTION"
+              logit "ITS OSSEC SELF TEST MESSAGES TYPE 3, NO NEED REACTION"
+
+          elif  [[ $selfgrep_check_condition_fail -eq "1" ]] && [[ $selfgrep_check_condition_fail_munus_f -eq "1" ]]; then
+          
+              echo "ITS OSSEC SELF TEST MESSAGES TYPE 3/4, NO NEED REACTION"
+              logit "ITS OSSEC SELF TEST MESSAGES TYPE 3/4, NO NEED REACTION"
+
+          else
+      
+              echo "NOT MACTHED AS SELFGREP AUDIT MESSAGE, NEED TO EMAIL ABOUT SECURITY AUDIT MESSAGE"
+              logit "NOT MACTHED AS SELFGREP AUDIT MESSAGE, NEED TO EMAIL ABOUT SECURITY AUDIT MESSAGE"
+              
+              SUDO_USER_GET=`cat /etc/passwd | grep -w $sudo_user_audit_message_body_id | awk -F ":" '{print $1}'`
+
+              WITHOUT_SUDO_USER_GET=`cat /etc/passwd | grep -w $message_body_auid | awk -F ":" '{print $1}'`
+
+              echo "WITHOUT_SUDO_USER_GET: $WITHOUT_SUDO_USER_GET"
+              echo "SUDO_USER_GET: $SUDO_USER_GET"
+
+              logit "WITHOUT_SUDO_USER_GET: $WITHOUT_SUDO_USER_GET"
+              logit "SUDO_USER_GET: $SUDO_USER_GET"
+
+              echo "group_audit_message_body_id: $group_audit_message_body_id"
+              echo "user_audit_message_body_id: $user_audit_message_body_id"
+
+              logit "group_audit_message_body_id: $group_audit_message_body_id"
+              logit "user_audit_message_body_id: $user_audit_message_body_id"
+
+              # Matching the except user to current audit message user id, if not equals - alert
+              if [[ $user_audit_message_body_id -ne $except_watchdog_password_files_user_id ]] || [[ $user_audit_message_body_ouid -ne $except_watchdog_password_files_user_id ]] || [[ $message_body_auid -ne $except_watchdog_password_files_user_id ]]; then
+                  echo "ALERT: filename = $file_name"
+                  echo "ACCESSED BY SUDO with User ID : $user_audit_message_body_id"
+                  echo "ACCESSED Without SUDO with User ID : $user_audit_message_body_ouid"
+                  USER_GET=`cat /etc/passwd | grep -w $user_audit_message_body_id | awk -F ":" '{print $1}'`
+                  USER_CHECK_RESULT="1"
+                  logit "USER_CHECK_RESULT $USER_CHECK_RESULT"
+                  logit "USER_GET $USER_GET"
+                  #FINDED_ARRAY_WITH_AUDIT_MESSAGES+=("{'audit_message_id': '$audit_message', 'getted_user_id': '$USER_GET', 'check_result': '$USER_CHECK_RESULT', 'audit_message': '$audit_message_body'}")
+              else
+                  echo "OK"
+                  logit "ACCESSED OK"
+                  
+              fi
+
+              # Matching the except group to current audit message group id, if not equals - alert
+              if [[ $group_audit_message_body_id -ne $except_watchdog_password_files_group_id ]] || [[ $group_audit_message_body_ogid -ne $except_watchdog_password_files_user_id ]] || [[ $message_body_egid -ne $except_watchdog_password_files_user_id ]]; then
+                  echo "ALERT: filename = $file_name"
+                  echo "ACCESSED BY SUDO Group ID : $group_audit_message_body_id"
+                  echo "ACCESSED Without SUDO Group ID : $group_audit_message_body_ogid"
+                  GROUP_GET=`cat /etc/passwd | grep -w $group_audit_message_body_id | awk -F ":" '{print $1}'`
+                  GROUP_CHECK_RESULT="1"
+                  logit "GROUP_CHECK_RESULT $GROUP_CHECK_RESULT"
+                  logit "GROUP_GET $GROUP_GET"
+                  #FINDED_ARRAY_WITH_AUDIT_MESSAGES+=("{'audit_message_id': '$audit_message', 'getted_group_id': '$GROUP_GET', 'check_result': '$GROUP_CHECK_RESULT', 'audit_message': '$audit_message_body'}")
+              else
+                  echo "OK"
+                  logit "ACCESSED OK"
+              fi
+
+              if [[ $GROUP_CHECK_RESULT -eq "0" ]] && [[ $USER_CHECK_RESULT -eq "0" ]]; then
+                  SCAN_OVERALL_RESULT="OK"
+                  logit "SCAN_OVERALL_RESULT $SCAN_OVERALL_RESULT"
+                  echo "Noting to do"
+                  logit "Noting to do"
+              else
+                  SCAN_OVERALL_RESULT="FAIL"
+                  echo "USER_CHECK_RESULT: $USER_CHECK_RESULT"
+                  echo "GROUP_CHECK_RESULT: $GROUP_CHECK_RESULT"
+                  logit "USER_CHECK_RESULT: $USER_CHECK_RESULT"
+                  logit "GROUP_CHECK_RESULT: $GROUP_CHECK_RESULT"
+                  FINDED_ARRAY_WITH_AUDIT_MESSAGES+=("{'type': 'fail', 'filename': '$file_name', 'audit_message_id': '$audit_message', 'getted_sudo_group_id': '$GROUP_GET', 'getted_sudo_user_id': '$USER_GET', 'getted_group_id': '$group_audit_message_body_ogid', 'getted_user_id': '$user_audit_message_body_ouid', 'check_result': '$GROUP_CHECK_RESULT', 'check_result': '$USER_CHECK_RESULT', 'audit_message': '$audit_message_body'}")
+                  FINDED_ARRAY_WITH_AUDIT_MESSAGES_FILES_NAMES+=("$file_name")
+                  #FINDED_ARRAY_WITH_AUDIT_MESSAGES_EXEC_AUID+=("$")
+              fi
+          fi
+      fi
+        
+    done
+
+done
+
+{% raw %}
+
+if [ ${#FINDED_ARRAY_WITH_AUDIT_MESSAGES[@]} -eq 0 ]; then
+  
+  echo "No errors"
+  logit "No errors"
+  
+  if [ $HOUR -eq $SELFTEST_HOUR -a $MINUTES_NOW -ge $SELFTEST_MINUTES_START -a $MINUTES_NOW -le $SELFTEST_MINUTES_END ]; then
+  #
+  email_selftest;
+  #
+  fi
+    
+else
+
+    echo "Have row log errors"
+    logit "Have row log errors"
+
+    echo "Stop audit service before rotate"
+    logit "Stop audit service before rotate"
+
+    #service auditd stop
+    
+    sleep 2
+    
+    #echo "Service audit stopped"
+    #logit "Service audit stopped"
+    
+    cp $FILE_TO_CHECK $ROTATING_FILE_NAME
+    rm $FILE_TO_CHECK
+    
+    touch $FILE_TO_CHECK
+    chown root:adm $FILE_TO_CHECK 
+    chmod 640 $FILE_TO_CHECK
+    
+    echo $ROTATING_FILE_NAME >> $WATCHDOG_FILES_PAST_RESULTS
+    logit $ROTATING_FILE_NAME >> $WATCHDOG_FILES_PAST_RESULTS
+
+    sleep 2
+
+    #echo "Start audit service after rotate"
+    #logit "Start audit service after rotate"
+
+    #service auditd start
+    
+    echo "Service audit started"
+    logit "Service audit started"
+    
+    for row_id in ${FINDED_ARRAY_WITH_AUDIT_MESSAGES[*]}; do
+      echo "Oops, something went wrong..."
+      logit "Oops, something went wrong..."
+      echo "row: $row_id"
+      logit "row: $row_id"
+    done
+    
+    emailing_admins;
+    sending_raw_log_mail;
+    
+fi
+
+echo "CLEAR LOGS OLD OLDER THEN 7 DAYS"
+logit "CLEAR LOGS OLD OLDER THEN 7 DAYS"
+
+# find $PASTLOG_DIRECTORY/* -mtime +7 -exec rm {} \;
+# find /var/log/audit/audit.log*  -mtime +7 -exec rm {} \;
+
+array_to_delete_audit=`find /var/log/audit/audit.log*  -mtime +7`
+array_to_delete=`find $PASTLOG_DIRECTORY/*`
+
+for item in ${array_to_delete[@]}; do
+ rm -rf $item; 
+done
+
+for item in ${array_to_delete_audit[@]}; do
+ rm -rf $item; 
+done
+
+echo "DONE CLEAR LOGS OLD OLDER THEN 7 DAYS"
+logit "DONE CLEAR LOGS OLD OLDER THEN 7 DAYS"
+
+echo "SCRIPT DONE"
+logit "SCRIPT DONE"
+{% endraw %}

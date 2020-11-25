@@ -1,0 +1,10 @@
+- name: Re/create directories
+  include: re_create_dirs.yml
+
+- name: Install packages
+  include: install_packages.yml
+  #when: clean_glusterfs_all is not defined or clean_glusterfs_reintall is defined
+
+- name: Create a GlusterFS volume
+  include: create_volume.yml
+  tags: debug

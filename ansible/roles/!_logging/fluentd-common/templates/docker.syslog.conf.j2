@@ -1,0 +1,20 @@
+<source>
+    @type tail
+    path /var/log/syslog
+    pos_file /positions/syslog.pos
+    <parse>
+        @type grok
+        grok_pattern %{SYSLOGLINE}
+        custom_pattern_path /fluentd/etc
+        grok_failure_key grokfailure
+    </parse>
+    tag docker.syslog
+</source>
+
+<filter docker.syslog>
+  @type grep
+  <regexp>
+    key program
+    pattern  /(^docker_{{ ansible_environment }}-.*$)/
+  </regexp>
+</filter>

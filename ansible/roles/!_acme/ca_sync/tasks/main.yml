@@ -1,0 +1,38 @@
+- name: DEBUG | Fill the destination_dict
+  debug:
+    msg: "{{ inventory_hostname }}: {{ destination_dict.core_dns_cloud_settings.cert_cloud.certificate_sync_onboard_fullpath }} {{ core_dns_cloud_settings.cert_cloud.ca_root }}"
+  when: inventory_hostname == groups['cloud-bind-frontend-dns'][0]
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['master-bind-master-backend'][0] }}"
+
+  # NFS SHARED STORAGE TYPE: ВЫПОЛНЯТЬ НА ВНЕШНИЙ АДРЕС ЕСЛИ ПУБЛИЧНЫЙ IP ЗАДАН И ЗАДАН КАК ПЕРВИЧНЫЙ АДРЕС ОСНОВНОГО АДАПТЕРА
+- name: EXTRA BY PUBLIC IN PRIMARY | SYNC THE CA_ROOT | Fetching the obtained certificates from backend to nginx-frontend
+  command: rsync -r {{ core_dns_cloud_settings.cert_cloud.ca_root }} root@{{ hostvars[item]['ansible_default_ipv4']['address'] | safe }}:{{ destination_dict.core_dns_cloud_settings.cert_cloud.certificate_sync_onboard_fullpath }}
+  become: true 
+  become_user: root
+  when: inventory_hostname == groups['master-bind-master-backend'][0] and hostvars[item]['public_nat_ip'] is defined and "REPLACED" in hostvars[item]['public_nat_ip'] and glusterfs_enabled_environment is defined
+  with_items: "{{ groups['cloud-bind-frontend-dns'][0] }}"
+
+  # NFS SHARED STORAGE TYPE: ВЫПОЛНЯТЬ НА ВНЕШНИЙ АДРЕС ЕСЛИ ПУБЛИЧНЫЙ IP ЗАДАН И ЗАДАН КАК ТРАНСЛИРУЕМЫЙ АДРЕС ОСНОВНОГО АДАПТЕРА
+- name: EXTRA BY PRIVATE IN PRIMARY BECAUSE NAT | SYNC THE CA_ROOT | Fetching the obtained certificates from backend to nginx-frontend
+  command: rsync -r {{ core_dns_cloud_settings.cert_cloud.ca_root }} root@{{ hostvars[item]['second_ip'] | safe }}:{{ destination_dict.core_dns_cloud_settings.cert_cloud.certificate_sync_onboard_fullpath }}
+  become: true 
+  become_user: root
+  when: inventory_hostname == groups['master-bind-master-backend'][0] and hostvars[item]['public_nat_ip'] is defined and "REPLACED" not in hostvars[item]['public_nat_ip'] and "REPLACED" not in hostvars[item]['second_ip'] and glusterfs_enabled_environment is defined
+  with_items: "{{ groups['cloud-bind-frontend-dns'][0] }}"
+
+  # EACH HOST STANDALONE STORAGE: ВЫПОЛНЯТЬ НА ВНЕШНИЙ АДРЕС ЕСЛИ ПУБЛИЧНЫЙ IP ЗАДАН И ЗАДАН КАК ПЕРВИЧНЫЙ АДРЕС ОСНОВНОГО АДАПТЕРА
+- name: EXTRA BY PUBLIC IN PRIMARY | SYNC THE CA_ROOT | Fetching the obtained certificates from backend to nginx-frontend
+  command: rsync -r {{ core_dns_cloud_settings.cert_cloud.ca_root }} root@{{ hostvars[item]['ansible_default_ipv4']['address'] | safe }}:{{ destination_dict.core_dns_cloud_settings.cert_cloud.certificate_sync_onboard_fullpath }}
+  become: true 
+  become_user: root
+  when: inventory_hostname == groups['master-bind-master-backend'][0] and hostvars[item]['public_nat_ip'] is defined and "REPLACED" in hostvars[item]['public_nat_ip']
+  with_items: "{{ groups['cloud-bind-frontend-dns'] }}"
+
+  # EACH HOST STANDALONE STORAGE: ВЫПОЛНЯТЬ НА ВНЕШНИЙ АДРЕС ЕСЛИ ПУБЛИЧНЫЙ IP ЗАДАН И ЗАДАН КАК ТРАНСЛИРУЕМЫЙ АДРЕС ОСНОВНОГО АДАПТЕРА
+- name: EXTRA BY PRIVATE IN PRIMARY BECAUSE NAT | SYNC THE CA_ROOT | Fetching the obtained certificates from backend to nginx-frontend
+  command: rsync -r {{ core_dns_cloud_settings.cert_cloud.ca_root }} root@{{ hostvars[item]['second_ip'] | safe }}:{{ destination_dict.core_dns_cloud_settings.cert_cloud.certificate_sync_onboard_fullpath }}
+  become: true 
+  become_user: root
+  when: inventory_hostname == groups['master-bind-master-backend'][0] and hostvars[item]['public_nat_ip'] is defined and "REPLACED" not in hostvars[item]['public_nat_ip'] and "REPLACED" not in hostvars[item]['second_ip']
+  with_items: "{{ groups['cloud-bind-frontend-dns'] }}"

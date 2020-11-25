@@ -1,0 +1,92 @@
+# DEFAULT DOCKER BRIDGES
+#################
+{% for network_subnet in docker_networks_array.results %}
+
+{% set network_subnet_joined = network_subnet.stdout_lines %}
+{% set network_subnet_joined_cleaned = network_subnet_joined | join %}
+{% set network_subnet_joined_kv = network_subnet_joined_cleaned | replace(': ', "=") %}
+{% set network_subnet_name_cleaned = network_subnet_joined_kv |  regex_replace('=[^=]+$', '') %}
+{% set network_subnet_cleaned = network_subnet_joined_kv |  regex_replace('.*=', '') %}
+
+{% if 'bridge' in network_subnet_name_cleaned and 'docker_gwbridge' not in network_subnet_name_cleaned %}
+bridge                                docker0                                                                           detect                          tcpflags,routeback,nosmurfs,logmartians,routefilter,bridge
+{% endif %}{% if 'ess' in network_subnet_name_cleaned %}
+# ess {{ network_subnet_name_cleaned }}
+gw                                    docker_gwbridge                                                                   detect                          tcpflags,routefilter,nosmurfs,logmartians,bridge,routeback=0
+{% endif %}
+{% endfor %}
+
+
+{% for bridge in bridges_interfaces.results %}
+{% for bridge_name in bridge.stdout_lines %}
+{% for interface in docker_networks_array_interfaces.results %} 
+{% for network_subnet in docker_networks_array.results %}
+
+{% set interface_string = interface.stdout_lines | join %}
+
+{% set bridge_veth = bridge_name | replace('_veth', "=veth") %}
+{% set bridge_veth_interface = bridge_veth | regex_replace('.*=', "") %}
+{% set bridge_veth_name = bridge_veth | regex_replace('=[^=]+$', "") %}
+
+{% set network_subnet_joined = network_subnet.stdout_lines %}
+{% set network_subnet_joined_cleaned = network_subnet_joined | join %}
+{% set network_subnet_joined_kv = network_subnet_joined_cleaned | replace(': ', "=") %}
+{% set network_subnet_name_cleaned = network_subnet_joined_kv |  regex_replace('.*=', '') %}
+{% set network_subnet_cleaned = network_subnet_joined_kv |  regex_replace('=[^=]+$', '') %}
+{% set default_ess_network_prefix = ansible_product + '-' + ansible_environment + '_default' %}
+
+# ZONE    INTERFACE      OPTIONS
+
+# bridge: {{ bridge }}
+# bridge_name: {{ bridge_name }}
+# interface: {{ interface }}
+# default_ess_network_prefix: {{ default_ess_network_prefix }}
+
+# interface_string: {{ interface_string }}
+# bridge_veth: {{ bridge_veth }}
+# bridge_veth_name: {{ bridge_veth_name }}
+# bridge_veth_interface: {{ bridge_veth_interface }}
+
+# network_subnet_joined: {{ network_subnet_joined }}
+# network_subnet_joined_cleaned: {{ network_subnet_joined_cleaned }}
+# network_subnet_joined_kv: {{ network_subnet_joined_kv }}
+# network_subnet_name_cleaned: {{ network_subnet_name_cleaned }}
+# network_subnet_cleaned: {{ network_subnet_cleaned }}
+
+{% endfor  %}
+{% endfor  %}
+{% endfor  %}
+{% endfor  %}
+
+
+
+################################################################################################
+# ARRAY INTERFACE MISSED
+################################################################################################
+
+# ZONE                                    INTERFACE                                                                         #BROARCAST                      OPTIONS
+
+# interface_string: {{ interface_string }}
+# bridge_veth: {{ bridge_veth }}
+# bridge_veth_name: {{ bridge_veth_name }}
+# bridge_veth_interface: {{ bridge_veth_interface }}
+
+# network_subnet_zone_result_name: {{ network_subnet_zone_result_name }}
+# bridge: {{ bridge }}
+# bridge_name: {{ bridge_name }}
+# interface: {{ interface }}
+
+# ansible_bridge_vetch_network_interface: {{ ansible_bridge_vetch_network_interface }}
+# ansible_bridge_vetch_network_interface_subnet: {{ ansible_bridge_vetch_network_interface_subnet }}
+# ansible_bridge_vetch_network_interface_network: {{ ansible_bridge_vetch_network_interface_network }}
+
+# default_ess_network_prefix: {{ default_ess_network_prefix }}
+# default_ess_vpn_network_prefix: {{ default_ess_vpn_network_prefix }}
+
+# network_subnet_joined: {{ network_subnet_joined }}
+# network_subnet_joined_cleaned: {{ network_subnet_joined_cleaned }}
+# network_subnet_joined_kv: {{ network_subnet_joined_kv }}
+# network_subnet_name_cleaned: {{ network_subnet_name_cleaned }}
+# network_subnet_cleaned: {{ network_subnet_cleaned }}
+
+################################################################################################

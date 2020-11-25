@@ -1,0 +1,11 @@
+- name: Install to localhost neseccary module ansible_merge_vars
+  hosts: localhost
+  #become: true
+  tasks:
+    - name: Installing the pip3 modules
+      pip:
+        name: "{{ item }}"
+        state: forcereinstall
+      with_items:
+        - passlib
+        - ansible_merge_vars

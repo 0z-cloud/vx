@@ -1,0 +1,42 @@
+- name: CHECK LOCAL FOLDER IS PRESENT | Create ssh keys backup dir
+  file:
+    path: /root/.ssh/backup
+    state: directory
+  when: full_clean is defined
+
+- name: BACKUP | Copy current keys to backup dir
+  shell: cp /root/.ssh/{{ item }} /root/.ssh/backup/{{ item }}.`date +%y_%m_%d`
+  with_items: 
+    - known_hosts
+    - id_rsa
+    - id_rsa.pub
+    - authorized_keys
+  when: full_clean is defined
+  ignore_errors: true
+
+- name: REMOVE EXPIRED | Clean current files authorized_keys & known_hosts
+  file: 
+    path: /root/.ssh/{{ item }}
+    state: absent
+  with_items: 
+    - known_hosts
+    - authorized_keys
+  when: full_clean is defined
+  ignore_errors: true
+
+- name: USERSPACE | Include the user ssh host keys renew and exchange role tasks
+  include_tasks: authorized_keys.yml
+  when: full_clean is defined
+
+- name: MACHINESPACE | Include the machine ssh host keys renew and exchange role tasks
+  include_tasks: ssh_hosts_known_hosts.yml
+  when: full_clean is defined
+
+- name: UPDATING KEYS | Include the readd all keys for hosts role task
+  include_tasks: readd_known_hosts.yml
+  when: full_clean is defined
+
+- name: WARMUP | Restart service ssh, in all cases
+  service:
+    name: ssh
+    state: restarted

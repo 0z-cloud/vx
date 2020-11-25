@@ -1,0 +1,5 @@
+- name: Setup ssh access.
+  hosts: "{{ HOSTS | default('all') }}"
+  roles:
+  - name: Run ssh service role
+    role: ./_security/ssh_access/configuration

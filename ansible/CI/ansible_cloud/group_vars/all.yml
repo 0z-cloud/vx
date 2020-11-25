@@ -1,0 +1,185 @@
+
+keepalived_services: "{{ keepalived_services_result }}"
+
+ansible_environment_root_group_vars: true
+
+### Links / Url's / etc
+
+GITLAB_URL: https://gitlab.vortex.ru
+
+openldap_server_pkgs:
+  - slapd
+  - ldap-utils
+  - python-selinux
+  - openssl
+  - libpam-dev
+  - build-essential
+  - libpam0g-dev 
+  - gcc 
+  - flex 
+  - bison
+  
+openldap_server_app_path: "/etc/ldap/"
+openldap_server_user: "openldap"
+
+# Settings and dicts
+
+
+tomcat_properties:
+    webapps_symlinked: true
+    directories:
+      JAVA_HOME: "/usr/lib/jvm/java-11-oracle"
+      CATALINA_HOME: "/usr/share/{{ tomcat_version }}"
+      CATALINA_BASE: "/var/lib/{{ tomcat_version }}"
+      CATALINA_LOCAL_DEPLOY: "/usr/local/tomcat10/"
+    options: 
+      JAVA_OPTS: "$@"
+    security:
+      owner_user: "tomcat11"
+
+
+# ansible_catalina_tomcat_version: "tomcat10"
+
+# ansible_catalina_local_home: "/usr/local/tomcat10"
+
+# tomcat_properties.directories.CATALINA_HOME 
+
+ansible_catalina_home: "/usr/share/tomcat11"
+
+# ansible_catalina_base_tomcat_folder: "/var/lib/tomcat11"
+
+ansible_catalina_server_xml_random_shutdown_word: "PREPARETOFIGHT"
+ansible_catalina_server_xml_server_mapping_port: "-1"
+ansible_tomcat_settings_init_script: "/etc/init.d/tomcat11"
+
+# ansible_tomcat_
+
+ansible_java_home_env_var: "/usr/lib/jvm/java-8-oracle"
+
+
+# application settings
+
+apache2_sites:
+   admin_vortex: "admin.vortex.com
+   gateway_vortex: "gateway.vortex.com
+   gw_vortex: "gw.vortex.com
+   proc_pos_vortex: "proc-pos.vortex.com
+   proc_serv_vortex: "proc-serv.vortex.com
+   secure_vortex: "secure.vortex.com
+   client_vortex: "client.vortex.com
+
+java_settings:
+    packages:
+       - oracle-java8-installer
+       - oracle-java8-unlimited-jce-policy
+       - oracle-java8-set-default
+       - libtomcat11-java
+       - libservlet3.0-java
+       - libgeronimo-jta-1.1-spec-java
+       - libecj-java
+       - libcommons-dbcp-java
+       - libcommons-pool-java
+       - libcommons-collections3-java
+       - java-common
+    configs:
+       java_security: "{{ ansible_java_home_env_var }}/jre/lib/security/java.security"
+    security:
+       jdk_tls_disabled_algorithms: "SSLv3, RC4, DH keySize < 768"
+       jdk_certpath_disabled_algorithms: "MD2, RSA keySize < 1024"
+    environment_vars:
+       JAVA_HOME: "{{ ansible_java_home_env_var }}"
+    directories:
+       scritps_dir: "/wrk/scripts/ansible/java"
+
+semaphore_mysql_settings: "{{ semaphore_mysql_settings_in_product_environment | default(semaphore_mysql_groupvars_settings) }}"
+semaphore_settings: "{{ semaphore_settings_in_product_environment | default(semaphore_groupvars_settings) }}"
+postgresql_settings: "{{ postgresql_settings_in_product_environment | default(postgresql_groupvars_settings) }}"
+teamcity_agent_settings: "{{ teamcity_agent_settings_in_product_environment | default(teamcity_agent_groupvars_settings) }}"
+teamcity_settings: "{{ teamcity_settings_in_product_environment | default(teamcity_groupvars_settings) }}"
+
+semaphore_mysql_groupvars_settings:
+   directories:
+       path: "/docker/semaphore/mysql/{{ ansible_environment }}"
+       data_dir: "/docker/semaphore/mysql/{{ ansible_environment }}/data"
+       config_path: "/docker/semaphore/mysql/{{ ansible_environment }}/config"
+       logs_path: "/docker/semaphore/mysql/{{ ansible_environment }}/logs"
+       sql_files: "/docker/semaphore/mysql/{{ ansible_environment }}/sql_files"
+   port: 3306
+   user: semaphore
+   password: 2141290ufisa_ASdi1
+   database: semaphore
+
+semaphore_groupvars_settings:
+   directories:
+       path: "/docker/semaphore/ui/{{ ansible_environment }}"
+       data_dir: "/docker/semaphore/ui/{{ ansible_environment }}/data"
+       config_path: "/docker/semaphore/ui/{{ ansible_environment }}/config"
+       logs_path: "/docker/semaphore/ui/{{ ansible_environment }}/logs"
+       playbooks: "/docker/semaphore/ui/{{ ansible_environment }}/playbooks"
+   port: 3000
+   user: semaphore
+   password: 2141290ufisa_ASdi1
+   database: semaphore
+
+postgresql_groupvars_settings:
+   database_jar_url: "https://jdbc.postgresql.org/download/postgresql-9.4.1212.jar"
+   driver_full_path: "/docker/teamcity/{{ ansible_environment }}/data/lib/jdbc/postgresql-9.4.1212.jar"
+   directories:
+       path: "/docker/postgresql/{{ ansible_environment }}"
+       data_dir: "/docker/postgresql/{{ ansible_environment }}/data"
+       config_path: "/docker/postgresql/{{ ansible_environment }}/config"
+       logs_path: "/docker/postgresql/{{ ansible_environment }}/logs"
+       lib_jdbc: "/docker/teamcity/{{ ansible_environment }}/data/lib/jdbc"
+   port: 5432
+   user: teamcity
+   password: 09reumdvh42ans6rT
+   database: teamcity
+
+teamcity_agent_groupvars_settings:
+   directories:
+       path: "/docker/teamcity_agent/{{ ansible_environment }}"
+       data_dir: "/docker/teamcity_agent/{{ ansible_environment }}/data"
+       config_path: "/docker/teamcity_agent/{{ ansible_environment }}/config"
+       lib_jdbc: "/docker/teamcity_agent/{{ ansible_environment }}/data/lib/jdbc"
+   user: teamcity
+   password: 09reumdvh42ans6rT
+   database: teamcity
+
+
+teamcity_groupvars_settings:
+   directories:
+       path: "/docker/teamcity/{{ ansible_environment }}"
+       data_dir: "/docker/teamcity/{{ ansible_environment }}/data"
+       config_path: "/docker/teamcity/{{ ansible_environment }}/config"
+       lib_jdbc: "/docker/teamcity/{{ ansible_environment }}/data/lib/jdbc"
+   port: "{{ teamcity_service_listen_port }}"
+   user: teamcity
+   password: 09reumdvh42ans6rT
+   database: teamcity
+
+sshusers: |
+  {% if ansible_product == 'vortex' %}
+  {
+      'vortex': { 'shell': '/bin/bash', 'key': "{{ lookup('file', '.files/ssh_keys/{{ ansible_product }}/rostislav.pub') | b64encode }}",},
+      'vortex_ansible': { 'shell': '/bin/bash', 'key': "{{ lookup('file', '.files/ssh_keys/{{ ansible_product }}/rostislav.pub') | b64encode }}",},
+  }
+  {% endif %}
+  {% if ansible_product == 'example' %}
+  {
+      'vortex': { 'shell': '/bin/bash', 'key': "{{ lookup('file', '.files/ssh_keys/{{ ansible_product }}/rostislav.pub') | b64encode }}", },
+      'vortex_ansible': { 'shell': '/bin/bash', 'key': "{{ lookup('file', '.files/ssh_keys/{{ ansible_product }}/rostislav.pub') | b64encode }}",},
+  }
+  {% endif %}
+  {% if ansible_product == 'office' %}
+  {
+      'vortex': { 'shell': '/bin/bash', 'key': "{{ lookup('file', '.files/ssh_keys/{{ ansible_product }}/rostislav.pub') | b64encode }}", },
+      'vortex_ansible': { 'shell': '/bin/bash', 'key': "{{ lookup('file', '.files/ssh_keys/{{ ansible_product }}/rostislav.pub') | b64encode }}",},
+  }
+  {% endif %}
+  {% if ansible_product == 'service' %}
+  {
+      'vortex': { 'shell': '/bin/bash', 'key': "{{ lookup('file', '.files/ssh_keys/{{ ansible_product }}/rostislav.pub') | b64encode }}", },
+      'dev1': { 'shell': '/bin/bash', 'key': "{{ lookup('file', '.files/ssh_keys/{{ ansible_product }}/dev1.pub') | b64encode }}",},
+      'gs': { 'shell': '/bin/bash', 'key': "{{ lookup('file', '.files/ssh_keys/{{ ansible_product }}/gs.pub') | b64encode }}",},
+  }
+  {% endif %}

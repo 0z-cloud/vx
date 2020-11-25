@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+    <dict>
+        <key>Label</key>
+        <string>docker.socat_listener</string>
+        <key>Disabled</key>
+        <false/>
+        <key>RunAtLoad</key>
+        <true/>
+        <key>KeepAlive</key>
+        <true/>
+        <key>ProgramArguments</key>
+        <array>
+            <string>/usr/local/bin/socat</string>
+            <string>-d</string>
+            <string>TCP-LISTEN:{{ MAC_OSX_DOCKER_API_HTTP_PORT }},reuseaddr,fork</string>
+            <string>UNIX:/var/run/docker.sock</string>
+        </array>
+        <key>StandardErrorPath</key>
+    	<string>/Library/Logs/socat_docker.log</string>
+    	<key>StandardOutPath</key>
+    	<string>/Library/Logs/socat_docker.log</string>
+        <key>StartInterval</key>
+       <integer>30</integer>
+    </dict>
+</plist>

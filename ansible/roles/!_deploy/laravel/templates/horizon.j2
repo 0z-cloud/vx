@@ -1,0 +1,7 @@
+[program:{{ APPLICATION_DIRECTORY.split('/') | last }}_horizon]
+process_name=%(program_name)s
+command=php {{ APPLICATION_DIRECTORY }}/current/artisan horizon
+autostart=true
+autorestart=true
+user={{ RELEASE_OWNER }}
+stdout_logfile={{ APPLICATION_DIRECTORY }}/shared/storage/logs/horizon.log

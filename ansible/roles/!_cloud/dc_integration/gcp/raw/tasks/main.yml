@@ -1,0 +1,55 @@
+
+
+- name: create a disk
+  google.cloud.gcp_compute_disk:
+    name: disk-instance
+    size_gb: 50
+    source_image: projects/ubuntu-os-cloud/global/images/family/ubuntu-1604-lts
+    zone: "{{ EVE_CLOUD_DEFAULT_EVE_GCP_ZONE_REGIONE_NAME }}"
+    project: "{{ ansible_product }}"
+    auth_kind: "{{ google_gcp_private_creds_api_token_access_key }}"
+    service_account_file: "{{ google_gcp_private_creds_api_token_access_key }}"
+    state: present
+  register: disk
+
+
+- name: create a address
+  google.cloud.gcp_compute_address:
+    name: address-instance
+    region: us-central1
+    project: "{{ ansible_product }}"
+    auth_kind: "{{ google_gcp_private_creds_api_token_access_key }}"
+    service_account_file: "{{ google_gcp_private_creds_api_token_access_key }}"
+    state: present
+  register: address
+
+- name: create a instance
+  google.cloud.gcp_compute_instance:
+    name: test_object
+    machine_type: n1-standard-1
+    hostname: 
+    disks:
+    - auto_delete: 'true'
+      boot: 'true'
+      source: "{{ disk }}"
+    - auto_delete: 'true'
+      interface: NVME
+      type: SCRATCH
+      initialize_params:
+        disk_type: local-ssd
+    metadata:
+      startup-script-url: gs:://graphite-playground/bootstrap.sh
+      cost-center: '12345'
+    labels:
+      environment: production
+    network_interfaces:
+    - network: "{{ network }}"
+      access_configs:
+      - name: External NAT
+        nat_ip: "{{ address }}"
+        type: ONE_TO_ONE_NAT
+    zone: "{{ EVE_CLOUD_DEFAULT_EVE_GCP_ZONE_REGIONE_NAME }}"
+    project: test_project
+    auth_kind: serviceaccount
+    service_account_file: "/tmp/auth.pem"
+    state: present

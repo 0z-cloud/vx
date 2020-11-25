@@ -1,0 +1,15 @@
+
+127.0.0.1 {{ hostvars[inventory_hostname].ansible_hostname }}
+
+{% for host in groups['postgres-pgcontrol-cluster'] %}
+
+{{ hostvars[host].second_ip }} {{ hostvars[host].pgcluster_node_name }}
+{{ hostvars[host].second_ip }} {{ hostvars[host].ansible_hostname }}
+
+{% endfor %}
+
+{% for host in groups['postgres-pgpool-cluster'] %}
+
+{{ hostvars[host].second_ip }} pgpool
+
+{% endfor %}

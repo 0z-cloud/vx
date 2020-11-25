@@ -1,0 +1,4 @@
+---
+# defaults file for roles/redis-cluster
+
+redis_cluster_map: []

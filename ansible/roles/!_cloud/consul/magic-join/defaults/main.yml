@@ -1,0 +1,10 @@
+magic: magic
+# - name: Create the directories for Consul magic checks
+#   file:
+#     path: "{{ item.value }}"
+#     state: directory
+#     mode: 0755
+#     owner: consul
+#     group: root
+#   with_dict: "{{ magic_checks.directories | default({}) }}"
+#   tags: [configuration,magic-join-directories]

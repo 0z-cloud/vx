@@ -1,0 +1,29 @@
+- name: Clean if it presented
+  file:
+    path: /wrk/pansearch/
+    state: absent
+  when: full_clean is defined
+
+- name: Remove pansearch lock
+  file:
+    path: /wrk/pansearch/pansearch.lock
+    state: absent
+  when: clear_lock is defined
+
+- name: Ensure pansearch script directory exists
+  file:
+    path: /wrk/scripts/
+    state: directory
+
+- name: Generate pansearch scanner script from template
+  template:
+    src: pansearcher.sh.j2
+    dest: /wrk/scripts/pansearcher.sh
+    mode: 0755
+
+- name: Adding run to cron
+  cron:
+    name: "pansearch scanner"
+    minute: "{{ pansearch_startup_minutes }}"
+    hour: "{{ pansearch_startup_hour }}"
+    job: "/wrk/scripts/pansearcher.sh"

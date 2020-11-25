@@ -1,0 +1,64 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  creationTimestamp: null
+  labels:
+    controller-uid: 3af6eb89-9851-11e9-890b-b42e994820d9
+    job-name: rke-metrics-addon-deploy-job
+  name: rke-metrics-addon-deploy-job
+  selfLink: /apis/batch/v1/namespaces/kube-system/jobs/rke-metrics-addon-deploy-job
+spec:
+  backoffLimit: 10
+  completions: 1
+  parallelism: 1
+  selector:
+    matchLabels:
+      controller-uid: 3af6eb89-9851-11e9-890b-b42e994820d9
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        controller-uid: 3af6eb89-9851-11e9-890b-b42e994820d9
+        job-name: rke-metrics-addon-deploy-job
+      name: rke-deploy
+    spec:
+      containers:
+      - command:
+        - kubectl
+        - apply
+        - -f
+        - /etc/config/rke-metrics-addon.yaml
+        image: rancher/hyperkube:v1.13.5-rancher1
+        imagePullPolicy: IfNotPresent
+        name: rke-metrics-addon-pod
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+      dnsPolicy: ClusterFirst
+      hostNetwork: true
+      nodeName: worker1
+      restartPolicy: Never
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: rke-job-deployer
+      serviceAccountName: rke-job-deployer
+      terminationGracePeriodSeconds: 30
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/controlplane
+        operator: Exists
+      - effect: NoExecute
+        key: node-role.kubernetes.io/etcd
+        operator: Exists
+      volumes:
+      - configMap:
+          defaultMode: 420
+          items:
+          - key: rke-metrics-addon
+            path: rke-metrics-addon.yaml
+          name: rke-metrics-addon
+        name: config-volume
+status: {}

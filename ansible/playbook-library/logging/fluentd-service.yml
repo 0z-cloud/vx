@@ -1,0 +1,24 @@
+---
+
+- name: Fact Gathering
+  hosts: "all:logging-kibana-service:logging-elasticsearch-cluster"
+  tasks: []
+  tags: [get_facts, always]
+
+- name: Installing fluentd for each nginx server
+  become: true
+  gather_facts: true 
+  hosts: nginx-frontend
+  roles: 
+    - name: Run nginx fluentd role
+      role: roles/!_logging/fluentd-nginx
+  tags: [fluentd-install]
+
+- name: Installing common fluentd for all other servers
+  become: true
+  gather_facts: true 
+  hosts: "all:!nginx-frontend"
+  roles: 
+    - name: Run common fluentd role
+      role: roles/!_logging/fluentd-common
+  tags: [fluentd-install]

@@ -1,0 +1,25 @@
+---
+tacacs_port: 49
+tacacs_ldap_auth: False
+
+# User accounts in /etc/tac_plus.conf
+# group needs to match a group defined in /etc/tac_plus.conf
+tacacs_key: "ruRbBpBqu5R9xcdMJtye48vrLsE9AAGQpbaxaTcQcs"
+dgs_1510_key: "e48vAGQpu5R9xcdMJtybaxarLsE9ATcQcsruRbBpBq"
+
+tacacs_users:
+  - name: rancid
+    config_group: reader            # used in tac_plus.conf, not system group
+    config_expires: "Oct 30, 2015"  # Optional, used in tac_plus.conf, not system account expiration
+    full_name: RANCID               # Optional
+    shell: /bin/rbash               # Optional, default /bin/rbash
+    state: present                  # Optional, default present
+    password: '!!'                  # Optional, needs to be valid salted hash. Should be stored in Ansible vault.
+    update_password: on_create      # Optional, default on_create
+    local_account: rancid
+    # enable: ""                    # Optional, des password hash used for user specific enable password generated with tac_pwd. Should be stored in Ansible vault.
+
+tacacs_enable_passwords:
+   - name: 10.91.90.90
+     auth_mechanism: des
+     password: "asd819hr1br12br18qQ"                  # Generate a password hash with tac_pwd. Should be stored in Ansible vault.

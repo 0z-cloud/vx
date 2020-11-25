@@ -1,0 +1,33 @@
+#########################################################################################################
+##### SET FOR ISOLATED 
+- name: '[!!!!SET DIRECT NETWORK NAME!!!!] SET DIRECT III PHASE'
+  set_fact:
+      anycloud_result_direct_network_name: "{{ vcloud_anycloud_zone_extra_subnets_adapters_networks[item]['name'] }}"
+  with_items: "{{ vcloud_anycloud_zone_extra_subnets_adapters_networks.keys() | list }}"
+  when: "('direct' in vcloud_anycloud_zone_extra_subnets_adapters_networks[item]['name'])"
+
+#########################################################################################################
+##### SET FOR ISOLATED 
+- name: '[!!!!SET ISOLATED NETWORK NAME!!!!] SET ISOLATED III PHASE'
+  set_fact:
+      anycloud_result_isolated_network_name: "{{ vcloud_anycloud_zone_extra_subnets_adapters_networks[item]['name'] }}"
+  with_items: "{{ vcloud_anycloud_zone_extra_subnets_adapters_networks.keys() | list }}"
+  when: "('isolated' in vcloud_anycloud_zone_extra_subnets_adapters_networks[item]['name'])"
+
+#########################################################################################################
+##### SET FOR ROUTED
+- name: '[!!!!SET ROUTED NETWORK NAME!!!!] SET ROUTED III PHASE'
+  set_fact:
+      anycloud_result_routed_network_name: "{{ vcloud_anycloud_zone_extra_subnets_adapters_networks[item]['name'] }}"
+  with_items: "{{ vcloud_anycloud_zone_extra_subnets_adapters_networks.keys() | list }}"
+  when: "('routed' in vcloud_anycloud_zone_extra_subnets_adapters_networks[item]['name'])"
+
+#########################################################################################################
+##### SET FOR SITE-TO-SITE
+- name: '[!!!!SET SITE-TO-SITE NETWORK NAME!!!!] SET SITE-TO-SITE III PHASE'
+  set_fact:
+      anycloud_result_vpnmesh_network_name: "{{ vcloud_anycloud_zone_extra_subnets_adapters_networks[item]['name'] }}"
+  with_items: "{{ vcloud_anycloud_zone_extra_subnets_adapters_networks.keys() | list }}"
+  when: "('vpnmesh' in vcloud_anycloud_zone_extra_subnets_adapters_networks[item]['name'])"
+
+#########################################################################################################

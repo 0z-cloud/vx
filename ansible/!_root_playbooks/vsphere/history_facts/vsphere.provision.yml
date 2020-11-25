@@ -1,0 +1,217 @@
+
+- name: Provision infrastructure from localhost to ESXi Vcenter Appliance
+  hosts: localhost
+  gather_facts: False
+  #strategy: free
+  tasks:
+
+    - name: Remove from template basic default network configuration
+      vmware_vm_shell:
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        datacenter: "{{ anycloud_adapter_api_datacenter }}"
+        folder: /
+        vm_id: "{{ item.value.name }}"
+        vm_username: ladmin
+        vm_password: "asf091u059u10vg"
+        vm_shell: /bin/rm
+        vm_shell_args: /etc/netplan/01-netcfg.yaml
+        # vm_shell_args: " $var >> myFile "
+        # vm_shell_env:
+        #   - "PATH=/bin"
+        #   - "VAR=test"
+        vm_shell_cwd: "/tmp"
+      with_dict: "{{ cloud_bootstrap.servers }}"
+      
+
+    - name: Remove from template basic default network configuration
+      vmware_guest_file_operation:
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        datacenter: "{{ anycloud_adapter_api_datacenter }}"
+        validate_certs: False
+        vm_id: "{{ item.value.name }}"
+        vm_username: ladmin
+        vm_password: asf091u059u10vg
+        directory:
+          path: "/tmp/ansible"
+          operation: create
+          recurse: no
+      with_dict: "{{ cloud_bootstrap.servers }}"
+
+
+    - name: Create ansible directory inside a VM
+      vmware_guest_file_operation:
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        datacenter: "{{ anycloud_adapter_api_datacenter }}"
+        validate_certs: False
+        vm_id: "{{ item.value.name }}"
+        vm_username: ladmin
+        vm_password: asf091u059u10vg
+        directory:
+          path: "/tmp/ansible"
+          operation: create
+          recurse: no
+      with_dict: "{{ cloud_bootstrap.servers }}"
+      async: 45
+      poll: 0
+      
+#     - name: Gather facts from standalone ESXi server having datacenter as 'ha-datacenter'
+#       vmware_guest_facts:
+#         hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+#         username: "{{ anycloud_adapter_api_user }}"
+#         password: "{{ anycloud_adapter_api_password }}"
+#         datacenter: "{{ anycloud_adapter_api_datacenter }}"
+#         validate_certs: no
+#         name: "{{ item.value.name }}"
+#       with_dict: "{{ cloud_bootstrap.servers }}"
+#       register: v_facts
+#       # async: 45
+#       # poll: 0
+      
+#     - name: Debug all facts
+#       debug: 
+#         var: v_facts
+        
+#     - name: Debug facts contents (ITEM)
+#       debug: 
+#         msg: "ITEM: {{ item.item }}"
+#       with_items: "{{ v_facts.results }}"
+
+#     - name: Debug facts contents (ITEM.VALUE)
+#       debug: 
+#         msg: "ITEM.VALUE: {{ item.item.value }}"
+#       with_items: "{{ v_facts.results }}"
+
+#     - name: Debug facts contents (KEY)
+#       debug: 
+#         msg: "KEY: {{ item.item.key }}"
+#       with_items: "{{ v_facts.results }}"
+
+#     - name: Debug try parse
+#       debug: 
+#         msg: "{% for key, value in item.items() %} VALUE {{ value }} KEY {{ key }} {% endfor %}"
+#       with_dict: "{{ v_facts.results }}"
+
+# # v_facts.results._ansible_item_label.key
+
+#     - name: Creating the network configuration for each VM to temporary folder
+#       template:
+#         src: 0z-cloud/templates/netplan.yml.j2
+#         dest: "0z-cloud/gen_config/{{ item.value.name }}.yml"
+#       with_dict: "{{ cloud_bootstrap.servers }}"
+      
+#     - name: Creating a network configuration
+#       vmware_guest_file_operation:
+#         hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+#         username: "{{ anycloud_adapter_api_user }}"
+#         password: "{{ anycloud_adapter_api_password }}"
+#         datacenter: "{{ anycloud_adapter_api_datacenter }}"
+#         validate_certs: False
+#         vm_id: "{{ item.value.name }}"
+#         vm_username: ladmin
+#         vm_password: asf091u059u10vg
+#         fetch:
+#             src: "0z-cloud/templates/{{ item.value.name }}.yml"
+#             dest: "/root/ansible/01-netcfg.yaml"
+#             overwrite: True
+#       with_dict: "{{ cloud_bootstrap.servers }}"
+
+    # - name: Run command inside a vm
+    #   vmware_vm_shell:
+    #     hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+    #     username: "{{ anycloud_adapter_api_user }}"
+    #     password: "{{ anycloud_adapter_api_password }}"
+    #     datacenter: "{{ anycloud_adapter_api_datacenter }}"
+    #     folder: /
+    #     vm_id: "{{ item.value.name }}"
+    #     vm_username: ladmin
+    #     vm_password: "asf091u059u10vg"
+    #     vm_shell: /bin/echo
+    #     vm_shell_args: " $var >> myFile "
+    #     vm_shell_env:
+    #       - "PATH=/bin"
+    #       - "VAR=test"
+    #     vm_shell_cwd: "/tmp"
+    #   #delegate_to: localhost
+    #   #register: shell_command_output
+    #   with_dict: "{{ cloud_bootstrap.servers }}"
+      
+    # - name: Debug dict
+    #   debug:
+    #     msg: "{{ item.value.network }} {{ item.value.ip }} {{ item.value.name }}"
+    #   with_dict: "{{ cloud_bootstrap.servers }}"
+    
+    # - name: ONE NET | Test debug when second_ip == null
+    #   debug:
+    #     msg: "{{ item.value.ip }} {{ lookup('random_mac') }}"
+    #   when: (item.value.second_ip is defined and item.value.second_ip == '') or (item.value.second_ip is not defined) or (item.value.second_ip == 'null')
+    #   with_dict: "{{ cloud_bootstrap.servers }}"
+    
+    # - name: MULTI NET | Test debug when second_ip != null
+    #   debug:
+    #     msg: "{{ item.value.ip }} {{ lookup('random_mac') }}"
+    #   when: item.value.second_ip is defined and item.value.second_ip != '' and item.value.second_ip != 'null'
+    #   with_dict: "{{ cloud_bootstrap.servers }}"
+    
+    # - name: ONE NET | Clone a VM from Template and customize, when one network
+    #   vmware_guest:
+    #     hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+    #     username: "{{ anycloud_adapter_api_user }}"
+    #     password: "{{ anycloud_adapter_api_password }}"
+    #     validate_certs: no
+    #     datacenter: "{{ anycloud_adapter_api_datacenter }}"
+    #     folder: "/"
+    #     name: "{{ item.value.name }}"
+    #     template: "{{ anycloud_template_name }}"
+    #     networks:
+    #     - name: "{{ item.value.network }}"
+    #       ip: "{{ item.value.ip }}"
+    #       netmask: 255.255.255.0
+    #       gateway: "{{ item.value.gw }}"
+    #       mac: "{{ lookup('random_mac') }}"
+    #       domain: "{{ anycloud_domain_result }}"
+    #       dns_servers: "{{ anycloud_results_vpc_zone_virtual_abstract.dns_servers }}"
+    #       start_connected: True
+    #     hardware:
+    #       memory_mb: "{{ item.value.memory_size_mb | default('1024') }}"
+    #       num_cpus: "{{ item.value.cpu_count  | default('2') }}"
+    #     resource_pool: "{{ item.value.ansible_resource_pool | default('non_prod') }}"
+    #     state: poweredon
+    #   when: (item.value.second_ip is defined and item.value.second_ip == '') or (item.value.second_ip is not defined) or (item.value.second_ip == 'null')
+    #   with_dict: "{{ cloud_bootstrap.servers }}"
+
+    # - name: MULTI NET | Clone a VM from Template and customize, when more then one network
+    #   vmware_guest:
+    #     hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+    #     username: "{{ anycloud_adapter_api_user }}"
+    #     password: "{{ anycloud_adapter_api_password }}"
+    #     validate_certs: no
+    #     datacenter: "{{ anycloud_adapter_api_datacenter }}"
+    #     folder: "/"
+    #     name: "{{ item.value.name }}"
+    #     template: "{{ anycloud_template_name }}"
+    #     networks:
+    #     - name: "{{ item.value.network }}"
+    #       ip: "{{ item.value.ip }}"
+    #       netmask: 255.255.255.0
+    #       gateway: "{{ item.value.gw }}"
+    #       mac: "{{ lookup('random_mac') }}"
+    #       domain: "{{ anycloud_domain_result }}"
+    #       dns_servers: "{{ anycloud_results_vpc_zone_virtual_abstract.dns_servers }}"
+    #     - name: "{{ item.value.second_network }}"
+    #       ip: "{{ item.value.second_ip }}"
+    #       netmask: 255.255.255.0
+    #       mac: "{{ lookup('random_mac') }}"
+    #     hardware:
+    #       memory_mb: "{{ item.value.memory_size_mb | default('1024') }}"
+    #       num_cpus: "{{ item.value.cpu_count | default('2') }}"
+    #     resource_pool: "{{ item.value.ansible_resource_pool | default('non_prod') }}"
+    #     state: poweredon
+    #   when: item.value.second_ip is defined and item.value.second_ip != '' and item.value.second_ip != 'null'
+    #   with_dict: "{{ cloud_bootstrap.servers }}"
+      

@@ -1,0 +1,10 @@
+- name: Grep catalina.properties, if see error its good =)
+  shell: " grep 'package.access=sun.,org.apache.catalina.,org.apache.coyote.,org.apache.tomcat.,org.apache.jasper.' {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}/catalina.properties"
+  register: ansible_grep_catalina_properties_file_access_packages
+  ignore_errors: true
+
+- name: Check the ansible_grep_connector_file_handler_limit, if PCI compliance ok, we ignore that and go next
+  fail:
+    msg: "Whoops! File {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}/conf/catalina.properties conetent not PCI Compliant - please set param package.access=sun.,org.apache.catalina.,org.apache.coyote.,org.apache.tomcat.,org.apache.jasper."
+  when: ansible_grep_catalina_properties_file_access_packages.rc != 0
+  

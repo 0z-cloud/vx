@@ -1,0 +1,13 @@
+aliyun-log-python-sdk==0.6.43
+aliyun-python-sdk==2.2.0
+aliyun-python-sdk-core==2.13.0
+aliyun-python-sdk-ecs==4.16.0
+aliyun-python-sdk-ess==2.2.9
+aliyun-python-sdk-kms==2.5.0
+aliyun-python-sdk-rds==2.3.2
+aliyun-python-sdk-slb==3.2.7
+aliyun-python-sdk-vpc==3.0.3
+ansible-alicloud==1.9.0
+ansible-alicloud-module-utils==1.2.0
+requests==2.21.0
+ansible==2.7.6

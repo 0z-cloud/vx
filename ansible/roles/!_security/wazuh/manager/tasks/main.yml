@@ -1,0 +1,79 @@
+- name: Inject defaults
+  set_fact:
+    wazuh_manager: "{{ wazuh_manager_defaults | combine(wazuh_manager) }}"
+  tags: [always]
+
+- name: Creating Wazuh Groups
+  group:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - admin
+    - "{{ wazuh_manager.system_security.linux.user_group }}"
+
+- name: Create Wazuh User
+  user: 
+    name: "{{ wazuh_manager.system_security.linux.user_group }}"
+    shell: /bin/bash
+    groups: "admin,sudo,root,{{ wazuh_manager.system_security.linux.user_group }}"
+    append: yes
+
+- name: Create the directories
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0755
+    owner: "{{ wazuh_manager.system_security.linux.user_group }}"
+    group: "{{ wazuh_manager.system_security.linux.user_group }}"
+  with_dict: "{{ wazuh_manager.directories | default({}) }}"
+
+- name: Create filebeat config from template
+  template: 
+    src: filebeat.yml.j2
+    dest: "{{ wazuh_manager.directories.custom_configs }}/filebeat.yml"
+  tags: generate
+
+- name: Create ossec config from template
+  template: 
+    src: ossec.conf.j2
+    dest: "{{ wazuh_manager.directories.custom_configs }}/ossec.conf"
+  tags: generate
+
+- name: Create authd password file from template
+  template: 
+    src: authd.pass.j2
+    dest: "{{ wazuh_manager.directories.custom_configs }}/authd.pass"
+  tags: generate
+
+- name: Create 01-config_filebeat.sh file from template
+  template: 
+    src: 01-config_filebeat.sh
+    dest: "{{ wazuh_manager.directories.custom_configs }}/01-config_filebeat.sh"
+    mode: 0777
+  tags: generate
+
+- name: Install Wazuh Manager
+  docker_container:
+    name: "wazuh-manager-{{ ansible_environment }}-{{ inventory_hostname }}"
+    image: "{{ ansible_global_gitlab_registry_site_name }}/{{ ansible_git_project_path }}/wazuh-manager:{{ default_docker_image_environment_tag }}"
+    hostname: "{{ ansible_hostname }}"
+    volumes:
+        - "{{ wazuh_manager.directories.custom_configs }}/filebeat.yml:/etc/filebeat/filebeat.yml"
+        - "{{ wazuh_manager.directories.custom_configs }}/authd.pass:/var/ossec/etc/authd.pass"
+        - "{{ wazuh_manager.directories.custom_configs }}/ossec.conf:/var/ossec/etc/ossec.conf"
+        - "{{ wazuh_manager.directories.mapping_current }}/:/wazuh"
+        - "{{ wazuh_manager.directories.ossec_data }}:/var/ossec/data"
+        - "{{ wazuh_manager.directories.config_mountpoint }}:/wazuh-config-mount"
+    ports:
+      - "{{ wazuh_manager_events_listen_port }}:1514"
+      - "{{ wazuh_manager_agent_listen_port }}:1515"
+      - "{{ wazuh_manager_cluster_listen_port }}:1516"
+      - "{{ wazuh_manager_syslog_listen_port }}:514"
+      - "{{ wazuh_manager_api_listen_port }}:55000"
+    env: 
+      API_USER: "{{ wazuh_manager.api.username }}"
+      API_PASS: "{{ wazuh_manager.api.password }}"
+    #privileged: yes
+    state: started
+    restart_policy: unless-stopped
+    recreate: yes

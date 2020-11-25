@@ -1,0 +1,31 @@
+#
+# LDAP Defaults
+#
+
+# See ldap.conf(5) for details
+# This file should be world readable but not world writable.
+
+BASE    dc={{ openldap_server_domain_name.split('.')[0] }},dc={{ openldap_server_domain_name.split('.')[1] }}
+{% if openldap_server_enable_ssl %}
+URI     ldaps://localhost
+TLS_REQCERT never
+{% endif %}
+{% if not openldap_server_enable_ssl %}
+URI     ldap://localhost
+{% endif %}
+
+#SIZELIMIT      12
+#TIMELIMIT      15
+#DEREF          never
+TLS_CACERTDIR /etc/openldap/cacerts
+{% if ansible_os_family == 'RedHat' %}
+TLS_CACERT /etc/openldap/certs/cert.crt
+{% endif %}
+{% if ansible_os_family == 'Debian' %}
+TLS_CACERT /etc/ldap/certs/cert.crt
+{% endif %}
+
+pam_lookup_policy yes
+pam_password sha512
+pam_password exop
+nss_initgroups_ignoreusers avahi,avahi-autoipd,backup,bin,clamav,colord,daemon,dansguardi an,dnsmasq,festival,games,gnats,guest-yRzqOV,hplip,imspector,irc,kernoops,libuuid,libvir t-dnsmasq,libvirt-qemu,lightdm,list,lp,mail,man,messagebus,mysql,new s,proxy,pulse,root,rtkit,saned,speech-dispatcher,sshd,statd,swift,sync,sys,syslog,usbmux ,uucp,whoopsie,www-data

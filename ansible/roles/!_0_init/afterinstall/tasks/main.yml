@@ -1,0 +1,20 @@
+- name: GET | Register the release codename
+  shell: "echo $(lsb_release -cs)"
+  register: lsb_release
+
+- name: INITIAL | Include the basic settings role tasks
+  include_tasks: basic_settings.yml
+
+- name: PREPARE | Include the prepare role tasks
+  include_tasks: prepare.yml
+
+- name: DEFAULTS | Include the cloud-init clean tasks
+  include_tasks: cloud-init.yml
+
+- name: KEYEXCHANGE | Include the host keys exchange settings role tasks
+  include_tasks: host_key_exchange.yml
+
+#### DEBUG
+#
+# - name: Include the debug role tasks
+#   include_tasks: debug.yml

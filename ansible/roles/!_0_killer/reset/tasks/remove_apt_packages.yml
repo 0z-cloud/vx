@@ -1,0 +1,19 @@
+- name: DPKG UNHOLD ALL REQUIRED PACKAGES FOR REINSTALL
+  dpkg_selections:
+    name: "{{ item }}"
+    selection: purge
+  with_items: "{{ required_packages }}"
+
+- name: REMOVE ALL REQUIRED PACKAGES FOR REINSTALL
+  apt:
+    name: "{{ item }}"
+    state: absent
+  with_items: "{{ required_packages }}"
+
+- name: REMOVE KUBE CRIO AND DOCKER PACKAGES | Exec list of shell scripts
+  shell: "{{ item }}"
+  with_items: "{{ affected_packages_list }}"
+
+- name: REMOVE POSSIBLE APT WRONGS | Exec list of shell scripts
+  shell: "{{ item }}"
+  with_items: "{{ affected_possible_apt_lists }}"

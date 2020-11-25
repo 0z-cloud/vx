@@ -1,0 +1,11 @@
+
+{% block 0z_ll_resources
+_vx %}{% if value['resources'] is defined %}
+        resources:
+          limits:
+            cpus: '{{ value['resources'].limits.cpus }}'
+            memory: '{{ value['resources'].limits.memory }}'
+          reservations:
+            cpus: '{{ value['resources'].limits.cpus }}'
+            memory: '{{ value['resources'].limits.memory }}'
+{% endif %}{% endblock %}

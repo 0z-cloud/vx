@@ -1,0 +1,2 @@
+ansible-galaxy collection install community.vmware
+ansible-galaxy collection install community.vmware.vmware_guest_network

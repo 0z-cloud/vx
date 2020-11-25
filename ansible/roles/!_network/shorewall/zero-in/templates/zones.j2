@@ -1,0 +1,92 @@
+# ZONES
+# /etc/shorewall/zones
+#                           
+# ZONE                              TYPE                                    OPTIONS
+#####################################################################################################################
+
+fw                                  firewall                                # Firewall zone
+
+#####################################################################################################################
+# ! see below template, auto generated
+# bridge                              ipv4                                    # Bridge zone
+# ess                             ipv4                                    # ess zone
+#####################################################################################################################
+
+{% if hostvars[inventory_hostname]['ansible_default_ipv4']['interface'] != hostvars[inventory_hostname]['second_iface'] %}
+wan                                 ipv4                                    # Internet
+net                                 ipv4                                    # Local
+{% else %}
+net                                 ipv4                                    # Local
+wan:net                             ipv4                                    # Internet
+{% endif %}
+
+# dmz:net                           ipv4                                    # DMZ
+# sec:net                           ipv4                                    # SECURITY
+
+nginx:net                           ipv4                                    # FRONT
+bas:net                         ipv4                                    # bas
+repo:net                            ipv4                                    # REPO
+vrrp:net                            ipv4                                    # Balancer
+vip:net                             ipv4                                    # VIP on Balancer
+cde:net                             ipv4                                    # CDE
+
+{% if second_network_zone == 'cluster' %}
+#####################################################################################################################
+# CLUSTER
+clu:net                         ipv4                                    # LOCAL CLUSTER
+{% endif %}
+
+#####################################################################################################################
+# DOCKER NETWORKS, BRIGES & OVERLAYS
+#####################################################################################################################
+
+{% for network_subnet in docker_networks_array.results %}
+{% set network_subnet_joined = network_subnet.stdout_lines %}{% set network_subnet_joined_cleaned = network_subnet_joined | join %}{% set network_subnet_joined_kv = network_subnet_joined_cleaned | replace(': ', "=") %}{% set network_subnet_name_cleaned = network_subnet_joined_kv |  regex_replace('=[^=]+$', '') %}{% set network_subnet_cleaned = network_subnet_joined_kv |  regex_replace('.*=', '') %}{% set docker_brg_network_interface = 'ansible_' + 'docker0' %}{% set docker_brg_bridge_docker_zero_main_network_shorewall_zone = 'brg' %}{% set docker_geov_network_interface = 'ansible_' + 'docker_gwbridge' %}{% set docker_geov_network_shorewall_zone = 'geov' %}{% set docker_gwbridge_vpn_network_shorewall_zone = 'vpn' %}{% set docker_gwbridge_loc_network_shorewall_zone = 'loc' %}{% set docker_gwbridge_ess_network_shorewall_zone = 'ess' %}{% set docker_default_ess_vpn_network_prefix = ansible_product + '-' + ansible_environment + '-vpn' + '_default' %}{% set docker_default_cde_dmz_loc_ess_network_prefix = ansible_product + '-' + ansible_environment + '_default' %}{% if 'bridge' in network_subnet_name_cleaned and 'docker_gwbridge' not in network_subnet_name_cleaned %}
+# BRIDGE
+# NETWORK SUBNET: {{ network_subnet_name_cleaned }}
+# network NAME:   {{ network_subnet_cleaned }}    
+# {{ docker_brg_bridge_docker_zero_main_network_shorewall_zone }}                             ipv4                                    # BRIDGE MAIN DOCKER docker0 BRIDGE NETWORK
+
+{{ docker_brg_bridge_docker_zero_main_network_shorewall_zone }}                             ipv4                                    # BRIDGE MAIN DOCKER docker0 BRIDGE NETWORK
+
+#####################################################################################################################
+{% endif %}{% if 'docker_gwbridge' in network_subnet_name_cleaned %}
+
+# DOCKER GATEWAY OVER SWARM NETWORK: geov DOCKER OVERLAY SWARM GW ZONE
+# NETWORK SUBNET: {{ network_subnet_name_cleaned }}
+# network NAME:   {{ network_subnet_cleaned }}
+# {{ docker_geov_network_shorewall_zone }}                             ipv4                                    # PRIMARY OVERLAY BRIDGE ess DOCKER_GW_BRIDGE 
+
+{{ docker_geov_network_shorewall_zone }}                             ipv4                                    # PRIMARY OVERLAY BRIDGE ess DOCKER_GW_BRIDGE 
+
+#####################################################################################################################
+{% endif %}{% if 'ess' in network_subnet_name_cleaned %}
+
+# DOCKER INGRESS NETWORK: ess DOCKER OVERLAY SWARM ess:ess
+# NETWORK SUBNET: {{ network_subnet_name_cleaned }}
+# network NAME:   {{ network_subnet_cleaned }}   
+# {{ docker_gwbridge_ess_network_shorewall_zone }}:{{ docker_geov_network_shorewall_zone }}                             bport4                                    # ess ON DOCKER_GWBRIDGE INTERFACE FOROVERLAY SWARM NETWORK ON SELF IDS SHOREWALL HOST
+
+{{ docker_gwbridge_ess_network_shorewall_zone }}:{{ docker_geov_network_shorewall_zone }}                             ipv4                                    # ess ON DOCKER_GWBRIDGE INTERFACE FOROVERLAY SWARM NETWORK ON SELF IDS SHOREWALL HOST
+
+#####################################################################################################################
+{% endif %}{% if 'docker_gwbridge' not in network_subnet_name_cleaned or 'ess' not in network_subnet_name_cleaned or 'bridge' not in network_subnet_name_cleaned %}{% if network_subnet_name_cleaned != 'bridge' and 'ess' not in network_subnet_name_cleaned  %}{% if docker_default_ess_vpn_network_prefix in network_subnet_name_cleaned %}
+
+# DOCKER INGRESS VPN NETWORK: ess DOCKER OVERLAY SWARM ess:VPN
+# NETWORK SUBNET: {{ network_subnet_name_cleaned }}
+# network NAME:   {{ network_subnet_cleaned }}   
+# {{ docker_gwbridge_vpn_network_shorewall_zone }}:{{ docker_geov_network_shorewall_zone }}                             bport4                                    # ess VPN OVERLAY SWARM NETWORK ON SELF IDS SHOREWALL HOST
+
+{{ docker_gwbridge_vpn_network_shorewall_zone }}:{{ docker_geov_network_shorewall_zone }}                             ipv4                                    # ess VPN OVERLAY SWARM NETWORK ON SELF IDS SHOREWALL HOST{% endif %}{% endif %}{% if docker_default_cde_dmz_loc_ess_network_prefix in network_subnet_name_cleaned %}
+
+#####################################################################################################################
+
+# DOCKER INGRESS LOCAL NETWORK: ess DOCKER OVERLAY SWARM ess:LOC[DMZ/CDE/ETC Swarm Network]
+# NETWORK SUBNET: {{ network_subnet_name_cleaned }}
+# network NAME:   {{ network_subnet_cleaned }}   
+# {{ docker_gwbridge_loc_network_shorewall_zone }}:{{ docker_geov_network_shorewall_zone }}                             bport4                                    # ess CDE/DMZ/LOC OVERLAY SWARM NETWORK ON SELF IDS SHOREWALL HOST
+
+{{ docker_gwbridge_loc_network_shorewall_zone }}:{{ docker_geov_network_shorewall_zone }}                             ipv4                                    # ess CDE/DMZ/LOC OVERLAY SWARM NETWORK ON SELF IDS SHOREWALL HOST{% endif %}{% endif %}
+
+#####################################################################################################################
+{% endfor %}

@@ -1,0 +1,101 @@
+- name: STACK | Run to remote generate the docker-compose and deploy stack
+  become: true
+  hosts: "{{ HOSTS | default('cloud-bind-frontend-dns') }}"
+  vars_files:
+    - "{{ ansible_root_directory }}/group_vars/!_ApplicationDocker_Template/docker-compose-template.yml"
+  tasks:
+
+    - name: RAW SHELL | Install docker-compose AND little hooks
+      shell: "{{ item }}"
+      with_items:
+        # - "curl -L https://github.com/docker/compose/releases/download/1.24.0/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose"
+        # - "chmod +x /usr/local/bin/docker-compose"
+        # - "docker-compose --version"
+        # - "cp /usr/local/bin/docker-compose /usr/bin/docker-compose"
+        - "docker-compose --version"
+        - "sysctl -w vm.max_map_count=262145"
+
+    - name: INCLUDE | Variables passed on-fly from CI
+      include_vars: ../.local/ci_version.yml
+
+    - name: INCLUDE | Variables passed on-fly from CI about tags
+      include_vars: ../.local/current_tags.yml
+
+    - name: PREPARE | Include environment variables for environment cloud
+      include_vars: "{{ inventory_dir }}/group_vars/dns/{{ HOSTS | default('cloud-bind-frontend-dns') }}/{{ HOSTS | default('cloud-bind-frontend-dns') }}.yml"
+
+    - name: PREPARE | Include environment variables for applications
+      include_vars: "group_vars/!_Applications_Core/{{ ANSIBLE_APPLICATION_TYPE }}/{{ ANSIBLE_APPLICATION_TYPE }}_folders_map.yml"
+
+    - name: PREPARE | Include environment variables for applications
+      include_vars: "group_vars/!_Applications_Core/{{ ANSIBLE_APPLICATION_TYPE }}/{{ ANSIBLE_APPLICATION_TYPE }}_settings_map.yml"
+
+    - name: DEBUG | show items in dict
+      debug:
+        msg: "{{ item }}"
+      with_items: "{{ all_services_settings_map }}"
+
+    - name: DEBUG | show items in dict about spec tags
+      debug:
+        msg: "{{ lookup('vars', 'passed_ci_docker_tag_' + item) }}"
+      with_items: "{{ all_services_settings_map }}"
+
+    - name: PREPARE | Create the directories
+      file:
+        path: "{{ item.value }}"
+        state: directory
+        mode: 0755
+      with_dict: "{{ all_services_location_map.directories | default({}) }}"
+
+    - name: PREPARE | Template the docker-stack.yml
+      template:
+        src: "./group_vars/!_ApplicationDocker_Template/docker-compose-standalone-template.yml.j2"
+        dest: "{{ all_services_location_map.directories.stack }}/docker-stack.yml"
+      run_once: true
+
+    - name: PREPARE | Template the docker-compose.yml
+      template:
+        src: "./group_vars/!_ApplicationDocker_Template/docker-compose-standalone-template.yml.j2"
+        dest: "{{ all_services_location_map.directories.stack }}/docker-compose.yml"
+      run_once: true
+
+    - name: PREPARE | Template the docker-compose-image-puller.yml.j2
+      template:
+        src: "./group_vars/!_ApplicationDocker_Template/docker-compose-image-puller.yml.j2"
+        dest: "{{ all_services_location_map.directories.stack }}/docker-compose-image-puller.yml"
+      run_once: true
+
+    - name: PREPARE | Docker login
+      shell: "echo {{ ANSIBLE_TRIGGER_TOKEN }} | docker login {{ ANSIBLE_REGISTRY_URL }} -u root --password-stdin"
+      register: docker_login_result
+
+    - name: PULL | Download and updage all local images imadently
+      command: docker-compose -f {{ all_services_location_map.directories.stack }}/docker-compose-image-puller.yml pull 
+      register: docker_pull_result
+
+    - name: DEPLOY | Standalone up
+      shell: docker-compose -f {{ all_services_location_map.directories.stack }}/docker-compose.yml up -d 
+      run_once: true
+      ignore_errors: true
+      register: docker_standalone_up
+  
+    - name: DEBUG | show standalone up result
+      debug:
+        msg: "{{ docker_standalone_up }}"
+
+    - name: DEPLOY | Standalone deploy
+      shell: docker-compose -f {{ all_services_location_map.directories.stack }}/docker-compose.yml restart 
+      run_once: true
+      register: docker_standalone_deploy
+
+    - name: DEBUG | show standalone deploy result
+      debug:
+        msg: "{{ docker_standalone_deploy }}"
+
+    - name: Show the current containers
+      shell: docker ps
+      register: docker_ps_standalone_result
+
+    - name: DEBUG | show standalone docker ps result
+      debug:
+        msg: "{{ docker_ps_standalone_result }}"

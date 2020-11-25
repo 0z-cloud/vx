@@ -1,0 +1,29 @@
+
+{% raw %} acl ns { {% endraw %} {{ hostvars[inventory_hostname].ansible_default_ipv4.address }} {% raw %}; }; 
+{% endraw %}
+{% raw %}masters ns { {% endraw %}{{ hostvars[inventory_hostname].ansible_default_ipv4.address }} {% raw %} port {% endraw %} {{ dns_consul_service_listen_port }} {% raw %} ; } {% endraw %}
+
+{% raw %}
+;
+zone "{% endraw %}{{ merge_consul_domain }}{% raw %}" IN {
+      type master;
+      file "/etc/bind/new.{% endraw %}{{ merge_consul_domain }}{% raw %}";
+      allow-transfer { ns; };
+      allow-query { any; };
+      notify yes;
+      also-notify { ns; };
+};
+{% endraw %}
+
+{% raw %}
+;
+zone "{% endraw %}service.{{ merge_consul_domain }}{% raw %}" IN {
+      type forward;
+      forward first;
+      file "/etc/bind/new.{% endraw %}{{ merge_consul_domain }}{% raw %}";
+      allow-transfer { ns; };
+      allow-query { any; };
+      notify yes;
+      also-notify { ns; };
+};
+{% endraw %}

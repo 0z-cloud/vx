@@ -1,0 +1,228 @@
+    - name: Create NET WITH DATASTORE | Clone a VM from Template and customize, when one network
+      vmware_guest:
+        guest_id: ubuntu64Guest
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        datacenter: "{{ anycloud_adapter_api_datacenter }}"
+        validate_certs: no
+        folder: "/"
+        name: "{{ item.value.name }}"
+        template: "{{ item.value.anycloud_vm_template_name }}"
+        # disk: 
+        #   - datastore: "{{ item.value.disk.datastore }}"
+        #     size_gb: "{{ item.value.disk.size_gb }}"
+        #     type: "{{ item.value.disk.type }}"
+        networks:
+        - name: "{{ item.value.network }}"
+          ip: "{{ item.value.ip }}"
+          netmask: "{{ item.value.network_subnet }}"
+          gateway: "{{ item.value.gw }}"
+          mac: "{{ lookup('random_mac') }}"
+          domain: "{{ anycloud_domain_result }}"
+          dns_servers: "{{ anycloud_results_vpc_zone_virtual_abstract.dns_servers }}"
+          start_connected: True
+          type: static
+        # - name: "{{ item.value.second_network }}"
+        #   ip: "{{ item.value.second_ip }}"
+        #   netmask: "{{ item.value.second_network_subnet }}"
+        #   mac: "{{ lookup('random_mac') }}"
+        #   start_connected: True
+        #   type: static
+        customization:
+          hostname: "{{ item.value.name }}"
+          dns_servers: "{{ anycloud_results_vpc_zone_virtual_abstract.dns_servers }}"
+          domain: "{{ anycloud_domain_result }}"
+        hardware:
+          memory_mb: "{{ item.value.memory_size_mb | default('1024') }}"
+          num_cpus: "{{ item.value.cpu_count  | default('2') }}"
+        resource_pool: "{{ item.value.ansible_resource_pool | default('non_prod') }}"
+        state: present
+        # wait_for_ip_address: yes
+      # when: (item.value.second_ip is defined and item.value.second_ip == '') or (item.value.second_ip is not defined) or (item.value.second_ip == 'null') or (item.value.disk is defined)
+      with_dict: "{{ cloud_bootstrap.servers }}"
+      when: "'REPLACED' not in item.value.network"
+      register: create_instance_result
+
+    # - name: Power off VM from Template and customize, when one network
+    #   vmware_guest:
+    #     #guest_id: ubuntu64Guest
+    #     hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+    #     username: "{{ anycloud_adapter_api_user }}"
+    #     password: "{{ anycloud_adapter_api_password }}"
+    #     datacenter: "{{ anycloud_adapter_api_datacenter }}"
+    #     validate_certs: no
+    #     folder: "/"
+    #     name: "{{ item.value.name }}"
+    #     template: "{{ item.value.anycloud_vm_template_name }}"
+    #     # disk: 
+    #     #   - datastore: "{{ item.value.disk.datastore }}"
+    #     #     size_gb: "{{ item.value.disk.size_gb }}"
+    #     #     type: "{{ item.value.disk.type }}"
+    #     networks:
+    #     - name: "{{ item.value.network }}"
+    #       ip: "{{ item.value.ip }}"
+    #       netmask: "{{ item.value.network_subnet }}"
+    #       gateway: "{{ item.value.gw }}"
+    #       mac: "{{ lookup('random_mac') }}"
+    #       domain: "{{ anycloud_domain_result }}"
+    #       dns_servers: "{{ anycloud_results_vpc_zone_virtual_abstract.dns_servers }}"
+    #       start_connected: True
+    #       type: static
+    #       # - name: "{{ item.value.second_network }}"
+    #       #   ip: "{{ item.value.second_ip }}"
+    #       #   netmask: "{{ item.value.second_network_subnet }}"
+    #       #   mac: "{{ lookup('random_mac') }}"
+    #       #   start_connected: True
+    #       #   type: static
+    #     resource_pool: "{{ item.value.ansible_resource_pool | default('non_prod') }}"
+    #     state: poweredoff
+    #     wait_for_ip_address: yes
+    #     # when: (item.value.second_ip is defined and item.value.second_ip == '') or (item.value.second_ip is not defined) or (item.value.second_ip == 'null') or (item.value.disk is defined)
+    #   with_dict: "{{ cloud_bootstrap.servers }}"
+    #   when: "'REPLACED' not in item.value.network"
+    #   register: create_instance_result
+   
+    - name: Poweron off VM from Template and customize, when one network
+      vmware_guest:
+        guest_id: ubuntu64Guest
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        datacenter: "{{ anycloud_adapter_api_datacenter }}"
+        validate_certs: no
+        folder: "/"
+        name: "{{ item.value.name }}"
+        template: "{{ item.value.anycloud_vm_template_name }}"
+        # disk: 
+        #   - datastore: "{{ item.value.disk.datastore }}"
+        #     size_gb: "{{ item.value.disk.size_gb }}"
+        #     type: "{{ item.value.disk.type }}"
+        networks:
+        - name: "{{ item.value.network }}"
+          ip: "{{ item.value.ip }}"
+          netmask: "{{ item.value.network_subnet }}"
+          gateway: "{{ item.value.gw }}"
+          mac: "{{ lookup('random_mac') }}"
+          domain: "{{ anycloud_domain_result }}"
+          dns_servers: "{{ anycloud_results_vpc_zone_virtual_abstract.dns_servers }}"
+          start_connected: True
+          type: static
+        resource_pool: "{{ item.value.ansible_resource_pool | default('non_prod') }}"
+        state: poweredon
+        wait_for_ip_address: yes
+        # when: (item.value.second_ip is defined and item.value.second_ip == '') or (item.value.second_ip is not defined) or (item.value.second_ip == 'null') or (item.value.disk is defined)
+      with_dict: "{{ cloud_bootstrap.servers }}"
+      when: "'REPLACED' not in item.value.network"
+      register: create_instance_result
+
+      #  {{ cloud_bootstrap.servers[item].ansible_inventory_vars] }}
+
+    - name: Show debug create_instance_result
+      debug: 
+        msg: "
+        
+       {{ item }}
+
+      "
+      with_items: |
+        "{% for dict_item in create_instance_result.results %}{% for k,v in dict_item.items() %}{% if k == 'instance' %}{{ v }}{% endif %}{% endfor %}{% endfor %}"
+      # with_dict: "{{ create_instance_result.results }}"
+
+    - name: Show debug create_instance_result
+      debug: 
+        msg: "
+        
+        {{ create_instance_result.results }}
+
+      "
+    - name: Show debug item create_instance_result
+      debug: 
+        msg: "
+
+          {{ item }}
+        "
+      # when: "'REPLACED' not in item.value.network"
+      # with_dict: "{{ cloud_bootstrap.servers }}"
+      with_items: |
+        "{% for dict_item in create_instance_result.results %}{% for k,v in dict_item.items() %}{% if k == 'instance' %}{{ v }}{% endif %}{% endfor %}{% endfor %}"
+      when: destroy_instances is not defined
+
+
+    # - name: Set fact to zero (need will been a touched inplace)
+    #   debug:
+    #     msg: "instances_dict_result_set: {{ item.instance }}"
+    #   with_dict: "{{ create_instance_result.results | dict2list }}"
+
+    # - name: Set fact to zero (need will been a touched inplace)
+    #   set_fact:
+    #     instances_dict_result_set: ""
+    #   with_dict: "{{ cloud_bootstrap.servers }}"
+
+
+    - name: Set fact to zero (need will been a touched inplace)
+      set_fact:
+        newlist: ""
+
+    - name: Set fact newlist item from create_instance_result.results
+      set_fact:
+        newlist: "{{ item }}"
+      with_items: |
+        "{% for dict_item in create_instance_result.results %}{% for k,v in dict_item.items() %}{% if k == 'instance' %}{{ v }}{% endif %}{% endfor %}{% endfor %}"
+      when: destroy_instances is not defined
+
+    - name: set_fact newlist
+      set_fact:
+        new_pre: "{{ newlist | replace('\"[', '') | replace(']\"', '') | replace('\\u', '') }}"
+      when: destroy_instances is not defined
+
+    - name: Debug new_pre 
+      debug:
+        msg: "{{ new_pre | replace('\\u', '') }}"
+      when: destroy_instances is not defined
+
+    - name: set_fact new_p
+      set_fact:
+        new_p: "{{ new_pre | replace('\\u', '') }}"
+      when: destroy_instances is not defined
+
+    - name: Debug new_p 
+      set_fact:
+        new_pp: "{{ new_p | replace('][', ', ') }}"
+      when: destroy_instances is not defined
+
+    - name: Debug new_pp 
+      debug:
+        msg: "{{ new_pp }}"
+      when: destroy_instances is not defined
+
+    # - name: Set authorized ssh key, extracting just that data from 'users'
+    #   debug:
+    #     msg: "{{ item.hw_name }} {{ item.ipv4 }} {{ item.private_ip_address }}"
+    #   with_items:
+    #       - "{{ new_pp }}"
+    #   when: destroy_instances is not defined
+
+    # - name: Copy 0z inventory to work ignored copy for generate the local inventory
+    #   copy:
+    #     src: "inventories/0z-cloud/products/types/!_vsphere/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+    #     dest: "inventories/0z-cloud/products/types/!_vsphere/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/.vsphere.cloud.run.yml"
+    #   when: destroy_instances is not defined
+
+    # - name: Line public_ip_address in file change for dynamic inventory
+    #   lineinfile:
+    #     path: inventories/0z-cloud/products/types/!_vsphere/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/.vsphere.cloud.run.yml
+    #     regexp: '^(.*\ip: "{{ item.host_name }}_public_ip_address_REPLACED")'
+    #     line: '        ip: "{{ item.public_ip_address }}"'
+    #   with_items: 
+    #       - "{{ new_pp }}"
+    #   when: destroy_instances is not defined
+
+    # - name: Line private_ip_address in file change for dynamic inventory
+    #   lineinfile:
+    #     path: inventories/0z-cloud/products/types/!_vsphere/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/.vsphere.cloud.run.yml
+    #     regexp: '^(.*\_ip: "{{ item.host_name }}_private_ip_address_REPLACED")'
+    #     line: '            second_ip: "{{ item.private_ip_address }}"'
+    #   with_items: 
+    #       - "{{ new_pp }}"
+    #   when: destroy_instances is not defined

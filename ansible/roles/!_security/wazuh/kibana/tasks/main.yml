@@ -1,0 +1,49 @@
+- name: Inject defaults
+  set_fact:
+    wazuh_kibana: "{{ wazuh_kibana_defaults | combine(wazuh_kibana) }}"
+  tags: [always]
+
+- name: Install Wazuh Kibana
+  docker_container:
+    name: "wazuh-kibana-{{ ansible_environment }}-{{ inventory_hostname }}"
+    image: "{{ ansible_global_gitlab_registry_site_name }}/{{ ansible_git_project_path }}/wazuh-kibana:{{ default_docker_image_environment_tag }}"
+    hostname: "{{ ansible_hostname }}"
+    ports:
+      - "{{ wazuh_kibana_internal_service_listen_port }}:5601"
+    #privileged: yes
+    env:
+      ELASTICSEARCH_URL: "http://{% for host in groups['wazuh-elasticsearch'] %}{{ hostvars[host]['second_ip'] | safe }}{% endfor %}:{{ wazuh_elasticsearch_listen_port }}"
+      # KIBANA_INDEX: ""
+      # XPACK_SECURITY_ENABLED: ""
+      # ELASTICSEARCH_USERNAME: ""
+      # ELASTICSEARCH_PASSWORD: ""
+      # ELASTICSEARCH_KIBANA_IP: ""
+      # ENV PATTERN: ""
+      # CHECKS_PATTERN: ""
+      # CHECKS_TEMPLATE: ""
+      # CHECKS_API: ""
+      # CHECKS_SETUP: ""
+      # EXTENSIONS_PCI: ""
+      # EXTENSIONS_GDPR: ""
+      # EXTENSIONS_AUDIT: ""
+      # EXTENSIONS_OSCAP: ""
+      # EXTENSIONS_CISCAT: ""
+      # EXTENSIONS_AWS: ""
+      # EXTENSIONS_VIRUSTOTAL: ""
+      # EXTENSIONS_OSQUERY: ""
+      # APP_TIMEOUT: ""
+      # WAZUH_SHARDS: ""
+      # WAZUH_REPLICAS: ""
+      # WAZUH_VERSION_SHARDS: ""
+      # WAZUH_VERSION_REPLICAS: ""
+      # IP_SELECTOR: ""
+      # IP_IGNORE: ""
+      # XPACK_RBAC_ENABLED: ""
+      # WAZUH_MONITORING_ENABLED: ""
+      # WAZUH_MONITORING_FREQUENCY: ""
+      # WAZUH_MONITORING_SHARDS: ""
+      # WAZUH_MONITORING_REPLICAS: ""
+      # ADMIN_PRIVILEGES: ""
+    state: started
+    restart_policy: unless-stopped
+    recreate: yes

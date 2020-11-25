@@ -1,0 +1,12 @@
+wazuh_es_defaults:
+  directories:
+    main: /opt/wazuh/elasticsearch/{{ ansible_environment }}
+    configs: /opt/wazuh/elasticsearch/{{ ansible_environment }}/configs
+    data: /opt/wazuh/elasticsearch/{{ ansible_environment }}/data
+    logs: /opt/wazuh/elasticsearch/{{ ansible_environment }}/logs
+  system_security:
+    linux:
+      user_group: wazuh
+  api:
+    username: wazuhapi
+    password: wazuhapisad012jrni

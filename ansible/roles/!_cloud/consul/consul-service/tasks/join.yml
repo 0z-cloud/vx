@@ -1,0 +1,39 @@
+
+# - name: Update RC D
+#   shell: update-rc.d consul "{{ item }}"
+#   with_items:
+#     - "defaults"
+#     - "enable"
+
+- name: Add service to Default Start Up
+  service:
+     name: consul
+     enabled: yes
+     state: "{{ item }}"
+  with_items:
+    - restarted
+
+# - name: enable consul service
+#   service: name=consul enabled=yes
+
+# - name: start consul
+#   service: name=consul state=started
+
+# - name: enable service httpd and ensure it is not masked
+#   systemd:
+#     name: consul
+#     enabled: yes
+
+- name: Raw enable service // to do - not work need run by hands sometimes
+  shell: systemctl enable consul
+
+- name: Restart Service Consul
+  shell: /etc/init.d/consul restart
+
+- name: Consul Join Masters
+  shell: consul join -rpc-addr {{ ansible_default_ipv4['address'] | join }}:8400 {% for host in groups['consul-masters'] %} {{ hostvars[host]['ansible_default_ipv4']['address'] }} {% endfor %}&
+  when: consul_type == "master"
+  with_items: "{{ groups['consul-masters'] }}"
+
+# - name: Restart Service Consul
+#   shell: /etc/init.d/consul restart

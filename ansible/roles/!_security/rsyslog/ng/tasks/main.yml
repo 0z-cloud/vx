@@ -1,0 +1,7 @@
+- name: Include for clients
+  include: client.yml
+  when: "inventory_hostname not in groups['rsyslog-servers']"
+  
+- name: Include for servers
+  include: server.yml
+  when: "inventory_hostname in groups['rsyslog-servers']"

@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  annotations:
+    pv.kubernetes.io/provisioned-by: openebs.io/local
+  creationTimestamp: null
+  finalizers:
+  - kubernetes.io/pv-protection
+  name: pvc-5289029b-9d86-11e9-890b-b42e994820d9
+  selfLink: /api/v1/persistentvolumes/pvc-5289029b-9d86-11e9-890b-b42e994820d9
+spec:
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 10Gi
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    name: mongo-data
+    namespace: rpay-engine
+    resourceVersion: "1687076"
+    uid: 5289029b-9d86-11e9-890b-b42e994820d9
+  hostPath:
+    path: /var/openebs/local/pvc-5289029b-9d86-11e9-890b-b42e994820d9
+    type: DirectoryOrCreate
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - worker1
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: openebs-hostpath
+  volumeMode: Filesystem
+status: {}

@@ -1,0 +1,8 @@
+- name: Syncler again!  Load groupvars/product global shared settings
+  include_vars: group_vars/products/{{ ansible_product }}/{{ item }}.yml
+  with_items:
+    - vsphere
+    - main
+    - shared
+    - sg_data
+    - zone

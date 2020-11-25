@@ -1,0 +1,12 @@
+- name: Correct start ES HQ UI Container
+  docker_container:
+      name: "{{ elastic_hq.container_name }}-{{ ansible_hostname }}"
+      image: elastichq/elasticsearch-hq
+      pull: true
+      recreate: yes
+      restart_policy: always
+      detach: True
+      ports:
+         - "{{ elastic_hq.port }}:{{ elastic_hq.port }}"
+      privileged: true
+      state: started

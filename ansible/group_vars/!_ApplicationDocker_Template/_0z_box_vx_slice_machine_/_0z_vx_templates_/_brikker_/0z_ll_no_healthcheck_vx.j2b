@@ -1,0 +1,5 @@
+{% block 0z_ll_no_healthcheck
+_vx %}{% if value['no_healthcheck'] is defined %}{% raw %}
+      healthcheck:
+        disable: true
+{% endraw %}{% endif %}{% endblock %}

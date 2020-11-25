@@ -1,0 +1,38 @@
+
+- name: Get Edges whole object
+  shell: vcd -j gateway list | tail -n +3
+  register: whole_vcd_list
+
+- name: Get Virtual Organization Whole object
+  shell: vcd -j org info {{ anycloud_defaults_virtual_organization }}
+  register: whole_org_info
+
+- name: Get Virtual Datacenter Whole object
+  shell: vcd vdc info {{ anycloud_defaults_virtual_datacenter }}
+  register: whole_vdc_info
+
+- name: Get EDGE External Connectiion Info
+  shell: vcd -j gateway info {{ anycloud_result_edge_router }}
+  register: whole_edge_info
+
+- name: Get Public IP Addresses on EDGE
+  shell: vcd -j gateway list-config-ip-settings {{ anycloud_result_edge_router }}
+  register: whole_edge_interfaces_info
+
+- name: Get the firewall rules all
+  shell: vcd gateway services firewall list-objects {{ anycloud_result_edge_router }} --type source --object-type gatewayinterface
+  register: whole_firewall_rules
+
+- name: Get full EDGE IP Information
+  shell: vcd -j gateway list-config-ip-settings {{ anycloud_result_edge_router }} | jq -r 'keys[] as $k | "\($k), \(.[$k] | .ip_address)"' | awk '{print $2}' | sed "s/\\\"/\'/g" | sed "s/\',\'/\'\],\[\'/g" | tr '\n' ','
+  register: edge_whole_fetched_ips
+
+- name: Register only public IP from object
+  set_fact:
+    public_ips_from_edge: []
+
+- name: Register only public IP from object
+  set_fact:
+    public_ips_from_edge: "{{ public_ips_from_edge + [ item | join ] }}"
+  with_items: "{{ edge_whole_fetched_ips.stdout_lines | join }}"
+  when: (item | join | ipaddr('public'))

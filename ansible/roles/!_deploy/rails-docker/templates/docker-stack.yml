@@ -1,0 +1,168 @@
+version: '3.7'
+
+services:
+  web:
+    image: {{ rails_application.docker_image }}:{{ rails_application.docker_image_tag }}
+    hostname: {%raw%}"{{.Service.Name}}-{{.Node.Hostname}}"{%endraw-%}{{''}}
+    environment:
+      - CONTAINER_ROLE=web
+      - APP_NAME={{ rails_application.name }}
+      - APP_ENV=stage
+      - APP_DEBUG=true
+      - LOG_CHANNEL={{ rails_log_channel }}
+      - MEMCACHED_HOST={{ rails_application.name }}_memcached
+      - MEMCACHED_PORT=11211
+      - CONSUL_HTTP_ADDR=http://{{ inventory_hostname }}:8500
+      - CONFIG_ENCRYPTION_KEY_PART_1={{ config_encryption_key_part1 }}
+      - SENTRY_rails_DSN={{ sentry_dsn.secret }}
+      - FILEBEAT_CONNECTION_STRING=tcp://{{ rails_application.name }}_fluentd:24224
+      - LINK_STORAGE={{ rails_application.link_storage | default(false) }}
+    secrets:
+      - source: {{ application_secret_name }}
+        target: /var/www/.env
+    networks:
+      - app
+      - api_services
+    ports:
+      - "{{ rails_application.published_port }}:{{ rails_application.target_port | default('80') }}"
+    volumes:
+      - {{ glusterfs_settings.directories.cloud_dir }}/rails/{{ rails_application.name }}/storage:/var/www/storage
+    depends_on:
+      - memcached
+    deploy:
+      mode: replicated
+      replicas: {{ rails_application.replicas }}
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 128M
+        reservations:
+          cpus: '0.25'
+          memory: 20M
+
+  scheduler:
+    image: {{ rails_application.docker_image }}:{{ rails_application.docker_image_tag }}
+    hostname: {%raw%}"{{.Service.Name}}-{{.Node.Hostname}}"{%endraw-%}{{''}}
+    environment:
+      - CONTAINER_ROLE=scheduler
+      - APP_NAME={{ rails_application.name }}
+      - APP_ENV=stage
+      - APP_DEBUG=true
+      - LOG_CHANNEL={{ rails_log_channel }}
+      - MEMCACHED_HOST={{ rails_application.name }}_memcached
+      - MEMCACHED_PORT=11211
+      - CONSUL_HTTP_ADDR=http://{{ inventory_hostname }}:8500
+      - CONFIG_ENCRYPTION_KEY_PART_1={{ config_encryption_key_part1 }}
+      - SENTRY_rails_DSN={{ sentry_dsn.secret }}
+      - LINK_STORAGE={{ rails_application.link_storage | default(false) }}
+    secrets:
+      - source: {{ application_secret_name }}
+        target: /var/www/.env
+    networks:
+      - app
+    volumes:
+      - {{ glusterfs_settings.directories.cloud_dir }}/rails/{{ rails_application.name }}/storage:/var/www/storage
+    depends_on:
+      - web
+      - memcached
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 128M
+
+  {% if rails_application.queues is defined %}
+  {% for worker in rails_application.queues %}
+
+  worker_{{ worker.queue }}:
+    image: {{ rails_application.docker_image }}:{{ rails_application.docker_image_tag }}
+    hostname: {%raw%}"{{.Service.Name}}-{{.Node.Hostname}}"{%endraw-%}{{''}}
+    environment:
+      - CONTAINER_ROLE=queue
+      - WORKER_QUEUE_NAME={{ worker.queue }}
+      - WORKER_TIMEOUT={{ worker.timeout | default(60) }}
+      - WORKER_SLEEP={{ worker.sleep | default(3) }}
+      - APP_NAME={{ rails_application.name }}
+      - APP_ENV=stage
+      - APP_DEBUG=true
+      - LOG_CHANNEL={{ rails_log_channel }}
+      - MEMCACHED_HOST={{ rails_application.name }}_memcached
+      - MEMCACHED_PORT=11211
+      - CONSUL_HTTP_ADDR=http://{{ inventory_hostname }}:8500
+      - CONFIG_ENCRYPTION_KEY_PART_1={{ config_encryption_key_part1 }}
+      - SENTRY_rails_DSN={{ sentry_dsn.secret }}
+      - LINK_STORAGE={{ rails_application.link_storage | default(false) }}
+    secrets:
+      - source: {{ application_secret_name }}
+        target: /var/www/.env
+    networks:
+      - app
+    volumes:
+      - {{ glusterfs_settings.directories.cloud_dir }}/rails/{{ rails_application.name }}/storage:/var/www/storage
+    depends_on:
+      - web
+      - memcached
+    deploy:
+      mode: replicated
+      replicas: {{ worker.workers }}
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      resources:
+        limits:
+          cpus: '0.50'
+  {% endfor %}
+  {% endif %}
+
+  filebeat:
+    image: {{ filebeat_docker_image }}
+    environment:
+      - ELASTICSEARCH_HOSTS=elasticsearch.{{ cloud_service_consul_cloud_fqdn }}:9300
+    networks:
+      - app
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+
+  memcached:
+    image: "memcached:1.5"
+    networks:
+      - app
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 128M
+
+secrets:
+  {{ application_secret_name }}:
+    external: true
+
+networks:
+  app:
+    driver: overlay
+
+  api_services:
+    external: true
+

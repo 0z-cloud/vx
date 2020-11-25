@@ -1,0 +1,34 @@
+# GET CLUSTER STATUS
+# - name: Get cluster state by calling - kubectl get nodes
+#   shell: kubectl get nodes
+#   register: kubectl_get_nodes
+
+# - name: Show output of kubectl get nodes
+#   debug:
+#     msg: "{{ kubectl_get_nodes }}"
+
+# # # - name: Copy result config to root home dir for able to manage the cluster
+# # #   command: "{{ item }}"
+# # #   with_items:
+# # #     - mkdir -p /root/.kube
+# # #     - cp -i /etc/kubernetes/admin.conf /root/.kube/config
+# # #   when: inventory_hostname in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+# # #   # when: inventory_hostname in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+
+
+# - name: Create kube-flannel default network
+#   shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml --kubeconfig /etc/kubernetes/admin.conf
+#   when: inventory_hostname in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+
+# - name: Create kube-flannel default network
+#   shell: kubectl apply -f /etc/kubernetes/kube-flannel.yaml --kubeconfig /etc/kubernetes/admin.conf
+#   when: inventory_hostname in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+
+# - name: Deploy dashboard
+#   shell: kubectl create -f /etc/kubernetes/dashboard.yaml --kubeconfig /etc/kubernetes/admin.conf
+#   when: inventory_hostname in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Gen_tokens | copy tokens generation script
+  shell: /opt/ca/kube/kube-gen-token.sh
+  run_once: yes
+  delegate_to: "{{ groups['kebernetes-master'][0] }}"

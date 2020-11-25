@@ -1,0 +1,577 @@
+####################################
+# GLOBAL NGINX CONFIG FOR SHARE
+# SELF.BOX.SELF
+#
+# Re/Includer
+#
+# __teraforma__
+#
+# origina.l i&>2 co.
+#
+# MAIN NGINX SETTINGS
+#
+# v.2.1.0-stable
+############
+## ALL SITES
+#
+
+### Main Sites
+ansible_global_www_site_name: "www.{{ public_consul_domain }}"
+ansible_global_prometheus_site_name: "prometheus.{{ public_consul_domain }}"
+ansible_global_grafana_site_name: "grafana.{{ public_consul_domain }}"
+ansible_global_alertmanager_site_name: "alertmanager.{{ public_consul_domain }}"
+ansible_global_consul_site_name: "consul.{{ public_consul_domain }}"
+ansible_global_primary_site_name: "{{ public_consul_domain }}"
+ansible_global_kibana_site_name: "kibana.{{ public_consul_domain }}"
+ansible_global_teamcity_site_name: "teamcity.{{ public_consul_domain }}"
+ansible_global_pgmanager_site_name: "pgmanager.{{ public_consul_domain }}"
+ansible_global_kubernetes_site_name: "kubernetes.{{ public_consul_domain }}"
+ansible_global_ogame_site_name: "ogame.{{ public_consul_domain }}"
+
+### Ossec & Wazuh
+ansible_global_wazuh_site_name: "wazuh.{{ public_consul_domain }}"
+
+### Gitlab & Docker registry
+ansible_global_gitlab_site_name: "gitlab.{{ public_consul_domain }}"
+ansible_global_gitlab_registry_site_name: "registry.{{ public_consul_domain }}"
+ansible_global_gitlab_registry_local_private_site_name: "dhub.{{ public_consul_domain }}"
+
+### NOT NEEDED SITES
+
+nginx_remove_sites: []
+
+### ALL SITES RESULT
+
+nginx_sites: "{{ nginx_result }}"
+
+#################
+## NGINX SETTINGS
+
+### Common HTTP Settings
+http_server:
+  max_request_length: 1191200
+  ## in kb
+  access_control_allow_origin: "$http_origin"
+  cdn_access_control_allow_origin: "*"
+
+#
+#######################################
+# ANSIBLE DICTIONARY LINKS AND MAPPINGS
+
+###
+#{ linked vars for on-fly merge, same for each inventories for nginx-frontend playbook }
+###
+nginx_configs_locations_kubernetes: "{{ ansible_environment }}_locations_kubernetes"
+nginx_configs_upstreams: "{{ ansible_environment }}_upstreams"
+nginx_configs_locations: "{{ ansible_environment }}_locations"
+nginx_configs_locations_main: "{{ ansible_environment }}_locations_main"
+nginx_configs_locations_teamcity: "{{ ansible_environment }}_locations_teamcity"
+nginx_configs_locations_pgmanager: "{{ ansible_environment }}_locations_pgmanager"
+nginx_configs_locations_core: "{{ ansible_environment }}_locations_core"
+nginx_configs_locations_metabase: "{{ ansible_environment }}_locations_metabase"
+nginx_configs_locations_prometheus: "{{ ansible_environment }}_locations_prometheus"
+nginx_configs_locations_grafana: "{{ ansible_environment }}_locations_grafana"
+nginx_configs_locations_alertmanager: "{{ ansible_environment }}_locations_alertmanager"
+nginx_configs_locations_wazuh: "{{ ansible_environment }}_locations_wazuh"
+nginx_configs_locations_www: "{{ ansible_environment }}_locations_www"
+nginx_configs_locations_jira: "{{ ansible_environment }}_locations_jira"
+nginx_configs_locations_sentry: "{{ ansible_environment }}_locations_sentry"
+nginx_configs_locations_consul: "{{ ansible_environment }}_locations_consul"
+nginx_configs_defaults: "{{ ansible_environment }}_defaults"
+nginx_configs_locations_acme_well_known: "{{ ansible_environment }}_locations_acme_well_known"
+nginx_configs_locations_acme: "{{ ansible_environment }}_locations_acme"
+nginx_configs_locations_gitlab: "{{ ansible_environment }}_locations_gitlab"
+nginx_configs_locations_registry: "{{ ansible_environment }}_locations_registry"
+nginx_configs_locations_kibana: "{{ ansible_environment }}_locations_kibana"
+nginx_configs_locations_nexus: "{{ ansible_environment }}_locations_nexus"
+nginx_configs_locations_admin_panel: "{{ ansible_environment }}_locations_admin_panel"
+nginx_configs_locations_backend: "{{ ansible_environment }}_locations_backend"
+nginx_configs_locations_frontend: "{{ ansible_environment }}_locations_frontend"
+nginx_configs_locations_cli: "{{ ansible_environment }}_locations_cli"
+nginx_configs_locations_mailer: "{{ ansible_environment }}_locations_mailer"
+nginx_configs_locations_febe_api: "{{ ansible_environment }}_locations_febe_api"
+nginx_configs_locations_dhub: "{{ ansible_environment }}_locations_dhub"
+nginx_configs_locations_ogame: "{{ ansible_environment }}_locations_ogame"
+
+#### Example
+# nginx_configs: "{{ nginx_config_defaults |combine(nginx_config_2, nginx_config_3) }}"
+# nginx_same: "{{ nginx_config_defaults |combine(nginx_config_locations) }}"
+####
+
+### SAME CONFIGS
+
+nginx_config_defaults:
+  "{
+    '{{ nginx_configs_defaults }}':
+         {{ config_defaults | list }}
+    }"
+
+nginx_configs:
+  "{
+    '{{ nginx_configs_upstreams }}':
+         {{ unification_upstreams | list }}
+    }"
+
+### LOCATIONS OF NGINX FRONTEND
+
+## PRIMARY WEB
+
+location_www:
+  - location / {
+    proxy_pass http://www_{{ ansible_environment }};
+    }
+
+## NETWORK STORAGES 
+
+location_nexus:
+  - location / {
+    proxy_pass http://nexus_{{ ansible_environment }};
+    }
+
+location_registry:
+  - location / {
+    proxy_pass https://registry_{{ ansible_environment }};
+    }
+
+location_dhub:
+  - location / {
+    proxy_pass https://dhub_{{ ansible_environment }};
+    }
+
+## OWN SERVICES
+
+location_mailer:
+  - location / {
+    proxy_pass http://mailer_{{ ansible_environment }};
+    }
+
+location_backend:
+  - location / {
+    proxy_pass http://backend_{{ ansible_environment }};
+    }
+
+location_frontend:
+  - location / {
+    proxy_pass http://frontend_{{ ansible_environment }};
+    }
+
+location_cli:
+  - location / {
+    proxy_pass http://cli_{{ ansible_environment }};
+    }
+
+location_wallet:
+  - location / {
+    proxy_pass http://wallet_{{ ansible_environment }};
+    }
+
+location_admin_panel:
+  - location / {
+    proxy_pass http://admin-panel_{{ ansible_environment }};
+    }
+
+location_febe_api:
+  - location / {
+    proxy_pass http://frontend_{{ ansible_environment }};
+    }
+  - location /api {
+    proxy_pass http://backend_{{ ansible_environment }};
+    }
+
+# default endpoint: see and read in faq about groups['core'] which used as default cluster platform placement.
+
+location_core:
+  - location / {
+    proxy_pass http://core_{{ ansible_environment }};
+    }
+
+location_ogame:
+  - location / {
+    proxy_pass http://ogame_{{ ansible_environment }};
+    }
+## CLUSTER SERVICES
+
+location_kubernetes:
+  - location / {
+    proxy_pass http://kubernetes_{{ ansible_environment }};
+    }
+
+location_pgmanager:
+  - location / {
+    proxy_pass http://pgmanager_{{ ansible_environment }};
+    }
+
+## MANAGEMENT SERVICES
+
+location_jira:
+  - location / {
+    proxy_pass http://jira_{{ ansible_environment }};
+    }
+
+location_wazuh:
+  - location / {
+    proxy_pass http://wazuh_{{ ansible_environment }};
+    auth_basic "Restricted";
+    auth_basic_user_file /mnt/cloud-bind-frontend-dns-glusterfs-storage/secured/.htpasswd;
+    }
+
+## SERVICE DISCOVERY
+
+location_consul:
+  - location / {
+    proxy_pass http://consul_{{ ansible_environment }};
+    }
+
+## ACME CA
+
+location_acme_well_known:
+  - location ^~ /.well-known/acme-challenge/ {
+    alias /core_root/raw_core/opt/nginx-acme/.well-known/acme-challenge/;
+    allow all;
+    }
+
+location_acme:
+  - location / {
+    proxy_pass http://acme_{{ ansible_environment }};
+    proxy_http_version  1.1;
+    proxy_set_header    X-Forwarded-For $remote_addr;
+    proxy_set_header    Host $server_name:$server_port;
+    }
+
+## CRASH CONTROL SERIVCES
+
+location_sentry:
+  - location / {
+    proxy_pass http://sentry_{{ ansible_environment }};
+    }
+
+## CONTINIOUS INTEGRATION AND CONTINIOUS DELIVERY SERVICES
+
+location_teamcity:
+  - location / {
+    proxy_pass http://teamcity_{{ ansible_environment }};
+    }
+
+## ANALYTICS SERVICES
+
+location_metabase:
+  - location / {
+    proxy_pass http://metabase_{{ ansible_environment }};
+    }
+
+## VERSION CONTROL SERVICES
+
+location_gitlab:
+  - location / {
+    proxy_pass https://gitlab_{{ ansible_environment }};
+    }
+
+## ONLINE LOGGING SERVICES - MONITORING AND ANALYZING OF JOURNALS AND METRICS
+
+location_kibana:
+  - location / {
+    proxy_pass http://kibana_{{ ansible_environment }};
+    auth_basic "Restricted";
+    auth_basic_user_file /mnt/cloud-bind-frontend-dns-glusterfs-storage/secured/.htpasswd;
+    }
+
+## PLATFORM MONITORING SERVICES
+
+location_grafana:
+  - location / {
+    proxy_pass http://grafana_{{ ansible_environment }};
+    }
+
+location_prometheus:
+  - location / {
+    proxy_pass http://prometheus_{{ ansible_environment }};
+    auth_basic "Restricted";
+    auth_basic_user_file /mnt/cloud-bind-frontend-dns-glusterfs-storage/secured/.htpasswd;
+    }
+
+location_alertmanager:
+  - location / {
+    proxy_pass http://alertmanager_{{ ansible_environment }};
+    auth_basic "Restricted";
+    auth_basic_user_file /mnt/cloud-bind-frontend-dns-glusterfs-storage/secured/.htpasswd;
+    }
+
+### LOCATIONS CONFIGS
+
+nginx_config_locations_ogame:
+  "{
+    '{{ nginx_configs_locations_ogame }}':
+         {{ location_ogame | list }}
+    }"
+
+nginx_config_locations_frontend:
+  "{
+    '{{ nginx_configs_locations_frontend }}':
+         {{ location_frontend | list }}
+    }"
+
+nginx_config_locations_backend:
+  "{
+    '{{ nginx_configs_locations_backend }}':
+         {{ location_backend | list }}
+    }"
+
+nginx_config_locations_nexus:
+  "{
+    '{{ nginx_configs_locations_nexus }}':
+         {{ location_nexus | list }}
+    }"
+
+nginx_config_locations_dhub:
+  "{
+    '{{ nginx_configs_locations_dhub }}':
+          {{ location_dhub | list }}
+    }"
+
+nginx_config_locations_mailer:
+  "{
+    '{{ nginx_configs_locations_mailer }}':
+         {{ location_mailer | list }}
+    }"
+
+nginx_config_locations_kubernetes:
+  "{
+    '{{ nginx_configs_locations_kubernetes }}':
+         {{ location_kubernetes | list }}
+    }"
+
+nginx_config_locations_pgmanager:
+  "{
+    '{{ nginx_configs_locations_pgmanager }}':
+         {{ location_pgmanager | list }}
+    }"
+
+nginx_config_locations_www:
+  "{
+    '{{ nginx_configs_locations_www }}':
+         {{ location_www | list }}
+    }"
+
+nginx_config_locations_alertmanager:
+  "{
+    '{{ nginx_configs_locations_alertmanager }}':
+         {{ location_alertmanager | list }}
+    }"
+
+nginx_config_locations_prometheus:
+  "{
+    '{{ nginx_configs_locations_prometheus }}':
+         {{ location_prometheus | list }}
+    }"
+
+nginx_config_locations_grafana:
+  "{
+    '{{ nginx_configs_locations_grafana }}':
+         {{ location_grafana | list }}
+    }"
+
+nginx_config_locations_wazuh:
+  "{
+    '{{ nginx_configs_locations_wazuh }}':
+         {{ location_wazuh | list }}
+    }"
+
+nginx_config_locations_registry:
+  "{
+    '{{ nginx_configs_locations_registry }}':
+         {{ location_registry | list }}
+    }"
+
+nginx_config_locations_gitlab:
+  "{
+    '{{ nginx_configs_locations_gitlab }}':
+         {{ location_gitlab | list }}
+    }"
+
+nginx_config_locations_jira:
+  "{
+    '{{ nginx_configs_locations_jira }}':
+         {{ location_jira | list }}
+    }"
+
+nginx_config_locations_acme_well_known:
+  "{
+    '{{ nginx_configs_locations_acme_well_known }}':
+         {{ location_acme_well_known | list }}
+    }"
+
+nginx_config_locations_teamcity:
+  "{
+    '{{ nginx_configs_locations_teamcity }}':
+         {{ location_teamcity | list }}
+    }"
+
+nginx_config_locations_admin_panel:
+  "{
+    '{{ nginx_configs_locations_admin_panel }}':
+         {{ location_admin_panel | list }}
+    }"
+
+nginx_config_locations_cli:
+  "{
+    '{{ nginx_configs_locations_cli }}':
+         {{ location_cli | list }}
+    }"
+
+nginx_config_locations_febe_api:
+  "{
+    '{{ nginx_configs_locations_febe_api }}':
+         {{ location_febe_api | list }}
+    }"
+
+nginx_config_locations_core:
+  "{
+    '{{ nginx_configs_locations_core }}':
+         {{ location_core | list }}
+    }"
+
+nginx_config_locations_consul:
+  "{
+    '{{ nginx_configs_locations_consul }}':
+         {{ location_consul | list }}
+    }"
+
+nginx_config_locations_metabase:
+  "{
+    '{{ nginx_configs_locations_metabase }}':
+         {{ location_metabase | list }}
+    }"
+
+nginx_config_locations_kibana:
+  "{
+    '{{ nginx_configs_locations_kibana }}':
+         {{ location_kibana | list }}
+    }"
+
+nginx_config_locations_sentry:
+  "{
+    '{{ nginx_configs_locations_sentry }}':
+         {{ location_sentry | list }}
+    }"
+
+### DEFAULT SITES
+## Vx Make
+projects_default_sites:
+  # - {
+  #   name: "{{ ansible_global_kubernetes_site_name }}",
+  #   published: "enabled",
+  #   value: "wildcard",
+  #   prefix: "{{ ansible_global_kubernetes_site_name }}",
+  #   type: "{{ ansible_global_kubernetes_site_name }}",
+  #   location: "kubernetes",
+  #   config: "defaults"
+  # }
+  # # { consul }
+  - {
+    name: "{{ ansible_global_consul_site_name }}",
+    published: "enabled",
+    value: "wildcard",
+    prefix: "{{ ansible_global_consul_site_name }}",
+    type: "{{ ansible_global_consul_site_name }}",
+    location: "consul",
+    config: "defaults"
+  } # { teamcity }
+  - {
+    name: "{{ ansible_global_teamcity_site_name }}",
+    published: "enabled",
+    value: "wildcard",
+    prefix: "{{ ansible_global_teamcity_site_name }}",
+    type: "{{ ansible_global_teamcity_site_name }}",
+    location: "teamcity",
+    config: "defaults"
+  } # { kibana }
+  - {
+    name: "{{ ansible_global_kibana_site_name }}",
+    published: "enabled",
+    value: "wildcard",
+    prefix: "{{ ansible_global_kibana_site_name }}",
+    type: "{{ ansible_global_kibana_site_name }}",
+    location: "kibana",
+    config: "defaults"
+  } # { teamcity }
+  - {
+    name: "{{ ansible_global_gitlab_registry_local_private_site_name }}",
+    published: "enabled",
+    value: "wildcard",
+    prefix: "{{ ansible_global_gitlab_registry_site_name }}",
+    type: "{{ ansible_global_gitlab_registry_site_name }}",
+    location: "registry",
+    config: "defaults"
+  } # { global gitlab registry site name }
+  - {
+    name: "{{ ansible_global_gitlab_registry_site_name }}",
+    published: "enabled",
+    value: "wildcard",
+    prefix: "{{ ansible_global_gitlab_registry_site_name }}",
+    type: "{{ ansible_global_gitlab_registry_site_name }}",
+    location: "registry",
+    config: "defaults"
+  } # { primary site name }
+  - {
+    name: "{{ ansible_global_primary_site_name }}",
+    published: "enabled",
+    value: "primary",
+    prefix: "{{ ansible_global_primary_site_name }}",
+    type: "{{ ansible_global_primary_site_name }}",
+    location: "www",
+    config: "defaults"
+  } # { primary gitlab site name }
+  - {
+    name: "{{ ansible_global_gitlab_site_name }}",
+    published: "enabled",
+    value: "wildcard",
+    prefix: "{{ ansible_global_gitlab_site_name }}",
+    type: "{{ ansible_global_gitlab_site_name }}",
+    location: "gitlab",
+    config: "defaults"
+  } # { primary grafana name }
+  - {
+    name: "{{ ansible_global_grafana_site_name }}",
+    published: "enabled",
+    value: "wildcard",
+    prefix: "{{ ansible_global_grafana_site_name }}",
+    type: "{{ ansible_global_grafana_site_name }}",
+    location: "grafana",
+    config: "defaults"
+  } # { primary prometheus name }
+  - {
+    name: "{{ ansible_global_prometheus_site_name }}",
+    published: "enabled",
+    value: "wildcard",
+    prefix: "{{ ansible_global_prometheus_site_name }}",
+    type: "{{ ansible_global_prometheus_site_name }}",
+    location: "prometheus",
+    config: "defaults"
+  } # { primary site name }
+  - {
+    name: "{{ ansible_global_alertmanager_site_name }}",
+    published: "enabled",
+    value: "wildcard",
+    prefix: "{{ ansible_global_alertmanager_site_name }}",
+    type: "{{ ansible_global_alertmanager_site_name }}",
+    location: "alertmanager",
+    config: "defaults"
+  }
+  # - {
+  #   name: "{{ ansible_global_wazuh_site_name }}",
+  #   published: "enabled",
+  #   value: "wildcard",
+  #   prefix: "{{ ansible_global_wazuh_site_name }}",
+  #   type: "{{ ansible_global_wazuh_site_name }}",
+  #   location: "wazuh",
+  #   config: "defaults"
+  # }
+  # - {
+  #   name: "{{ ansible_global_pgmanager_site_name }}",
+  #   published: "enabled",
+  #   value: "wildcard",
+  #   prefix: "{{ ansible_global_pgmanager_site_name }}",
+  #   type: "{{ ansible_global_pgmanager_site_name }}",
+  #   location: "pgmanager",
+  #   config: "defaults"
+  # }

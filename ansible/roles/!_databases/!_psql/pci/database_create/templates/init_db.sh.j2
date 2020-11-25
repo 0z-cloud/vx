@@ -1,0 +1,206 @@
+#!/bin/bash
+
+rm -rf /tmp/inventory_${ansible_product}_${ansible_run_environment}
+
+ansible_run_environment=$1
+ansible_product=$2
+
+ansible_production_env=production
+echo "ansible_run_environment: $ansible_run_environment"
+
+SWARM_LEADER=`docker node ls --format "{% raw %}{{.Hostname}} {{.ManagerStatus}}{% endraw %}" | grep Leader | awk '{print $1}'`
+echo "SWARM_LEADER: $SWARM_LEADER"
+
+if [ "$ansible_run_environment" != "$ansible_production_env" ]; then
+
+    echo "inventory not a production"
+    echo "sed 's/$ansible_production_env/$ansible_run_environment/'"
+    remapper_leader=`echo $SWARM_LEADER | sed "s|${ansible_production_env}|${ansible_run_environment}|g"`
+    echo "remapper_leader $remapper_leader"
+
+fi
+
+IFS=""
+
+{% for key,value in primary_databases_for_services.items() %}
+
+#SERVICENAME {{ key }}
+
+service_name={{ key }}
+run_container={{ value.run_container }}
+db_container={{ value.db_container }}
+db_name={{ value.db_name }}
+full_service_name="${ansible_product}-${ansible_run_environment}_${run_container}"
+echo "full_service_name $full_service_name"
+
+# DATABASE PART
+
+db_service_name="${ansible_product}-${ansible_run_environment}_${db_container}"
+echo "db_service_name $db_service_name"
+
+db_service_locator=`docker service ps ${db_service_name} -q --no-trunc | head -n1`
+echo "db_service_locator $db_service_locator"
+
+db_worker_locator=`docker service ps ${db_service_name} | head -2 | awk '{print $4}' | head -n2 | tail -n +2`
+echo "db_worker_locator $db_worker_locator"
+
+echo '[db_worker_locator]' >> /tmp/inventory_${ansible_product}_${ansible_run_environment}
+
+echo $db_worker_locator >> /tmp/inventory_${ansible_product}_${ansible_run_environment}
+
+#ansible -m ping -i /tmp/inventory_${ansible_product}_${ansible_run_environment} db_worker_locator
+
+#CHECK DBs SECTION
+
+db_service_stack_name="${db_service_name}.1.${db_service_locator}"
+echo "db_service_stack_name: $db_service_stack_name"
+
+check_database_exists=`ansible -m shell -a "docker exec $db_service_stack_name /bin/sh -c 'psql -lqt -h localhost -p 5432 -U postgres | cut -d \| -f 1 | grep -qw ${db_name}'" -i /tmp/inventory_${ansible_product}_${ansible_run_environment} db_worker_locator`
+echo "check_database_exists: $check_database_exists"
+
+validation_of_db_already_exists=`echo $check_database_exists | grep -c -v 'CHANGED'`
+echo "validation_of_db_already_exists $validation_of_db_already_exists"
+
+db_commands=({% for item in value.db_commands %}
+    '{{ item | join }}'
+    {% endfor %}
+)
+
+# run_commands=({% for item in value.run_commands %}
+#     '{{ item | join }}'
+#     {% endfor %}
+# )
+
+# migrate_commands=({% for item in value.migrate_commands %}
+#     '{{ item | join }}'
+#     {% endfor %}
+# )
+
+if [ $validation_of_db_already_exists -eq 0 ]; then
+
+    echo "Already exists DB: $db_name"
+
+    service_locator=`docker service ps ${full_service_name} -q --no-trunc | head -n1`
+    echo "service_locator $service_locator"
+
+    worker_locator=`docker service ps ${full_service_name} | head -2 | awk '{print $4}' | head -n2 | tail -n +2`
+    echo "worker_locator $worker_locator"
+
+    echo '[worker_locator]' >> /tmp/inventory_${ansible_product}_${ansible_run_environment}
+    echo $worker_locator >> /tmp/inventory_${ansible_product}_${ansible_run_environment}
+
+    app_service_stack_name="${full_service_name}.1.${service_locator}"
+    echo "app_service_stack_name: $app_service_stack_name"
+
+    app_service_image=`docker service ps ${full_service_name} | head -2 | awk '{print $3}' | head -n2 | tail -n +2`
+    echo "app_service_image: $app_service_image"
+
+
+    for i in ${migrate_commands[@]}; do
+
+      if [ $i == "echo 1" ]; 
+        
+      then 
+        
+        echo 0; 
+      
+      else 
+
+        echo "RUN COMMAND $i;"
+
+        timestamp=`date +%s`
+
+        docker_commit_command=`ansible -m shell -a "docker commit --message=\"Migration of $service_name\" ${app_service_stack_name} ${service_name}:${timestamp}" -i /tmp/inventory_${ansible_product}_${ansible_run_environment} worker_locator`
+        echo "docker_commit_command: $docker_commit_command"
+
+        docker_check_exists_and_remove=`ansible -m shell -a "docker rm -f ${service_name}_migrate" -i /tmp/inventory_${ansible_product}_${ansible_run_environment} worker_locator`
+        echo "docker_run_migrate_command: $docker_check_exists_and_remove"
+
+        docker_run_migrate_command=`ansible -m shell -a "docker run --name ${service_name}_migrate --network ${ansible_product}-${ansible_run_environment}_default --rm ${service_name}:${timestamp} ${i}" -i /tmp/inventory_${ansible_product}_${ansible_run_environment} worker_locator`
+        echo "docker_run_migrate_command: $docker_run_migrate_command"
+      
+      fi;
+
+    done
+
+else 
+
+    echo "DB not exists: $db_name"
+
+    echo "Create database $db_name"
+
+    for i in ${db_commands[@]}; do
+
+      if [ $i == "echo 1" ]; 
+        
+      then 
+        
+        echo 0; 
+      
+      else 
+
+        echo "DB COMMAND $i;"
+        echo "fullstring: ansible -m shell -a \"docker exec $db_service_stack_name /bin/sh -c '$i' -l postgres\" -i /tmp/inventory_${ansible_product}_${ansible_run_environment} db_worker_locator"
+        
+        ansible_run_string=`echo "ansible -m shell -a \"docker exec $db_service_stack_name /bin/sh -c '$i' -l postgres\" -i /tmp/inventory_${ansible_product}_${ansible_run_environment} db_worker_locator"`
+        echo "ansible_run_string: $ansible_run_string"
+        
+        create_database=`eval $ansible_run_string`
+        echo "create_database: $create_database"
+
+      fi
+
+    done
+
+    sleep 20
+
+    #SERVICE PART
+
+    service_locator=`docker service ps ${full_service_name} -q --no-trunc | head -n1`
+    echo "service_locator $service_locator"
+
+    worker_locator=`docker service ps ${full_service_name} | head -2 | awk '{print $4}' | head -n2 | tail -n +2`
+    echo "worker_locator $worker_locator"
+
+    echo '[worker_locator]' >> /tmp/inventory_${ansible_product}_${ansible_run_environment}
+    echo $worker_locator >> /tmp/inventory_${ansible_product}_${ansible_run_environment}
+
+    app_service_stack_name="${full_service_name}.1.${service_locator}"
+    echo "app_service_stack_name: $app_service_stack_name"
+
+    app_service_image=`docker service ps ${full_service_name} | head -2 | awk '{print $3}' | head -n2 | tail -n +2`
+    echo "app_service_image: $app_service_image"
+
+    for i in ${run_commands[@]}; do
+       
+      if [ $i == "echo 1" ]; 
+        
+      then 
+        
+        echo 0; 
+      
+      else 
+
+        echo "RUN COMMAND $i;"
+
+        timestamp=`date +%s`
+
+
+        docker_commit_command=`ansible -m shell -a "docker commit --message=\"Migration of $service_name\" ${app_service_stack_name} ${service_name}:${timestamp}" -i /tmp/inventory_${ansible_product}_${ansible_run_environment} worker_locator`
+        echo "docker_commit_command: $docker_commit_command"
+
+        docker_check_exists_and_remove=`ansible -m shell -a "docker rm -f ${service_name}_migrate" -i /tmp/inventory_${ansible_product}_${ansible_run_environment} worker_locator`
+        echo "docker_run_migrate_command: $docker_check_exists_and_remove"
+
+        docker_run_migrate_command=`ansible -m shell -a "docker run --name ${service_name}_migrate --network ${ansible_product}-${ansible_run_environment}_default --rm ${service_name}:${timestamp} ${i}" -i /tmp/inventory_${ansible_product}_${ansible_run_environment} worker_locator`
+        echo "docker_run_migrate_command: $docker_run_migrate_command"
+      
+      fi
+
+    done
+
+fi
+
+rm /tmp/inventory_${ansible_product}_${ansible_run_environment}
+
+{% endfor %}

@@ -1,0 +1,7 @@
+- name: Apt add specified repository to a sources list
+  apt_repository:
+    repo: "{{ item }}"
+    state: present
+  with_items: "{{ apt_add_repo }}"
+  tags:
+    - apt_add_repo

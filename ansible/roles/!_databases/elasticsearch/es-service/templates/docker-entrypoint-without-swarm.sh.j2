@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# sleep for bootstrap
+
+sleep 60
+
+set -e
+
+# ContainerID=$(cat /proc/self/cgroup | grep "docker" | sed s/\\//\\n/g | tail -1)
+# HOSTNAME_IP={{ ansible_default_ipv4['address'] }}
+# ContainerHostIP_FromCurl=$(curl -s  http://$HOSTNAME_IP:2375/containers/$ContainerID/json | grep -E -o "(172?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[2-9][0-9]?)" | uniq)
+
+# export CONTAINER_ID=$ContainerID
+
+# export CONTAINER_HOST_IP=$ContainerHostIP_FromCurl
+
+# if [ -f /usr/share/elasticsearch/config/second_elasticsearch.yml ] ; then
+# rm /usr/share/elasticsearch/config/second_elasticsearch.yml
+# fi
+
+# cat /usr/share/elasticsearch/config/prepare_elasticsearch.yml | sed -e "s/transport.profiles.client.bind_host:.*/transport.profiles.client.bind_host: $CONTAINER_HOST_IP/" -e "s/transport.profiles.client.publish_host:.*/transport.profiles.client.publish_host: $CONTAINER_HOST_IP/" > /usr/share/elasticsearch/config/second_elasticsearch.yml
+
+# cp -R /usr/share/elasticsearch/config/second_elasticsearch.yml /usr/share/elasticsearch/config/elasticsearch.yml
+
+# Add elasticsearch as command if needed
+if [ "${1:0:1}" = '-' ]; then
+	set -- elasticsearch "$@"
+fi
+
+# Drop root privileges if we are running elasticsearch
+# allow the container to be started with `--user`
+if [ "$1" = 'elasticsearch' -a "$(id -u)" = '0' ]; then
+	# Change the ownership of /usr/share/elasticsearch/data to elasticsearch
+	chown -R elasticsearch:elasticsearch /usr/share/elasticsearch/data
+	
+	set -- gosu elasticsearch "$@"
+	#exec gosu elasticsearch "$BASH_SOURCE" "$@"
+fi
+
+# As argument is not related to elasticsearch,
+# then assume that user wants to run his own process,
+# for example a `bash` shell to explore this image
+exec "$@"

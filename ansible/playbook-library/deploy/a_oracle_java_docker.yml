@@ -1,0 +1,43 @@
+
+- name: Fact gathering
+  hosts: devops-deploy-hunter:{{ KEEPALIVED_HOSTS }}:{{ TARGET_CLUSTER }}
+  vars_prompt:
+
+  - name: KEEPALIVED_HOSTS
+    promt: "Pass the Keepalived Hosts which make a Drain Targets"
+
+  - name: TARGET_CLUSTER
+    prompt: "Target Cluster for deploy"
+
+  - name: APPLICATION_TO_DEPLOY
+    prompt: "Application to deploy, can be: 'all', or string with values separated by comma: 'gate,processing-sandbox,etc'"
+
+  tasks: []
+  tags: [get_facts, always]
+
+#
+
+- name: Run full deploy for container with specific application
+  hosts: devops-deploy-hunter
+
+  tasks:
+    - include_vars:
+        file: "{{ inventory_dir }}/group_vars/{{ item }}.yml"
+      with_items:
+        - java
+
+# NOW SIMPLE WANTS WITH KEEPALIVE DRAIN EACH
+
+    - include_vars:
+        file: "{{ inventory_dir }}/group_vars/{{ item }}.yml"
+
+    - include_role:
+        name: "./!_deploy/oracle-java-docker"
+      vars:
+        application_name: "{{ item }}"
+        HOSTS: "{{ HOSTS }}"
+        TARGET_CLUSTER: "{{ TARGET_CLUSTER }}"
+        APPLICATION_TO_DEPLOY: "{{ APPLICATION_TO_DEPLOY }}"
+
+    - include_role:
+        name: ./!_cloud/consul/magic-join

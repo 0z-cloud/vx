@@ -1,0 +1,25 @@
+
+# - name: Replace line
+#   lineinfile: 
+#       dest: /etc/rsyslog.d/50-default.conf
+#       regexp: "^\\*.*auth,authpriv.none*.*"  
+#       line: 'if {% for item in application_logs_tags[magic2 | join] %}{% raw %}not ($syslogtag=="{% endraw %}{{ item | join }}{% raw %}" ){% endraw %}{% if not loop.last %}{% raw %} and {% endraw %}{% endif %}{% endfor %} then -/var/log/syslog'
+
+# - name: Remove line
+#   lineinfile: 
+#       dest: /etc/rsyslog.d/50-default.conf
+#       regexp: '^\\*.*if {% for item in application_logs_tags[magic2 | join] %}{% raw %}not ($syslogtag=="{% endraw %}{{ item | join }}{% raw %}" ){% endraw %}{% if not loop.last %}{% raw %} and {% endraw %}{% endif %}{% endfor %} then -/var/log/syslog*.*'  
+#       state: absent
+
+
+# - name: Remove line
+#   lineinfile: 
+#       dest: /etc/rsyslog.d/50-default.conf
+#       regexp: '^*.*if {% for item in application_logs_tags[magic2 | join] %}{% raw %}not ($syslogtag=="{% endraw %}{{ item | join }}{% raw %}:" ){% endraw %}{% if not loop.last %}{% raw %} and {% endraw %}{% endif %}{% endfor %} then -/var/log/syslog*.*'  
+#       state: absent
+
+# - name: Replace line
+#   lineinfile: 
+#       dest: /etc/rsyslog.d/50-default.conf
+#       regexp: '^\\*.*if {% for item in application_logs_tags[magic2 | join] %}{% raw %}not ($syslogtag=="{% endraw %}{{ item | join }}{% raw %}" ){% endraw %}{% if not loop.last %}{% raw %} and {% endraw %}{% endif %}{% endfor %} then -/var/log/syslog*.*'  
+#       line: 'if {% for item in application_logs_tags[magic2 | join] %}{% raw %}not ($syslogtag=="{% endraw %}{{ item | join }}{% raw %}:" ){% endraw %}{% if not loop.last %}{% raw %} and {% endraw %}{% endif %}{% endfor %} then -/var/log/syslog'

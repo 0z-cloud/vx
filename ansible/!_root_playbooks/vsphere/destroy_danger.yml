@@ -1,0 +1,30 @@
+####
+
+- name: ['vsphere':] Destroy infrastructure from localhost to ESXi Vcenter Appliance
+  hosts: localhost
+  #strategy: free
+  gather_facts: False
+  tasks:
+
+    - name: Load groupvars/product global shared settings
+      include_vars: group_vars/products/{{ ansible_product }}/{{ item }}.yml
+      with_items:
+        - vsphere
+        - main
+
+    - name: Load groupvars/product global shared settings
+      include_vars: group_vars/products/{{ ansible_product }}/{{ ansible_environment }}/{{ item }}.yml
+      with_items:
+        - attached
+        - main
+
+  
+- name: ['vsphere':] Starting the instance bootstrap and check
+  hosts: localhost
+  roles:
+
+      # - name: Include role Network Zone maintain
+      #   role: ./!_cloud/dc_integration/vsphere/network
+
+      - name: Include role vSwitch Zone maintain
+        role: ./!_cloud/dc_integration/vsphere/instance/destroy

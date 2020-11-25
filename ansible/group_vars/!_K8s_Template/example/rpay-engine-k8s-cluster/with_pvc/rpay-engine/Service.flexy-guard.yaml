@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: flexy-guard
+    chart: flexy-guard-0.1.0
+    heritage: Tiller
+    io.cattle.field/appId: rpay-engine
+    release: rpay-engine
+  name: flexy-guard
+  selfLink: /api/v1/namespaces/rpay-engine/services/flexy-guard
+spec:
+  ports:
+  - port: 5000
+    protocol: TCP
+    targetPort: 5000
+  selector:
+    app: flexy-guard
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}

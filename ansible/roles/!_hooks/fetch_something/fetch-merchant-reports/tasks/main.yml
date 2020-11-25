@@ -1,0 +1,11 @@
+- name: Debug files to fetch
+  debug:
+   msg: "{{ item }}"
+  with_items: "{{ files_to_fetch.files }}"
+
+- name: Fetch the files from Merchant Reports Service
+  fetch:
+    src: "{{ files_to_fetch.path }}/{{ item }}"
+    dest: /tmp/vortex-merchant-reports/{{ item }}
+    flat: yes
+  with_items: "{{ files_to_fetch.files }}" 

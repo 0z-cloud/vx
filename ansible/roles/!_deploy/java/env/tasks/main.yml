@@ -1,0 +1,4 @@
+- name: Input CATALINA_OPTS /etc/environment
+  lineinfile:                                                       
+    path: /etc/environment
+    line: 'CATALINA_OPTS={{ tomcat_properties.options.CATALINA_OPTS }}'

@@ -1,0 +1,53 @@
+# - name: Adding ppa repository for apache2
+#   apt_repository:
+#     repo: 'ppa:ondrej/apache2'
+#     state: present
+
+- name: Installing packages for apache2 mod security
+  apt:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    # - libapache2-modsecurity
+    - modsecurity-crs
+    - libapache2-mod-security2
+    - libyajl2
+    - apache2
+    - apache2-bin
+    - apache2-data
+    - apache2-utils
+
+- name: Creating necessary path's
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - /etc/apache2/mod_security_rules/activated_rules/
+    - /etc/modsecurity/
+
+- name: Template crs-setup.conf after creating path's
+  template:
+    src: crs-setup.conf
+    dest: /etc/apache2/mod_security_rules/crs-setup.conf
+
+- name: Template modsecurity.conf after creating path's
+  template:
+    src: modsecurity.conf
+    dest: /etc/modsecurity/modsecurity.conf
+
+- name: Template security2.conf after creating path's
+  template:
+    src: security2.conf
+    dest: /etc/apache2/mods-enabled/security2.conf
+
+- name: Placing security rules to rules path
+  copy:
+    src: "{{ item }}"
+    dest: /etc/apache2/mod_security_rules/activated_rules/
+  with_fileglob:
+    - files/*
+
+- name: Restarting apache2
+  service:
+    name: apache2
+    state: restarted

@@ -1,0 +1,16 @@
+
+{% for item in nginx_sites %}{% raw %}
+<source>
+    @type tail
+    path {% endraw %}{{ nginx_log_dir }}/{{ nginx_sites_log_dir }}/{{ item['name'] | join }}{% raw %}.error.log
+    pos_file {% endraw %}/positions/{{ item['name'] | join }}{% raw %}.error.log.pos
+    <parse>
+        @type grok
+        grok_pattern %{NGINXACCESS}
+        custom_pattern_path /fluentd/etc
+        grok_failure_key grokfailure
+    </parse>
+    tag nginx.error
+</source>
+{% endraw %}
+{%- endfor -%}

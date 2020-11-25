@@ -1,0 +1,313 @@
+<?php
+
+$_Lang['UserDevScanner_Title']              = 'Skanowanie rozwoju Gracza';
+
+$_Lang['Table_Header']                      = 'Skanowanie Gracza (EKSPERYMENTALNE)';
+$_Lang['Table_Form_UID']                    = 'Podaj ID Gracza';
+$_Lang['Table_Form_Username']               = 'lub Nazwę Gracza';
+$_Lang['Table_Form_Submit']                 = 'Skanuj!';
+
+$_Lang['Error_UserNoExist']                 = 'Taki Gracz nie istnieje!';
+$_Lang['Error_BadPost']                     = 'Nie podano ani ID ani Nazwy Gracza!';
+
+$_Lang['Table2_Header']                     = 'Wynik Skanowania Rozwoju gracza';
+$_Lang['Table2_GoBack']                     = 'Powrót';
+$_Lang['Table2_CollExp']                    = 'Rozwiń/Zwiń';
+$_Lang['Table2_Username']                   = 'Nazwa Gracza';
+$_Lang['Table2_UID']                        = 'ID Gracza';
+
+$_Lang['Table2_ScanedLogs']                 = 'Ilość zeskanowanych Logów';
+$_Lang['Table2_ScanTime']                   = 'Czas skanowania';
+$_Lang['Table2_DumpDate']                   = 'Data zrzutu';
+$_Lang['Table2_DateDifference']             = 'Różnica czasu';
+
+$_Lang['Table2_SummaryResult']              = 'Podsumowanie';
+$_Lang['Table2_FoundFatals']                = 'Fatalne błędy';
+$_Lang['Table2_FoundWarnings']              = 'Ostrzeżenia';
+$_Lang['Table2_FoundNotices']               = 'Powiadomienia';
+
+$_Lang['Table2_OccurrenceIndex']            = 'Index';
+$_Lang['Table2_OccurrenceText']             = 'Rodzaj';
+$_Lang['Table2_LogID']                      = 'LogID';
+$_Lang['Table2_OccurrenceData']             = 'Dane';
+
+$_Lang['Scripts'] = [
+    1 => 'SetNextQueueElementOnTop',
+    2 => 'CancelBuildingFromQueue',
+    3 => 'CheckPlanetBuildingQueue',
+    4 => 'HandlePlanetQueue_TechnologySetNext / TechQueue_Remove',
+    5 => 'HandlePlanetQueue_OnTechnologyEnd',
+    6 => 'FleetBuildingPage',
+    7 => 'DefensesBuildingPage',
+    8 => 'PlanetResourceUpdate',
+    9 => 'galaxyfleet',
+    10 => 'fleet3',
+    11 => 'sendmissiles',
+    12 => 'MissionCaseAttack',
+    13 => 'MissionCaseGroupAttack',
+    14 => 'MissionCaseColonisation',
+    15 => 'MissionCaseDestruction',
+    16 => 'MissionCaseMIP',
+    17 => 'MissionCaseRecycling',
+    18 => 'MissionCaseSpy',
+    19 => 'MissionCaseTransport',
+    20 => '-',
+    21 => 'RestoreFleetToPlanet',
+    22 => 'resources',
+    23 => 'merchant',
+    24 => 'disassembler',
+    31 => 'MissionCaseExpedition',
+];
+
+$_Lang['FoundSummarys'] = [
+    '000' => [
+        'ok' => 'Wszystko jest w porządku...',
+        'found_problems' => 'Wykryto następujące Konflikty:'
+    ],
+    '001' => [
+        'label' => 'Niedobór Elementu',
+        'msgGenerator' => function ($params, $_Lang) {
+            $lines = [
+                "Planeta: {$params['PlanetID']}",
+                "Nazwa elementu: {$_Lang['tech'][$params['ElementID']]}",
+                ("Wyliczony wynik: " . prettyNumber($params['Data'][0])),
+                ("Aktualna liczba: " . prettyNumber($params['Data'][1])),
+                ("Procent: " . sprintf('%0.2f', $params['Data'][2] * 100) . "%")
+            ];
+
+            return implode('<br/>', $lines);
+        },
+    ],
+    '002' => [
+        'label' => 'Nadmiar Elementu',
+        'msgGenerator' => function ($params, $_Lang) {
+            $lines = [
+                "Planeta: {$params['PlanetID']}",
+                "Nazwa elementu: {$_Lang['tech'][$params['ElementID']]}",
+                ("Wyliczony wynik: " . prettyNumber($params['Data'][0])),
+                ("Aktualna liczba: " . prettyNumber($params['Data'][1])),
+                ("Procent: " . sprintf('%0.2f', $params['Data'][2] * 100) . "%")
+            ];
+
+            return implode('<br/>', $lines);
+        },
+    ],
+    '003' => [
+        'label' => 'Niedobór Surowca',
+        'msgGenerator' => function ($params, $_Lang) {
+            $lines = [
+                "Planeta: {$params['PlanetID']}",
+                "Surowiec: {$params['ElementID']}",
+                ("Wyliczony wynik: " . prettyNumber($params['Data'][0])),
+                ("Aktualna ilość: " . prettyNumber($params['Data'][1])),
+                ("Procent: " . sprintf('%0.2f', $params['Data'][2] * 100) . "%")
+            ];
+
+            return implode('<br/>', $lines);
+        },
+    ],
+    '004' => [
+        'label' => 'Nadmiar Surowca',
+        'msgGenerator' => function ($params, $_Lang) {
+            $lines = [
+                "Planeta: {$params['PlanetID']}",
+                "Surowiec: {$params['ElementID']}",
+                ("Wyliczony wynik: " . prettyNumber($params['Data'][0])),
+                ("Aktualna ilość: " . prettyNumber($params['Data'][1])),
+                ("Procent: " . sprintf('%0.2f', $params['Data'][2] * 100) . "%")
+            ];
+
+            return implode('<br/>', $lines);
+        },
+    ],
+    '005' => [
+        'label' => 'Ogólny niedobór Surowca',
+        'msgGenerator' => function ($params, $_Lang) {
+            $lines = [
+                "Surowiec: {$params['ElementID']}",
+                ("Wyliczony wynik: " . prettyNumber($params['Data'][0])),
+                ("Aktualna ilość: " . prettyNumber($params['Data'][1])),
+                ("Procent: " . sprintf('%0.2f', $params['Data'][2] * 100) . "%")
+            ];
+
+            return implode('<br/>', $lines);
+        },
+    ],
+    '006' => [
+        'label' => 'Ogólny nadmiar Surowca',
+        'msgGenerator' => function ($params, $_Lang) {
+            $lines = [
+                "Surowiec: {$params['ElementID']}",
+                ("Wyliczony wynik: " . prettyNumber($params['Data'][0])),
+                ("Aktualna ilość: " . prettyNumber($params['Data'][1])),
+                ("Procent: " . sprintf('%0.2f', $params['Data'][2] * 100) . "%")
+            ];
+
+            return implode('<br/>', $lines);
+        },
+    ],
+    '007' => [
+        'label' => 'Ogólny niedobór Elementu',
+        'msgGenerator' => function ($params, $_Lang) {
+            $lines = [
+                "Nazwa elementu: {$_Lang['tech'][$params['ElementID']]}",
+                ("Wyliczony wynik: " . prettyNumber($params['Data'][0])),
+                ("Aktualna liczba: " . prettyNumber($params['Data'][1])),
+                ("Procent: " . sprintf('%0.2f', $params['Data'][2] * 100) . "%")
+            ];
+
+            return implode('<br/>', $lines);
+        },
+    ],
+    '008' => [
+        'label' => 'Ogólny nadmiar Elementu',
+        'msgGenerator' => function ($params, $_Lang) {
+            $lines = [
+                "Nazwa elementu: {$_Lang['tech'][$params['ElementID']]}",
+                ("Wyliczony wynik: " . prettyNumber($params['Data'][0])),
+                ("Aktualna liczba: " . prettyNumber($params['Data'][1])),
+                ("Procent: " . sprintf('%0.2f', $params['Data'][2] * 100) . "%")
+            ];
+
+            return implode('<br/>', $lines);
+        },
+    ],
+    '009' => [
+        'label' => 'Poziom Technologii za niski',
+        'msgGenerator' => function ($params, $_Lang) {
+            $lines = [
+                "Nazwa technologii: {$_Lang['tech'][$params['ElementID']]}",
+                ("Wyliczony poziom: " . prettyNumber($params['Data'][0])),
+                ("Aktualny poziom: " . prettyNumber($params['Data'][1])),
+            ];
+
+            return implode('<br/>', $lines);
+        },
+    ],
+    '010' => [
+        'label' => 'Poziom Technologii za wysoki',
+        'msgGenerator' => function ($params, $_Lang) {
+            $lines = [
+                "Nazwa technologii: {$_Lang['tech'][$params['ElementID']]}",
+                ("Wyliczony poziom: " . prettyNumber($params['Data'][0])),
+                ("Aktualny poziom: " . prettyNumber($params['Data'][1])),
+            ];
+
+            return implode('<br/>', $lines);
+        },
+    ],
+];
+
+$_Lang['FoundFatals'] = [
+    '001' => [
+        'label' => 'Miejsce nie rozpoznane',
+        'msgGenerator' => function ($params, $_Lang) {
+            $lines = [
+                "Zapisany identyfikator sekcji: <u>{$params['Data'][0]}</u>",
+            ];
+
+            return implode('<br/>', $lines);
+        },
+    ],
+];
+$_Lang['FoundWarnings'] = [
+    '001' => [
+        'label' => 'Ujemna ilość surowców',
+        'msgGenerator' => function ($params, $_Lang) {
+            $lines = [
+                ("Data loga: " . prettyDate("d m Y - H:i:s", $params['Date'], 1)),
+                "Planeta (sekcja): {$params['PlanetID']} ({$_Lang['Scripts'][$params['Place']]})",
+                "Element i Kod: {$params['ElementID']} / {$params['Code']}",
+                ("Metal: " . prettyNumber($params['Data'][0])),
+                ("Kryształ: " . prettyNumber($params['Data'][1])),
+                ("Deuter: " . prettyNumber($params['Data'][2]))
+            ];
+
+            return implode('<br/>', $lines);
+        },
+    ],
+    '002' => [
+        'label' => 'Brak ID Planety',
+        'msgGenerator' => function ($params, $_Lang) {
+            $lines = [
+                "Skrypt: {$_Lang['Scripts'][$params['Place']]}"
+            ];
+
+            return implode('<br/>', $lines);
+        },
+    ],
+    '003' => [
+        'label' => 'Ujemna ilość statków/obrony',
+        'msgGenerator' => function ($params, $_Lang) {
+            $lines = [
+                ("Data loga: " . prettyDate("d m Y - H:i:s", $params['Date'], 1)),
+                "Planeta (sekcja): {$params['PlanetID']} ({$_Lang['Scripts'][$params['Place']]})",
+                "Element i Kod: {$params['ElementID']} / {$params['Code']}",
+                "<u>Statki i obrona na minusie:</u>",
+            ];
+
+            if (!empty($params['Data'])) {
+                foreach ($params['Data'] as $elementID => $elementCount) {
+                    $lines[] = "{$_Lang['tech'][$elementID]}: " . prettyNumber($elementCount);
+                }
+            }
+
+            return implode('<br/>', $lines);
+        },
+    ],
+];
+$_Lang['FoundNotices'] = [
+    '001' => [
+        'label' => 'Drobne odchylenie Metalu',
+        'msgGenerator' => function ($params, $_Lang) {
+            $lines = [
+                "Planeta: {$params['PlanetID']}",
+                ("Różnica (procent): " . sprintf('%0.2f', $params['Data'][0] * 100) . "%"),
+                ("Różnica (wartość): " . sprintf('%0.2f', $params['Data'][1])),
+            ];
+
+            return implode('<br/>', $lines);
+        },
+    ],
+    '002' => [
+        'label' => 'Drobne odchylenie Kryształu',
+        'msgGenerator' => function ($params, $_Lang) {
+            $lines = [
+                "Planeta: {$params['PlanetID']}",
+                ("Różnica (procent): " . sprintf('%0.2f', $params['Data'][0] * 100) . "%"),
+                ("Różnica (wartość): " . sprintf('%0.2f', $params['Data'][1])),
+            ];
+
+            return implode('<br/>', $lines);
+        },
+    ],
+    '003' => [
+        'label' => 'Drobne odchylenie Deuteru',
+        'msgGenerator' => function ($params, $_Lang) {
+            $lines = [
+                "Planeta: {$params['PlanetID']}",
+                ("Różnica (procent): " . sprintf('%0.2f', $params['Data'][0] * 100) . "%"),
+                ("Różnica (wartość): " . sprintf('%0.2f', $params['Data'][1])),
+            ];
+
+            return implode('<br/>', $lines);
+        },
+    ],
+    '004' => [
+        'label' => 'Ogólne Drobne odchylenie Metalu',
+    ],
+    '005' => [
+        'label' => 'Ogólne Drobne odchylenie Kryształu',
+    ],
+    '006' => [
+        'label' => 'Ogólne Drobne odchylenie Deuteru',
+    ],
+];
+
+$_Lang['Critical_NoDump']                   = 'Brak dostępnego zrzutu dla tego Gracza!';
+$_Lang['Critical_EmptyScanLog']             = 'Dziennik Skanowania jest pusty!';
+$_Lang['Critical_EmptyBreakErrorVar']       = 'Brak przyczyny przerwania Skanowania!';
+
+$_Lang['Notice_NoLogs']                     = 'Brak logów tego Gracza (wygląda na to, że nic nie robił)';
+
+?>

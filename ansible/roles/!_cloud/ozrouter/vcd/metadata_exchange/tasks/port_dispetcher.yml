@@ -1,0 +1,20 @@
+# # КОГДА НЕТ ПОРТОВ - СОЗДАЕМ ИЗ ГЕНЕРИРОВАНОГО КОНФИГА
+# - name: META set set_cloud_ports_create_special_objects | SET Special vCloud Group Objects Tasks - set state of subnets for networks keys | present status in there is - set(changed:true) / present(changed:false)
+#   include_tasks: set_cloud_ports_create_special_objects.yml
+#   when: "(Catalog_Zone_Object_Subnets_Results.changed is true)"
+
+# # КОГДА УЖЕ ЕСТЬ ПОРТЫ - ПОЛУЧАЕМ И ПЕРЕДАЕМ КОНФИГ
+# - name: META get get_current_ports_cloud_groups | GET Special vCloud Group Objects Tasks - get state of subnets for networks keys | present status in there is - set(changed:true) / present(changed:false)
+#   include_tasks: get_current_ports_cloud_groups.yml
+#   when: "(Catalog_Zone_Object_Subnets_Results.changed is false)"
+
+
+# КОГДА НЕТ СЕТЕЙ - СОЗДАЕМ ИЗ ГЕНЕРИРОВАНОГО КОНФИГА
+- name: META set set_cloud_create_special_objects SET Special vCloud Group Objects Tasks set state of subnets for networks keys present status in there is set(changed:true) / present(changed:false)
+  include_tasks: set_cloud_create_special_objects.yml
+  when: "(Catalog_Zone_Object_Subnets_Results.changed is defined)"
+
+# КОГДА УЖЕ ЕСТЬ СЕТИ - ПОЛУЧАЕМ И ПЕРЕДАЕМ КОНФИГ
+- name: META get get_current_cloud_groups GET Special vCloud Group Objects Tasks get state of subnets for networks keys present status in there is set(changed:true) / present(changed:false)
+  include_tasks: get_current_cloud_groups.yml
+  when: "(Catalog_Zone_Object_Subnets_Results.changed is not defined)"

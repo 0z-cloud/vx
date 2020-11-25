@@ -1,0 +1,5 @@
+[
+{% for host in groups['consul-masters'] %}"{{ hostvars[host]['ansible_default_ipv4']['address'] }}:8300"{% if not loop.last %},
+{% endif %}
+{%- endfor -%}
+]

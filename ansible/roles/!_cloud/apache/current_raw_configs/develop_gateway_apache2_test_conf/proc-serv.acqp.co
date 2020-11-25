@@ -1,0 +1,22 @@
+<VirtualHost 10.1.1.111:443>
+  ServerName proc-serv.vortex.co
+
+    SSLEngine on
+    SSLCompression off
+    SSLCipherSuite "HIGH:!aNULL:!MD5:!3DES:!CAMELLIA:!AES128"
+    SSLHonorCipherOrder on
+    SSLProtocol TLSv1.1 TLSv1.2
+    SSLCertificateFile /etc/apache2/ssl/2015/new/server.crt
+    SSLCertificateKeyFile /etc/apache2/ssl/2015/new/server.key
+
+ProxyPreserveHost On
+  <Proxy *>
+    Order deny,allow
+    Allow from all
+  </Proxy>
+
+ProxyPass / http://10.1.0.3:8080/processing_service/GetCardDataTroyka
+ProxyPassReverse / http://10.1.0.3:8080/processing_service/GetCardDataTroyka
+ProxyPassReverseCookiePath / http://10.1.0.3:8080/processing_service/GetCardDataTroyka
+
+</VirtualHost>

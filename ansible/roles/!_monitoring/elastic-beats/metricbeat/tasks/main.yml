@@ -1,0 +1,47 @@
+- set_fact:
+    elastic_beats_config_dir: "{{ cloud_dir }}/elastic-beats"
+
+- name: create beats directory
+  file:
+    path: "{{ elastic_beats_config_dir }}"
+    state: directory
+  run_once: true
+
+- name: create metricbeat config
+  template:
+    src: "metricbeat.docker.yml"
+    dest: "{{ elastic_beats_config_dir }}/metricbeat.yml"
+  run_once: true
+
+- shell: |
+    docker stop metricbeat
+  ignore_errors: true
+
+- shell: |
+    docker rm metricbeat
+  ignore_errors: true
+
+- name: run the metricbeat setup
+  shell: |
+    docker run \
+    --rm \
+    {{ metricbeat_container_image }} \
+    setup -E setup.kibana.host={{ kibana_service_discovery_uri }}:{{ kibana_service_listen_port }} \
+    -E output.elasticsearch.hosts=["{{ elasticsearch_service_discovery_uri }}:{{ elasticsearch_default_http_port }}"]
+  run_once: true
+  when: dashboards_setup | default(false)
+
+- name: run metricbeat container
+  shell: |
+    docker run -d \
+      --detach \
+      --name=metricbeat \
+      --user=root \
+      --volume="{{ elastic_beats_config_dir }}/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro" \
+      --volume="/var/run/docker.sock:/var/run/docker.sock:ro" \
+      --volume="/sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro" \
+      --volume="/proc:/hostfs/proc:ro" \
+      --volume="/:/hostfs:ro" \
+      --net=host \
+      {{ metricbeat_container_image }} metricbeat -e \
+      -E output.elasticsearch.hosts=["{{ elasticsearch_service_discovery_uri }}:{{ elasticsearch_default_http_port }}"]

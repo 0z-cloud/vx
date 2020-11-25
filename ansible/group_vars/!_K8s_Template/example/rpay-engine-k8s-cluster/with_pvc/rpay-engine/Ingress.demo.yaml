@@ -1,0 +1,32 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    certmanager.k8s.io/cluster-issuer: letsencrypt-prod
+    field.cattle.io/ingressState: '{"ZGVtby9ycGF5LWVuZ2luZS9kZW1vLmRldi5yb2NrZXRoby5tZS8vLzgwMDA=":"","bGV0c2VuY3J5cHQtZGVtbw==":"rpay-engine:letsencrypt-demo"}'
+    field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":443,"protocol":"HTTPS","serviceName":"rpay-engine:demo","ingressName":"rpay-engine:demo","hostname":"demo.dev.rocketho.me","path":"/","allNodes":true}]'
+    ingress.kubernetes.io/force-ssl-redirect: "true"
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: "true"
+  creationTimestamp: null
+  generation: 1
+  labels:
+    app: demo
+    io.cattle.field/appId: rpay-engine
+  name: demo
+  selfLink: /apis/extensions/v1beta1/namespaces/rpay-engine/ingresses/demo
+spec:
+  rules:
+  - host: demo.dev.rocketho.me
+    http:
+      paths:
+      - backend:
+          serviceName: demo
+          servicePort: 8000
+        path: /
+  tls:
+  - hosts:
+    - demo.dev.rocketho.me
+    secretName: letsencrypt-demo
+status:
+  loadBalancer: {}

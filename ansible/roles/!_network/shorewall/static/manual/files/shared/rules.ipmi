@@ -1,0 +1,15 @@
+# For information on the settings in this file, type "man shorewall-rules"
+######################################################################################################################################################################################################
+#ACTION		SOURCE		        DEST							            PROTO	DEST	SOURCE		ORIGINAL	RATE		USER/	MARK	CONNLIMIT	TIME		HEADERS		SWITCH		HELPER
+#
+
+# ACCEPT RSYSLOG FROM IPMI TO RSYSLOG SERVER
+ACCEPT		ipmi			    else:10.16.131.150					        tcp	    514
+ACCEPT      ipmi			    else:10.16.131.150                           udp     514
+
+# RSYSLOG BACKCONNECT TO IPMI
+ACCEPT		else:10.16.131.150	ipmi							            udp	    514
+
+# NTP
+ACCEPT		ipmi:10.110.1.240   fw							                udp     ntp,domain
+ACCEPT		ipmi:10.110.1.250	fw							                udp     ntp,domain

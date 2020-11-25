@@ -1,0 +1,11 @@
+- name: Debug files to fetch
+  debug:
+   msg: "{{ item }}"
+  with_items: "{{ files_to_fetch.files }}"
+
+- name: Fetch the files from vortex-public-services
+  fetch:
+    src: "{{ files_to_fetch.path }}/{{ item }}"
+    dest: /tmp/admin-mobicom/{{ inventory_hostname }}_{{ item }}
+    flat: yes
+  with_items: "{{ files_to_fetch.files }}" 

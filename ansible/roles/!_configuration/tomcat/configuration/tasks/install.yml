@@ -1,0 +1,5 @@
+- name: Install packages from dict list
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ ansible_tomcat_settings.packages_list }}"

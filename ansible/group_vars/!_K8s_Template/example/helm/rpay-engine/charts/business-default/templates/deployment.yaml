@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "business-def.name" . }}
+  labels:
+    app: {{ include "business-def.name" . }}
+    chart: {{ template "business-def.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ include "business-def.name" . }}
+      release: {{ .Release.Name }}
+  strategy:
+    type: RollingUpdate
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "business-def.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+      - image: "{{ .Values.global.image.repository }}{{ .Values.image.image_name }}:{{ .Values.image.tag }}"
+        command: ["sh", "-c", "while true ; do cd /business && RAILS_ENV=production bundle exec rake gateway_payments:approve_waiting_default_payments; sleep 15; done"]
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        name: {{ .Chart.Name }}
+        envFrom:
+          - configMapRef:
+              name: {{ include "business-def.name" . }}-env
+      imagePullSecrets:
+      - name: rpay-key-reg
+
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

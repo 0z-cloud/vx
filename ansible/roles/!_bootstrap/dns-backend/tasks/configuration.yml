@@ -1,0 +1,34 @@
+- name: DNS-Backend - Copy current configuration
+  raw: cp -r /etc/bind/* {{ bind_cloud_settings.bind_etc }}/
+
+- name: DNS-Backend - Chown changes to bind:bind
+  raw: chown -R bind:bind {{ bind_cloud_settings.bind_etc }}/*
+
+- name: DNS-Backend - Template DNS options
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ bind_cloud_settings.bind_etc }}/{{ item }}"
+  with_items:
+    - named.conf.local
+    - named.conf.options
+    - named.conf
+    - named.conf.default-zones
+  tags: configuration
+
+- name: DNS-Backend - Remove current db.root
+  shell: rm -rf {{ bind_cloud_settings.bind_etc }}/db.root
+
+- name: DNS-Backend - Fetch current db.root
+  shell: wget --user=ftp --password=ftp ftp://ftp.rs.internic.net/domain/db.cache -O {{ bind_cloud_settings.bind_etc }}/db.root
+
+- name: DNS-Backend - Template the domain configuration
+  template:
+    src: domain.j2
+    dest: "{{ bind_cloud_settings.bind_etc }}/{{ bind_cloud_settings.zone_path }}/{{ bind_cloud_settings.public_domain }}"
+  tags: domain
+
+- name: DNS-Backend - Template special domain configuration
+  template:
+    src: special_zones.j2
+    dest: "{{ bind_cloud_settings.bind_etc }}/special_zones_{{ ansible_environment }}.conf"
+  tags: configuration

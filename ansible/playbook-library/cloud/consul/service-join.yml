@@ -1,0 +1,9 @@
+- name: Consul magic JOIN DNS step... Unix work...
+  become: true
+  hosts: "{{ HOSTS }}"
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/{{ HOSTS }}/{{ HOSTS }}.yml"
+  roles:
+    - name: Consul magic do...
+      role: ./!_cloud/consul/magic-join
+  tags: [consul-dns-join]

@@ -1,0 +1,89 @@
+# CDE
+#
+# For information on the settings in this file, type "man shorewall-rules"
+######################################################################################################################################################################################################
+# ACTION		    SOURCE		            DEST							        PROTO	DEST	SOURCE		ORIGINAL	RATE		USER/	MARK	CONNLIMIT	TIME		HEADERS		SWITCH		HELPER
+#
+
+{% if inventory_hostname in groups['database-swarm-cluster'] %}
+
+# cde HOST
+
+ACCEPT             fw                     cde                                       tcp     22
+ACCEPT             cde                    fw                            
+ACCEPT             cde                    repo							            tcp     80
+ACCEPT             cde                    vrrp							            udp     ntp,domain
+ACCEPT             cde                    vrrp							            udp	    53
+ACCEPT             cde                    nginx							            udp	    53
+
+# POSTGRES TEMP 
+ACCEPT             vrrp                   cde							            tcp	    5432
+
+# MONGO
+ACCEPT             vrrp                   cde							            tcp	    27017
+
+# REDIS
+ACCEPT             vrrp                   cde							            tcp	    6379
+
+# bas IN
+ACCEPT             bas                cde							            tcp	    22
+
+# CDE SWARM BETWEEN
+ACCEPT             cde                   fw							                tcp	    2376,2377,7946
+ACCEPT             cde                   fw							                udp	    4789,7946
+ACCEPT             fw                    cde							            tcp	    2376,2377,7946
+ACCEPT             fw                    cde							            udp	    4789,7946
+
+# GLUSTERFS POSTS
+
+ACCEPT             cde                   fw							                tcp	    2049
+ACCEPT             cde                   fw							                tcp	    38465
+ACCEPT             cde                   fw							                tcp	    38466
+ACCEPT             cde                   fw							                tcp	    38468
+ACCEPT             cde                   fw							                tcp	    38469
+ACCEPT             cde                   fw							                tcp	    24007
+ACCEPT             cde                   fw							                tcp	    49152+
+ACCEPT             cde                   fw							                tcp	    22
+ACCEPT             cde                   fw							                tcp	    111
+ACCEPT             cde                   fw							                tcp	    445
+ACCEPT             cde                   fw							                tcp	    8080
+ACCEPT             cde                   fw							                tcp	    6010
+ACCEPT             cde                   fw							                tcp	    6011
+ACCEPT             cde                   fw							                tcp	    6012
+ACCEPT             cde                   fw							                tcp	    443
+ACCEPT             cde                   fw							                tcp	    111
+
+ACCEPT             fw                   cde							                tcp	    2049
+ACCEPT             fw                   cde							                tcp	    38465
+ACCEPT             fw                   cde							                tcp	    38466
+ACCEPT             fw                   cde							                tcp	    38468
+ACCEPT             fw                   cde							                tcp	    38469
+ACCEPT             fw                   cde							                tcp	    24007
+ACCEPT             fw                   cde							                tcp	    49152+
+ACCEPT             fw                   cde							                tcp	    22
+ACCEPT             fw                   cde							                tcp	    111
+ACCEPT             fw                   cde							                tcp	    445
+ACCEPT             fw                   cde							                tcp	    8080
+ACCEPT             fw                   cde							                tcp	    6010
+ACCEPT             fw                   cde							                tcp	    6011
+ACCEPT             fw                   cde							                tcp	    6012
+ACCEPT             fw                   cde							                tcp	    443
+ACCEPT             fw                   cde							                tcp	    111
+
+
+{% endif %}
+
+########################
+# block local ip from cde
+# DEFAULT DROP FROM cde LAN_IP SUBNETS
+DROP		        cde:$LAN_IP	                                fw
+########################
+# Dummy - ping, drop telnet, accept traceroute from cde to fw
+Ping(ACCEPT)	    cde		                                    fw		-	-	-		-		s:2/sec
+# anti ping flood
+ACCEPT		        cde		                                    fw		                        icmp	    0,3/4,8,11
+# ping response
+ACCEPT		        cde		                                    fw		                        udp	        33434:33529
+# for traceroute
+DROP		        cde		                                    fw		                        tcp	        23
+# block telnet

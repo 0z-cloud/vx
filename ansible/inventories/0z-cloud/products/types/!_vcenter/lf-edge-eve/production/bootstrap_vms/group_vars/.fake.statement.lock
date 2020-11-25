@@ -1,0 +1,8 @@
+# dynamic adapter for that inventory not fully work, 
+# SEE TARGET - dot.dynamic.all.yml.target
+# PLACE TARGET - .dynamic.all.yml
+
+but ! 
+        you can use 
+                    ! FAKE ! 
+                                adapter for emulate partial working code/model/chain in processes of development adapters for cloud's

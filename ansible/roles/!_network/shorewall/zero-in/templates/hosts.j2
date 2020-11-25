@@ -1,0 +1,62 @@
+################################################################################################################################################################################################################################################################################################################         
+# ANSIBLE MANAGED: {{ ansible_managed }}
+################################################################################################################################################################################################################################################################################################################
+# HOSTS                                    # FILE: /etc/shorewall/hosts                    # detect     
+################################################################################################################################################################################################################################################################################################################
+# ZONE                                                   HOSTS                              OPTIONS
+################################################################################################################################################################################################################################################################################################################
+# net                                                                                                               {{ hostvars[inventory_hostname]['second_iface'] }}:{{ second_network_subnet | ipaddr('network') }}/24 maclist
+# sec                                                                                                               {{ hostvars[inventory_hostname]['second_iface'] }}:!{{ second_network_subnet | ipaddr('network') }}/24 maclist
+# wan                                                                                                               {{ hostvars[inventory_hostname]['ansible_default_ipv4']['interface'] }}:0.0.0.0/0
+# dmz  
+################################################################################################################################################################################################################################################################################################################
+                                                                                                           {{ hostvars[inventory_hostname]['second_iface'] }}:{{ second_network_subnet | ipaddr('network') }}/24 maclist
+nginx                                                                                                             {{ hostvars[inventory_hostname]['second_iface'] }}:{% for host in groups['nginx-frontend'] %}{{ hostvars[host]['second_ip'] }}/32{% if not loop.last %},{% endif %}{% endfor %} maclist
+bas                                                                                                           {{ hostvars[inventory_hostname]['second_iface'] }}:{% for host in groups['bastion-admin-host'] %}{{ hostvars[host]['second_ip'] }}/32{% if not loop.last %},{% endif %}{% endfor %} maclist
+repo                                                                                                              {{ hostvars[inventory_hostname]['second_iface'] }}:{% for host in groups['build-repository'] %}{{ hostvars[host]['second_ip'] }}/32{% if not loop.last %},{% endif %}{% endfor %} maclist
+cde                                                                                                               {{ hostvars[inventory_hostname]['second_iface'] }}:{% for host in groups['vlan_database'] %}{{ hostvars[host]['second_ip'] }}/32{% if not loop.last %},{% endif %}{% endfor %} maclist
+vrrp                                                                                                              {{ hostvars[inventory_hostname]['second_iface'] }}:{% for host in groups['vlan_network_balancer'] %}{{ hostvars[host]['second_ip'] }}/32{% if not loop.last %},{% endif %}{% endfor %} maclist
+vip                                                                                                               {{ hostvars[inventory_hostname]['second_iface'] }}:{{ ids_primary_vip_gateway }}/32 maclist
+{% if second_network_zone == 'cluster' %}
+cluster                                                                                                           {{ hostvars[inventory_hostname]['second_iface'] }}:{% for host in groups[second_network_cluster_group] %}{{ hostvars[host]['second_ip'] }}/32{% if not loop.last %},{% endif %}{% endfor %} maclist
+{% endif %}
+
+########################################################################################################################################################################################################################################################################
+### DOCKER SECTION
+########################################################################################################################################################################################################################################################################
+######## DEFAULT INTERFACES GETTED
+
+#####################################################################################################################
+# DOCKER NETWORKS, BRIGES & OVERLAYS
+#####################################################################################################################
+{% for network_subnet in docker_networks_array.results %}
+{% set network_subnet_joined = network_subnet.stdout_lines %}{% set network_subnet_joined_cleaned = network_subnet_joined | join %}{% set network_subnet_joined_kv = network_subnet_joined_cleaned | replace(': ', "=") %}{% set network_subnet_name_cleaned = network_subnet_joined_kv |  regex_replace('=[^=]+$', '') %}{% set network_subnet_cleaned = network_subnet_joined_kv |  regex_replace('.*=', '') %}{% set docker_brg_network_interface = 'ansible_' + 'docker0' %}{% set docker_brg_bridge_docker_zero_main_network_shorewall_zone = 'brg' %}{% set docker_geov_network_interface = 'ansible_' + 'docker_gwbridge' %}{% set docker_geov_network_shorewall_zone = 'geov' %}{% set docker_gwbridge_vpn_network_shorewall_zone = 'vpn' %}{% set docker_gwbridge_loc_network_shorewall_zone = 'loc' %}{% set docker_gwbridge_ess_network_shorewall_zone = 'ess' %}{% set docker_default_ess_vpn_network_prefix = ansible_product + '-' + ansible_environment + '-vpn' + '_default' %}{% set docker_default_cde_dmz_loc_ess_network_prefix = ansible_product + '-' + ansible_environment + '_default' %}{% if 'bridge' in network_subnet_name_cleaned and 'docker_gwbridge' not in network_subnet_name_cleaned %}
+# BRIDGE
+# NETWORK SUBNET: {{ network_subnet_name_cleaned }}
+# network NAME:   {{ network_subnet_cleaned }}    
+# {{ docker_brg_bridge_docker_zero_main_network_shorewall_zone }}                     docker0:{{ network_subnet_cleaned }}               maclist
+#####################################################################################################################
+{% endif %}{% if 'docker_gwbridge' in network_subnet_name_cleaned %}
+# ess DOCKER OVERLAY SWARM GW ZONE
+# NETWORK SUBNET: {{ network_subnet_name_cleaned }}
+# network NAME:   {{ network_subnet_cleaned }}
+# {{ docker_geov_network_shorewall_zone }}                                          docker_gwbridge:{{ network_subnet_cleaned }}                 maclist                  # PRIMARY OVERLAY BRIDGE ess DOCKER_GW_BRIDGE 
+#####################################################################################################################
+{% endif %}{% if 'ess' in network_subnet_name_cleaned %}
+# ess DOCKER OVERLAY SWARM ess:ess
+# NETWORK SUBNET: {{ network_subnet_name_cleaned }}
+# network NAME:   {{ network_subnet_cleaned }}   
+{{ docker_gwbridge_ess_network_shorewall_zone }}                                    docker_gwbridge:{{ network_subnet_cleaned }}                 maclist                   # ess ON DOCKER_GWBRIDGE INTERFACE FOROVERLAY SWARM NETWORK ON SELF IDS SHOREWALL HOST
+#####################################################################################################################
+{% endif %}{% if 'docker_gwbridge' not in network_subnet_name_cleaned or 'ess' not in network_subnet_name_cleaned or 'bridge' not in network_subnet_name_cleaned %}{% if network_subnet_name_cleaned != 'bridge' and 'ess' not in network_subnet_name_cleaned  %}{% if docker_default_ess_vpn_network_prefix in network_subnet_name_cleaned %}
+# ess DOCKER OVERLAY SWARM ess:VPN
+# NETWORK SUBNET: {{ network_subnet_name_cleaned }}
+# network NAME:   {{ network_subnet_cleaned }}   §
+{{ docker_gwbridge_vpn_network_shorewall_zone }}                                        docker_gwbridge:{{ network_subnet_cleaned }}                  maclist                             # ess VPN OVERLAY SWARM NETWORK ON SELF IDS SHOREWALL HOST{% endif %}{% endif %}{% if docker_default_cde_dmz_loc_ess_network_prefix in network_subnet_name_cleaned %}
+#####################################################################################################################
+# ess DOCKER OVERLAY SWARM ess:LOC[DMZ/CDE/ETC Swarm Network]
+# NETWORK SUBNET: {{ network_subnet_name_cleaned }}
+# network NAME:   {{ network_subnet_cleaned }}   
+{{ docker_gwbridge_loc_network_shorewall_zone }}                                        docker_gwbridge:{{ network_subnet_cleaned }}                  maclist                              # ess CDE/DMZ/LOC OVERLAY SWARM NETWORK ON SELF IDS SHOREWALL HOST{% endif %}{% endif %}
+#####################################################################################################################
+{% endfor %}

@@ -1,0 +1,13 @@
+{
+  "server": false,
+  "datacenter": "{{ consul.datacenter }}",
+  "node_name": "{{ ansible_fqdn }}",
+	"client_addr": "0.0.0.0",
+	"recursor": "8.8.8.8",
+	"disable_update_check": false,
+  "start_join": [{% for host in groups['consul-masters']%}
+  "{{ hostvars[host]['ansible_default_ipv4']['address'] }}" {% if not loop.last %} , {% endif %}{% endfor %} ],
+  "rejoin_after_leave": true,
+  "leave_on_terminate": true,
+  "advertise_addr_wan": "{{ windows_public_ip.stdout_lines | join }}"
+}

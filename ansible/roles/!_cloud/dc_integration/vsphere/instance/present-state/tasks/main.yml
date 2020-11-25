@@ -1,0 +1,526 @@
+    - name: Login into vCenter and get cookies
+      uri:
+        url: "{{ anycloud_adapter_api_url_http_uri }}/rest/com/vmware/cis/session"
+        force_basic_auth: yes
+        validate_certs: no
+        method: POST
+        user: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+      register: login
+
+    - name: Get all hosts from vCenter using cookies from last task
+      uri:
+        url: "{{ anycloud_adapter_api_url_http_uri }}/rest/vcenter/host"
+        force_basic_auth: yes
+        validate_certs: no
+        headers:
+          Cookie: "{{ login.set_cookie }}"
+      register: vchosts
+
+    - name: Set the ESXi list of hosts empty variable for fill 
+      set_fact:
+        esxi_hosts_local_group_map: []
+
+    - name: Create the ESXi list of hosts based on empty variable for fill 
+      set_fact:
+        esxi_hosts_local_group_map: "{{ esxi_hosts_local_group_map + ([ item.value | join ]) }}"
+      with_dict: "{{ vchosts.json.value }}"
+      when: "'name' in item.key"
+
+    # - name: Debug dataset esxi_hosts_local_group_map
+    #   debug:
+    #     msg: "{{ esxi_hosts_local_group_map }}"
+
+    - name: Gather cluster info from given datacenter
+      community.vmware.vmware_cluster_info:
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        datacenter: "{{ anycloud_adapter_api_datacenter }}"
+        validate_certs: no
+        schema: vsphere
+      register: cluster_info
+
+    - name: Make the folder on vCenter vSphere
+      vcenter_folder:
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        validate_certs: "no"
+        datacenter: "{{ anycloud_adapter_api_datacenter }}"
+        folder_name: "{{ vsphere_folder }}"
+        folder_type: vm
+        state: present
+      register: vm_folder_creation_result
+
+    # - name: Debug dataset cloud_bootstrap.clusters 
+    #   debug:
+    #     msg: "{{ item.value.vsphere }}"
+    #   when: "'hypervisor' in item.key"
+    #   with_dict: "{{ cloud_bootstrap.clusters }}"
+
+    - name: Set the cluster variable by set_fact  
+      set_fact:
+        anycloud_hypervisor_cluster: "{{ item.value.vsphere }}"
+      when: "'hypervisor' in item.key"
+      with_dict: "{{ cloud_bootstrap.clusters }}"
+
+    - name: Create Cluster
+      community.vmware.vmware_cluster:
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        validate_certs: no
+        datacenter_name: "{{ anycloud_adapter_api_datacenter }}"
+        cluster_name: "{{ anycloud_hypervisor_cluster.lower() }}"
+        enable_ha: no
+        enable_drs: yes
+        enable_vsan: no
+      when: "'hypervisor' in item.key"
+      with_dict: "{{ cloud_bootstrap.clusters }}"
+
+    - name: with_together -> loop
+      ansible.builtin.debug:
+        msg: "{{ item.0 }} - {{ item.1 }}"
+      loop: "{{ cloud_bootstrap.clusters|zip(esxi_hosts_local_group_map)|list }}"
+
+    - name: "Create DRS Host group"
+      community.vmware.vmware_drs_group:
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        validate_certs: "no"
+        cluster_name: "{{ anycloud_hypervisor_cluster.lower() }}"
+        datacenter_name: "{{ anycloud_adapter_api_datacenter }}"
+        group_name: "Cluster_{{ ansible_product }}_{{ ansible_datacenter }}_{{ ansible_environment }}"
+        hosts: "{{ esxi_hosts_local_group_map }}"
+        state: present
+      when: "'hypervisor' in item.key"
+      with_dict: "{{ cloud_bootstrap.clusters }}"
+
+    - name: Add resource pool to vCenter
+      community.vmware.vmware_resource_pool:
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        validate_certs: no
+        datacenter: "{{ anycloud_adapter_api_datacenter }}"
+        cluster: "{{ anycloud_hypervisor_cluster.lower() }}"
+        resource_pool: "{{ ansible_resource_pool }}"
+        mem_shares: normal
+        mem_limit: -1
+        mem_reservation: 0
+        mem_expandable_reservations: yes
+        cpu_shares: normal
+        cpu_limit: -1
+        cpu_reservation: 0
+        cpu_expandable_reservations: yes
+        state: present
+
+    # - name: Debug dataset
+    #   debug:
+    #     msg: "{{ item.value['vsphere'] }}"
+    #   when: "'hypervisor' in item.key"
+    #   with_dict: "{{ cloud_bootstrap.clusters }}"
+
+    # - name: Debug dataset
+    #   debug:
+    #     msg: "{{ item.value['vsphere'] }}"
+    #   when: "'ansible_inventory_vars' in item.key"
+    #   with_dict: "{{ cloud_bootstrap.servers }}"
+
+    # - name: Debug dataset
+    #   debug:
+    #     msg: "{{ item.value['vsphere'] }}"
+    #   when: "'ansible_inventory_vars' in item.value"
+    #   with_dict: "{{ cloud_bootstrap.clusters }}"
+
+    - name: Add resource pool to vCenter
+      community.vmware.vmware_resource_pool:
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        validate_certs: no
+        datacenter: "{{ anycloud_adapter_api_datacenter }}"
+        cluster: "{{ anycloud_hypervisor_cluster.lower() }}"
+        resource_pool: "{{ ansible_resource_pool }}"
+        mem_shares: normal
+        mem_limit: -1
+        mem_reservation: 0
+        mem_expandable_reservations: yes
+        cpu_shares: normal
+        cpu_limit: -1
+        cpu_reservation: 0
+        cpu_expandable_reservations: yes
+        state: present
+
+    - name: VM Deployment Update state for each VM
+      vars:
+        display_args_to_stdout: yes
+      no_log: false
+      community.vmware.vmware_guest:
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        validate_certs: no
+        datacenter: "{{ anycloud_adapter_api_datacenter }}"
+        cluster: "{{ anycloud_hypervisor_cluster }}"
+        resource_pool: "911rs"
+        wait_for_customization: yes
+        wait_for_customization_timeout: "{{ cloud_bootstrap.anycloud_awaits_timeouts.for_customization_completes }}"
+        wait_for_ip_address: yes
+        wait_for_ip_address_timeout: "{{ cloud_bootstrap.anycloud_awaits_timeouts.for_ip_address }}"
+        folder: "/"
+        name: "{{ item.value.name }}"
+        template: "{{ item.value.anycloud_vm_template_name }}"
+        guest_id: ubuntu64Guest
+        state: poweredon
+        disk: 
+          - datastore: "{{ item.value.vm_extended_volume_configuration.anycloud_target }}"
+            size: "{{ item.value.vm_extended_volume_configuration.partition_size }}"
+        networks:
+          - name: "{{ item.value.network_name }}"
+            ip: "{{ item.value.ip }}"
+            netmask: "{{ item.value.network_subnet }}"
+            gateway: "{{ item.value.gw }}"
+            # mac: "{{ lookup('random_mac') }}"
+            # dns_servers: "{{ item.value.gw }}"
+            start_connected: yes
+            connected: yes
+            type: static
+        # - name: "{{ item.value.network_name }}"
+        #   ip: "{{ item.value.ansible_inventory_vars.second_ip | join }}"
+        #   network: "{{ item.value.network_name | join }}"
+        #   mac: "{{ lookup('random_mac') }}"
+        #   start_connected: yes
+        #   connected: yes
+        #   type: static
+        customization:
+          hostname: "{{ item.value.name  | join}}"
+          # password: "12345"
+          # fullname: "template"
+          existing_vm: yes 
+        # force: true
+      # register: create_instance_result_up
+      with_dict: "{{ cloud_bootstrap.servers }}"      
+      # delegate_to: localhost
+      # when: "'localhost' not in item" 
+      # register: create_instance_result_up
+      register: create_instance
+      ignore_errors: true
+  
+########################################################
+# ASYNC TO TEST
+########################################################
+    #   ignore_errors: true
+    #   # register: stopping_topology_deploy
+    #   async: 7200
+    #   poll: 2
+    #   delegate_to: localhost 
+
+    # - name: Wait for topology deploy to complete Create VM
+    #   async_status: jid={{ item.ansible_job_id }}
+    #   register: starting_topology_jobs
+    #   until: starting_topology_jobs.finished
+    #   retries: 300
+    #   with_items: "{{ create_instance.results }}"
+    #   delegate_to: localhost 
+    #   ignore_errors: true
+
+########################################################
+    # - name: Get UUID from given VM Name
+    #   block:
+    #     - name: Get virtual machine info
+    #       community.vmware.vmware_vm_info:
+    #         hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+    #         username: "{{ anycloud_adapter_api_user }}"
+    #         password: "{{ anycloud_adapter_api_password }}"
+    #         validate_certs: no
+    #         folder: "/"
+    #       register: vm_info
+    #     - name: sofaj-pjf
+    #       debug:
+    #         msg: | 
+    #             "
+                
+    #             {% for item in vm_info.virtual_machines | json_query(query) %}
+                
+    #             {{ item.uuid }}
+    #             {% endfor %}
+    #             "
+    #       #with_items:
+    #       #with_dict: "{{ create_instance_ups.results }}"
+    #        # - "{{  }}"
+    #       vars:
+    #         query: "[?guest_name=='*']"
+  
+    # - name: Show results after Creation the Instance
+    #   vars:
+    #     display_args_to_stdout: yes
+    #   no_log: false
+    #   debug:
+    #     msg: "
+    #     {{ item.key['results'] }}
+        
+       
+        
+
+
+    # #     "      
+    # #   with_dict: "{{ create_instance_ups }}"
+    # - name: Show results after Creation the Instance
+    #   vars:
+    #     display_args_to_stdout: yes
+    #   no_log: false
+    #   debug:
+    #     msg: "
+
+        
+    #             instance_uiid: '{{ item.value['instance_uuid'] | join }}'
+
+    #             primary_ip: '{{ item.value['hw_eth0']['ipaddresses'][0] | join }}'
+    #             secondary_ip: '{{ item.value['hw_eth1']['ipaddresses'][0] | join }}'
+
+    #             primary_mac: {{ item.value['hw_eth0']['macaddress'] | join }}' 
+    #             secondary_mac: '{{ item.value['hw_eth1']['macaddress'] | join }}'
+
+    #     "      
+    #   with_dict: "{{ create_instance_ups.results }}"
+    #   when: "'instance' in item.key"
+    #   register: instances_sorted_ips_results
+
+
+
+
+    # - name: Show results after Creation the Instance
+    #   set_fact:
+    #       instances_sorted_ips_results: | 
+    #             '{{ item.value['instance_uuid'] | join }}':
+    #                   primary_ip: '{{ item.value['hw_eth0']['ipaddresses'][0] | join }}'
+    #                   secondary_ip: '{{ item.value['hw_eth1']['ipaddresses'][0] | join }}'
+    #                   primary_mac: '{{ item.value['hw_eth0']['macaddress'] | join }}' 
+    #                   secondary_mac: '{{ item.value['hw_eth1']['macaddress'] | join }}'
+    #   with_dict: "{{ create_instance_ups.results }}"
+    #   when: "'instance' in item.key"
+    #   register: at_instances_sorted_ips_results
+
+
+    # - name: DDDD IDDQD
+    #   debug:
+    #     msg: |
+    #             {% set hostslist = [] %}
+    #             {% for dict_item in vm_info_all.virtual_machines %}
+    #             {{ dict_item }}
+    #             {{ dict_item.guest_name }}: {{ dict_item.uuid }}
+    #             {% endfor %}
+
+    #             #
+
+    #             {% for dict_item in create_instance_ups.results %}
+    #             {% set hostslist2 = hostslist.append({'instance': dict_item.instance, 'data': dict_item.item}) %}
+
+
+    #             {% endfor %}
+    #             {{ hostslist }}
+
+
+    # - name: IDKFA IDDQD
+    #   debug:
+    #     msg: |
+    #             {% set hostslist = [] %}
+    #             {% for dict_item in vm_info_all.virtual_machines %}
+    #             {{ dict_item.guest_name }}
+    #             {% endfor %}
+    #             {% for dict_item in create_instance_ups.results %}
+    #             {% set hostslist2 = hostslist.append({'instance': dict_item.instance, 'data': dict_item.item}) %}
+
+
+    #             {% endfor %}
+    #             {{ hostslist }}
+
+    # - name: Set fact newlist item from create_instance_result.results
+    #   debug:
+    #     msg: "{{ item }}"
+    #   with_items: |
+    #     "{% for dict_item in create_instance.results %}{% for k,v in dict_item.items() %}{% if k == 'instance' %}{{ v }}{% endif %}{% if k == 'invocation' %}{{ v }}{% endif %}{% endfor %}{% endfor %}"
+    #   when: destroy_instances is not defined
+
+    # - name: Set fact newlist item from create_instance_result.results
+    #   debug:
+    #     msg: "{{ item }}"
+    #   with_items: |
+    #     "{% for dict_item in create_instance.results %}{% for k,v in dict_item.items() %}{% if k == 'instances' %}{{ v }}{% endif %}{% endfor %}{% endfor %}"
+    #   when: destroy_instances is not defined
+
+
+
+    # - name: Set fact newlist item from create_instance_result.results
+    #   set_fact:
+    #     newlist: "{{ item }}"
+    #   with_items: |
+    #     "{% for dict_item in create_instance.results %}{% for k,v in dict_item.items() %}{% if k == 'instances' %}{{ v }}{% endif %}{% endfor %}{% endfor %}"
+    #   when: destroy_instances is not defined
+
+    # - name: set_fact newlist
+    #   set_fact:
+    #     new_pre: "{{ newlist | replace('\"[', '') | replace(']\"', '') | replace('\\u', '') }}"
+    #   when: destroy_instances is not defined
+
+    # - name: Debug new_pre 
+    #   debug:
+    #     msg: "{{ new_pre | replace('\\u', '') }}"
+    #   when: destroy_instances is not defined
+
+    # - name: set_fact new_p
+    #   set_fact:
+    #     new_p: "{{ new_pre | replace('\\u', '') }}"
+    #   when: destroy_instances is not defined
+
+    # - name: Debug new_p 
+    #   set_fact:
+    #     new_pp: "{{ new_p | replace('][', ', ') }}"
+    #   when: destroy_instances is not defined
+
+    # - name: Debug new_pp 
+    #   debug:
+    #     msg: "{{ new_pp }}"
+    #   when: destroy_instances is not defined
+
+    # - name: Set authorized ssh key, extracting just that data from 'users'
+    #   debug:
+    #     msg: "{{ item.host_name }} {{ item.public_ip_address }} {{ item.private_ip_address }}"
+    #   with_items:
+    #       - "{{ new_pp }}"
+    #   when: destroy_instances is not defined
+
+
+    # - name: MSG ! To math and pre-filling array create Show results
+    #   debug:
+    #     msg: |
+    #           {% raw %}
+    #           "
+    #                         instance_uuid: '{% endraw %}{{ item.value['instance_uuid'] }}{% raw %}'
+
+    #                         hw_product_uuid: '{% endraw %}{{ item.value['hw_product_uuid'] }}'{% raw %}
+    #                         primary_ip: {% endraw %}'{{ item.value['hw_eth0']['ipaddresses'][0] | join }}'{% raw %}
+    #                         secondary_ip: {% endraw %}'{{ item.value['hw_eth1']['ipaddresses'][0] | join }}'{% raw %}
+    #                         primary_mac: {% endraw %}'{{ item.value['hw_eth0']['macaddress'] | join }}' {% raw %}
+    #                         secondary_mac: {% endraw %}'{{ item.value['hw_eth1']['macaddress'] | join }}'{% raw %}
+              
+    #           "{% endraw %}      
+    #   with_subelements: 
+    #     - "{{ create_instance_ups.results }}"
+    #     - "{{ create_instance_ups.results }}"
+    #   when: "'instance' in item.key"
+      
+    #    or 'item' in item.key"
+
+# - name: Set authorized ssh key
+#   authorized_key:
+#     user: "{{ item.0.name }}"
+#     key: "{{ lookup('file', item.1) }}"
+#   with_subelements:
+#      - "{{ users }}"
+#      - authorized
+
+    # - name: Show results after Creation the Instance
+    #   vars:
+    #     display_args_to_stdout: yes
+    #   no_log: false
+    #   set_fact:
+    #     msg: "
+
+        
+    #             instance_uiid: '{{ item.value['instance_uuid'] | join }}'
+
+    #             primary_ip: '{{ item.value['hw_eth0']['ipaddresses'][0] | join }}'
+    #             secondary_ip: '{{ item.value['hw_eth1']['ipaddresses'][0] | join }}'
+
+    #             primary_mac: {{ item.value['hw_eth0']['macaddress'] | join }}' 
+    #             secondary_mac: '{{ item.value['hw_eth1']['macaddress'] | join }}'
+
+    #     "      
+    #   with_dict: "{{ create_instance_ups.results }}"
+    #   when: "'instance' in item.key"
+
+    # - name: Show results after Creation the Instance
+    #   vars:
+    #     display_args_to_stdout: yes
+    #   no_log: false
+    #   debug:
+    #     msg: "
+    #     {{ item.value }}
+        
+    #     {{ item.key }}
+        
+
+
+    #     "      
+    #   with_dict: "{{ create_instance_ups.results }}"
+    # #   when: "'instance' in item.key or 'item' in item.key"
+
+
+    # - name: Set primary adapter server instance full array for results after create the Instances
+    #   debug:
+    #     msg: "{{ item.value['hw_eth0']['ipaddresses'] }}"      
+    #   with_dict: "{{ create_instance_result_up.results }}"
+    #   when: "'instance' in item.key and 'hw_eth0' in item.value"
+
+
+    # - name: Set secondary adapter server instance full array for results after create the Instances
+    #   debug:
+    #     msg: "{{ item.value['hw_eth1'] }}"      
+    #   with_dict: "{{ create_instance_result_up.results }}"
+    #   when: "'instance' in item.key and 'hw_eth1' in item.value"
+
+
+
+
+
+
+    # - name: To math and pre-filling array create Show results
+    #   debug:
+    #     msg: "{{ item }}"      
+    #   with_dict: "{{ vx_cloud_bootstrap['servers'] }}"
+    #   when: "'key' not in key." 
+
+    #   # when: "'localhost' not in item and 'key' not in item.key['value']" 
+
+    # - name: Get virtual machine info
+    #   community.vmware.vmware_vm_info:
+    #     validate_certs: no
+    #     hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+    #     username: "{{ anycloud_adapter_api_user }}"
+    #     password: "{{ anycloud_adapter_api_password }}"
+    #     show_attribute: yes
+    #   register: vm_info
+
+
+    # - name: Debug
+    #   debug:
+    #     msg: "{{ cloud_bootstrap['servers'] }}"
+
+
+    # - name: Start 1 processing of translate recieved API Cloud Bootstrap / Check result state response for 0z-cloud
+    #   debug:
+    #     msg: "
+    #             {{ vm_info.virtual_machines }}
+                
+    #             {{ item.value.name }}
+
+    #             "
+    #   with_dict: "{{ vx_cloud_bootstrap['servers'] }}"      
+
+    # - name: Upgrade VMware Tools using MoID
+    #   community.vmware.vmware_guest_tools_upgrade:
+    #     validate_certs: no
+    #     hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+    #     username: "{{ anycloud_adapter_api_user }}"
+    #     password: "{{ anycloud_adapter_api_password }}"
+    #     datacenter: "{{ anycloud_adapter_api_datacenter }}"
+    #     name: "{{ item.value.name }}"
+    #   with_dict: "{{ cloud_bootstrap.servers }}"      
+    #   delegate_to: localhost
+    #   when: "'localhost' not in item"
+
+

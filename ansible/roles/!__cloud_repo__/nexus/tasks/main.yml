@@ -1,0 +1,13 @@
+---
+- name: Inject defaults
+  set_fact:
+    nexus_instance_settings: "{{ nexus_instance_settings_defaults | combine(nexus_instance_settings) }}"
+  tags: [always]
+
+- include_tasks: nexus_pre.yml
+- include_tasks: nexus_install.yml
+
+- block:
+  - include_tasks: nexus_post.yml
+  tags:
+    - nexus-config

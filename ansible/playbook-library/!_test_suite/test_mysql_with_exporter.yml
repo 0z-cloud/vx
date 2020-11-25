@@ -1,0 +1,22 @@
+- name: Get all facts
+  hosts: all
+  tasks: []
+  tags: always
+
+- name: Setup percona container
+  hosts: test
+  become: true
+  roles:
+    - name: Call percona exporter role
+      role: "./!_test_suite/mysql"
+  tags:
+    - mysql
+
+- name: Setup percona mysql exporter container
+  hosts: test
+  become: true
+  roles:
+    - name: Call percona mysql exporter role
+      role: "./!_test_suite/percona-mysql-exporter"
+  tags:
+    - percona-mysql-exporter

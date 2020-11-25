@@ -1,0 +1,77 @@
+#### CHECK SERVER.XML FOR SETTING : ALLOW TRACE MUST HAVE TRACE FALSE VALUE
+
+- name: Shell gets ansible_grep_connector_server_xml_allow_trace, if see error its good =)
+  shell: " grep ' <Connector' {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}/conf/server.xml"
+  register: ansible_grep_connector_server_xml_allow_trace
+  tags: ansible_grep_connector_server_xml_allow_trace
+  ignore_errors: true
+
+- name: Register stdout from all connectors by shell echo grep
+  shell: "echo '{{ item }}'| grep 'allowTrace=\"false\"'"
+  with_items: "{{ ansible_grep_connector_server_xml_allow_trace.stdout_lines }}"
+  register: ansible_grep_connector_server_xml_allow_trace_stdout_lines
+  ignore_errors: true
+  tags: ansible_grep_connector_server_xml_allow_trace
+  
+- name: Debug not compliant connectors in ansible_grep_connector_server_xml_allow_trace_stdout_lines
+  debug:
+    msg: "{{ ansible_grep_connector_server_xml_allow_trace_stdout_lines.results | map(attribute='rc') | list }}"
+  tags: ansible_grep_connector_server_xml_allow_trace
+  
+- name: Check the grep allowTrace conf/server.xml, if PCI compliance ok, we ignore that and go next
+  fail:
+    msg: "Whoops! Connector have {{ item }} in File {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}/conf/server.xml conetent not PCI Compliant - please change set each connector to have allowTrace to false"
+  when: "{{ item }} != 0"
+  tags: ansible_grep_connector_server_xml_allow_trace
+  with_items: "{{ ansible_grep_connector_server_xml_allow_trace_stdout_lines.results | map(attribute='rc') | list }}"
+
+#### CHECK SERVER.XML FOR SETTING : shutdown="SHUTDOWN" MUST BE "ANYTHING" EXPECT SHUTDOWN
+
+- name: Shell gets ansible_grep_shutdown_states, if see error its good =)
+  shell: " grep 'shutdown=\"SHUTDOWN\"' {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}/conf/server.xml"
+  register: ansible_grep_shutdown_states
+  tags: ansible_grep_shutdown_states
+  ignore_errors: true
+
+- name: Debug ansible_grep_shutdown_states
+  debug:
+    msg: "{{ ansible_grep_shutdown_states }}"
+  tags: ansible_grep_shutdown_states
+
+- name: Check the grep error page hutdown=\"SHUTDOWN\" in /conf/server.xml, if PCI compliance ok, we ignore that and go next
+  fail:
+    msg: "Whoops! File {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}/conf/server.xml conetent not PCI Compliant - please change set shutdown to NONDETERMINISTICVALUE - must any except SHUTDOWN"
+  when: ansible_grep_shutdown_states.rc == 0
+  tags: ansible_grep_shutdown_states
+
+#### CHECK SERVER.XML FOR SETTING : SERVER PORT MUST BE DISABLED, ENABLED ONLY APPLICATIONS
+
+- name: Shell gets ansible_grep_server_port_state, if see error its good =)
+  shell: " grep '<Server' {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}/conf/server.xml"
+  register: ansible_grep_server_port_state
+  tags: ansible_grep_server_port_state
+  ignore_errors: true
+
+- name: Debug ansible_grep_server_port_state
+  debug:
+    msg: "{{ ansible_grep_server_port_state }}"
+  tags: ansible_grep_server_port_state
+
+- name: Register stdout from all connectors by shell echo grep
+  shell: "echo '{{ item }}'| grep '\\{{ ansible_catalina_server_xml_server_mapping_port }}\'"
+  with_items: "{{ ansible_grep_server_port_state.stdout_lines }}"
+  register: ansible_grep_server_port_state_stdout_lines
+  ignore_errors: true
+  tags: ansible_grep_server_port_state
+
+- name: Debug ansible_grep_server_port_state
+  debug:
+    msg: "{{ ansible_grep_server_port_state_stdout_lines }}"
+  tags: ansible_grep_server_port_state
+
+- name: Check the grep {{ ansible_catalina_server_xml_server_mapping_port }} server port in conf/server.xml, if PCI compliance ok, we ignore that and go next
+  fail:
+    msg: "Whoops! Connector have {{ item }} in File {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}/conf/server.xml conetent not PCI Compliant - please change set server port to port=\"{{ ansible_catalina_server_xml_server_mapping_port }}\""
+  when: "{{ item }} != 0"
+  tags: ansible_grep_server_port_state
+  with_items: "{{ ansible_grep_server_port_state_stdout_lines.results | map(attribute='rc') | list }}"

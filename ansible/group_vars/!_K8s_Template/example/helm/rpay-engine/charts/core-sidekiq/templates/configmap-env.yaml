@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "core-sidekiq.name" . }}-env
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ template "core-sidekiq.name" . }}
+    chart: {{ template "core-sidekiq.chart" . }}
+data:
+{{ toYaml .Values.env | indent 2 }}  

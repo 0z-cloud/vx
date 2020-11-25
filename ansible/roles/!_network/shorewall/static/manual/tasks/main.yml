@@ -1,0 +1,24 @@
+- name: Copy Shorewall shared configuration rules
+  copy:
+      src: "{{ item }}"
+      dest: "/etc/shorewall/"
+  with_fileglob:
+    - "files/shared/*"
+
+- name: Copy Shorewall endpoint router configuration rules
+  copy:
+      src: "{{ item }}"
+      dest: "/etc/shorewall/"
+  with_fileglob:
+    - "files/{{ inventory_hostname }}/*"
+
+- name: Check Shorewall configuration
+  shell: shorewall check
+  register: shorewall_check
+
+- name: Show result of check Shorewall configuration
+  debug:
+    msg: "{{ shorewall_check }}"
+  
+- name: Restart Shorewall configuration
+  shell: shorewall restart

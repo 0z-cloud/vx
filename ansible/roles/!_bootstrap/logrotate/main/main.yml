@@ -1,0 +1,11 @@
+
+- name: Template logrotate rsyslog configuration
+  template:
+    src: rsyslog.conf.j2
+    dest: /etc/logrotate.d/rsyslog
+
+- name: Template logrotate nginx configuration
+  template:
+    src: nginx.conf.j2
+    dest: /etc/logrotate.d/nginx
+  when: inventory_hostname in groups['nginx-frontend']

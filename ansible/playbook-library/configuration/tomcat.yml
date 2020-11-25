@@ -1,0 +1,7 @@
+- name: Running Tomcat Configuration Testing
+  hosts: tomcat-servers
+  become: yes 
+  roles:
+    - name: Tomcat setup configuration
+      role: ./!_configuration/tomcat/configuration
+  tags: [tomcat-configuration]

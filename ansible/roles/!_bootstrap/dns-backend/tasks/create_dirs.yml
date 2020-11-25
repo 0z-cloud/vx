@@ -1,0 +1,15 @@
+- name: Create Dir with local domain
+  file:
+    path: "{{ bind_cloud_settings.bind_etc }}/{{ bind_cloud_settings.zone_path }}/"
+    state: directory
+    mode: 0755
+    owner: bind
+  tags: configuration
+
+- name: Create Dir for logging
+  file:
+    path: "{{ bind_cloud_settings.logging_path }}"
+    state: directory
+    mode: 0755
+    owner: bind
+  tags: configuration

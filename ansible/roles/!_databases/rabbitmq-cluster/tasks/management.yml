@@ -1,0 +1,47 @@
+---
+- name: Remove the guest user
+  rabbitmq_user:
+    user: guest
+    state: absent
+  when: rabbitmq_remove_guest
+
+- name: Define the vhosts
+  rabbitmq_vhost:
+    name: "{{ item.name }}"
+    state: "{{ item.state }}"
+  with_items: "{{ rabbitmq_vhosts }}"
+
+- name: Create the users
+  rabbitmq_user:
+    user: "{{ item.user }}"
+    password: "{{ item.password }}"
+    force: "{{ item.force|default(no) }}"
+    vhost: "{{ item.vhost|default('/') }}"
+    configure_priv: "{{ item.configure_priv|default('.*') }}"
+    read_priv: "{{ item.read_priv|default('.*') }}"
+    write_priv: "{{ item.write_priv|default('.*') }}"
+    tags: "{{ item.tags|default('') }}"
+  with_items: "{{ rabbitmq_users }}"
+
+- name: Manage the queues
+  rabbitmq_queue:
+    name: "{{ item.name }}"
+    vhost: "{{ item.vhost }}"
+    state: "{{ item.state }}"
+    login_user: "{{ item.login_user }}"
+    login_password: "{{ item.login_password }}"
+    durable: "{{ item.durable|default('true') }}"
+  ignore_errors: true
+  with_items: "{{ rabbitmq_queues }}"
+
+- name: Manage the exchanges
+  rabbitmq_exchange:
+    name: "{{ item.name }}"
+    vhost: "{{ item.vhost }}"
+    state: "{{ item.state }}"
+    login_user: "{{ item.login_user }}"
+    login_password: "{{ item.login_password }}"
+    exchange_type: "{{ item.exchange_type }}"
+    durable: "{{ item.durable|default('true') }}"
+  ignore_errors: true
+  with_items: "{{ rabbitmq_exchanges }}"

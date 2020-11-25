@@ -1,0 +1,172 @@
+# Java Manual Playbook
+
+- name: Prepare vars, and debug settings before deploy
+  hosts: "{{ HOSTS }}"
+  become: true
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/java/{{ HOSTS }}.yml"
+  tasks:
+    - name: include default step variables
+      include_vars: "{{ inventory_dir }}/group_vars/java/{{ HOSTS }}.yml"
+    - name: Add host to multiple groups
+      add_host:
+        hostname: "{{ item }}"
+        groups: "{{ item }}"
+      with_items: "{{ KEEPALIVE_TARGET }}"
+    - name: "Add hosts: k_run"
+      add_host: 
+        name: "{{ item }}"
+        groups: k_run
+        ansible_ssh_common_args: '-o ProxyCommand="ssh -W %h:%p %r@{{ BASTION_HOST }}"'
+      with_items: "{{ KEEPALIVE_TARGET }}"
+
+# Facts Getting from Server's clients of Service's
+- name: Fact gathering
+  vars_prompt:
+    - name: P_GITLAB_JOB
+      prompt: "Job"
+      private: no
+    - name: P_GITLAB_TOKEN
+      prompt: "Token"
+  vars:
+    GEN_RELEASE: "{{ ansible_date_time.year }}{{ ansible_date_time.month }}{{ ansible_date_time.day }}{{ ansible_date_time.hour }}{{ ansible_date_time.minute }}{{ ansible_date_time.second }}"
+    GEN_RELEASE_DIRECTORY: "{{ APPLICATION_DIRECTORY }}/releases/{{ GEN_RELEASE }}"
+    GEN_RELEASE_OWNER: "{{ tomcat_properties.security.owner_user }}"
+    GEN_RELEASE_GROUP: "{{ tomcat_properties.security.owner_group }}"
+  hosts: k_run
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/java/{{ HOSTS }}.yml"
+  tasks:
+    - set_fact:
+        GITLAB_JOB: "{{ P_GITLAB_JOB }}"
+        GITLAB_TOKEN: "{{ P_GITLAB_TOKEN }}"
+        RELEASE: "{{ GEN_RELEASE }}"
+        RELEASE_DIRECTORY: "{{ GEN_RELEASE_DIRECTORY }}"
+        RELEASE_OWNER: "{{ GEN_RELEASE_OWNER }}"
+        RELEASE_GROUP: "{{ GEN_RELEASE_GROUP }}"
+      delegate_to: "{{ item }}"
+      delegate_facts: True
+      with_inventory_hostnames: "{{ HOSTS }}"
+    - set_fact:
+        GITLAB_JOB: "{{ P_GITLAB_JOB }}"
+        GITLAB_TOKEN: "{{ P_GITLAB_TOKEN }}"
+        RELEASE: "{{ GEN_RELEASE }}"
+        RELEASE_DIRECTORY: "{{ GEN_RELEASE_DIRECTORY }}"
+        RELEASE_OWNER: "{{ GEN_RELEASE_OWNER }}"
+        RELEASE_GROUP: "{{ GEN_RELEASE_GROUP }}"
+  tags: [get_facts, always]
+
+- name: Starting deploy notification
+  hosts: "{{ HOSTS }}"
+  become: true
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/java/{{ HOSTS }}.yml"
+  tasks:
+    - name: Debug RELEASE_DIRECTORY
+      debug:
+        msg: "RELEASE_DIRECTORY: {{ RELEASE_DIRECTORY }}"
+    - name: Debug GITLAB_JOB
+      debug:
+        msg: "GITLAB_JOB: {{ GITLAB_JOB }}"
+    - name: Debug GITLAB_TOKEN
+      debug:
+        msg: "GITLAB_TOKEN: {{ GITLAB_TOKEN }}"
+    - include_role:
+        name: "./!_hooks/notifier"
+        tasks_from: deploy_notify
+      vars:
+        DEPLOY_NOTIFY_MESSAGE: "ATTENTION! DEPLOY JAVA STARTED!"
+        NOTIFIER_TELEGRAM_CHAT_ID: "{{ telegram_notification_chat_id }}"
+    - include_role:
+        name: "./!_hooks/notifier"
+        tasks_from: deploy_merchants
+      vars:
+        DEPLOY_NOTIFY_MESSAGE: "ATTENTION! DEPLOY STARTED!"
+        NOTIFIER_TELEGRAM_CHAT_ID: "{{ merchant_telegram_notification_chat_id }}"
+
+# Installing Java App to hosts
+- name: Installing Java App to hosts
+  hosts: "{{ HOSTS }}"
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/java/{{ HOSTS }}.yml"
+  serial: 1
+  become: true
+
+  tasks:
+
+    - block:
+      - include_role:
+          name: "./!_hooks/notifier"
+          tasks_from: deploy_notify
+        vars:
+          DEPLOY_NOTIFY_MESSAGE: "ATTENTION! DRAINSTOP FOR {{ inventory_hostname }} STARTED!"
+          NOTIFIER_TELEGRAM_CHAT_ID: "{{ telegram_notification_chat_id }}"
+      - include_role:
+          name: "./!_hooks/notifier"
+          tasks_from: deploy_notify
+        vars:
+          DEPLOY_NOTIFY_MESSAGE: "SELECTED ONLY UPLOAD CERTS!"
+          NOTIFIER_TELEGRAM_CHAT_ID: "{{ telegram_notification_chat_id }}"
+        when: configuration_update_only is defined
+      - include_role:
+          name: "./!_deploy/java/fan-update/remove"
+      - include_role:
+          name: "./!_hooks/notifier"
+          tasks_from: deploy_notify
+        vars:
+          DEPLOY_NOTIFY_MESSAGE: "COMPLETE DRAINSTOP FOR {{ inventory_hostname }} !"
+          NOTIFIER_TELEGRAM_CHAT_ID: "{{ telegram_notification_chat_id }}"
+      - include_role:
+          name: "./!_deploy/create-application-directories"
+        when: configuration_update_only is not defined
+      - include_role:
+          name: "./!_deploy/create-release-directory"
+        when: configuration_update_only is not defined
+      - include_role:
+          name: "./!_deploy/download-artifacts"
+        when: configuration_update_only is not defined
+      - include_role:
+          name: "./!_deploy/java/deploy/shutdown"
+      - include_role:
+          name: "./!_deploy/java/deploy/unwar"
+      - include_role:
+          name: "./!_deploy/java/deploy/startup"
+      - include_role:
+          name: "./!_deploy/java/deploy/setversion"    
+      # WIP
+      # - include_role:
+      #     name: "java/deploy/k_selfcheck"
+      - include_role:
+          name: "./!_hooks/notifier"
+          tasks_from: deploy_notify
+        vars:
+          DEPLOY_NOTIFY_MESSAGE: "SUCCESS DEPLOY FOR {{ inventory_hostname }} COMPLETE!"
+          NOTIFIER_TELEGRAM_CHAT_ID: "{{ telegram_notification_chat_id }}"
+
+      rescue:
+        - include_role:
+            name: "./!_hooks/notifier"
+            tasks_from: deploy_merchants
+          vars:
+            DEPLOY_NOTIFY_MESSAGE: "CRITICAL! DEPLOY JAVA FAILED!"
+            NOTIFIER_TELEGRAM_CHAT_ID: "{{ merchant_telegram_notification_chat_id }}"
+          with_items:
+            - "{{ telegram_notification_chat_id }}"
+            - "{{ merchant_telegram_notification_chat_id }}"
+
+- name: Publication complete
+  hosts: k_run
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/java/{{ HOSTS }}.yml"
+  tasks:
+    - include_role:
+        name: "./!_hooks/notifier"
+        tasks_from: deploy_merchants
+      vars:
+        DEPLOY_NOTIFY_MESSAGE: "DEPLOY OK! PLEASE CHECK THE SERVICE!"
+        NOTIFIER_TELEGRAM_CHAT_ID: "{{ item }}"
+      with_items:
+        - "{{ telegram_notification_chat_id }}"
+        - "{{ merchant_telegram_notification_chat_id }}"
+
+  tags: [get_facts, always]

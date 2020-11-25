@@ -1,0 +1,9 @@
+- name: Set DOCKER_OPTS to Docker Daemon systemd.u16.j2 (Ubuntu 16)
+  template:
+      src: systemd.u16.j2
+      dest: /lib/systemd/system/docker.service
+  tags: [swarm-setup]
+
+- name: Services reload (Ubuntu 16)
+  raw: systemctl daemon-reload
+  tags: [swarm-setup]

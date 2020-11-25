@@ -1,0 +1,64 @@
+#!/bin/sh
+# DHCP INIT SH
+###########################
+DATE=`date '+%H:%M:%S'`
+touch /var/log/oz-dhcp-local-cloud-init-$DATE.log
+echo "CURRENT DATE: $DATE"
+###########################
+
+VPN_SUBNET_PRIVATE=$1
+VPN_PRIVATE_SUBNET_NETMASK=$2
+PRIMARY_DOMAIN=$3
+CLOUD_DNS_SERVICE_GEO=$4
+VPN_SUBNET_PRIVATE_ROUTER=$5
+VPN_SUBNET_PRIVATE_START=$6
+VPN_SUBNET_PRIVATE_END=$7
+OZ_DHCP_SERVER_INTERFACE=$8
+
+echo "VPN_SUBNET_PRIVATE_DNS_SERVER: $VPN_SUBNET_PRIVATE_DNS_SERVER" > /var/log/oz-dhcp-local-cloud-init-$DATE.log
+echo "VPN_SUBNET_PRIVATE: $VPN_SUBNET_PRIVATE" > /var/log/oz-dhcp-local-cloud-init-$DATE.log
+echo "VPN_PRIVATE_SUBNET_NETMASK: $VPN_PRIVATE_SUBNET_NETMASK" > /var/log/oz-dhcp-local-cloud-init-$DATE.log
+echo "PRIMARY_DOMAIN: $PRIMARY_DOMAIN" > /var/log/oz-dhcp-local-cloud-init-$DATE.log
+echo "CLOUD_DNS_SERVICE_GEO: $CLOUD_DNS_SERVICE_GEO" > /var/log/oz-dhcp-local-cloud-init-$DATE.log
+echo "VPN_SUBNET_PRIVATE_ROUTER: $VPN_SUBNET_PRIVATE_ROUTER" > /var/log/oz-dhcp-local-cloud-init-$DATE.log
+echo "VPN_SUBNET_PRIVATE_START: $VPN_SUBNET_PRIVATE_START" > /var/log/oz-dhcp-local-cloud-init-$DATE.log
+echo "VPN_SUBNET_PRIVATE_END: $VPN_SUBNET_PRIVATE_END" > /var/log/oz-dhcp-local-cloud-init-$DATE.log
+echo "OZ_DHCP_SERVER_INTERFACE: $OZ_DHCP_SERVER_INTERFACE" > /var/log/oz-dhcp-local-cloud-init-$DATE.log
+
+echo "STOP DHCP" >> /var/log/oz-dhcp-local-cloud-init-$DATE.log
+systemctl stop isc-dhcp-server
+
+echo "REPLACE DHCP SERVER ENTITY MAIN CONFIG" >> /var/log/oz-dhcp-local-cloud-init-$DATE.log
+
+rm -rf /tmp/dhcp.conf
+tee -a /tmp/dhcp.conf > /dev/null <<EOT
+default-lease-time 7200;
+max-lease-time 43200;
+
+# specify network address and subnet-mask
+subnet $VPN_SUBNET_PRIVATE netmask $VPN_PRIVATE_SUBNET_NETMASK {
+    # specify dns servers and client domain
+    option domain-name "$PRIMARY_DOMAIN";
+    option domain-name-servers "$CLOUD_DNS_SERVICE_GEO";
+    # specify default gateway
+    option routers $VPN_SUBNET_PRIVATE_ROUTER;
+    # specify subnet-mask
+    option subnet-mask $VPN_PRIVATE_SUBNET_NETMASK;
+    # specify the range of leased IP address
+    range dynamic-bootp $VPN_SUBNET_PRIVATE_START $VPN_SUBNET_PRIVATE_END;
+}
+EOT
+
+cp /tmp/dhcp.conf /etc/dhcp/dhcpd.conf
+echo "SET DHCP SERVICE INTERFACE: $OZ_DHCP_SERVER_INTERFACE" >> /var/log/oz-dhcp-local-cloud-init-$DATE.log
+
+tee -a /tmp/isc.conf > /dev/null <<EOT
+INTERFACESv4="$OZ_DHCP_SERVER_INTERFACE"
+EOT
+
+cp /tmp/isc.conf /etc/default/isc-dhcp-server
+
+echo "RELOAD SYSTEMCTL DAEMONS" >> /var/log/oz-dhcp-local-cloud-init-$DATE.log
+systemctl daemon-reload
+echo "RESTART ISC DHCP SERVER" >> /var/log/oz-dhcp-local-cloud-init-$DATE.log
+systemctl restart isc-dhcp-server

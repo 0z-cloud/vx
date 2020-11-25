@@ -1,0 +1,38 @@
+- name: Remove DOCKER_HOST from Global System Env (Ubuntu 14)
+  lineinfile: 
+      dest: /etc/environment
+      regexp: '^DOCKER_HOST[^,]*$' 
+      state: absent
+  tags: [swarm-setup]
+        
+- name: Remove DOCKER_OPTS Docker Daemon Env /etc/default/docker (Ubuntu 14)
+  lineinfile: 
+      dest: /etc/default/docker
+      regexp: '^DOCKER_OPTS[^,]*$' 
+      state: absent
+  tags: [swarm-setup]
+        
+- name: Remove DOCKER_HOST Docker Daemon Env /etc/default/docker (Ubuntu 14)
+  lineinfile: 
+      dest: /etc/default/docker
+      regexp: '^DOCKER_HOST[^,]*$' 
+      state: absent
+  tags: [swarm-setup]
+      
+- name: Set DOCKER_HOST to Global System Env (Ubuntu 14)
+  lineinfile: 
+      dest: /etc/environment
+      line: DOCKER_HOST="tcp://0.0.0.0:2375"
+  tags: [swarm-setup]
+      
+- name: Set DOCKER_OPTS to Docker Daemon Env /etc/default/docker (Ubuntu 14)
+  lineinfile: 
+      dest: /etc/default/docker
+      line: DOCKER_OPTS="-H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock --cluster-store consul://{{ ansible_default_ipv4['address'] }}:8500 --cluster-advertise {{ ansible_default_ipv4['interface'] }}:2375"
+  tags: [swarm-setup]
+
+- name: Set DOCKER_HOST to Docker Daemon Env /etc/default/docker
+  lineinfile: 
+      dest: /etc/default/docker
+      line: DOCKER_HOST="-H tcp://0.0.0.0:2375"
+  tags: [swarm-setup]

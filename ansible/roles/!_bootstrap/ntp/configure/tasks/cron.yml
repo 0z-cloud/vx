@@ -1,0 +1,25 @@
+- name: CRON | Removing old task
+  cron:
+    minute: "17"
+    hour: "*/2"
+    weekday: "*"
+    job: "/usr/sbin/ntpdate -s {{ hostvars[inventory_hostname].ansible_default_ipv4.gateway }}"
+    state: absent
+    user: root
+  when: ids_server is not defined
+
+# - name: CRON | Adding /usr/sbin/ntpd run to cron
+#   cron:
+#     name: "ntpdate cron job"
+#     minute: "17"
+#     hour: "*/2"
+#     weekday: "*"
+#     job: "/usr/sbin/ntpd -gq"
+#     disabled: no
+#     state: present
+#     user: root
+
+- name: SERVICE | Restarting cron service
+  service:
+    name: cron
+    state: restarted

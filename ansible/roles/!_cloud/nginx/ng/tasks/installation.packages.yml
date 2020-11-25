@@ -1,0 +1,39 @@
+---
+- name: Remove old  nginx packages
+  apt:
+    name: "{{ item }}"
+    state: absent
+  environment: "{{ nginx_env }}"
+  when: ansible_os_family == "Debian"
+  with_items:
+    - nginx
+    # - nginx-extras 
+    # - nginx-core 
+    # - nginx-common
+    # - nginx
+  # notify:
+  #   - restart nginx
+  tags: [packages,nginx]
+
+- name: Install the nginx packages
+  apt:
+    name: "{{ item }}"
+    state: latest
+  environment: "{{ nginx_env }}"
+  when: ansible_os_family == "Debian"
+  with_items:
+    - nginx-full 
+    # - nginx-extras 
+    # - nginx-core 
+    # - nginx-common
+    # - nginx
+  # notify:
+  #   - restart nginx
+  tags: [packages,nginx]
+
+- name: Install the necessary apache2-utils packages
+  apt:
+    name: apache2-utils
+    state: latest
+  when: ansible_os_family == "Debian"
+  tags: [packages,apache2]

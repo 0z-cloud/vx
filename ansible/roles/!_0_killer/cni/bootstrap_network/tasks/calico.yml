@@ -1,0 +1,12 @@
+
+- name: "Template calico extensions configurations"
+  template:
+    src: "{{ item }}"
+    dest: "/etc/kubernetes/kube/{{ item | basename | regex_replace('\\.j2','') }}"
+  with_fileglob:
+    - ../templates/calico/*.j2
+
+- name: Apply configurations crds
+  shell: kubectl apply -f /etc/kubernetes/kube/crds.yaml
+
+

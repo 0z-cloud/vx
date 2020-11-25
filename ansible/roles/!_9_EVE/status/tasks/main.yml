@@ -1,0 +1,10 @@
+
+# 
+- name: Running EDEN Show status on EVE TARGET instance 
+  include_tasks: 'eden.yml'
+  when: "'eden' in group_names"
+
+# - name: Running EVE Show status on EVE TARGET instance 
+#   include_tasks: 'eve.yml'
+#   when: "'eve' in group_names"
+

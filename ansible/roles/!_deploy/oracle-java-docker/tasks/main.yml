@@ -1,0 +1,40 @@
+
+
+- name: Inject vars
+  set_fact:
+    oracle_java: "{{ oracle_java_defaults | combine(oracle_java) }}"
+  tags: [always]
+
+
+- name: Show Current Dictionaries
+  debug:
+    msg: "{{ item }}"
+  with_items:
+      - "{{ application_name }}"
+      - "{{ HOSTS }}"
+      - "{{ TARGET_CLUSTER }}"
+      - "{{ APPLICATION_TO_DEPLOY }}"
+
+- include_vars:
+    file: "{{ inventory_dir }}/group_vars/swarm-cluster/!_Applications_Core/{{ TARGET_CLUSTER }}/{{ application_name }}.yml"
+
+
+- name: Create the directories
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0755
+    owner: consul
+    group: root
+  with_dict: "{{ application_name.directories | default({}) }}"
+
+- name: Create a Java Docker container 
+  become: true
+  docker_container:
+      name: java-{{ ansible_environment }}-{{ inventory_hostname }}-{{ application_name }}
+      image: lwieske/java-8:jdk-8u202-slim
+      restart_policy: always
+      privileged: true
+      recreate: yes
+      detach: True
+      state: started

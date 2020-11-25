@@ -1,0 +1,54 @@
+####
+
+- name: "[vsphere:] Bootstrap infrastructure from localhost to ESXi Vcenter Appliance"
+  hosts: localhost
+  #strategy: free
+  gather_facts: False
+  tasks:
+    - name: Load groupvars/product global shared settings
+      include_vars: group_vars/products/{{ ansible_product }}/{{ item }}.yml
+      with_items:
+        - vsphere
+        - main
+
+    - name: Load groupvars/product global shared settings
+      include_vars: group_vars/products/{{ ansible_product }}/{{ ansible_environment }}/{{ item }}.yml
+      with_items:
+        - attached
+        - main
+
+- name: "[vsphere:] Starting the instance bootstrap and check"
+  hosts: localhost
+  gather_facts: yes
+  vars_files:
+    - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+    - "group_vars/products/{{ ansible_product }}/main.yml"
+    - "group_vars/products/{{ ansible_product }}/shared.yml"
+    - "group_vars/products/{{ ansible_product }}/{{ ansible_cloud_type }}.yml"
+    - "inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+    ### !!! BECAREFUL WITH ANYCLOUD !!!!!!!!!!! GO TO README IF NOT UNDERSTANDING WHY IT ARE A REPRESENTS ITSELEF > Good luck, google not help. echo
+    # ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## /--```]-_=]```--/ ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+    - "group_vars/!_anyCloud/anyCloud.yml"
+    #
+    - "group_vars/all.yml"
+  vars:
+    # ansible_environment: production
+    # ansible_product: adam
+    # version_ansible_build_id: latest
+    # cloud_dir: /opt/cloud_dir
+    # ansible_python_interpreter: "/usr/local/bin/python3"
+  roles:
+    # - name: After reloader, 3-way untrasted connection prevention by Vx.
+    #   role: ./!_cloud/_Eve_at_EDGE_vx_ACL_/any2any/init
+
+    # - name: Include Vx 0z Cloud Talk Interface Sync the state and truth of Zone which maintain
+    #   role: ./!_cloud/dc_integration/vsphere/0z-interface/vx-sync
+
+    # - name: Include role Network Zone maintain
+    #   role: ./!_cloud/dc_integration/vsphere/network
+
+    - name: Include role Instance Management Stage maintain
+      role: "!_cloud/dc_integration/vsphere/instance/present-state"
+
+    - name: Include role vSwitch Zone maintain
+      role: "!_cloud/dc_integration/vsphere/0z-interface/return_one"

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+  {% block title %}<title>Wo inc. Control Panel - Add hyper-visor server</title>{% endblock %}
+
+{% block dashboard_stat %}
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <h1>
+        Add hyper-visor server
+      </h1>
+      <ol class="breadcrumb">
+        <li><a href="{{ url_for('hypervisor') }}"><i class="fa fa-dashboard"></i>Hyper-visor's</a></li>
+        <li class="active">Add hyper-visor</li>
+      </ol>
+    </section>
+{% endblock %}
+
+{% block content %}
+<section class="content">
+<div class="row">
+    <div class="col-lg-12">
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3 class="box-title">Create new hv server record</h3>
+            </div>
+            <!-- /.box-header -->
+            <!-- form start -->
+            <form role="form" method="post" action="{{ url_for('hypervisor_server_create') }}">
+                <div class="box-body">
+                    <div class="form-group has-feedback">
+                        <label class="control-label" for="hv_server_api_user">hv_server_api_user</label>
+                        <input type="text" class="form-control" placeholder="hv_server_api_user"
+                            name="hv_server_api_user" {% if user %}value={{ hypervisor.hv_server_api_user }}{% endif %}> <span
+                            class="glyphicon glyphicon-user form-control-feedback"></span>
+                    </div>
+                    <div class="form-group has-feedback">
+                        <label class="control-label" for="hv_server_api_password">hv_server_api_password</label>
+                        <input type="text" class="form-control" placeholder="hv_server_api_password"
+                            name="hv_server_api_password" {% if user %}value={{ hypervisor.hv_server_api_password }}{% endif %}> <span
+                            class="glyphicon glyphicon-user form-control-feedback"></span>
+                    </div>
+                    <div class="form-group has-feedback {% if hypervisor_ip_duplicate %}has-error{% endif %}{% if hypervisor_ip_check %}has-error{% endif %}">
+                        <label class="control-label" for="hv_server_ip">hv_server_ip</label>
+                        <input type="hv_server_ip" class="form-control" placeholder="hv_server_ip"
+                            name="hv_server_ip" id="hv_server_ip" {% if user %}value={{ self.hv_server_ip }}{% endif %}> <span
+                            class="glyphicon glyphicon-envelope form-control-feedback"></span>
+                        {% if hypervisor_ip_duplicate %}
+                        <span class="help-block">This hv_server_ip address is already in use.</span>
+                        {% endif %}
+                        {% if hypervisor_ip_check %}
+                        <span class="help-block">Invalid IP.</span>
+                        {% endif %}
+                    </div>
+                    <p class="login-box-msg">Enter the hv_server_name below</p>
+                    <div class="form-group has-feedback {% if hypervisor_name_duplicate %}has-error{% endif %}">
+                        <label class="control-label" for="hv_server_name">hv_server_name</label>
+                        <input type="text" class="form-control" placeholder="hv_server_name"
+                            name="hv_server_name" {% if user %}value={{ hypervisor.hv_server_name }}{% endif %}> <span
+                            class="glyphicon glyphicon-user form-control-feedback"></span>
+                        {% if hypervisor_name_duplicate %}
+                        <span class="help-block">This hv_server_name is already in use.</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="box-footer">
+                    <button type="submit" class="btn btn-flat btn-primary">Create HV Server Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</section>
+{% endblock %}

@@ -1,0 +1,61 @@
+
+
+- name: Check cloud dir state is present
+  shell: "a=`dirname $(pwd)`; b=`dirname $a`; dirname $b"
+  register: root_project_dir
+
+- name: Set fact path to .cloud dir
+  set_fact: 
+    ansible_local_cloud_dir: "{{ root_project_dir.stdout | join }}/.cloud/"
+
+- name: Set facts path to .cloud dir internal storage place by contracts
+  set_fact: 
+    ansible_local_cloud_short_contract_type_dir: "{{ ansible_local_cloud_dir }}/{{ ansible_product }}/{{ ansible_environment }}/"
+    ansible_local_cloud_full_contract_type_dir: "{{ ansible_local_cloud_dir }}/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/"
+
+- name: Show root project dir
+  debug:
+    msg: 
+  with_items: 
+    - "{{ ansible_local_cloud_dir }}" 
+    - "{{ ansible_local_cloud_short_contract_type_dir }}"
+    - "{{ ansible_local_cloud_full_contract_type_dir }}"
+
+- name: re/Create Destinaiton Placement Directory [short] and [full]
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items: 
+    - "{{ ansible_local_cloud_dir }}" 
+    - "{{ ansible_local_cloud_short_contract_type_dir }}"
+    - "{{ ansible_local_cloud_full_contract_type_dir }}"
+
+- name: FILL ALL CLOUD INFORMATION the TERAFORMA STATE IN LOCAL SPECIAL DIR
+  template:
+     src: "{{ item }}" 
+     dest: "{{ ansible_local_cloud_short_contract_type_dir }}"
+  loop:
+    - 'ports.yml'
+
+# - name: FILL ALL CLOUD INFORMATION the TERAFORMA STATE IN LOCAL SPECIAL DIR
+#   template:
+#      src: "{{ item.path }}{{ item.file }}" 
+#      dest: "{{ ansible_local_cloud_dir }}/"
+
+
+# - name: FILL ALL CLOUD INFORMATION the TERAFORMA STATE IN LOCAL SPECIAL DIR
+#   template:
+#      src: "{{ item.path }}{{ item.file }}" 
+#      dest: "{{ ansible_local_cloud_dir }}/"
+#   with_items:
+  # loop:
+  #   - { path: 'inventories/global/oz_router/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/', file: 'all.yml' }
+  #   - { path: 'group_vars/products/{{ ansible_product }}', file: 'main.yml' }
+  #   - { path: 'group_vars/products/{{ ansible_product }}', file: 'shared.yml' }
+  #   - { path: 'group_vars/products/{{ ansible_product }}', file: 'zone.yml' }
+  #   - { path: "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/dns/{{ REPLACED_HOSTS | default('master-bind-master-backend') }}", file: "{{ REPLACED_HOSTS | default('master-bind-master-backend') }}.yml" }
+  #   - { path: "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/", file: "all.yml" }
+  #   - { path: "inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/", file: "all.yml" }
+  #   - { path: 'group_vars/', file: 'all.yml' }
+  #   # - "group_vars/!_anyCloud/anyCloud.yml"
+

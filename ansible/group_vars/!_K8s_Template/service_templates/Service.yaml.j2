@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: {{ item.key }}
+    chart: {{ item.key }}-{{ lookup('vars', 'passed_ci_docker_tag_' + item.key) }}
+    heritage: Tiller
+    io.cattle.field/appId: {{ ansible_product}}-{{ ansible_environment }}
+    release: {{ ansible_product}}-{{ ansible_environment }}
+  name: {{ item.key }}
+  selfLink: /api/v1/namespaces/{{ ansible_product}}-{{ ansible_environment }}/services/{{ item.key }}
+spec:
+{% if item.value['ports'] is defined %}
+{% set portlist = item.value['ports'].split(':') %}
+  ports:
+  - port: {{ portlist[0] }}
+    protocol: TCP
+    targetPort: {{ portlist[1] }}
+  selector:
+    app: {{ item.key }}
+  sessionAffinity: None
+  type: ClusterIP
+{% endif %}
+status:
+  loadBalancer: {}

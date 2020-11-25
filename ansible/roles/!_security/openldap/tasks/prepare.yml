@@ -1,0 +1,16 @@
+---
+
+- fail: msg="slapd_root_password is required"
+  when: slapd_root_password is not defined
+
+- name: Re-gather facts
+  action: setup
+  when: ansible_fqdn is not defined
+
+- name: directory for .ldif helpers exists
+  file:
+    path: "{{ slapd_ldif_helper_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0770

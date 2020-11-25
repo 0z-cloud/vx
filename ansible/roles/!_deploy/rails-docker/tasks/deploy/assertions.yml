@@ -1,0 +1,95 @@
+- set_fact:
+    docker_image_with_tag: "{{ laravel_application.docker_image }}:{{ laravel_application.docker_image_tag }}"
+
+# Memcached
+- name: wait for memcached container started
+  shell: |
+    docker stack ps -f "name={{ laravel_application.name }}_memcached" {%raw%}-f "desired-state=running" --format="{{.CurrentState}}"{%endraw%} {{ laravel_application.name }}
+  register: memcached_container_state
+  until: memcached_container_state.stdout | regex_findall('Running') | length == 1
+  retries: 60
+  delay: 1
+
+# filebeat
+- name: wait for filebeat container started
+  shell: |
+    docker stack ps -f "name={{ laravel_application.name }}_filebeat" {%raw%}-f "desired-state=running" --format="{{.CurrentState}}"{%endraw%} {{ laravel_application.name }}
+  register: filebeat_container_state
+  until: filebeat_container_state.stdout | regex_findall('Running') | length == 1
+  retries: 60
+  delay: 1
+
+# Scheduler
+
+- name: wait for scheduler container image updated
+  shell: |
+    docker stack ps -f "name={{ laravel_application.name }}_scheduler" {%raw%}-f "desired-state=running" --format="{{.Image}}"{%endraw%} {{ laravel_application.name }}
+  register: scheduler_container_status
+  until: scheduler_container_status.stdout_lines | unique | length == 1 and scheduler_container_status.stdout_lines[0] == docker_image_with_tag
+  retries: 60
+  delay: 1
+
+- name: wait for scheduler container started
+  shell: |
+    docker stack ps -f "name={{ laravel_application.name }}_scheduler" {%raw%}-f "desired-state=running" --format="{{.CurrentState}}"{%endraw%} {{ laravel_application.name }}
+  register: scheduler_container_status
+  until: scheduler_container_status.stdout | regex_findall('Running') | length == 1
+  retries: 60
+  delay: 1
+
+# Web
+- name: wait for web replicas updated
+  shell: |
+    docker stack ps -f "name={{ laravel_application.name }}_web" {%raw%}-f "desired-state=running" --format="{{.Image}}"{%endraw%} {{ laravel_application.name }}
+  register: web_container_status
+  until: web_container_status.stdout_lines | length == laravel_application.replicas
+  retries: 60
+  delay: 1
+
+- name: wait for web containers image updated
+  shell: |
+    docker stack ps -f "name={{ laravel_application.name }}_web" {%raw%}-f "desired-state=running" --format="{{.Image}}"{%endraw%} {{ laravel_application.name }}
+  register: web_container_status
+  until: web_container_status.stdout_lines | unique | length == 1 and web_container_status.stdout_lines[0] == docker_image_with_tag
+  retries: 60
+  delay: 1
+
+- name: wait for all web containers started
+  shell: |
+    docker stack ps -f "name={{ laravel_application.name }}_web" {%raw%}-f "desired-state=running" --format="{{.CurrentState}}"{%endraw%} {{ laravel_application.name }}
+  register: web_container_state
+  until: web_container_state.stdout | regex_findall('Running') | length == laravel_application.replicas
+  retries: 60
+  delay: 1
+
+# Workers
+
+- name: wait for queue worker replicas updated
+  shell: |
+    docker stack ps -f "name={{ laravel_application.name }}_worker_{{ item.queue }}" {%raw%}-f "desired-state=running" --format="{{.Image}}"{%endraw%} {{ laravel_application.name }}
+  register: queue_container_status
+  until: queue_container_status.stdout_lines | length == item.workers
+  retries: 60
+  delay: 1
+  with_items: "{{ laravel_application.queues }}"
+  when: laravel_application.queues is defined
+
+- name: wait for queue worker containers image updated
+  shell: |
+    docker stack ps -f "name={{ laravel_application.name }}_worker_{{ item.queue }}" {%raw%}-f "desired-state=running" --format="{{.Image}}"{%endraw%} {{ laravel_application.name }}
+  register: queue_container_status
+  until: queue_container_status.stdout_lines | unique | length == 1 and queue_container_status.stdout_lines[0] == docker_image_with_tag
+  retries: 60
+  delay: 1
+  with_items: "{{ laravel_application.queues }}"
+  when: laravel_application.queues is defined
+
+- name: wait for all queue worker containers started
+  shell: |
+    docker stack ps -f "name={{ laravel_application.name }}_worker_{{ item.queue }}" {%raw%}-f "desired-state=running" --format="{{.CurrentState}}"{%endraw%} {{ laravel_application.name }}
+  register: queue_container_status
+  until: queue_container_status.stdout | regex_findall('Running') | length == item.workers
+  retries: 60
+  delay: 1
+  with_items: "{{ laravel_application.queues }}"
+  when: laravel_application.queues is defined

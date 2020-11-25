@@ -1,0 +1,32 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    certmanager.k8s.io/cluster-issuer: letsencrypt-prod
+    field.cattle.io/ingressState: '{"Y29yZS9ycGF5LWVuZ2luZS9jb3JlLmRldi5yb2NrZXRoby5tZS8vLzMwMDA=":"","bGV0c2VuY3J5cHQtY29yZQ==":"rpay-engine:letsencrypt-core"}'
+    field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":443,"protocol":"HTTPS","serviceName":"rpay-engine:core","ingressName":"rpay-engine:core","hostname":"core.dev.rocketho.me","path":"/","allNodes":true}]'
+    ingress.kubernetes.io/force-ssl-redirect: "true"
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: "true"
+  creationTimestamp: null
+  generation: 1
+  labels:
+    app: core
+    io.cattle.field/appId: rpay-engine
+  name: core
+  selfLink: /apis/extensions/v1beta1/namespaces/rpay-engine/ingresses/core
+spec:
+  rules:
+  - host: core.dev.rocketho.me
+    http:
+      paths:
+      - backend:
+          serviceName: core
+          servicePort: 3000
+        path: /
+  tls:
+  - hosts:
+    - core.dev.rocketho.me
+    secretName: letsencrypt-core
+status:
+  loadBalancer: {}

@@ -1,0 +1,62 @@
+# repo
+#
+# For information on the settings in this file, type "man shorewall-rules"
+######################################################################################################################################################################################################
+# ACTION		    SOURCE		            DEST							        PROTO	DEST	SOURCE		ORIGINAL	RATE		USER/	MARK	CONNLIMIT	TIME		HEADERS		SWITCH		HELPER
+#
+
+{% if inventory_hostname in groups['build-repository'] %}   
+
+# ICMP												
+ACCEPT              repo:{% for host in groups['build-repository'] %}{{ hostvars[host]['second_ip'] }}{% endfor %}                     all							            icmp
+
+# DMZ TO INET FOR Get updates												
+ACCEPT              repo:{% for host in groups['build-repository'] %}{{ hostvars[host]['second_ip'] }}{% endfor %}                     wan							            80,443
+
+# NTP
+ACCEPT              repo:{% for host in groups['build-repository'] %}{{ hostvars[host]['second_ip'] }}{% endfor %}                     vrrp							        udp     ntp,domain
+ACCEPT              repo:{% for host in groups['build-repository'] %}{{ hostvars[host]['second_ip'] }}{% endfor %}                     nginx							        udp     ntp,domain
+ACCEPT              repo:{% for host in groups['build-repository'] %}{{ hostvars[host]['second_ip'] }}{% endfor %}                     fw							            udp     ntp,domain
+ACCEPT              repo:{% for host in groups['build-repository'] %}{{ hostvars[host]['second_ip'] }}{% endfor %}                     fw							            udp     ntp,domain
+
+# DNS
+ACCEPT              repo:{% for host in groups['build-repository'] %}{{ hostvars[host]['second_ip'] }}{% endfor %}                     vrrp							        udp	    53
+ACCEPT              repo:{% for host in groups['build-repository'] %}{{ hostvars[host]['second_ip'] }}{% endfor %}                     nginx							        udp	    53
+
+# SSH
+ACCEPT              repo:{% for host in groups['build-repository'] %}{{ hostvars[host]['second_ip'] }}{% endfor %}                     vrrp							        tcp	    22
+ACCEPT              repo:{% for host in groups['build-repository'] %}{{ hostvars[host]['second_ip'] }}{% endfor %}                     nginx							        tcp	    22
+ACCEPT              repo:{% for host in groups['build-repository'] %}{{ hostvars[host]['second_ip'] }}{% endfor %}                     net							            tcp	    22
+ACCEPT              repo:{% for host in groups['build-repository'] %}{{ hostvars[host]['second_ip'] }}{% endfor %}                     sec							            tcp	    22
+ACCEPT              repo:{% for host in groups['build-repository'] %}{{ hostvars[host]['second_ip'] }}{% endfor %}                     dmz							            tcp	    22
+ACCEPT              repo:{% for host in groups['build-repository'] %}{{ hostvars[host]['second_ip'] }}{% endfor %}                     nginx							        tcp	    22
+ACCEPT              repo:{% for host in groups['build-repository'] %}{{ hostvars[host]['second_ip'] }}{% endfor %}                     repo							        tcp	    22
+ACCEPT              repo:{% for host in groups['build-repository'] %}{{ hostvars[host]['second_ip'] }}{% endfor %}                     vrrp							        tcp	    22
+ACCEPT              repo:{% for host in groups['build-repository'] %}{{ hostvars[host]['second_ip'] }}{% endfor %}                     vip							            tcp	    22
+
+# REPO
+ACCEPT              repo:{% for host in groups['build-repository'] %}{{ hostvars[host]['second_ip'] }}{% endfor %}                     repo							        tcp	    80,443
+
+
+{% else %}
+
+# repo HOST
+ACCEPT             fw                     repo:{% for host in groups['build-repository'] %}{{ hostvars[host]['second_ip'] }}{% endfor %}                     tcp         80,443
+ACCEPT             repo                     fw:{% for host in groups['build-repository'] %}{{ hostvars[host]['second_ip'] }}{% endfor %}                     tcp         80,443
+
+{% endif %}
+
+########################
+# block local ip from repo
+# DEFAULT DROP FROM repo LAN_IP SUBNETS
+DROP		        repo:$LAN_IP	                                fw
+########################
+# Dummy - ping, drop telnet, accept traceroute from repo to fw
+Ping(ACCEPT)	    repo		                                    fw		-	-	-		-		s:2/sec
+# anti ping flood
+ACCEPT		        repo		                                    fw		                        icmp	    0,3/4,8,11
+# ping response
+ACCEPT		        repo		                                    fw		                        udp	        33434:33529
+# for traceroute
+DROP		        repo		                                    fw		                        tcp	        23
+# block telnet

@@ -1,0 +1,165 @@
+# --- Global Settings --- #
+
+accounting syslog
+accounting file = /var/log/tacacs_acct.log
+key = "{{ tacacs_key }}"
+default authentication  = ldap://127.0.0.1
+
+# --- Network Access Servers --- #
+
+host = 10.91.90.90 { key = "{{ dgs_1510_key }}" }
+
+## Cisco Firewalls
+# An enable password must be set for the firewalls
+# Use tac_pwd to generate a des encrypted password string
+#
+{% for item in tacacs_enable_passwords %}
+host = {{ item.name }} { enable = {{ item.auth_mechanism }} {{ item.password}} }
+{% endfor %}
+
+
+# --- ACLs --- #
+
+# All network devices
+acl = all {
+    permit = .*
+}
+
+# Access layer switches
+acl = access_switches {
+    # All C2960 switches
+    permit = 192\.168\.40\.24[1-7]
+    permit = 10\.91\.90\.90
+}
+
+
+# --- Groups --- #
+
+group = enterprise_admin {
+    default service = permit
+    login = PAM
+    acl = all
+
+    # Default login exec level
+    service = exec {
+      priv-lvl = 15
+    }
+}
+
+group = access_admin {
+    default service = deny
+    login = PAM
+    acl = access_switches
+
+    # Default login exec level
+    service = exec {
+      priv-lvl = 15
+    }
+
+    # Basic commands
+    cmd = enable { permit .* }
+    cmd = exit { permit .* }
+    cmd = end { permit .* }
+    cmd = configure { permit .* }
+
+    # Group specific commands
+    cmd = show {
+        permit int.*
+        permit ip.*
+        permit priv.*
+        permit running-config
+    }
+
+    cmd = interface {
+        # Don't allow modification of trunk links
+        deny "GigabitEthernet [0-9]/[0-9]/(49|50|51|52)"
+        deny "FastEthernet [0-9]/[0-9]/(49|50|51|52)"
+
+        permit "FastEthernet.*"
+        permit "GigabitEthernet.*"
+    }
+
+    cmd = switchport  {
+        permit "access vlan.*"
+        permit "mode access"
+    }
+
+    cmd = description {
+        permit .*
+    }
+
+    cmd = no {
+        permit shutdown
+        permit "switchport mode access"
+    }
+
+    cmd = shutdown { permit .* }
+
+    cmd = do {
+        permit "sh(ow)? (int(erface)?|ip|priv(ilege)?|run(ning-config)?).*"
+        permit "switchport (access vlan|mode access).*"
+        permit "desc(ription).*"
+    }
+}
+
+group = reader {
+    default service = deny
+    login = PAM
+    acl = all
+
+    # Default login exec level
+    service = exec {
+      priv-lvl = 1
+    }
+
+    # Basic commands
+    cmd = enable { permit .* }
+    cmd = exit { permit .* }
+    cmd = end { permit .* }
+
+    # Group specific commands
+    cmd = show {
+        permit .*
+    }
+}
+
+group = scanner {
+    default service = deny
+    login = PAM
+    acl = all
+
+    # Default login exec level
+    service = exec {
+      priv-lvl = 15
+    }
+
+    # Basic commands
+    cmd = enable { permit .* }
+    cmd = exit { permit .* }
+    cmd = end { permit .* }
+
+    # Group specific commands
+    cmd = show { permit .* }
+    cmd = dir { permit .* }
+    cmd = write { permit term }
+    cmd = terminal { permit (length|width) }
+    cmd = more { permit .* }
+}
+
+
+
+# --- Users --- #
+{% for item in tacacs_users %}
+{% if item.state == 'present' %}
+user = {{ item.name }} {
+    login = PAM
+    member = {{ item.config_group }}
+{% if item.config_expires is defined %}
+    expires = "{{ item.config_expires }}"
+{% endif %}
+{% if item.enable is defined %}
+    enable = "{{ item.enable }}"
+{% endif %}
+}
+{% endif %}
+{% endfor %}

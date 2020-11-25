@@ -1,0 +1,15 @@
+- name: INCLUDE ROLE DOCKER INSTALL | ./!_cloud/docker/install_dev
+  include_role:
+    name:  ./!_cloud/docker/install_dev
+
+- name: INCLUDE TASKS KUBE APT ADD | kube_apt.yml
+  include_tasks: kube_apt.yml
+
+- name: INCLUDE TASKS WICH CHECK AND INSTALL ALL NECESSARY PACKAGES | install.yml
+  include_tasks: install.yml
+
+- name: INCLUDE TASKS WICH CHECK AND UPDATE ALL NECESSARY CONFIGS | configs.yml
+  include_tasks: configs.yml
+
+- name: INCLUDE TASKS WICH CHECK AND UPDATE ALL NECESSARY SERVICES | services.yml
+  include_tasks: services.yml

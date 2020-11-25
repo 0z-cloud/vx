@@ -1,0 +1,11 @@
+- name: Fact Gathering
+  hosts: all
+  tasks: []
+  tags: [get_facts, always]
+
+- name: Nginx-Frontend Install & Configure
+  become: true
+  hosts: nginx-frontend
+  roles:
+   - name: Running the nginx-frontend role
+     role: ./!_cloud/nginx/current

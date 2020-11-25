@@ -1,0 +1,76 @@
+- name: Bootstrap infrastructure from localhost to vCloud vCenter Appliance
+  hosts: localhost
+  vars_files:
+    - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+  # strategy: free
+  gather_facts: True
+  tasks:
+
+      - name: Load group_vars/product global shared settings
+        include_vars: group_vars/products/{{ ansible_product }}/{{ item }}.yml
+        with_items:
+          - main
+          - shared
+
+      - name: Load group_vars/product global shared settings
+        include_vars: group_vars/products/{{ ansible_product }}/{{ ansible_environment }}/{{ item }}.yml
+        with_items:
+          - attached
+          - main
+
+- name: vCloud Director Ansible Auth
+  hosts: localhost
+  environment:
+    env_user: "{{ anycloud_adapter_api_user }}"
+    env_password: "{{ anycloud_adapter_api_password }}"
+    env_host: "{{ anycloud_adapter_api_url_http_uri }}"            
+    env_org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+    env_api_version: '31.0'
+    env_verify_ssl_certs: True
+
+- name: Starting the instance bootstrap and check
+  hosts: localhost
+  vars_files:
+      - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+      - "group_vars/products/{{ ansible_product }}/main.yml"
+      - "group_vars/products/{{ ansible_product }}/shared.yml"
+      - "group_vars/products/{{ ansible_product }}/{{ ansible_cloud_type }}.yml"
+      - "inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+      - "group_vars/!_anyCloud/anyCloud.yml"
+      - "group_vars/all.yml"
+  environment:
+    env_user: "{{ anycloud_adapter_api_user }}"
+    env_password: "{{ anycloud_adapter_api_password }}"
+    env_host: "{{ anycloud_adapter_api_url_endpoint }}"
+    env_org: "{{ anycloud_defaults_virtual_organization }}"
+    env_api_version: "{{ anycloud_adapter_api_url_version }}"
+    env_verify_ssl_certs: "{{ anycloud_adapter_api_url_verify_ssl }}"
+    api_version: "{{ anycloud_adapter_api_url_version }}"
+  roles:
+
+    - name: Include role vCloud Director Organization of Project in Cloud maintain
+      role: ./!_cloud/dc_integration/vcd/!_org_get_facts
+
+    - name: Include role vCloud Director 3-way network of Project in Cloud Chain
+      role: ./!_cloud/dc_integration/vcd/network/3-way
+
+    - name: Include role vCloud Director VCD VDC EDGE Network Zone maintain
+      role: ./!_cloud/dc_integration/vcd/network/routed_distributed_subnet
+
+    - name: Include role vCloud Director vApp bootstrap and validate
+      role: ./!_cloud/dc_integration/vcd/vpc/create
+
+    - name: Include role vCloud Director Network Zone maintain
+      role: ./!_cloud/dc_integration/vcd/network/network_sector/create
+
+    - name: Include role vCloud Director VMs in vApp bootstrap and validate
+      role: ./!_cloud/dc_integration/vcd/instance/create
+
+    - name: Include role vCloud Director VMs in vApp nic update
+      role: ./!_cloud/dc_integration/vcd/instance/ether_nic
+
+    # - name: Include role vCloud Director Extra Networks in Zone maintain
+    #   role: ./!_cloud/dc_integration/vcd/network/network_zone/extra_nets
+
+    - name: Include role vCloud Director vApp start and validate
+      role: ./!_cloud/dc_integration/vcd/vpc/start

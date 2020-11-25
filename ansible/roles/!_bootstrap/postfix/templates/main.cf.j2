@@ -1,0 +1,26 @@
+# {{ ansible_managed }}
+##############################
+# Relay host configuration
+
+relayhost = [{{ default_mail_relayhost_address }}]:{{ default_mail_relayhost_port }}
+
+##############################
+# SASL Configuration
+
+smtp_sasl_auth_enable = yes
+smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
+smtp_sasl_security_options = noanonymous
+smtp_sasl_mechanism_filter = plain
+smtp_sasl_tls_security_options = noanonymous
+smtp_tls_CAfile = /etc/ssl/certs/thawte_Primary_Root_CA.pem
+smtp_use_tls = yes
+
+##############################
+## Gmail SMTP Relay
+# TLS parameters
+
+smtpd_use_tls=yes
+smtpd_tls_session_cache_database = btree:${data_directory}/smtpd_scache
+smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
+smtp_tls_note_starttls_offer = yes
+smtp_tls_policy_maps = hash:/etc/postfix/tls_policy

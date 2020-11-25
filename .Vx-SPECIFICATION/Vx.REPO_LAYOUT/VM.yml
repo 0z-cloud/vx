@@ -1,0 +1,47 @@
+#########################################
+    servers:
+#########################################
+
+        ##################################################################################
+        # HOST DICTIONARY PRIMARY KEY           
+        ##################################################################################
+        # can have only '_' are no '-', ansible not operate the pointers with '-' in. 
+        ##################################################################################
+        # lib item in dictionary:   | item.name:    
+        #########################################
+        # ns_vx_cloud_vsphere_01: ns-vx-cloud-vsphere-01
+        ##################################################################################
+        ns_vx_cloud_vsphere_01: # ns-vx-cloud-vsphere-01.lf-vx-z1e-vcd.fleandr.com
+            ########################################################################################
+            # ip gw network network_name network_type adapter_type netmask state_network
+            ########################################################################################
+            # ip: "REPLACED"
+            ip: "10.10.11.102"
+            gw: "10.10.10.1"
+            network: "REPLACED"
+            network_name: "VM Network"
+            anycloud_network_type: "DHCP"
+            anycloud_adapter_type: "e1000"
+            network_subnet: "255.255.0.0"
+            connect_state_network: yes
+            # ip: "ns-vx-cloud-vsphere-01_public_ip_address_REPLACED"
+            # RE-Vx TEMPLATE RFC - ip: "VX GET ns-vx-cloud-vsphere-02_public_ip_address_REPLACED"
+            # gw: "ns-vx-cloud-vsphere-02_public_gw_ip_address_REPLACED"
+                # #################################################################################################################################################################################################################################
+                # ip: "ns-vx-cloud-vsphere-02_public_ip_address_REPLACED"
+                # # gw: "REPLACED"
+                # # gw: "REPLACED"
+                # # ip: "REPLACED"
+                # # ip: "10.10.11.101"
+                # # gw: "10.10.10.1"
+                # # adapter_name: "REPLACED"
+                # # iface: "ns-vx-cloud-vsphere-02_public_gw_ip_address_REPLACED"
+                # iface: "ns-vx-cloud-vsphere-01_second_iface_REPLACED"
+                # # network: "REPLACED"
+                # network: "VM Network"
+                # # Network type choices - STATIC / DHCP / API
+                # anycloud_network_type: "DHCP"
+                # # network: "REPLACED"
+                # # network: "RE_PLACED"
+                # # network_subnet: "255.255.0.0"
+                # network_subnet: "REPLACED"

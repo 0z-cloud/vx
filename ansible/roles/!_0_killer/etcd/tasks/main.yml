@@ -1,0 +1,56 @@
+
+# ######## INIT PHASE SECOND - SYNC FROM FIRST MASTER
+
+- name: ETCD SYNC BETWEEN HOSTS | Copy new certificates from first master to all nodes
+  synchronize:
+    src: "{{ ca_service_settings.directories.ca }}/etcd"
+    dest: "{{ ca_service_settings.directories.ca }}"
+  delegate_to: "{{ groups['kubernetes-master'][0] }}"
+  tags: certificates_copy
+
+- name: ETCD STATUS | Register result of phase 1
+  shell: ls -la {{ ca_service_settings.directories.ca }}/etcd/
+  register: result_opt_ca_kaje_init
+
+- name: ETCD DEBUG | Show Result /opt/ca/pki directory
+  debug:
+    msg: "{{ result_opt_ca_kaje_init.stdout_lines }}"
+  when: debug_playbook_stdout is defined
+
+- name: ETCD COPY | Moving certificates to /etc/etcd
+  shell: cp {{ ca_service_settings.directories.ca }}/etcd/ca.pem {{ ca_service_settings.directories.ca }}/etcd/kubernetes.pem {{ ca_service_settings.directories.ca }}/etcd/kubernetes-key.pem /etc/etcd/
+  when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: ETCD CERTS | Register result of /etc/etcd
+  shell: ls -la /etc/etcd/
+  register: result_etcd_ca_kaje_init
+  when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: ETCD DEBUG | Show Result /etc/etcd/ directory
+  debug:
+    msg: "{{ result_etcd_ca_kaje_init.stdout_lines }}"
+  when: debug_playbook_stdout is defined and inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: ETCD CONF | Tempalte Etcd configuration
+  template: 
+    src: etcd.service
+    dest: /etc/systemd/system/etcd.service
+  when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: ETCD RESTART | Shell reload and restart etcd
+  shell: "{{ item }}"
+  with_items:
+    - systemctl daemon-reload
+    - systemctl enable etcd
+    - systemctl restart etcd
+  when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: ETCD STATUS | Register status of etcd cluster
+  shell: ETCDCTL_API=3 etcdctl member list
+  register: result_etcd_ca_kaje_init_restart
+  when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: ETCD DEBUG | Show status of etcd cluster
+  debug:
+    msg: "{{ result_etcd_ca_kaje_init_restart.stdout_lines }}"
+  when: debug_playbook_stdout is defined and inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']

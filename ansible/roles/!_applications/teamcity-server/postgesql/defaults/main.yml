@@ -1,0 +1,15 @@
+postgresql_settings_defaults:
+   database_jar_url: "https://jdbc.postgresql.org/download/postgresql-9.4.1212.jar"
+   driver_full_path: "/docker/teamcity/{{ ansible_environment }}/data/lib/jdbc/postgresql-9.4.1212.jar"
+   directories:
+       path: "/docker/postgresql/{{ ansible_environment }}"
+       data_dir: "/docker/postgresql/{{ ansible_environment }}/data"
+       config_path: "/docker/postgresql/{{ ansible_environment }}/config"
+       logs_path: "/docker/postgresql/{{ ansible_environment }}/logs"
+       lib_jdbc: "/docker/teamcity/{{ ansible_environment }}/data/lib/jdbc"
+   port: 5432
+   user: teamcity
+   password: 09reumdvh42ans6rT
+   database: teamcity
+   
+TEAMCITY_POSTGRES_PASSWORD: "{{ postgresql_settings.password }}"

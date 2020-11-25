@@ -1,0 +1,22 @@
+[DEFAULT]
+logging_folder = /var/log/mysqlrouter
+runtime_folder = /var/run
+connect_timeout=30
+read_timeout=30
+
+[logger]
+level = info
+
+[keepalive]
+interval = 60
+client_connect_timeout = 9
+
+[routing:{{ mysql_router.cluster_name }}]
+bind_address=127.0.0.1
+bind_port=3306
+mode=read-write
+destinations={{ mysql_router_master_host }}{% raw %}
+#destinations={% for host in groups['vortex-percona-cluster'] %}{{ hostvars[host].ansible_default_ipv4.address }}{% if not loop.last %},{% endif %}{% endfor%}
+{% endraw %}
+ttl=15
+wait_timeout=60

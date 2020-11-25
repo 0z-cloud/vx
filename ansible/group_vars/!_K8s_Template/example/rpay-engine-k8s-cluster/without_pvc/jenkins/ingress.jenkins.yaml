@@ -1,0 +1,34 @@
+apiVersion: v1
+items:
+- apiVersion: extensions/v1beta1
+  kind: Ingress
+  metadata:
+    annotations:
+      certmanager.k8s.io/cluster-issuer: letsencrypt-prod
+      field.cattle.io/creatorId: user-rxbgq
+      field.cattle.io/ingressState: '{"amVua2lucy1pbmdyZXNzL2plbmtpbnMvamVua2lucy5yb2NrZXRoby5tZS8vLzgwODA=":"","amVua2lucy1yb2NrZXRoby1tZS1jcnQ=":"default:jenkins-rocketho-me-crt"}'
+      field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":443,"protocol":"HTTPS","serviceName":"jenkins:jenkins","ingressName":"jenkins:jenkins-ingress","hostname":"jenkins.rocketho.me","path":"/","allNodes":true}]'
+      kubernetes.io/tls-acme: '"true"'
+    creationTimestamp: "2019-06-28T10:39:30Z"
+    generation: 1
+    labels:
+      cattle.io/creator: norman
+    name: jenkins-ingress
+    namespace: jenkins
+  spec:
+    rules:
+    - host: jenkins.rocketho.me
+      http:
+        paths:
+        - backend:
+            serviceName: jenkins
+            servicePort: 8080
+          path: /
+    tls:
+    - hosts:
+      - jenkins.rocketho.me
+      secretName: jenkins-rocketho-me-crt
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""

@@ -1,0 +1,63 @@
+{% raw %}apiVersion: kubeadm.k8s.io/v1beta2
+kind: ClusterConfiguration
+clusterName: "{% endraw %}{{ K8S_CLUSTER_NAME }}{% raw %}"
+kubernetesVersion: stable
+apiServerCertSANs:
+- {% endraw %}{{ K8S_CLUSTER_ADDRESS }}{% raw %}:{% endraw %}{{ K8S_CLUSTER_LISTEN_PORT }}{% raw %}"
+controlPlaneEndpoint: "{% endraw %}{{ K8S_CLUSTER_ADDRESS }}{% raw %}:{% endraw %}{{ K8S_CLUSTER_LISTEN_PORT }}{% raw %}"
+apiServer:
+    timeoutForControlPlane: 4m0s
+    advertise-address: 0.0.0.0
+    anonymous-auth: "false"
+    audit-log-path: /var/log/k8s-api-audit.log
+etcd:
+  external:
+    endpoints:{% endraw %}{% for host in groups['kubernetes-master'] %}{% raw %}
+    - https://{% endraw %}{{ hostvars[host]['second_ip'] }}{% raw %}:{% endraw %}{{ K8S_CLUSTER_LISTEN_PORT_2379 }}{% endfor %}{% raw %}
+    caFile: /etc/etcd/ca.pem
+    certFile: /etc/etcd/kubernetes.pem
+    keyFile: /etc/etcd/kubernetes-key.pem
+networking:
+  podSubnet: {% endraw %}{{ PODS_NETWORK_CIDR }}{% raw %}
+apiServerExtraArgs:
+  apiserver-count: "3"
+{% endraw %}
+
+
+{% raw %}apiVersion: kubeadm.k8s.io/v1beta2
+kind: ClusterConfiguration
+clusterName: "{% endraw %}{{ K8S_CLUSTER_NAME }}{% raw %}"
+kubernetesVersion: stable
+controlPlaneEndpoint: "{% endraw %}{{ K8S_CLUSTER_ADDRESS }}{% raw %}:{% endraw %}{{ K8S_CLUSTER_LISTEN_PORT }}{% raw %}"
+apiServer:
+  CertSANs:
+  - {% endraw %}{{ K8S_CLUSTER_ADDRESS }}{% raw %}:{% endraw %}{{ K8S_CLUSTER_LISTEN_PORT }}{% raw %}"
+  extraArgs:{% endraw %}{% if kube_api_anonymous_auth is defined %}{% raw %}
+    anonymous-auth: "{% endraw %}{{ kube_api_anonymous_auth }}{% raw %}"
+    {% endraw %}{% endif %}{% raw %}
+    endpoint-reconciler-type: lease
+    allow-privileged: "true"
+    timeoutForControlPlane: "4m0s"
+    bind-address: "0.0.0.0"
+    audit-log-path: "/var/log/k8s-api-audit.log"
+    enable-admission-plugins: "PodSecurityPolicy,AlwaysPullImages,DefaultStorageClass"
+    disable-admission-plugins: "SecurityContextDeny"
+    apiserver-count: "3"
+    kubelet-preferred-address-types: "InternalDNS,InternalIP,Hostname,ExternalDNS,ExternalIP"
+    feature-gates: ""
+etcd:
+  external:
+    endpoints:{% endraw %}{% for host in groups['kubernetes-master'] %}{% raw %}
+    - https://{% endraw %}{{ hostvars[host]['second_ip'] }}{% raw %}:{% endraw %}{{ K8S_CLUSTER_LISTEN_PORT_2379 }}{% endfor %}{% raw %}
+    caFile: /etc/etcd/ca.pem
+    certFile: /etc/etcd/kubernetes.pem
+    keyFile: /etc/etcd/kubernetes-key.pem
+dns:
+  type: CoreDNS
+  imageRepository: "{% endraw %}{{ coredns_image_repo | regex_replace('/coredns$','') }}{% raw %}"
+  imageTag: "{% endraw %}{{ coredns_image_tag }}{% raw %}"
+networking:
+  podSubnet: {% endraw %}{{ POD_NETWORK_CIDR }}{% raw %}
+  dnsDomain: {% endraw %}{{ k8_cloud_domain_name }}{% raw %}
+  serviceSubnet: {% endraw %}{{ SERVICE_NETWORK_CIDR }}{% raw %}
+{% endraw %}

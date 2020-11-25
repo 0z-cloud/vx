@@ -1,0 +1,12 @@
+#
+- name: '|[_E_D_E_N_]| Get the eden status to ram'
+  shell: 
+    chdir: /eve/src/eden
+    cmd: eden status
+  register: eden_get_status
+
+- name: ' _STATUS_ | [_E_D_E_N_] | SHOW RESULTS >'
+  debug:
+    msg: "{{ item | join }}"
+  with_items: 
+    - "{{ eden_get_status.stdout_lines }}"

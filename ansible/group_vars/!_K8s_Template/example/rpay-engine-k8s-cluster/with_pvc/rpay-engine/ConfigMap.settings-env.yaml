@@ -1,0 +1,17 @@
+apiVersion: v1
+data:
+  APP_DB_HOST_ENV: postgres
+  APP_DB_NAME_ENV: reactivepay_settings_production
+  APP_DB_USERNAME_ENV: postgres
+  APP_SECRET_KEY_BASE: cc8309fcc8309fdecc8309fcc83be6ba216ba21778dd3a69118b3df1
+  RAILS_ENV: production
+  RAILS_LOG_TO_STDOUT: "true"
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  labels:
+    app: settings
+    chart: settings-0.1.0
+    io.cattle.field/appId: rpay-engine
+  name: settings-env
+  selfLink: /api/v1/namespaces/rpay-engine/configmaps/settings-env

@@ -1,0 +1,65 @@
+<?php
+
+$_Lang['Title']                  = 'Symulator Walk';
+$_Lang['Settings']               = 'Opcje';
+$_Lang['SelectSlot']             = 'Zmień slot (Związek Flot - ACS)';
+$_Lang['ResultTitle']            = 'Wynik Symulacji';
+$_Lang['ShowHide']               = 'Ukryj/Pokaż';
+
+$_Lang['Slot']                   = 'Slot';
+$_Lang['Submit']                 = 'Przeprowadź symulację!';
+
+$_Lang['Attacker']               = 'Agresor nr. <span id="attacker_slot">1</span>';
+$_Lang['Defender']               = 'Obrońca nr. <span id="defender_slot">1</span> <span id="is_planet_owner">(Właściciel Planety/Księżyca)</span>';
+$_Lang['PlanetOwner']            = '(Właściciel Planety/Księżyca)';
+
+$_Lang['Attacker_Txt']           = 'Agresor ';
+$_Lang['Defender_Txt']           = 'Obrońca ';
+
+$_Lang['Morale']                 = 'Morale';
+$_Lang['Morale_Level']           = 'Poziom morali';
+$_Lang['Technology']             = 'Technologie';
+$_Lang['Fleets']                 = 'Flota';
+$_Lang['Defense']                = 'Obrona';
+$_Lang['Techs'][1]               = 'Technologia bojowa';
+$_Lang['Techs'][2]               = 'Technologia ochronna';
+$_Lang['Techs'][3]               = 'Opancerzenie';
+$_Lang['Techs'][4]               = 'Technologia laserowa';
+$_Lang['Techs'][5]               = 'Technologia jonowa';
+$_Lang['Techs'][6]               = 'Technologia plazmowa';
+$_Lang['Techs'][7]               = 'Technologia Antymaterii';
+$_Lang['Techs'][8]               = 'Strumień Dezintegracyjny';
+$_Lang['Techs'][9]               = 'Rozwój grawitonów';
+
+$_Lang['FillMyTechs']            = 'Wypełnij moim poziomem technologii';
+$_Lang['FillMyFleets']           = 'Wypełnij moją flotą';
+$_Lang['Fill_Clean']             = 'Wyczyść';
+$_Lang['Button_Max']             = 'Max';
+$_Lang['Button_Min']             = 'Min';
+
+$_Lang['CalcTotalTime']          = 'Czas kalkulacji';
+$_Lang['BattleWonBy']            = 'Walka wygrana przez';
+$_Lang['WonBy_Attacker']         = 'Agresora(ów)';
+$_Lang['WonBy_Defender']         = 'Obrońcę(ów)';
+$_Lang['WonBy_Draw']             = '- Remis -';
+
+$_Lang['See_last_BR']            = 'Zobacz ';
+
+$_Lang['Break_noATKShips']       = 'Nie podano statków Agresora do symulacji!';
+$_Lang['Break_noDEFShips']       = 'Nie podano statków Obrońcy do symulacji!';
+$_Lang['Break_noDEFTechs']       = 'Nie podano technologii Obrońcy!';
+$_Lang['Break_noATKTechs']       = 'Nie podano technologii Agresora!';
+
+$_Lang['avg_atk_lost']           = 'Straty Agresora(ów)';
+$_Lang['avg_def_lost']           = 'Straty Obrońcy(ów)';
+$_Lang['avg_atk_ship_lost']      = 'Straty Agresora(ów) (statki)';
+$_Lang['avg_def_ship_lost']      = 'Straty Obrońcy(ów) (statki)';
+$_Lang['txt_rounds']             = 'Ilość Rund';
+
+$_Lang['units']                  = 'jednostek';
+$_Lang['ships']                  = 'statków';
+
+$_Lang['BreakLineLight']         = '<tr style="visibility: hidden;"><td></td></tr>';
+$_Lang['BreakLine']              = '<tr style="visibility: hidden;"><td><br/></td></tr>';
+
+?>

@@ -1,0 +1,7 @@
+#!/bin/bash
+
+mysql -u {{ semaphore_mysql_settings.user }} -p{{ semaphore_mysql_settings.password }} <<EOF 
+use mysql;
+GRANT ALL PRIVILEGES ON *.* TO '{{ semaphore_mysql_settings.user }}'@'%' IDENTIFIED BY '{{ semaphore_mysql_settings.password }}' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+EOF

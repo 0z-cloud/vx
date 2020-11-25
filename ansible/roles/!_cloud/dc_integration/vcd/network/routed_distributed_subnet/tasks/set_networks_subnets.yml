@@ -1,0 +1,84 @@
+#########################################################################################################
+# SET JSON DIRECT
+#########################################################################################################
+- name: '[!!!! DECLARE JSON, SET FACTS ABOUT DIRECT !!!!] SET FACTS ABOUT DIRECT II PHASE'
+  set_fact:
+      anycloud_result_directnetwork_subnet_json: "{{ item.value }}"
+  with_dict: "{{ vcloud_anycloud_zone_extra_subnets_adapters_networks }}"
+  when: "('direct' in item.key)"
+
+#########################################################################################################
+##### RESULT FOR DIRECT
+#########################################################################################################
+- name: '[!!!!SET FACTS ABOUT DIRECT!!!!] SET FACTS ABOUT  DIRECT II PHASE'
+  set_fact:
+      anycloud_result_direct_network_subnet: "{{ anycloud_result_directnetwork_subnet_json.subnet }}"
+      anycloud_result_direct_network_cut: "{{ anycloud_result_directnetwork_subnet_json.subnet | regex_replace('^(.+)([0-9]{1})$','\\1')  }}"
+      anycloud_result_direct_network_with_suffix: "{{ anycloud_result_directnetwork_subnet_json.subnet }}/24"
+  with_dict: "{{ vcloud_anycloud_zone_extra_subnets_adapters_networks }}"
+  when: "('direct' in item.key)"
+
+#########################################################################################################
+# SET JSON ISOLATED
+#########################################################################################################
+- name: '[!!!! DECLARE JSON, SET FACTS ABOUT ISOLATED !!!!] SET FACTS ABOUT ISOLATED II PHASE'
+  set_fact:
+      anycloud_result_isolated_network_subnet_json: "{{ item.value }}"
+  with_dict: "{{ vcloud_anycloud_zone_extra_subnets_adapters_networks }}"
+  when: "('isolated' in item.key)"
+
+#########################################################################################################
+##### RESULT FOR ISOLATED 
+#########################################################################################################
+- name: '[!!!!SET FACTS ABOUT ISOLATED!!!!] SET FACTS ABOUT ISOLATED II PHASE'
+  set_fact:
+      anycloud_result_isolated_network_subnet: "{{ anycloud_result_isolated_network_subnet_json.subnet }}"
+      anycloud_result_isolated_network_cut: "{{ anycloud_result_isolated_network_subnet_json.subnet | regex_replace('^(.+)([0-9]{1})$','\\1')  }}"
+      anycloud_result_isolated_network_with_suffix: "{{ anycloud_result_isolated_network_subnet_json.subnet }}/24"
+  with_dict: "{{ vcloud_anycloud_zone_extra_subnets_adapters_networks }}"
+  when: "('isolated' in item.key)"
+
+#########################################################################################################
+# SET JSON VPNMESH
+#########################################################################################################
+- name: '[!!!! DECLARE JSON, SET FACTS ABOUT SUBNET/SUFFIX FOR VPNMESH SITE-TO-SITE !!!!] SET FACTS ABOUT VPNMESH II PHASE'
+  set_fact:
+      anycloud_result_vpnmesh_network_subnet_json: "{{ item.value }}"
+  with_dict: "{{ vcloud_anycloud_zone_extra_subnets_adapters_networks }}"
+  when: "('vpnmesh' in item.key)"
+
+#########################################################################################################
+##### RESULT FOR VPNMESH SITE-TO-SITE 
+#########################################################################################################
+- name: '[!!!!SET FACTS ABOUT VPNMESH SITE-TO-SITE!!!!] SET FACTS ABOUT SITE-TO-SITE III PHASE'
+  set_fact:
+      anycloud_result_vpnmesh_network_subnet: "{{ anycloud_result_vpnmesh_network_subnet_json.subnet }}"
+      anycloud_result_vpnmesh_network_cut: "{{ anycloud_result_vpnmesh_network_subnet_json.subnet | regex_replace('^(.+)([0-9]{1})$','\\1')  }}"
+      anycloud_result_vpnmesh_network_with_suffix: "{{ anycloud_result_vpnmesh_network_subnet_json.subnet }}/24"
+  with_dict: "{{ vcloud_anycloud_zone_extra_subnets_adapters_networks }}"
+  when: "('vpnmesh' in item.key and item.value is defined)"
+
+#########################################################################################################
+# SET JSON ROUTED
+#########################################################################################################
+- name: '[!!!!SET FACTS ABOUT SUBNET/SUFFIX FOR ROUTED!!!!] SET FACTS ABOUT  ROUTED II PHASE'
+  set_fact:
+      anycloud_result_routed_network_subnet_json: "{{ item.value }}"
+  with_dict: "{{ vcloud_anycloud_zone_extra_subnets_adapters_networks }}"
+  when: "('routed' in item.key)"
+
+#########################################################################################################
+# RESULT FOR ROUTED
+#########################################################################################################
+- name: '[!!!!SET FACTS ABOUT SUBNET/SUFFIX FOR ROUTED!!!!] SET FACTS ABOUT  ROUTED II PHASE'
+  set_fact:
+      anycloud_result_routed_network_subnet: "{{ anycloud_result_routed_network_subnet_json.subnet }}"
+      anycloud_result_routed_network_cut: "{{ anycloud_result_routed_network_subnet_json.subnet | regex_replace('^(.+)([0-9]{1})$','\\1')  }}"
+      anycloud_result_routed_network_with_suffix: "{{ anycloud_result_routed_network_subnet_json.subnet }}/24"
+  with_dict: "{{ vcloud_anycloud_zone_extra_subnets_adapters_networks }}"
+  when: "('routed' in item.key)"
+
+  #     anycloud_result_vpnmesh_network_name: "{{ vcloud_anycloud_zone_extra_subnets_adapters_networks[item]['name'] }}"
+  # when: "('vpnmesh' in vcloud_anycloud_zone_extra_subnets_adapters_networks[item]['name'])"
+
+#########################################################################################################

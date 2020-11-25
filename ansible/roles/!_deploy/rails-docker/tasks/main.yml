@@ -1,0 +1,9 @@
+- name: create docker stacks directory
+  file:
+    path: "{{ glusterfs_settings.directories.cloud_dir }}/docker-stacks-rails"
+    state: directory
+
+- include: "prepare.yml"
+
+- include: "deploy.yml"
+  run_once: true

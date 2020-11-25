@@ -1,0 +1,48 @@
+#{{ ansible_managed }}
+user              {{ nginx_user }}  {{ nginx_group }};
+
+worker_processes  {{ nginx_worker_processes }};
+
+{% if nginx_pid_file %}
+pid        {{ nginx_pid_file }};
+{% endif %}
+
+worker_rlimit_nofile {{ nginx_worker_rlimit_nofile }};
+
+events {
+{% for v in nginx_events_params %}
+        {{ v }};
+{% endfor %}
+}
+
+
+http {
+
+        include {{ nginx_conf_dir }}/mime.types;
+        default_type application/octet-stream;
+{% for v in nginx_http_params %}
+        {{ v }};
+{% endfor %}
+
+        include {{ nginx_conf_dir }}/conf.d/*.conf;
+        #include {{ nginx_conf_dir }}/sites-enabled/*;
+
+        {% if bind_cloud_settings.other_environments_subdomains is defined %}
+
+{% for item, children in bind_cloud_settings.other_environments_subdomains.items() %}
+        include {{ nginx_conf_dir }}/sites-enabled/{{ item }}/*.conf;
+        {% endfor %}
+
+        {% endif %}
+
+        include {{ nginx_conf_dir }}/sites-enabled/development/*.conf;
+        include {{ nginx_conf_dir }}/sites-enabled/stage/*.conf;
+        include {{ nginx_conf_dir }}/sites-enabled/production/*.conf;
+        include {{ nginx_conf_dir }}/sites-enabled/service/*.conf;
+        include {{ nginx_conf_dir }}/sites-enabled/access-f1-run/*.conf;
+        #END MARK
+}
+
+{% if nginx_daemon_mode == "off" %}
+daemon off;
+{% endif %}

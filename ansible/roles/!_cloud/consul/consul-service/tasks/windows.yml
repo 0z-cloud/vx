@@ -1,0 +1,55 @@
+
+- name: Include checks
+  include: checks.yml
+
+- name: Create Self Public IP Variable
+  raw: "Resolve-DnsName -Name {{ hostvars[inventory_hostname].ansible_fqdn }} -Type A -DnsOnly | select IPAddress | select -expand IPAddress"
+  register: windows_public_ip
+
+- name: Create the directories Windows
+  win_file:
+    path: "{{ item.value }}"
+    state: directory
+  with_dict: "{{ consul.windows_directories }}"
+
+- name: Download Consul Binary Windows
+  win_get_url: 
+     force_basic_auth: yes
+     dest: "{{ consul.windows_directories.windows_consul_zip_dir }}/{{ consul.consul_windows_zip }}"
+     url: "{{ consul.consul_windows_url }}"
+
+- name: Stop Consul Service if present and started with ignore errors
+  win_service:
+    name: consul
+    start_mode: auto
+    state: stopped
+  ignore_errors: yes
+
+- name: Windows Unzip
+  win_unzip:
+    src: "{{ consul.windows_directories.windows_consul_zip_dir }}/{{ consul.consul_windows_zip }}"
+    dest: "{{ consul.windows_directories.windows_consul_main }}"
+
+- name: Create consul-client-windows.json.j2 from template for Windows system
+  win_template: 
+      src: consul-client-windows.json.j2
+      dest: "{{ consul.windows_directories.windows_consul_config }}/consul-client-windows.json"
+
+- name: Create a consul service on Windows
+  win_nssm:
+    name: consul
+    application: '{{ consul.windows_directories.windows_consul_main }}\consul.exe'
+    app_parameters:
+        _: agent
+        "-config-dir": '\""{{ consul.windows_directories.windows_consul_config }}\""'
+        "-data-dir": '\""{{ consul.windows_directories.windows_consul_data }}\""'
+        "-bind": "{{ windows_public_ip.stdout_lines | join }}"
+        "-client": "{{ windows_public_ip.stdout_lines | join }}"
+        "-node": "{{ ansible_fqdn }}"
+        "-datacenter": "{{ consul.datacenter }}"
+
+- name: Start Consul Service on Windows
+  win_service:
+    name: consul
+    start_mode: auto
+    state: started

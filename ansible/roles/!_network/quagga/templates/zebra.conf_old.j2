@@ -1,0 +1,72 @@
+hostname Zebra-{{ ansible_hostname }}
+
+log file /var/log/quagga/zebra.log
+log monitor
+log stdout
+log syslog
+
+password Quagga
+enable password Quagga
+
+ip forwarding
+ipv6 forwarding
+# ip[v6] route <Prefix Notation> <Egress Interface> 1
+#       In a congruent network the only static routes needed are those at the periphery of the network where they are used as a hint to the location of an adjacent multihop EBGP neighbour
+
+###
+
+{% for key,value in internal_vlans_for_each_zone[_location_prefix_internal_vlans].items() %}
+
+# Comment NAME: {{ key }}
+
+{{ value.network }}
+
+{% endfor %}
+ mpls-te on
+ mpls-te link metric {{ value.metric }}
+ mpls-te neighbor {{ value.neighbor }} as 65000
+### #
+
+{% for key,value in transport_vlans_for_each_zone[_location_prefix_transport_vlans].items() %}
+
+# TRANSPORT vlan NAME: {{ key }}
+
+!2
+interface {{ value.interface }}
+ ip address {{ value.ip }}/{{ value.mask }}
+ mpls-te on
+ mpls-te link metric {{ value.metric }}
+ mpls-te neighbor {{ value.neighbor }} as 65000
+
+# {{ value.network }}
+
+{% endfor %}
+
+###
+
+{{ external_vlans_for_each_zone[_location_prefix_external_vlans] }}
+
+
+
+###
+
+{% for item in internal_vlans_for_each_zone.items() %}
+{{ item }}
+
+
+{% endfor %}
+
+!2
+interface eth0
+        ip irdp multicast
+        #ipv6 nd adv-interval-option
+        #ipv6 nd prefix fd00::/64
+        #ipv6 nd router-preference low
+        link-detect
+        multicast
+        ipv6 nd suppress-ra
+!2
+interface lo
+        ip irdp multicast
+        link-detect
+        multicast

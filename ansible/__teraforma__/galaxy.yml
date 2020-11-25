@@ -1,0 +1,24 @@
+
+roles:
+
+  # Install a role from Ansible Galaxy.
+  - name: geerlingguy.apache
+  # Install a role from Ansible Galaxy.
+
+  - name: geerlingguy.java
+
+collections:
+  # Install a collection from Ansible Galaxy.
+  - name: geerlingguy.apache
+    source: https://galaxy.ansible.com
+
+  # Install a collection from Ansible Galaxy.
+  - name: geerlingguy.java
+    source: https://galaxy.ansible.com
+
+  # Install an a Google Cloud Platform Galaxy Community plugins Collection
+  - name: google.cloud
+    source: https://galaxy.ansible.com
+
+  # Install Community General Modules
+  - name: community.general 

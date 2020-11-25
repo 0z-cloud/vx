@@ -1,0 +1,69 @@
+---
+
+- name: '[vCloud Director] Read vApp Networks'
+  vcd_vnet:
+    user: "{{ anycloud_adapter_api_user }}"
+    password: "{{ anycloud_adapter_api_password }}"
+    org: "{{ anycloud_adapter_virtual_organization }}"
+    vdc: "{{ anycloud_defaults_virtual_datacenter }}"
+    vapp: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+    operation: read
+  register: output
+
+# - name: '[vCloud Director] | Read vApp Networks result'
+#   debug:
+#     msg: "{{ output }}"
+
+- name: '[vCloud Director] | re/Create VM Machine in to vApp'
+  vcd_vapp_vm_up:
+    org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+    # need to check how its real behaivor passing in differents situations
+    host: "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}"
+    # {{ anycloud_adapter_api_url_endpoint }}
+    user: "{{ anycloud_adapter_api_user }}"
+    password: "{{ anycloud_adapter_api_password }}"
+    target_vm_name: "{{ item['value']['name'] }}"
+    # vdc: "{{ anycloud_adapter_virtual_datacenter }}"
+    target_vapp: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+    source_vdc: "{{ anycloud_adapter_virtual_datacenter }}"
+    target_vdc: "{{ anycloud_adapter_virtual_datacenter }}"
+    source_catalog_name: "{{ anycloud_template_adapter_root_folder }}"
+    source_template_name: "{{ item['value']['anycloud_vm_vapp_box_name'] }}"
+    source_vm_name:  "{{ item['value']['anycloud_vm_template_name'] }}"
+    hostname: "{{ item['value']['name'] }}"
+    vmpassword: "{{ anycloud_vm_access_pass }}" 
+    vmpassword_auto: "False"
+    vmpassword_reset: "False"
+    ip_allocation_mode: "DHCP"
+    # network: "{{ anycloud_result_routed_network_name }}"
+    power_on: "false"
+    #operation: deploy
+    deploy: false
+    state: "present"
+    all_eulas_accepted: "true"
+    storage_profile: "{{ item['value']['anycloud_vm_storage_configuration'] }}"
+    verify_ssl_certs: True
+  # retries: 3
+  # delay: 3
+  register: create_instance_result
+  with_dict: "{{ cloud_bootstrap.servers }}"
+
+### WIP
+
+# - name: Instance which need add some second storage disk, do attach
+#   vcd_vapp_vm_disk:
+#     user: "{{ anycloud_adapter_api_user }}"
+#     password: "{{ anycloud_adapter_api_password }}"
+#     org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}" # need to check how its real behaivor passing in differents situations
+#     vm_name: "{{ item.value.name }}"
+#     vapp: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+#     vdc: "{{ anycloud_adapter_virtual_datacenter }}"
+#     disks:
+#       - size: "{{ item.value.vm_extended_volume_configuration['partition_size'] }}"
+#         controller: "{{ item.value.vm_extended_volume_configuration['controller'] }}"
+#     state: present
+#   register: adding_dicks_results
+#   when: "item.value.vm_extended_volume_configuration is defined"
+#   with_dict: "{{ cloud_bootstrap.servers }}"
+
+

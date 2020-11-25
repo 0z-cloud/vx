@@ -1,0 +1,59 @@
+
+{% for item in nginx_sites %}{% raw %}
+<source>
+    @type tail
+    path {% endraw %}{{ nginx_log_dir }}/{{ nginx_sites_log_dir }}/{{ item['name'] | join }}{% raw %}.access.log
+    pos_file {% endraw %}/positions/{{ item['name'] | join }}{% raw %}.access.log.pos
+    <parse>
+        @type grok
+        grok_pattern %{NGINXACCESS}
+        custom_pattern_path /fluentd/etc
+        grok_failure_key grokfailure
+    </parse>
+    tag nginx.access
+</source>
+{% endraw %}
+{%- endfor -%}
+
+<filter nginx.access>
+    @type mutate
+    gsub [
+        "upstream_addr", "^\"|\"$", "",
+        "upstream_status", "^\"|\"$", "",
+        "upstream_connect_time", "^\"|\"$", "",
+        "upstream_response_length", "^\"|\"$", "",
+        "upstream_response_time", "^\"|\"$", ""
+    ]
+    split {
+        "upstream_addr": ",",
+        "upstream_status": ",",
+        "upstream_connect_time": ",",
+        "upstream_response_length": ",",
+        "upstream_response_time": ","
+    }
+    prune_empty false
+</filter>
+
+<filter nginx.access>
+    @type mutate
+    strip [
+        "upstream_addr",
+        "upstream_status",
+        "upstream_connect_time",
+        "upstream_response_length",
+        "upstream_response_time"
+    ]
+    prune_empty false
+</filter>
+
+<filter nginx.access>
+    @type mutate
+    convert {
+        "upstream_addr": "string",
+        "upstream_status": "string",
+        "upstream_connect_time": "float",
+        "upstream_response_length": "integer",
+        "upstream_response_time": "float"
+    }
+    prune_empty false
+</filter>

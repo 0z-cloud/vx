@@ -1,0 +1,107 @@
+
+
+wget https://github.com/projectcalico/calicoctl/releases/download/v3.8.0/calicoctl
+chmod +x calicoctl
+sudo mv calicoctl /usr/local/bin/
+export KUBECONFIG=/etc/kubernetes/admin.conf
+export DATASTORE_TYPE=kubernetes
+
+
+calicoctl create -f /etc/kubernetes/kube/pool_pod_pool1_net.yaml
+calicoctl create -f /etc/kubernetes/kube/pool_pod_pool2_net.yaml
+
+calicoctl get ippools
+
+
+
+
+APISERVER=$(kubectl config view -o jsonpath='{.clusters[0].cluster.server}')
+kubectl config set-cluster kubernetes \
+    --certificate-authority=/etc/kubernetes/pki/ca.crt \
+    --embed-certs=true \
+    --server=$APISERVER \
+    --kubeconfig=cni.kubeconfig
+
+kubectl config set-credentials calico-cni \
+    --client-certificate=cni.crt \
+    --client-key=cni.key \
+    --embed-certs=true \
+    --kubeconfig=cni.kubeconfig
+
+kubectl config set-context default \
+    --cluster=kubernetes \
+    --user=calico-cni \
+    --kubeconfig=cni.kubeconfig
+
+kubectl config use-context default --kubeconfig=cni.kubeconfig
+
+kubectl create clusterrolebinding calico-cni --clusterrole=calico-cni --user=calico-cni
+
+
+curl -L -o /opt/cni/bin/calico https://github.com/projectcalico/cni-plugin/releases/download/v3.8.0/calico-amd64
+chmod 755 /opt/cni/bin/calico
+curl -L -o /opt/cni/bin/calico-ipam https://github.com/projectcalico/cni-plugin/releases/download/v3.8.0/calico-ipam-amd64
+chmod 755 /opt/cni/bin/calico-ipam
+
+
+cp cni.kubeconfig /etc/cni/net.d/calico-kubeconfig
+chmod 600 /etc/cni/net.d/calico-kubeconfig
+
+
+kubectl create configmap -n kube-system calico-typha-ca --from-file=typhaca.crt
+kubectl create secret generic -n kube-system calico-typha-certs --from-file=typha.key --from-file=typha.crt
+
+kubectl create serviceaccount -n kube-system calico-typha
+
+kubectl create clusterrolebinding calico-typha --clusterrole=calico-typha --serviceaccount=kube-system:calico-typha
+
+kubectl apply -f calico-rbac-typha.yaml
+
+kubectl get pods -l k8s-app=calico-typha -n kube-system
+
+kubectl apply -f calico-typha-service.yaml.j2
+
+TYPHA_CLUSTERIP=$(kubectl get svc -n kube-system calico-typha -o jsonpath='{.spec.clusterIP}')
+curl https://$TYPHA_CLUSTERIP:5473 -v --cacert typhaca.crt
+
+
+openssl req -newkey rsa:4096 \
+           -keyout calico-node.key \
+           -nodes \
+           -out calico-node.csr \
+           -subj "/CN=calico-node"
+
+openssl x509 -req -in calico-node.csr \
+                  -CA typhaca.crt \
+                  -CAkey typhaca.key \
+                  -CAcreateserial \
+                  -out calico-node.crt \
+                  -days 365
+
+kubectl create secret generic -n kube-system calico-node-certs --from-file=calico-node.key --from-file=calico-node.crt
+
+kubectl create serviceaccount -n kube-system calico-node
+
+kubectl apply -f serviceaccount.yaml
+
+kubectl create clusterrolebinding calico-node --clusterrole=calico-node --serviceaccount=kube-system:calico-node
+
+kubectl apply -f calico-daemonset.yaml
+
+kubectl get pod -l k8s-app=calico-node -n kube-system
+
+
+# BGP
+
+calicoctl get node <node name> -o yaml --export > node.yaml
+
+# ADD to node.yaml
+
+# metadata:
+#   labels:
+#     calico-route-reflector: ""
+# spec:
+#   bgp:
+#     routeReflectorClusterID: 224.0.0.1
+
+calicoctl apply -f node.yaml

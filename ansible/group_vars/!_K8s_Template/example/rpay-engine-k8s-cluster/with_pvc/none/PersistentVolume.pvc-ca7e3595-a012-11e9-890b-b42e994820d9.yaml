@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  annotations:
+    pv.kubernetes.io/provisioned-by: openebs.io/local
+  creationTimestamp: null
+  finalizers:
+  - kubernetes.io/pv-protection
+  name: pvc-ca7e3595-a012-11e9-890b-b42e994820d9
+  selfLink: /api/v1/persistentvolumes/pvc-ca7e3595-a012-11e9-890b-b42e994820d9
+spec:
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 8Gi
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    name: datadir-mongodb-secondary-0
+    namespace: mongodb
+    resourceVersion: "2566390"
+    uid: ca7e3595-a012-11e9-890b-b42e994820d9
+  hostPath:
+    path: /var/openebs/local/pvc-ca7e3595-a012-11e9-890b-b42e994820d9
+    type: DirectoryOrCreate
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - worker2
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: openebs-hostpath
+  volumeMode: Filesystem
+status: {}

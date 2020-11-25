@@ -1,0 +1,24 @@
+---
+- name: Fact gathering
+  hosts: all:swarm-cluster:consul-cluster
+  tasks: []
+  tags: [get-facts, always]
+
+- name: Consul magic step... Unix
+  become: true
+  hosts: consul-cluster
+  vars_files:
+    - "inventories/global/oz_router/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+    - "group_vars/products/{{ ansible_product }}/main.yml"
+    - "group_vars/products/{{ ansible_product }}/shared.yml"
+    - "group_vars/products/{{ ansible_product }}/zone.yml"
+    - "group_vars/!_anyCloud/anyCloud.yml"
+    - "group_vars/all.yml"
+    - "group_vars/consul-cluster/consul-cluster.yml"
+    - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/dns/{{ REPLACED_HOSTS | default('master-bind-master-backend') }}/{{ REPLACED_HOSTS | default('master-bind-master-backend') }}.yml"
+    - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+    - "inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+  roles:
+    - name: Consul magic do...
+      role: ./!_cloud/consul/consul-service
+  tags: [consul-setup]

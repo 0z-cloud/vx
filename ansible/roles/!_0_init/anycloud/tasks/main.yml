@@ -1,0 +1,12 @@
+
+- name: Template 0z-cloud configuration state to all nodes
+  template:
+    src: inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml
+    dest: /tmp/cloud_info.yml
+  #delegate_to: localhost
+
+- name: Load Zero Cloud configuration for current environment, product, and cloud type
+  vars:
+    zero_cloud_load: "{{ lookup('file', '/tmp/cloud_info.yml') | from_yaml }}"
+  set_fact:
+    zero_cloud: "{{ zero_cloud_load }}"

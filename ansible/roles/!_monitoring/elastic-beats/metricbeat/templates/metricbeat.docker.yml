@@ -1,0 +1,67 @@
+metricbeat.config:
+  modules:
+    path: ${path.config}/modules.d/*.yml
+    reload.enabled: false
+
+metricbeat.modules:
+  {% for module in metricbeat_modules %}
+    {% if module.name == 'system' %}
+
+    - module: system
+      metricsets:
+        - "core"
+        - "cpu"
+        - "diskio"
+        - "filesystem"
+        - "load"
+        - "memory"
+        - "network"
+        - "process"
+        - "process_summary"
+        - "uptime"
+      period: 60s
+      enabled: true
+      processes: ['.*']
+      cpu.metrics:  ["percentages"]
+      core.metrics: ["percentages"]
+      filesystem.ignore_types: [nfs, smbfs, autofs]
+      {% endif %}
+    {% if module.name == 'docker' %}
+
+    - module: docker
+      metricsets:
+        - "container"
+        - "cpu"
+        - "diskio"
+        - "healthcheck"
+        - "image"
+        - "info"
+        - "memory"
+        - "network"
+      hosts: ["unix:///var/run/docker.sock"]
+      period: 60s
+      enabled: true
+      {% endif %}
+    {% if module.name == 'rabbitmq' %}
+
+    - module: rabbitmq
+      metricsets: ["connection", "exchange", "node", "queue"]
+      enabled: true
+      period: 60s
+      hosts: {%raw%}[{%endraw%}{% for host in groups['rabbitmq-cluster'] %}"{{ hostvars[host]['ansible_default_ipv4']['address'] }}:{{ rabbitmq_service_listen_port }}"{% if not loop.last %},{% endif %}{% endfor %}{%raw%}]{%endraw%}
+      username: rabbit
+      password: rabbit
+    {% endif %}
+
+    {% endfor %}
+
+processors:
+  - add_cloud_metadata: ~
+
+output.elasticsearch:
+  hosts: '${ELASTICSEARCH_HOSTS}'
+  username: '${ELASTICSEARCH_USERNAME:}'
+  password: '${ELASTICSEARCH_PASSWORD:}'
+
+setup.kibana:
+  host: '${KIBANA_HOST}'

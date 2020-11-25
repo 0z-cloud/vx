@@ -1,0 +1,45 @@
+# acme dns-01 challenge hook script v0.0.5
+
+# Publish an acme challenge in DNS. This script is made to work with dehydrated by lukas2511.
+# You need a Bind DNS Server you can publish records using nsupdate. The script was written and
+# tested on Debian GNU/Linux, it uses the GNU versions of sed, grep, date, etc. You need dig to be
+# installed. This script currently works only with TSIG keys (not with SIG(0) key pairs).
+
+# You need to fill in the DNS server you want to send your nsupdate commands to in the variable
+# SERVER below the introductory remarks. Also set KEYPATH to point to your TSIG key directory.
+
+# You need to create a TSIG key for each domain you want to publish an acme dns challenge
+# with this script. The script calls the nsupdate command to publish the challenge in your
+# Bind DNS Server. Nsupdate needs the TSIG key in order to be authenticated on Bind. You need
+# to configure Bind to know this key and you need to grant access for nsupdate to alter the 
+# _acme-challenge record for every host you include in the let's encrypt certificate. There are
+# several tutorials how to set this up, e.g. see the first part of the following page to get an
+# idea: 
+#    https://www.kirya.net/articles/running-a-secure-ddns-service-with-bind/
+#
+# You need to configure this on the master DNS server!
+#
+# Restrict the updating of the _acme-challenge record as much as possible. Use a statement like
+# the following inside your zone section:
+#    update-policy {
+#        grant _acme-challenge.domain.tld. name _acme-challenge.host.domain.tld. TXT;
+#        };
+# ...where the first part after grant is your key name and the part before TXT a host you request
+# the certificate for. Put one grant line like this for each host you include in the cert!
+# If you connect to a secondary DNS with this script, in addition to the above on the master, configure
+# on the slave inside the slave zone section a statement 
+#    allow-update-forwarding { secondary; };
+# ...where "secondary" is an ACL (that could be named as you like) and has to be defined in its own
+# section:
+#    acl secondary {
+#         1.2.3.4/32;
+#         127.0.0.1/32;
+#    };
+
+# If you have many domains on your server you should not need to do all this manually. I may release some
+# more scripts to assisst you with the job. Unfortunately they are not releasable in their current state.
+
+# Comments and corrections welcome.
+
+# (c) 2016-2018 under GPL v2 by Adrian Zaugg <adi@ente.limmat.ch>.
+

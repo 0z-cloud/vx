@@ -1,0 +1,291 @@
+#########################################################################################################################################################################################################################################
+# AnyCloud User Adapter Vault Sercters Out
+#
+# 0z-cloud is stilling stay in...       zen...
+#########################################################################################################################################################################################################################################
+# AnyCloud:                             Default Settings Configuration 
+#########################################################################################################################################################################################################################################
+# Version:                              v.1.1.1-war
+# VCS Group:                            cicd
+# Product:                              matreshka 
+# Repository:                           eden-vortice
+# user:                                 template 
+# current:                              integration
+# salt:                                 ci/cd/qa/dev
+# vector:                               01.07.2020.15.52
+# timeto:                               zen...nlo
+# Environment:                          production
+# Usage:                                anycloud
+# Infrastructure is in want target:     production
+#########################################################################################################################################################################################################################################
+# PRIMARY TEMPLATE - GEN ONLY SHARED ! #
+
+anycloud_domain_result: "{{ anycloud_adapter_domain_fqdn | default(anycloud_domain_default) }}"
+
+##########################################################################################################################################################################################################################################
+# AnyCloud ZONE: Cloud Virtual Sector/Section/Zone Primary Security Group
+##########################################################################################################################################################################################################################################
+# {{ anycloud_region }}-{{ anycloud_zone }}-{{ ansible_datacenter }}
+
+anycloud_region: worldwide
+anycloud_zone: earth
+anycloud_zone_sector_section_primary_security_group: "SG_{{ ansible_environment }}"
+anycloud_zone_sector_section_primary_security_group_name: "Security_Group_{{ ansible_environment }}"
+anycloud_zone_sector_section_primary_security_group_description: "Security Group resource environment: {{ ansible_environment }} region: {{ anycloud_landscape_region }}"
+anycloud_vm_instance_description: "Product: {{ ansible_product }} - VM {{ ansible_environment }}"
+
+#########################################################################################################################################################################################################################################
+## INSTANCE BOOTSTRAP ACCESS CREDENTIALS
+#########################################################################################################################################################################################################################################
+
+anycloud_api_user_login: "{{ anycloud_adapter_api_user }}"
+anycloud_api_access_key: "{{ anycloud_adapter_api_password }}"
+anycloud_api_secret_key: "{{ anycloud_adapter_api_password }}"
+alicloud_access_key: "{{ anycloud_api_access_key }}"
+
+##########################################################################################################################################################################################################################################
+## AnyCloud: Network communication device settings
+##########################################################################################################################################################################################################################################
+
+# anycloud_allocate_public_ip: True
+
+##### ZONE of ZONES SHARED BETWEEN ZONEs vpc zone parameters
+
+anycloud_zone_virtual_cloud_primary_network_virtual_communication_device_description: "Create a new VPC resource {{ ansible_environment }}_{{ ansible_datacenter }}"
+anycloud_zone_virtual_cloud_name: "vZone_Sector_Network_Exchange_{{ ansible_product }}_zone_{{ ansible_environment }}_{{ ansible_datacenter }}"
+anycloud_zone_adapter_cloud_name_of_network: "vZone_Sector_Network_Exchange_{{ ansible_product }}_zone_{{ ansible_environment }}_{{ ansible_datacenter }}"
+
+anycloud_zone_adapter_virtual_cloud_cidr: "172.16.0.0/12"
+anycloud_zone_adapter_zone: earth
+anycloud_zone_adapter_region: worldwide
+anycloud_zone_adapter_vpc_zone_virtual_abstract_layout: all
+anycloud_zone_adapter_virtual_cloud_primary_network_virtual_communication_device_description: "Virtual Primary on {{ anycloud_zone_adapter_region }} Cloud Network Communication Device for {{ ansible_environment }} on zone {{ anycloud_zone_adapter_zone }}"
+anycloud_zone_adapter_virtual_cloud_primary_network_virtual_communication_device_dns_suffix: "dn"
+
+##### VIRTUAL ZONE
+
+anycloud_virtual_cloud_description: "vZone_{{ anycloud_zone }}_Sector_Network_{{ anycloud_region }}_Exchgange_{{ ansible_product }}_zone_{{ ansible_environment }}"
+anycloud_virtual_cloud_zone: "{{ anycloud_zone_virtual_cloud_name }}"
+anycloud_virtual_cloud_name: "anycloud_in_{{ anycloud_region }}-{{ anycloud_zone }}-{{ ansible_datacenter }}_{{ ansible_product }}_{{ ansible_environment }}"
+
+##### ADAPTER SPECIFIC
+##########################################################################################################################################################################################################################################
+# Settings which getted from anycloud web console of your Cloud Provider account
+##########################################################################################################################################################################################################################################
+
+anycloud_adapter_virtual_cloud_application_box_sector: "{{ ansible_product }}{% raw %}-{% endraw %}{{ ansible_environment }}{% raw %}-{% endraw %}{{ ansible_datacenter }}{% raw %}-{% endraw %}{{ ansible_datacenter_location }}"
+anycloud_adapter_virtual_application_box_sector: vapp_{{ ansible_environment }}_{{ ansible_product }}_sector
+
+###### DEFAULTS VIRTUAL ZONE
+anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_dns_suffix: "dn"
+anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_description: "Virtual Primary Cloud Network Communication Device On Environment - {{ ansible_environment }}"
+anycloud_defaults_virtual_cloud_primary_network_virtual_communication_cidr: "192.168.103.1/24"
+anycloud_defaults_virtual_cloud_primary_network_virtual_communication_cidr_static_range: 
+ - "192.168.103.5-192.168.103.10"
+ - "192.168.103.15-192.168.103.20"
+
+##########################################################################################################################################################################################################################################
+# AnyCloud VM: Instance disk parameters
+##########################################################################################################################################################################################################################################
+
+anycloud_defaults_storage_profile: Silver
+anycloud_instance_system_disk_category: "cloud_ssd"
+anycloud_instance_system_disk_size: 50
+anycloud_one_instance_duplicates_count: 2
+anycloud_instance_cloud_disk_name: "cloud_disk"
+anycloud_instance_cloud_disk_category: "cloud_ssd"
+anycloud_instance_cloud_disk_description: "Description - {{ ansible_product }} host {{ ansible_environment }}"
+anycloud_instance_cloud_data_disk_size: 80
+anycloud_instance_cloud_disk_tags: [{tag_key: "created_by", tag_value: "{{ ansible_product }}-cloud-{{ ansible_environment }}"}, {tag_key: "created_from", tag_value: "{{ ansible_product }}-ecs-vpc-{{ ansible_environment }}"}]
+anycloud_instance_cloud_delete_with_instance: False
+
+#########################################################################################################################################################################################################################################
+# VM NAME IN TEMPLATE
+#########################################################################################################################################################################################################################################
+
+anycloud_adapter_vm_template: "{{ anycloud_virtual_machine_default_vm_template_vm_name }}"
+
+#########################################################################################################################################################################################################################################
+# BOX OF TEMPLATE
+#########################################################################################################################################################################################################################################
+
+anycloud_target_vapp_template_name: "{{ anycloud_vapp_template_name_of_template_container }}" 
+
+#########################################################################################################################################################################################################################################
+
+anycloud_vapp_template_name: "{{ anycloud_target_vapp_template_name }}"
+anycloud_vm_vapp_box_name: "{{ anycloud_target_vapp_template_name }}" 
+anycloud_vm_termplate_root_folder_path: "{{ anycloud_template_adapter_root_folder }}"
+anycloud_vm_performance_configuration: "{{ anycloud_virtual_machine_resources_primary_type }}"
+anycloud_vm_storage_configuration: "{{ anycloud_defaults_storage_profile }}"
+anycloud_vm_template_name: "{{ anycloud_adapter_vm_template }}"
+
+##########################################################################################################################################################################################################################################
+# AnyCloud SECTOR/SECTION SECURITY MAPPING: Array with availiable security defaults rules which contain prefilled sets of directly access on bootstrap and after done initialization of AnyCloud
+##########################################################################################################################################################################################################################################
+#
+anycloud_zone_sector_section_scope_security_suites:
+  ssh_enable_dmz:
+    group_inboundRules:
+      - ip_protocol: tcp
+        port_range: 22/22
+        source_cidr_ip: ""
+        priority: 1
+    group_outboundRules:
+      - ip_protocol: tcp
+        port_range: 22/22
+        dest_cidr_ip: 0.0.0.0/0
+        priority: 1
+  ssh_enable_all:
+    group_inboundRules:
+      - ip_protocol: tcp
+        port_range: 22/22
+        source_cidr_ip: 0.0.0.0/0
+        priority: 1
+    group_outboundRules:
+      - ip_protocol: tcp
+        port_range: 22/22
+        dest_cidr_ip: 0.0.0.0/0
+        priority: 1
+  default:
+    group_inboundRules:
+      - ip_protocol: tcp
+        port_range: 53/53
+        source_cidr_ip: 0.0.0.0/0
+        priority: 1
+      - ip_protocol: udp
+        port_range: 53/53
+        source_cidr_ip: 0.0.0.0/0
+        priority: 1
+      - ip_protocol: tcp
+        port_range: 80/80
+        source_cidr_ip: 0.0.0.0/0
+        priority: 1
+      - ip_protocol: tcp
+        port_range: 443/443
+        source_cidr_ip: 0.0.0.0/0
+        priority: 1
+      - ip_protocol: tcp
+        port_range: 1195/1195
+        source_cidr_ip: 0.0.0.0/0
+        priority: 1
+    group_outboundRules:
+      - ip_protocol: tcp
+        port_range: 80/80
+        dest_cidr_ip: 0.0.0.0/0
+        priority: 1
+      - ip_protocol: tcp
+        port_range: 443/443
+        dest_cidr_ip: 10.0.0.0/0
+        priority: 1
+
+###############################################################################################################################################
+###### OZ ZONE NETWORK
+###
+###############################################################################################################################################
+# EXTRA FETCHED NETWORKS: from metadata. anycloud_zone_extra_subnets_metadata_storage_networks
+###############################################################################################################################################
+
+# ###############################################################################################################################################
+# # GET REMAPPING WITH DICTS CHAIN - MUST LOADING WANTS
+# ###############################################################################################################################################
+# # GENERATED: from adapter || see info at point > {1} 
+# # WHEN IS DEFINED - USES AS IN TOP PREFERRER FOR GET TO PLAY FROM DICTS
+# oz_anycloud_zone_extra_subnets_adapters_vpn_ozrouter_subnets: "{{ anycloud_zone_extra_subnets_adapters_networks | combine(anycloud_zone_extra_subnets_adapters_vpn_ozrouter_subnets_vpn) }}"
+# # LOADED: from metadata || see info at point > {1} 
+# oz_anycloud_zone_extra_subnets_metadata_vpn_ozrouter_subnets: "{{ anycloud_zone_extra_subnets_metadata_storage_networks | combine(anycloud_zone_extra_subnets_metadata_vpn_ozrouter_subnets_vpn) }}"
+# ###############################################################################################################################################
+
+# DEFAULT:
+#          anycloud_extra_fetched_networks: "{{ anycloud_zone_extra_subnets_metadata_storage_networks }}"
+# MESH OZ ROUTER:
+anycloud_extra_fetched_networks: "{{ oz_anycloud_zone_extra_subnets_metadata_vpn_ozrouter_subnets }}"
+
+###############################################################################################################################################
+# EXTRA URANDOM NETWORKS: from adapters. anycloud_zone_extra_subnets_adapters_networks
+###############################################################################################################################################
+
+# DEFAULT:
+#          anycloud_extra_urandom_networks: "{{ anycloud_zone_extra_subnets_adapters_networks }}"
+# MESH OZ ROUTER:
+anycloud_extra_urandom_networks: "{{ oz_anycloud_zone_extra_subnets_adapters_vpn_ozrouter_subnets }}"
+
+###############################################################################################################################################
+# GENERATED NETWORK OBJECTS WITH RANDOM LOOKUP SUBNETS
+###############################################################################################################################################
+anycloud_zone_extra_subnets_adapters_networks:
+    direct: 
+        name: "vZone_Sector_Network_Exchange_{{ ansible_product }}_direct_{{ ansible_environment }}_{{ ansible_datacenter }}"
+        subnet: "{{ anycloud_zone_extra_subnets_adapters_networks_on_fly_direct_subnet }}"
+    routed: 
+        name: "vZone_Sector_Network_Exchange_{{ ansible_product }}_routed_{{ ansible_environment }}_{{ ansible_datacenter }}"
+        subnet: "{{ anycloud_zone_extra_subnets_adapters_networks_on_fly_routed_subnet }}"
+    isolated: 
+        name: "vZone_Sector_Network_Exchange_{{ ansible_product }}_isolated_{{ ansible_environment }}_{{ ansible_datacenter }}"
+        subnet: "{{ anycloud_zone_extra_subnets_adapters_networks_on_fly_isolated_subnet }}"
+    vpnmesh: 
+        name: "vZone_Sector_Network_Exchange_{{ ansible_product }}_vpnmesh_{{ ansible_environment }}_{{ ansible_datacenter }}"
+        subnet: "{{ anycloud_zone_extra_subnets_adapters_networks_on_fly_vpnmesh_subnet }}"
+
+# anycloud_zone_extra_subnets_adapters_networks_ozradp__to_merge: "{{ anycloud_zone_extra_subnets_adapters_networks }}"
+###############################################################################################################################################
+##### IF YOUR VAULT IS HAVE(PRESENTS/STORED) A ENCRYPTED SETTINGS FOR EXAMPLE TARGET ENVIRONMENT WITH VPN EXTRA SUBNETS, - 
+##### BE CAREFUL, YOU MUST UNDERSTAND GEO-LOCATIONS OF ZONES PLACED ON LANDSCAPE
+###############################################################################################################################################
+# anycloud_zone_extra_subnets_adapters_vpn_ozrouter_subnets_vpn: 
+# anycloud_zone_extra_subnets_adapters_vpn_ozrouter_subnets_vpn_ozradp__to_merge: "{{ anycloud_zone_extra_subnets_adapters_networks }}"
+
+###############################################################################################################################################
+# FETCHED FROM vCloud OBJECTS WITH PRESENTS NETWORKS SUBNETS
+###############################################################################################################################################
+anycloud_zone_extra_subnets_metadata_storage_networks:
+    direct: 
+        name: "vZone_Sector_Network_Exchange_{{ ansible_product }}_direct_{{ ansible_environment }}_{{ ansible_datacenter }}"
+        subnet: "{{ anycloud_zone_extra_subnets_adapters_networks_get_on_fly_direct_subnet }}"
+    routed: 
+        name: "vZone_Sector_Network_Exchange_{{ ansible_product }}_routed_{{ ansible_environment }}_{{ ansible_datacenter }}"
+        subnet: "{{ anycloud_zone_extra_subnets_adapters_networks_get_on_fly_routed_subnet }}"
+    isolated: 
+        name: "vZone_Sector_Network_Exchange_{{ ansible_product }}_isolated_{{ ansible_environment }}_{{ ansible_datacenter }}"
+        subnet: "{{ anycloud_zone_extra_subnets_adapters_networks_get_on_fly_isolated_subnet }}"
+    vpnmesh:
+        name: "vZone_Sector_Network_Exchange_{{ ansible_product }}_vpnmesh_{{ ansible_environment }}_{{ ansible_datacenter }}"
+        subnet: "{{ anycloud_zone_extra_subnets_adapters_networks_get_on_fly_vpnmesh_subnet }}"
+
+###############################################################################################################################################
+#{1}# IF YOUR VAULT IS HAVE(PRESENTS/STORED) A ENCRYPTED SETTINGS FOR EXAMPLE TARGET ENVIRONMENT WITH VPN EXTRA SUBNETS, - 
+##### BE CAREFUL, YOU MUST UNDERSTAND GEO-LOCATIONS OF ZONES PLACED ON LANDSCAPE
+###############################################################################################################################################
+# anycloud_zone_extra_subnets_metadata_vpn_ozrouter_subnets_vpn: 
+    # vpnmesh: 
+    #     name: "vZone_Sector_Network_Exchange_{{ ansible_product }}_vpnmesh_{{ ansible_environment }}_{{ ansible_datacenter }}"
+    #     subnet: "{{ anycloud_zone_extra_subnets_adapters_networks_get_on_fly_vpnmesh_subnet }}"
+
+###############################################################################################################################################
+# GET REMAPPING WITH DICTS CHAIN - MUST LOADING WANTS
+###############################################################################################################################################
+###############################################################################################################################################
+
+anycloud_zone_extra_subnets_adapters_vpn_ozrouter_ports:
+    mesh_connect:
+        name: "vZone_{{ ansible_product }}_{{ ansible_environment }}_{{ ansible_datacenter }}_oZRouter_VPN_Port"
+        port: "{{ oz_router_subnet_anycloud_vpn_port }}"
+    ui_publish:
+        name: "vZone_{{ ansible_product }}_{{ ansible_environment }}_{{ ansible_datacenter }}_oZRouter_WEB_Port"
+        port: "{{ oz_router_subnet_anycloud_web_port }}"
+
+# anycloud_zone_extra_subnets_adapters_vpn_ozrouter:
+#     ports:
+#       - name: "vZone_{{ ansible_product }}_{{ ansible_environment }}_{{ ansible_datacenter }}_oZRouter_VPN_Port"
+#         port: "{{ lookup('random_vpn_server_port') }}"
+#       - name: "vZone_{{ ansible_product }}_{{ ansible_environment }}_{{ ansible_datacenter }}_oZRouter_WEB_Port"
+#         port: "{{ lookup('random_vpn_server_port') }}"
+
+##########################################################################################################################################################################################################################################
+# AnyCloud Meta: Adding metadata information to VM instance meta tags
+##########################################################################################################################################################################################################################################
+#
+# anycloud_instance_extra_metadata_and_tags: {
+#   created_by: "{{ ansible_product }}-cloud-{{ ansible_environment }}",
+#   created_from: "{{ ansible_product }}-ecs-vpc-{{ ansible_environment }}"
+#   }

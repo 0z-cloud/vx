@@ -1,0 +1,6 @@
+files_to_fetch:
+  path: /var/www/merchant-reports/shared/storage/app/reports/
+  files: 
+    - proc63-20181201.csv
+    - proc63-20181201.csv.zip
+    # - prod10781-20180701.csv.zip

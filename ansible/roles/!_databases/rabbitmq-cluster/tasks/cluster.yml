@@ -1,0 +1,52 @@
+---
+# - name: Ensure hostnames are in the hosts file
+#   lineinfile:
+#     dest: /etc/hosts
+#     line: "{{ hostvars[item]['ansible_host'] }} {{ hostvars[item]['ansible_hostname'] }}"
+#   with_items: "{{ groups['vortex'] }}"
+
+- name: Define the same Erlang cookie on all cluster nodes
+  template:
+    src: erlang.cookie.j2
+    dest: /var/lib/rabbitmq/.erlang.cookie
+    owner: rabbitmq
+    group: rabbitmq
+    mode: 0400
+  notify: "Restart RabbitMQ"
+
+- name: Checking if we already belong to a cluster
+  shell: "grep -r {{ rabbitmq_master }} /var/lib/rabbitmq/mnesia/rabbit@*/cluster_nodes.config"
+  register: rabbitmq_output
+  ignore_errors: true
+  when:
+    - rabbitmq_cluster
+    - not rabbitmq_cluster_master
+
+- name: Already a cluster member
+  debug:
+    msg: "This node already seems to be part of a cluster so skipping this one"
+  when:
+    - rabbitmq_cluster
+    - not rabbitmq_cluster_master
+    - rabbitmq_output.rc == 0
+
+- name: Stop the RabbitMQ app
+  shell: rabbitmqctl stop_app
+  when:
+    - rabbitmq_cluster
+    - not rabbitmq_cluster_master
+    - rabbitmq_output.rc != 0
+
+- name: Join the cluster
+  shell: "rabbitmqctl join_cluster rabbit@{{ rabbitmq_master }}"
+  when:
+    - rabbitmq_cluster
+    - not rabbitmq_cluster_master
+    - rabbitmq_output.rc != 0
+
+- name: Start the RabbitMQ app
+  shell: rabbitmqctl start_app
+  when:
+    - rabbitmq_cluster
+    - not rabbitmq_cluster_master
+    - rabbitmq_output.rc != 0

@@ -1,0 +1,4 @@
+# WIP FUTURE USAGE POSSIBLE
+
+- name: Export local node config
+  shell: calicoctl get node <node name> -o yaml --export > node.yaml

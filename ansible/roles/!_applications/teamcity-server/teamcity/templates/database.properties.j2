@@ -1,0 +1,3 @@
+connectionProperties.user={{ teamcity_settings.user }}
+connectionProperties.password={{ teamcity_settings.password }}
+connectionUrl=jdbc\:postgresql\://{{ hostvars[inventory_hostname].ansible_default_ipv4['address'] }}\:5432/{{ teamcity_settings.database }}

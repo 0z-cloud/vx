@@ -1,0 +1,37 @@
+# namespace
+slurm_namespace: slurm
+
+slurm_masters: 2
+slurm_workers: 3
+
+slurm_ssh_port: 32022
+gluster_volume_size: 1Gi
+
+storage_classname: managed-nfs-storage
+
+slurm_mysql_pass: slurm
+
+slurm_master_image: registry.local.cloud.eve.vortice.eden/vortice/eden-vortice/slurm_control:20.02.3-202006261754
+slurm_worker_image: registry.local.cloud.eve.vortice.eden/vortice/eden-vortice/slurm_worker:20.02.3-202006261754
+slurm_autoscaler_image: registry.local.cloud.eve.vortice.eden/vortice/eden-vortice/slurm_autoscaler:latest
+
+autoscaler_config:
+  min_pods: 1
+  max_pods: 5
+  period: 60
+
+slurm:
+  worker:
+    cpus: 2
+    sockets: 1
+    cores: 2
+    threads: 1
+    real_memory: 2000 
+
+# Ansible
+# ansible_user: root
+
+# Kubernetes
+kube_version: v1.15.3
+
+

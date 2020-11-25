@@ -1,0 +1,35 @@
+- name: Create the directories
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0755
+  with_dict: "{{ gitlab_defaults.directories | default({}) }}"
+
+- name: Template the gitlab.rb configuration
+  template:
+    src: gitlab.rb.j2
+    dest: "{{ gitlab_defaults.directories.confdir }}/gitlab.rb"
+
+- name: Install GitLAB Private Container
+  docker_container:
+    name: "gitlab-{{ ansible_environment }}"
+    image: gitlab/gitlab-ee:nightly
+    hostname: "gitlab.{{ merge_consul_domain }}"
+    volumes:
+       - "{{ gitlab_defaults.directories.datadir }}:/var/opt/gitlab/postgresql"
+       - "{{ core_dns_cloud_settings.cert_cloud.cert_root }}/{{ acme_wildcard_domain }}:/etc/gitlab/ssl"
+       - "{{ gitlab_defaults.directories.confdir }}/gitlab.rb:/etc/gitlab/gitlab.rb"
+       - "{{ gitlab_defaults.directories.storage }}:/var/opt/gitlab"
+    ports:
+      - "{{ git_service_listen_port }}:{{ git_service_listen_port }}"
+      - "{{ registry_service_listen_port }}:{{ registry_service_listen_port }}"
+    privileged: yes
+    state: started
+    restart_policy: unless-stopped
+    recreate: yes
+
+# - name: Raw comments
+#   raw: docker exec -it gitlab-{{ ansible_environment }} sed -i '/var/opt/gitlab/nginx/conf/gitlab-registry.conf' -e "s/ssl_session_cache/#ssl_session_cache/g"
+
+# - name: Raw hight/toup pick
+#   raw: docker exec -it gitlab-{{ ansible_environment }} /bin/bash -c "apt update -qq && apt install net-tools -qq -y"

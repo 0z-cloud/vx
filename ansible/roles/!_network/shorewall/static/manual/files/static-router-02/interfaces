@@ -1,0 +1,31 @@
+# For information about entries in this file, type "man shorewall-interfaces"
+?FORMAT 2
+###############################################################################
+#ZONE           INTERFACE               OPTIONS
+# WAN:                                  185.243.244.67 / VIP 68
+wan             eth0                    physical=em1,routefilter,tcpflags
+
+# IPMI:                                 10.110.1.3 / VIP 1
+ipmi            eth1                    physical=bond0.100
+
+# ESXI:                                 10.16.128.3 / VIP 1
+esx             eth9                    physical=bond0.20
+
+# ISCSI:				                        10.91.91.102 / VIP 1
+iscsi		        eth2                    physical=bond0.200
+
+# WEB:                                  10.16.211.3 / VIP 1
+web             eth3                    physical=bond0.500,routeback
+
+# ELSE(apt,dns,log,adm):                10.16.131.3 / VIP 1
+else            eth4                    physical=bond0.700
+
+# SQL:                                  10.16.120.3 / VIP 1
+sql             eth5                    physical=bond0.900
+
+# KEY:                                  10.16.226.3 / VIP 1
+key             eth6                    physical=bond0.1000
+
+# VPN(s):                               10.77.0.x /24 && 172.16.3138.x /24
+vpn		tun+
+mac		tap+

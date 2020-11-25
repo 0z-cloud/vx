@@ -1,0 +1,345 @@
+# ##############################################################################################################
+# # GET NAT RULES
+
+- name: featched_uniq_list_mapped_ports SHOW ALL | Show all firewall rules IDs
+  debug:
+    msg: "{{ featched_uniq_list_mapped_ports }}"
+
+- name: EDGE NAT FIREWALL | Show all VPN FIREWALL rules Uniq List oz_router_subnet_anycloud_vpn_port_nat_rule_present
+  debug:
+    msg: "{{ oz_router_subnet_anycloud_vpn_port }} NOT IN RESULTS"
+  when: oz_router_subnet_anycloud_vpn_port in list_with_nat_rules_ids_full_complete.results
+  register: oz_router_subnet_anycloud_vpn_port_nat_rule_present
+
+- name: FIREWALL SHOW ALL STDOUT | Show all VPN FIREWALL rules IDs oz_router_subnet_anycloud_vpn_port_nat_rule_present
+  debug:
+    msg: "{{ oz_router_subnet_anycloud_vpn_port_nat_rule_present }}"
+
+- name: EDGE NAT FIREWALL | Show all nat rules Uniq List
+  debug:
+    msg: "{{ list_with_nat_rules_ids_full_complete.results }}"
+  when: anycloud_result_routed_network_cut in list_with_nat_rules_ids_full_complete.results
+  register: oz_router_subnet_anycloud_nat_rule_present
+
+- name: FIREWALL SHOW ALL STDOUT | Show all SUBNET rules
+  debug:
+    msg: "{{ oz_router_subnet_anycloud_nat_rule_present }}"
+
+# ##############################################################################################################
+# ### SHARED GET TO CHECK NAT RULES
+# ##############################################################################################################
+
+# - name: NAT RULES IDs LIST - READ IDs of NAT TRANSLATION RULE
+#   shell: vcd gateway services nat list {{ anycloud_result_edge_router }} | awk '{print $3}' | tail -n +3
+#   register: read_nat_translation_list_rule_ids
+
+- name: DEBUG stdout_lines read_nat_translation_list_rule_ids
+  debug:
+    msg: "{{ item.value }}"
+  with_dict: "{{ list_with_nat_rules_ids_full_complete.results }}"
+  when: "'stdout_lines' in item.key"
+
+- name: SET VAR WITH SEARCH STRING
+  set_fact:
+    nat_rules_completed_rule_routed_to_network_desc_to_find: ".*{{ anycloud_defaults_virtual_cloud_application_box_sector }} Routed {{ anycloud_result_routed_network_cut }}0/24 to Internet.*"
+    nat_rules_completed_rule_vpn_to_routed_desc_to_find: ".*{{ anycloud_defaults_virtual_cloud_application_box_sector }} VPN port {{ oz_router_subnet_anycloud_vpn_port }} From Internet To {{ anycloud_result_routed_network_cut }}2.*"
+
+- name: '[D]: nat_rules_completed_rule_routed_to_network_desc_to_find'
+  debug:
+    msg: "{{ nat_rules_completed_rule_routed_to_network_desc_to_find }}"
+
+- name: '[D]: nat_rules_completed_rule_vpn_to_routed_desc_to_find'
+  debug:
+    msg: "{{ nat_rules_completed_rule_vpn_to_routed_desc_to_find }}"
+
+- name: DEBUG stdout_lines read_nat_translation_list_rule_ids with when nat_rules_completed_rule_routed_to_network_desc_to_find
+  shell: echo {{ item.value | join }} | sed -E 's/(.*ID)//g' |  sed -E "s/\'.*//g" | tr -d ' '
+  with_dict: "{{ list_with_nat_rules_ids_full_complete.results }}"
+  when: "'stdout_lines' in item.key and item.value is match(nat_rules_completed_rule_routed_to_network_desc_to_find)"
+  # when: not item is match(nat_rules_completed_rule_routed_to_network_desc_to_find)
+  register: nat_rules_completed_rule_routed_to_network_desc_to_find_result
+
+- name: DEBUG stdout_lines read_nat_translation_list_rule_ids with when nat_rules_completed_rule_vpn_to_routed_desc_to_find
+  shell: echo {{ item.value }} | sed -E 's/(.*ID)//g' |  sed -E "s/\'.*//g" | tr -d ' '
+  with_dict: "{{ list_with_nat_rules_ids_full_complete.results }}"
+  # when: "'stdout_lines' in item.key and nat_rules_completed_rule_vpn_to_routed_desc_to_find in item.value"
+  when: "'stdout_lines' in item.key and item.value is match(nat_rules_completed_rule_vpn_to_routed_desc_to_find)"
+  register: nat_rules_completed_rule_vpn_to_routed_desc_to_find_result
+
+- name: RUnnnning nat_rules_completed_rule_vpn_to_routed_desc_to_find_result 
+  debug:
+    msg: "{{ item.value }}"
+  with_dict: "{{ nat_rules_completed_rule_vpn_to_routed_desc_to_find_result.results }}"
+  when: "item.value is match(nat_rules_completed_rule_vpn_to_routed_desc_to_find) and item.value is not match('ansible_loop_var') and item.value is not match('cmd') and item.value is not match('stdout') and item.value is not match('rc') and item.value is not match('start') and item.value is not match('end') and item.value is not match('delta') and item.value is not match('changed') and item.value is not match('invocation') and item.value is not match('stdout_lines') and item.value is not match('stderr_lines') and item.value is not match('failed')"
+
+- name: RUnnnning nat_rules_completed_rule_vpn_to_routed_desc_to_find_result 
+  debug:
+    msg: "{{ item.value }}"
+  with_dict: "{{ nat_rules_completed_rule_routed_to_network_desc_to_find_result.results }}"
+  when: "item.value is match(nat_rules_completed_rule_routed_to_network_desc_to_find) and item.value is not match('ansible_loop_var') and item.value is not match('cmd') and item.value is not match('stdout') and item.value is not match('rc') and item.value is not match('start') and item.value is not match('end') and item.value is not match('delta') and item.value is not match('changed') and item.value is not match('invocation') and item.value is not match('stdout_lines') and item.value is not match('stderr_lines') and item.value is not match('failed')"
+
+  # register: read_nat_translation_list_rule_ids_info_desc
+
+# - name: RUnnnning get 
+#   shell: echo {{ list_with_nat_rules_ids_full_complete.results }} | egrep '(ID|Description)'
+#   register: read_nat_translation_list_rule_ids_info_desc
+
+# - name: Create array reversed
+#   set_fact: '{{ item.stdout_lines[0] | regex_replace("^.*?[\s.]", "") | regex_replace("([\s.])yaml", "") }}_list_to_update=[]'
+#   with_items: "{{ update_array_data.results }}"
+
+# - name: Add updated files to each array
+#   set_fact: '{{ item.stdout_lines[0] | regex_replace("^.*?[\s.]", "") | regex_replace("([\s.])yaml", "") }}_list_to_update={{ item.stdout_lines | join(", ") }}'
+#   with_items: "{{ update_array_data.results }}"
+
+# - name: Debug the dynamic facts
+#   debug:
+#     var: '{{ item.stdout_lines[0] | regex_replace("^.*?[\s.]", "") | regex_replace("([\s.])yaml", "") }}_list_to_update'
+#   with_items: "{{ update_array_data.results }}"
+
+
+# NETWORKS LIST
+- name: Register restricted subnets cidr
+  set_fact:
+    read_nat_translation_list_rule_ids_info_desc: []
+
+- name: Register restricted subnets IP from object
+  set_fact:
+    read_nat_translation_list_rule_ids_info_desc: "{{ read_nat_translation_list_rule_ids_info_desc + [ item | join ] }}"
+  with_dict: "{{ list_with_nat_rules_ids_full_complete.results }}"
+
+- name: RUnnnning get 
+  set_fact:
+    read_nat_translation_list_rule_ids_info_desc: "{{ item }}"
+  with_dict: "{{ list_with_nat_rules_ids_full_complete.results }}"
+
+- name: DEBUG stdout_lines read_nat_translation_list_rule_ids_info_desc
+  debug:
+    msg: "{{ read_nat_translation_list_rule_ids_info_desc }}"
+  
+
+
+  # shell: echo {{ list_with_nat_rules_ids_full_complete.results }} | egrep '(ID|Description)'
+  # register: read_nat_translation_list_rule_ids_info_desc
+
+
+  # shell: echo {{ list_with_nat_rules_ids_full_complete.results }} | egrep '(Action|OriginalAddress|TranslatedAddress|OriginalPort|TranslatedPort)' | grep Port | sort -u | grep -v any | awk '{print $2}' | sort -u | sed 's/,//g' | sort -u
+
+
+  #shell: echo {{ list_with_nat_rules_ids_full_complete.results }} | egrep '(Action|OriginalAddress|TranslatedAddress|OriginalPort|TranslatedPort)' | grep Port | sort -u | grep -v any | awk '{print $2}' | sort -u | sed 's/,//g' | sort -u
+
+# - name: DEBUG stdout_lines read_nat_translation_list_rule_ids
+#   debug:
+#     msg: "{{ read_nat_translation_list_rule_ids.stdout_lines }}"
+  
+# - name: SET FACT read_nat_translation_list_rule_ids_stdout_lines
+#   set_fact:
+#     read_nat_translation_list_rule_ids_stdout_lines: []
+
+# - name: SET FACT read_nat_translation_list_rule_ids_stdout_lines
+#   set_fact:
+#     read_nat_translation_list_rule_ids_stdout_lines: "{{ read_nat_translation_list_rule_ids_stdout_lines|default([]) + [ item ] }}"
+#   with_items: "{{ read_nat_translation_list_rule_ids.stdout_lines }}"
+
+# - name: DEBUG stdout_lines read_nat_translation_list_rule_ids_stdout_lines
+#   debug:
+#     msg: "{{ read_nat_translation_list_rule_ids_stdout_lines }}"
+  
+# - name: NAT RULES IDs INFO - READ INFO BY IDs of NAT TRANSLATION RULES
+#   shell: vcd gateway services nat info {{ anycloud_result_edge_router }} {{ item }}
+#   with_items: "{{ read_nat_translation_list_rule_ids_stdout_lines }}"
+#   register: read_nat_translation_list_rule_ids_info
+
+
+# - name: DEBUG with_dict stdout_lines read_nat_translation_list_rule_ids_info
+#   debug:
+#     msg: "{{ item.stdout_lines }}"
+#   with_dict: "{{ read_nat_translation_list_rule_ids_info.results }}"
+
+# - name: NAT RULES IDs INFO - SELECT DESCRIPTION AND PORTS of NAT TRANSLATION RULES
+#   shell: echo "{% for dict_item in read_nat_translation_list_rule_ids_info.results %}{{ dict_item.stdout_lines | join }} {% endfor %}" | grep -A 3 Description | awk '{print $2,$3,$4,$5,$6,$7}'
+#   register: read_nat_translation_list_rule_ids_info_desc
+
+
+
+# # NETWORKS LIST
+# - name: Register restricted subnets cidr
+#   set_fact:
+#     restricted_networks_list: []
+
+# - name: Register restricted subnets IP from object
+#   set_fact:
+#     restricted_subnets_list: "{{ restricted_subnets_list + [ item | join ] }}"
+#   with_items: 
+#     - "{{ used_subnets_in_vdc_list.stdout_lines }}"
+#     - "{{ subnets_excluded_and_must_to_be_check }}"
+#     - "{{ all_fetched_vdc_subnets_list.stdout_lines }}"
+
+
+- name: DEBUG stdout_lines read_nat_translation_list_rule_ids_info_desc
+  debug:
+    msg: "{{ item }}"
+  with_items:  "{{ read_nat_translation_list_rule_ids_info_desc }}"
+
+# ##############################################################################################################
+# ### GET NAT TRANSLATION RULES IDs IF HIS PRESENTS
+# ##############################################################################################################
+
+# CHECKER FOR ROUTED NETWORK TO INET NAT TRANSLATION RULE 1
+- name: CHECKER FOR ROUTED NETWORK TO INET NAT TRANSLATION RULE 1
+  shell: echo {{ item }} | grep -A 3 "{{ anycloud_defaults_virtual_cloud_application_box_sector }} Routed {{ anycloud_result_routed_network_cut }}0/24 to Internet" | tail -n +3 | head -1 
+  register: check_nat_translation_list_rule_network_routed_to_inet
+  with_items: "{{ read_nat_translation_list_rule_ids_info_desc.stdout_lines }}"
+
+# CHECKER FOR VPN FROM EXTERNAL NETWORK TO DMZ NAT TRANSLATION RULE 2
+- name: CHECKER FOR VPN FROM EXTERNAL NETWORK TO DMZ NAT TRANSLATION RULE 2
+  shell: echo {{ read_nat_translation_list_rule_ids_info_desc.stdout_lines | join }} | grep -A 3 "{{ anycloud_defaults_virtual_cloud_application_box_sector }} VPN port {{ oz_router_subnet_anycloud_vpn_port }} From Internet To {{ anycloud_result_routed_network_cut }}2" | tail -n +3 | head -1 
+  register: check_nat_translation_list_rule_outside_to_routed_for_vpn
+
+- name: DEBUG stdout_lines check_nat_translation_list_rule_network_routed_to_inet
+  debug:
+    msg: "{{ check_nat_translation_list_rule_network_routed_to_inet.stdout_lines }}"
+  
+- name: DEBUG stdout_lines check_nat_translation_list_rule_outside_to_routed_for_vpn
+  debug:
+    msg: "{{ check_nat_translation_list_rule_outside_to_routed_for_vpn.stdout_lines }}"
+  
+# CHOICERMAN FOR ROUTED NETWORK TO INET NAT TRANSLATION RULE 1
+
+- name: CHOICERMAN FOR ROUTED NETWORK TO INET NAT TRANSLATION RULE 1 ID NOT NULL
+  set_fact:
+    choicerman_nat_translation_list_rule_network_routed_to_inet: "{{ check_nat_translation_list_rule_network_routed_to_inet.stdout | join }}"
+  when: check_nat_translation_list_rule_network_routed_to_inet.stdout != ""
+
+- name: CHOICERMAN FOR ROUTED NETWORK TO INET NAT TRANSLATION RULE 1 ID NULL
+  set_fact:
+    choicerman_nat_translation_list_rule_network_routed_to_inet: "fillme"
+  when: check_nat_translation_list_rule_network_routed_to_inet.stdout == ""
+
+# CHOICERMAN FOR VPN TO INSIDE NAT TRANSLATION RULE 2
+
+- name:  CHOICERMAN FOR VPN TO INSIDE NAT TRANSLATION RULE 2 ID NOT NULL
+  set_fact:
+    choicerman_nat_translation_list_rule_outside_to_routed_for_vpn: "{{ check_nat_translation_list_rule_outside_to_routed_for_vpn.stdout | join }}"
+  when: check_nat_translation_list_rule_outside_to_routed_for_vpn.stdout != ""
+
+- name:  CHOICERMAN FOR VPN TO INSIDE NAT TRANSLATION RULE 2 ID NULL
+  set_fact:
+    choicerman_nat_translation_list_rule_outside_to_routed_for_vpn: "fillme"
+  when: check_nat_translation_list_rule_outside_to_routed_for_vpn.stdout == ""
+
+# ##############################################################################################################
+# ### NAT RULES. RAW WAY ROUTED TO INTERNET
+# ##############################################################################################################
+
+- name: RULE 1 - Check and update SNAT rule for Routed network access to internet via public_ips_from_edge[0]
+  shell: vcd gateway services nat create-snat {{ anycloud_result_edge_router }} --enabled -o {{ anycloud_result_routed_network_cut }}0/24 -t {{ public_ips_from_edge[0] }} --desc "{{ anycloud_defaults_virtual_cloud_application_box_sector }} Routed {{ anycloud_result_routed_network_cut }}0/24 to Internet"
+  #with_items: "{{ oz_router_subnet_anycloud_nat_rule_present.skipped }}"
+  when: "'fillme' in choicerman_nat_translation_list_rule_network_routed_to_inet"
+
+- name: RULE 2 - Check and update DNAT rule for VPN network access to internet via public_ips_from_edge[0]
+  shell: vcd gateway services nat create-dnat {{ anycloud_result_edge_router }} -o {{ public_ips_from_edge[0] }} -t {{ anycloud_result_routed_network_cut }}2 -op {{ oz_router_subnet_anycloud_vpn_port }} -tp {{ oz_router_subnet_anycloud_vpn_port }} -p tcp --enabled --desc "{{ anycloud_defaults_virtual_cloud_application_box_sector }} VPN port {{ oz_router_subnet_anycloud_vpn_port }} From Internet To {{ anycloud_result_routed_network_cut }}2"
+  #with_items: "{{ oz_router_subnet_anycloud_nat_rule_present.skipped }}"
+  when: "'fillme' in choicerman_nat_translation_list_rule_outside_to_routed_for_vpn"
+
+
+
+# - name: NAT RULE 1 - READ ID of SNAT FIREWALL RULE
+#   shell: vcd gateway services nat list {{ anycloud_result_edge_router }} | awk '{print $3}' | tail -n +3
+#   #shell: vcd gateway services firewall list {{ anycloud_result_edge_router }} | grep {{ anycloud_defaults_virtual_cloud_application_box_sector }}_Routed_to_Internet | awk '{print $1}'
+#   register: read_nat_translation_routed_network_rule_id
+
+
+
+# results=`vcd gateway services nat list {{ anycloud_result_edge_router }} | awk '{print $3}' | tail -n +3`;
+# r2=`echo $results | xargs -I ID vcd gateway services nat info {{ anycloud_result_edge_router }} ID`;
+# r3=`echo $r2 | grep -A 3 Description | awk '{print $2,$3,$4,$5,$6,$7}'`;
+# mathc=`echo $r3 | grep -A 3 "VPN" | grep -A 3 "dc911" | tail -n +3 | head -1 `;
+# echo $mathc
+
+
+# - name: NAT RULE 1 - set_fact item dict stdout_lines SHOW ID of SNAT FIREWALL RULE by item dict
+#   set_fact:
+#     fillme: "fillme"
+
+# - name: Debug all read_snat_firewall_rule_id
+#   debug:
+#     msg: "{{ read_snat_firewall_rule_id }}"
+
+# - name: SHOW WHEN STDOUT SNAT RULE ID NOT NULL
+#   set_fact:
+#     fact_read_snat_firewall_rule_id: "{{ read_snat_firewall_rule_id.stdout | join }}"
+#   when: read_snat_firewall_rule_id.stdout != ""
+
+# - name: SHOW WHEN STDOUT SNAT RULE ID NULL
+#   set_fact:
+#     fact_read_snat_firewall_rule_id: "fillme"
+#   when: read_snat_firewall_rule_id.stdout == ""
+
+# # - name: NAT RULE 1 - set_fact item dict stdout_lines SHOW ID of SNAT FIREWALL RULE by item dict
+# #   set_fact:
+# #     fact_read_snat_firewall_rule_id: "{{ item | join | default(fillme) }}"
+# #   with_items: "{{ read_snat_firewall_rule_id }}"
+# #   when: "'results' in item"
+
+# - name: NAT RULE 1 - fact_read_snat_firewall_rule_id DEFINED NOFILL
+#   debug:
+#     msg: "fact_read_snat_firewall_rule_id is DEFINED"
+#   when: "'fillme' not in fact_read_snat_firewall_rule_id"
+
+# - name: NAT RULE 1 - fact_read_snat_firewall_rule_id DEFINED FILLME
+#   debug:
+#     msg: "NOT DEFINED fact_read_snat_firewall_rule_id"
+#   when: "'fillme' in fact_read_snat_firewall_rule_id"
+
+# - name: NAT RULE 1 - Check and update NAT RULE rule for Routed network access to internet via public_ips_from_edge[0]
+#   shell: vcd gateway services firewall create {{ anycloud_result_edge_router }} --name "{{ anycloud_defaults_virtual_cloud_application_box_sector }}_Routed_to_Internet" --action accept --enabled --type User
+#   #with_items: "{{ oz_router_subnet_anycloud_vpn_port_nat_rule_present.skipped }}"
+#   #when: item is true
+#   when: "'fillme' in fact_read_snat_firewall_rule_id"
+
+# - name: NAT RULE 1 - Get ID of SNAT FIREWALL RULE
+#   shell: vcd gateway services firewall list {{ anycloud_result_edge_router }} | grep {{ anycloud_defaults_virtual_cloud_application_box_sector }}_Routed_to_Internet | awk '{print $1}'
+#   register: snat_firewall_rule_id
+#   #with_items: "{{ oz_router_subnet_anycloud_vpn_port_nat_rule_present.skipped }}"
+#   #when: item is true
+#   #when: "'fillme' in fact_read_snat_firewall_rule_id"
+
+# - name: NAT RULE 1 DEBUG snat_firewall_rule_id whole
+#   debug:
+#     msg: "{{ snat_firewall_rule_id }}"
+
+# # - name: NAT RULE 1 - SHOW ID of SNAT FIREWALL RULE by item dict
+# #   debug:
+# #     msg: "{{ item['value'] }}"
+# #   with_dict: "{{ snat_firewall_rule_id.results }}"
+# #   when: "'stdout_lines' in item['key'] and 'fillme' in fact_read_snat_firewall_rule_id"
+
+# # - name: NAT RULE 1 - set_fact item dict stdout_lines SHOW ID of SNAT FIREWALL RULE by item dict
+# #   set_fact:
+# #     fact_snat_firewall_rule_id: "{{ item['value'] }}"
+# #   with_dict: "{{ snat_firewall_rule_id.results }}"
+# #   when: "'stdout_lines' in item['key'] and 'fillme' in fact_read_snat_firewall_rule_id"
+
+# - name: NAT RULE 1 SHOW WHEN STDOUT SNAT RULE ID NOT NULL
+#   set_fact:
+#     fact_read_snat_firewall_rule_id: "{{ snat_firewall_rule_id.stdout | join }}"
+#   when: snat_firewall_rule_id.stdout != ""
+
+# - name: NAT RULE 1 SHOW WHEN STDOUT SNAT RULE ID NULL
+#   set_fact:
+#     fact_read_snat_firewall_rule_id: "fillme"
+#   when: snat_firewall_rule_id.stdout == ""
+
+# - name: NAT RULE 1 - Clean Rule First Source
+#   shell: vcd gateway services firewall list-source {{ anycloud_result_edge_router }} {{ fact_read_snat_firewall_rule_id }} | awk '{print $2}' | tail -n +4 | sed '/^$/d' | xargs -I ID vcd gateway services firewall delete-source {{ anycloud_result_edge_router }} {{ fact_read_snat_firewall_rule_id }} ID
+#   when: snat_firewall_rule_id.stdout != ""
+
+# - name: NAT RULE 1 - Clean Rule Second Destination
+#   shell: vcd gateway services firewall list-destination {{ anycloud_result_edge_router }} {{ fact_read_snat_firewall_rule_id }} | awk '{print $2}' | tail -n +4 | sed '/^$/d' | xargs -I ID vcd gateway services firewall delete-destination {{ anycloud_result_edge_router }} {{ fact_read_snat_firewall_rule_id }} ID
+#   when: snat_firewall_rule_id.stdout != ""
+
+# - name: NAT RULE 1 - Update NAT RULE 1 rule for Routed network access to internet via public_ips_from_edge[0]
+#   shell: vcd gateway services firewall update {{ anycloud_result_edge_router }} {{ fact_read_snat_firewall_rule_id }} --name "{{ anycloud_defaults_virtual_cloud_application_box_sector }}_Routed_to_Internet" --service any any any --source {{ anycloud_result_routed_network_cut }}0\/24:ip
+#   #with_items: "{{ oz_router_subnet_anycloud_vpn_port_nat_rule_present.skipped }}"
+#   when: snat_firewall_rule_id.stdout != ""

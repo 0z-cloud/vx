@@ -1,0 +1,35 @@
+#### CONSUL SECTION
+
+consul:
+    master_key: "PjqEOgzbgbM00fQxaRQ+IA=="
+    directories:
+        ca_certs_directory: /cloud/local/opt/consul/opt/pki/ca-certs
+        working_etc_directory: /cloud/local/opt/consul/etc
+        working_directory: /cloud/local/opt
+        working_opt_directory: /cloud/local/opt/consul/opt
+        working_opt_pki: /cloud/local/opt/consul/opt/pki/
+        working_opt_pki_cert: /cloud/local/opt/consul/opt/pki/cert        
+        working_opt_pki_private: /cloud/local/opt/consul/opt/pki/private
+        working_consul: /cloud/local/opt/consul
+        working_consul_data: /cloud/local/opt/consul/data
+        working_consul_data_raft: /cloud/local/opt/consul/data/raft
+        ui_dir: /cloud/local/opt/consul/ui
+        configs_dir: /cloud/local/opt/consul/etc/consul.d
+        crazy_hop_d: /cloud/local/opt/consul/etc/crazy_hop.d
+        logging_dir: /cloud/local/opt/consul/logs
+        certificate_authority_root: /cloud/consul/pki/ca
+        certificate_authority_hostnames: /cloud/consul/pki/hosts
+    consul_name: "cloud-{{ ansible_hostname }}"
+    #datacenter: "{{ consul_datacenter }}"
+    #### INVESTIGATE!     |-/+| ????? why
+    datacenter: "{{ ansible_datacenter }}"
+    consul_get_url: https://releases.hashicorp.com/consul/1.8.0/consul_1.8.0_linux_amd64.zip
+    consul_get_zip: consul_1.8.0_linux_amd64.zip
+    consul_security:
+        linux_username: consul
+        linux_group: consul
+    authority_files:
+        ca_root_key: consul-agent-ca-key.pem
+        ca_root_crt: consul-agent-ca.pem
+        agent_ca: "{{ consul_cloud_domain_name }}-agent-ca.pem"
+        agent_key_of_ca: "{{ consul_cloud_domain_name }}-agent-ca-key.pem"

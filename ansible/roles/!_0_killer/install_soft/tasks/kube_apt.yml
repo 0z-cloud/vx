@@ -1,0 +1,11 @@
+- name: ADD KUBE GOOGLE APT GPG KEY | Shell
+  shell: "curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -"
+
+- name: INCLUDE ROLE APT UPDATE SOURCE.LIST INSTALL | ./!_bootstrap/apt-default-sources
+  include_role:
+    name: ./!_bootstrap/apt-default-sources
+
+- name: ADD THE APT KUBERNETES LIST | Template
+  template:
+    src: "kubernetes.list"
+    dest: /etc/apt/sources.list.d/kubernetes.list

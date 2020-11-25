@@ -1,0 +1,148 @@
+- name: Create the directories 
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0777
+  with_dict: "{{ selenium_service_docker.directories | default({}) }}"
+  tags: [configuration,selenium]
+
+- name: Raw get mysqlhost ip
+  shell: docker ps | grep mysql-trb-{{ ansible_environment }} | awk '{print $1}' | xargs -I ID docker inspect ID | grep '"IPAddress' | awk '{ print $2}' | sed 's/"//g' | sed 's/,//g' | uniq 
+  register: mysqlip
+  tags: [selenium-call]
+
+- name: Debug MySQL IP
+  debug: msg="MYSQL IP is {{ mysqlip.stdout }}"
+  tags: [selenium-call]
+
+- name: Raw get bitrix ip
+  shell: docker ps | grep bitrix-trb-{{ ansible_environment }} | awk '{print $1}' | xargs -I ID docker inspect ID | grep '"IPAddress' | awk '{ print $2}' | sed 's/"//g' | sed 's/,//g' | uniq 
+  register: bitrixip
+  tags: [selenium-call]
+
+- name: Debug bitrix IP
+  debug: msg="bitrix IP is {{ bitrixip.stdout }}"
+  tags: [selenium-call]
+
+- name: Create 2_uninstall.py
+  template:
+     src: 2_uninstall.py
+     dest: "{{ selenium_service_docker.directories.files }}/2_uninstall.py"
+     mode: 0777
+  tags: [selenium-call]
+
+- name: Create 2_install.py
+  template:
+     src: 2_install.py
+     dest: "{{ selenium_service_docker.directories.files }}/2_install.py"
+     mode: 0777
+  tags: [selenium-call]
+
+- name: Create 3_settings.py
+  template:
+     src: 3_settings.py
+     dest: "{{ selenium_service_docker.directories.files }}/3_settings.py"
+     mode: 0777
+  tags: [selenium-call]
+
+
+- name: Create 4_marketplace.py
+  template:
+     src: 4_marketplace.py
+     dest: "{{ selenium_service_docker.directories.files }}/4_marketplace.py"
+     mode: 0777
+  tags: [selenium-call]
+
+- name: Copy elements.py
+  template:
+     src: elements.py
+     dest: "{{ selenium_service_docker.directories.files }}/elements.py"
+     mode: 0777
+  tags: [selenium-call]
+
+- name: Copy helpers.py
+  template:
+     src: helpers.py
+     dest: "{{ selenium_service_docker.directories.files }}/helpers.py"
+     mode: 0777
+  tags: [selenium-call]
+
+- name: Create a Selenium Service docker container
+  docker_container:
+      name: selenium-{{ ansible_environment }}
+      image: local/selenium-standalone-chrome-debug
+      hostname: selenium
+      restart_policy: always
+      detach: True
+      ports:
+          - "{{ vnc_service_listen_port }}:80"
+          - "5900:5900"
+      volumes: 
+         - "{{ selenium_service_docker.directories.files }}/:/repo"
+         - "{{ solution_serivce_config.directories.data }}/:/solution"
+      recreate: yes
+      links: "bitrix-trb-{{ ansible_environment }}"
+      state: started
+
+- name: UFW allow
+  shell: ufw allow 5900
+
+- name: UFW allow
+  shell: ufw allow {{ vnc_service_listen_port }}
+
+- name: RAW apt-get remove python-pip -y
+  shell: docker exec selenium-{{ ansible_environment }} apt-get remove python-pip -y
+  ignore_errors: yes
+  tags: [selenium-call]
+
+- name: RAW apt-get remove python-pip -y
+  shell: docker exec selenium-{{ ansible_environment }} easy_install pip
+  ignore_errors: yes
+  tags: [selenium-call]
+
+- name: RAW run install requirements
+  shell: docker exec selenium-{{ ansible_environment }} pip3 -q install -r /solution/scripts/selenium-req.txt
+  ignore_errors: yes
+  tags: [selenium-call]
+
+- name: RAW run install requirements
+  shell: docker exec selenium-{{ ansible_environment }} pip -q install -r /solution/scripts/selenium-req.txt
+  ignore_errors: yes
+  tags: [selenium-call]
+
+- name: RAW between sleep
+  raw: sleep 5
+
+- name: Install Bitrix by selenium step 1
+  shell: docker exec selenium-{{ ansible_environment }} /bin/bash -c "cd /repo && python3 ./2_install.py"
+  ignore_errors: yes
+  tags: [selenium-call]
+
+#- name: Uninstall not needed Bitrix packages by selenium
+#  shell: docker exec selenium-{{ ansible_environment }} /bin/bash -c "cd /repo && python3 ./2_uninstall.py"
+#  ignore_errors: yes
+#  tags: [selenium-call]
+
+- name: Trb Deploy Script Run
+  shell: docker exec bitrix-trb-{{ ansible_environment }} /solution/trb-deploy.sh
+
+#- name: Setup settings
+#  shell: docker exec selenium-{{ ansible_environment }} /bin/bash -c "cd /repo && python3 ./3_settings.py"
+#  ignore_errors: yes
+#  tags: [selenium-call]
+
+#- name: Setup from marketplace
+#  shell: docker exec selenium-{{ ansible_environment }} /bin/bash -c "cd /repo && python3 ./4_marketplace.py"
+#  ignore_errors: yes
+#  tags: [selenium-call]
+
+- name: Restore mysql DB tables runner2.sh
+  raw: docker exec mysql-trb-{{ ansible_environment }} /bin/bash -c " cd /sql_files/ && ./runner2.sh &>/var/log/mysql-run2.log"
+  ignore_errors: yes
+
+- name: RAW run multirun, please await...its take over few minutes...
+  shell: docker exec bitrix-trb-{{ ansible_environment }} /bin/sh /repo/multirun_last.sh
+  ignore_errors: yes
+
+# - name: Remove Selenium
+#   shell: docker rm -f selenium-{{ ansible_environment }}

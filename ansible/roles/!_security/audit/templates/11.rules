@@ -1,0 +1,31 @@
+# This file contains the auditctl rules that are loaded
+# whenever the audit daemon is started via the initscripts.
+# The rules are simply the parameters that would be passed
+# to auditctl.
+
+# First rule - delete all
+-D
+
+# Increase the buffers to survive stress events.
+# Make this bigger for busy systems
+-b 1024
+
+# Feel free to add below this line. See auditctl man page
+
+-w /etc/ -p w -k config_replace
+-w /bin/ -p w -k bin_action
+-w /usr/ -p w -k usr_action
+-w /boot/ -p w -k boot_action
+-w /lib/ -p w -k lib_action
+-w /lib64/ -p w -k lib64_action
+-w /sbin/ -p w -k sbin_action
+-w /opt/ -p w -k opt_action
+
+
+-a exclude,always -F msgtype=CWD
+-a exclude,always -F msgtype=USER_END
+-a exclude,always -F msgtype=CRED_DISP
+-a exclude,always -F msgtype=USER_START
+-a exclude,always -F msgtype=USER_ACCT
+-a exclude,always -F msgtype=CRED_ACQ
+-a always,exit -F euid=0 -S all -F perm=wxa -k ROOT_ACTION

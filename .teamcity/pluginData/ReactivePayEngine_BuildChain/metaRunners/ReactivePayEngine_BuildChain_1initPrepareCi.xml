@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<meta-runner name="INIT_PrepareCI">
+  <description>INIT_PrepareCI</description>
+  <settings>
+    <parameters>
+      <param name="ANSIBLE_APPLICATION_TYPE" value="" />
+      <param name="ANSIBLE_BUILD_ID" value="" />
+      <param name="ANSIBLE_CI_PROJECT_NAME" value="" />
+      <param name="ANSIBLE_CI_PROJECT_NAMESPACE" value="" />
+      <param name="ANSIBLE_CLOUD_TYPE" value="" />
+      <param name="ANSIBLE_COMMIT_SHA" value="" />
+      <param name="ANSIBLE_DEPLOY_USERNAME" value="" />
+      <param name="ANSIBLE_ENVIRONMENT" value="" />
+      <param name="ANSIBLE_PRODUCT_NAME" value="" />
+      <param name="ANSIBLE_REGISTRY_URL" value="" />
+      <param name="ANSIBLE_REGISTRY_USERNAME" value="" />
+      <param name="ANSIBLE_RUN_TYPE" value="" />
+      <param name="ANSIBLE_VERSION" value="" />
+      <param name="A_DEPLOY_PASSWORD" value="" spec="password display='normal'" />
+      <param name="A_ENV_SECURITY" value="" />
+      <param name="A_VAULT_PASSWORD" value="" spec="password display='normal'" />
+      <param name="INIT_PASS" value="" spec="password display='normal'" />
+      <param name="MAIN_ANSIBLE_BUILD_ID" value="" />
+      <param name="dp" value="" spec="password display='normal'" />
+      <param name="RunningOfferForBuild" value="" />
+      <param name="RunningOfferForPublish" value="" />
+      <param name="RunningOnlyQA" value="" />
+      <param name="message" value="" spec="password display='normal'" />
+    </parameters>
+    <build-runners>
+      <runner name="Prepare CI" type="simpleRunner">
+        <parameters>
+          <param name="script.content"><![CDATA[bash -x
+
+            echo %RunningOnlyQA%
+
+            echo "Echo is dp: %dp%"
+            echo "Hello: incrypted message is : %message%"
+            echo "Root project password %dp%"
+            echo "Init pass: %secure:teamcity.password.dp%"
+
+            RUNNING_ONLY_QA="%RunningOnlyQA%"
+
+            echo "RUNNING_ONLY_QA is $RUNNING_ONLY_QA"
+            if [ "$RUNNING_ONLY_QA" = true ]; then
+            echo "RUNNING_ONLY_QA is true"
+            else
+            echo "RUNNING_ONLY_QA is false"
+            fi
+
+            ls -la ./
+
+            rm -rf ./pass.yml
+            rm -rf ./vault_pass.yml
+            rm -rf ./ci_vault.sh
+
+            A_DEPLOY_PASSWORD="%secure:teamcity.password.A_DEPLOY_PASSWORD%"
+            A_VAULT_PASSWORD="%secure:teamcity.password.A_VAULT_PASSWORD%"
+            A_ENV_SECURITY="%A_ENV_SECURITY%"
+
+            A_DEPLOY_PASSWORD_DEC="%secure:teamcity.password.A_DEPLOY_PASSWORD%"
+            A_VAULT_PASSWORD_DEC="%secure:teamcity.password.A_VAULT_PASSWORD%"
+            A_ENV_SECURITY_DEC="%A_ENV_SECURITY%"
+
+            echo "A_DEPLOY_PASSWORD_DEC: $A_DEPLOY_PASSWORD_DEC"
+            echo "A_DEPLOY_PASSWORD: $A_DEPLOY_PASSWORD"
+
+            echo "A_VAULT_PASSWORD_DEC: $A_VAULT_PASSWORD_DEC"
+            echo "A_VAULT_PASSWORD: $A_VAULT_PASSWORD"
+            echo "A_ENV_SECURITY: $A_ENV_SECURITY"
+
+            echo "%secure:teamcity.password.A_DEPLOY_PASSWORD%" > ./pass.yml
+            echo "%secure:teamcity.password.A_VAULT_PASSWORD%" > ./vault_pass.yml
+            echo "" >  ./ci_vault.sh
+            echo "A_DEPLOY_PASSWORD=%secure:teamcity.password.A_DEPLOY_PASSWORD%" >> ./ci_vault.sh
+            echo "A_VAULT_PASSWORD=%secure:teamcity.password.A_VAULT_PASSWORD%" >> ./ci_vault.sh
+            echo "A_ENV_SECURITY=%A_ENV_SECURITY%" >> ./ci_vault.sh
+
+            chmod +x ./ci_vault.sh
+            ls -la ./
+
+            echo "%secure:teamcity.password.message%" > ./message.yml
+            echo "%secure:teamcity.password.message%" > ./super_message.yml
+            echo "%secure:teamcity.password.dp%" > ./dp.yml
+            echo "%secure:teamcity.password.dp%" > ./ng_pass.yml 
+            echo "%secure:teamcity.password.dp%" > ./pass.yml
+
+            chmod +x ./ci_vault.sh
+            ls -la ./]]></param>
+          <param name="teamcity.step.mode" value="default" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
+    </build-runners>
+    <requirements />
+  </settings>
+</meta-runner>
+

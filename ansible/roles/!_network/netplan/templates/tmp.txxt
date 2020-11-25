@@ -1,0 +1,100 @@
+
+for nat balancer 
+
+
+
+iptables -t nat -A POSTROUTING -o ens160 -j MASQUERADE
+
+
+debug: msg="{{ (item.ip ~ '/' item.subnet|ipaddr('network') ~ '/' ~ item.subnet)|ipaddr('net') }}"
+
+
+
+{{ | ipv4 }}
+
+     msg: "host: {{ host_pfx | ipaddr('address') }},
+           network: {{ host_pfx | ipaddr('network/prefix') }}"
+
+ + '.[\'ipv4\'][\'address\']'
+
+ {{ lookup('vars', '{{ lookup('vars', 'ansible_' + hostvars[inventory_hostname]['second_iface']) }}' + ['ipv4']) }}
+
+
+
+{{ lookup('vars', '{{ lookup('vars', 'ansible_' + hostvars[inventory_hostname]['second_iface']) }}' + 
+
+{% set second_link_ansible_vars_interface = {{ lookup('vars', 'ansible_' + hostvars[inventory_hostname]['second_iface']) }} %}
+{{ second_link_ansible_vars_interface.ipv4 }}
+
+{% set second_link_ansible_vars_interface = {{ lookup('vars', 'ansible_' + hostvars[inventory_hostname]['second_iface']) }} %}
+
+
+
+{{ second_link_ansible_vars_interface.ipv4.address }}
+{{ second_link_ansible_vars_interface.ipv4.broadcast }}
+{{ second_link_ansible_vars_interface.ipv4.network }}
+{{ second_link_ansible_vars_interface.ipv4.netmask }}
+
+{{ second_network_subnet | ipaddr('network') }}
+
+                "address": "172.16.1.2",
+                "broadcast": "172.16.1.255",
+                "netmask": "255.255.255.0",
+                "network": "172.16.1.0"
+
+   net_mask: '172.24.0.0/255.255.0.0'
+   net_pfx: 192.168.84.0/24
+   addr_mix: ['10.3.2.1/24', '10.3.9.27', '10.5.20.0/24', '172.20.1.1/255.255.255.0']
+
+  tasks:
+  - name: Return host portion and network the host belongs to
+    debug:
+     msg: "host: {{ host_pfx | ipaddr('address') }},
+           network: {{ host_pfx | ipaddr('network/prefix') }}"
+
+  - name: Convert network/netmask to network/pfx format
+    debug:
+     msg: "Before: {{ net_mask }}, after: {{ net_mask | ipaddr('network/prefix') }}"
+
+
+
+{% set second_link_ansible_vars_interface = lookup('vars', 'ansible_' + hostvars[inventory_hostname]['second_iface']) %}
+{% set second_link_ipaddr_broadcast_by_net_pfx = {{ second_network_subnet | ipaddr('broadcast') }} }
+{% set second_link_ansible_vars_interface = lookup('vars', 'ansible_' + hostvars[inventory_hostname]['second_iface']) %}
+{{ hostvars[inventory_hostname]['second_network_subnet'] | ipaddr('broadcast') }}
+
+{{ second_link_ansible_vars_interface }}
+
+{{ second_link_ansible_vars_interface.ipv4.address }}
+{{ second_link_ansible_vars_interface.ipv4.broadcast }}
+{{ second_link_ansible_vars_interface.ipv4.network }}
+{{ second_link_ansible_vars_interface.ipv4.netmask }}
+
+{{ second_network_subnet | ipaddr('network') }}
+
+                "address": "172.16.1.2",
+                "broadcast": "172.16.1.255",
+                "netmask": "255.255.255.0",
+                "network": "172.16.1.0"
+
+   net_mask: '172.24.0.0/255.255.0.0'
+   net_pfx: 192.168.84.0/24
+   addr_mix: ['10.3.2.1/24', '10.3.9.27', '10.5.20.0/24', '172.20.1.1/255.255.255.0']
+
+  tasks:
+  - name: Return host portion and network the host belongs to
+    debug:
+     msg: "host: {{ host_pfx | ipaddr('address') }},
+           network: {{ host_pfx | ipaddr('network/prefix') }}"
+
+  - name: Convert network/netmask to network/pfx format
+    debug:
+     msg: "Before: {{ net_mask }}, after: {{ net_mask | ipaddr('network/prefix') }}"
+
+
+{% set second_link_ansible_vars_interface = lookup('vars', 'ansible_' + hostvars[inventory_hostname]['second_iface']) %}
+
+{{ second_link_ansible_vars_interface.ipv4.address }}
+{{ second_link_ansible_vars_interface.ipv4.broadcast }}
+{{ second_link_ansible_vars_interface.ipv4.network }}
+{{ second_link_ansible_vars_interface.ipv4.netmask }}

@@ -1,0 +1,23 @@
+
+- name: Setup on Ubuntu 14.04
+  include: u14.yml
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_version == '14.04'
+
+- name: Setup on Ubuntu 15.10
+  include: u15.yml
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_version == '15.10'
+  
+- name: Setup on Ubuntu 16.04
+  include: u16.yml
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_version == '16.04'
+  
+- name: Stop Service Docker
+  service: name=docker state=stopped
+  tags: [swarm-setup]
+
+- name: Start Service Docker
+  service: name=docker state=started
+  tags: [swarm-setup]
+
+- name: Wait 20
+  raw: sleep 20

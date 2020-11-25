@@ -1,0 +1,20 @@
+ #
+ #  systemd servive unit file for Keepalived 
+ #
+
+ [Unit]
+ Description=Keepalived service for High Availability with LVS and VRRP
+ After=network.target
+ ConditionFileNotEmpty=/etc/keepalived/keepalived.conf
+
+ [Service]
+ Type=simple
+ # Ubuntu/Debian convention:
+ EnvironmentFile=-/etc/default/keepalived
+ ExecStart=/usr/sbin/keepalived --dont-fork
+ ExecReload=/bin/kill -s HUP $MAINPID
+ #Define the procedure of killing the processes belonging to the Keepalived service unit.
+ KillMode=process
+
+ [Install]
+ WantedBy=multi-user.target  

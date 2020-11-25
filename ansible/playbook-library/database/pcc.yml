@@ -1,0 +1,13 @@
+- name: Install and configure percona cluster control
+  hosts: "{{ HOSTS | default('vortex-pcc-01') }}"
+  become: true
+  roles:
+    - name: Run Percona CC Role
+      role: ./!_monitoring/percona-cluster-control
+      tags: controller
+      vars:
+        cc_admin:
+          # nothing happens unless 'set: true'
+          - set: true
+            email: "admin@vortex.com
+            password: "vortex"

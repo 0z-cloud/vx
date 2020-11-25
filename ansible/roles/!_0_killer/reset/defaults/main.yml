@@ -1,0 +1,192 @@
+ca_service_settings:
+  directories:
+    data: /opt/ca/{{ ansible_product }}_{{ ansible_environment }}/
+    source: /opt/ca/source/
+    ca: /opt/ca
+    kube: /opt/ca/kube/
+    config: /opt/ca/conf
+    bin: /opt/ca/bin/
+    pki: /opt/ca/pki
+    pki_only: /opt/ca/pki
+    kaje_init: /opt/ca/kaje_init
+    kube_logs: /opt/ca/kube/logs/
+    audit_policy: /opt/ca/kube/audit_policy/
+    templates: /opt/ca/templates
+    etcd: /opt/ca/etcd
+  pkg_links:
+    - https://pkg.cfssl.org/R1.2/cfssl_linux-amd64
+    - https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64
+  app_links:
+    - cfssl
+    - cfssljson
+  app_prefi: _linux-amd64
+
+etcd_service_settings:
+  directories:
+    etc: /etc/etcd 
+    var: /var/lib/etcd/
+    data: /opt/etcd/{{ ansible_product }}_{{ ansible_environment }}/
+    source: /opt/etcd/{{ ansible_product }}_{{ ansible_environment }}/source/
+    ca: /opt/ca/{{ ansible_product }}_{{ ansible_environment }}
+    bin: /opt/ca/bin
+  etcd_get_url: https://github.com/etcd-io/etcd/releases/download/v3.4.5/etcd-v3.4.5-linux-amd64.tar.gz
+  etcd_get_zip: etcd-v3.4.5-linux-amd64.tar.gz
+  etcd_arc_ver: etcd-v3.4.5-linux-amd64
+k8s_service_settings:
+  directories:
+    etc: /etc/kubernetes/
+    pki: /etc/kubernetes/pki
+    kube: /etc/kubernetes/kube
+    cni: /etc/cni/
+    cni_net: /etc/cni/net.d/
+    data: /var/lib/kubelet/
+    libcni: /var/lib/cni/
+
+systemd_dir: /lib/systemd/system
+system_env_dir: /etc/sysconfig
+network_dir: /etc/kubernetes/network
+cni_bin_download_dir: /opt/cni/bin
+kubeadmin_config: /etc/kubernetes/admin.conf
+kube_addon_dir: /etc/kubernetes/addon
+
+affected_configs_and_dirs_to_remove: 
+  - /etc/systemd/system/kubelet.service
+  - /etc/cgconfig.conf
+  - /etc/cgrules.conf
+  - /etc/default/docker
+  - /etc/containerd/config.toml
+  - /lib/systemd/system/docker.service
+  - /etc/default/grub
+  - /lib/systemd/system/kubelet.service
+  - /etc/systemd/system/kubelet.service.d/
+  - /var/run/crio/crio.sock
+
+required_packages: 
+  - cri-tools
+  - kubeadm
+  - kubectl
+  - kubelet
+  - kubernetes-cni
+  - cgroup-tools
+  - docker-ce
+  - docker-ce-cli
+  - golang-docker-credential-helpers
+  - python-docker
+  - python-dockerpty
+  - python-dockerpycreds
+
+affected_possible_apt_lists:
+  - "grep -r xenial /etc/apt/ | sed 's|:.*||' | grep -v Binary | xargs -I ID rm -rf ID" 
+  - "grep -r docker /etc/apt/ | sed 's|:.*||' | grep -v Binary | xargs -I ID rm -rf ID" 
+
+affected_packages_list:
+  - "apt list --installed -q 2>/dev/null | grep cri | sed 's|/.*||' | xargs -I ID apt remove ID -y -qq"
+  - "apt list --installed -q 2>/dev/null | grep kube | sed 's|/.*||' | xargs -I ID apt remove ID -y -qq"
+  - "apt list --installed -q 2>/dev/null | grep docker | sed 's|/.*||' | xargs -I ID apt remove ID -y -qq"
+
+
+necessary_dirs_for_templating: 
+  - /etc/systemd/system/kubelet.service.d/
+
+updated_configs_array:
+  - { source: 'etc.cgconfig.conf', destination: '/etc/cgconfig.conf' }
+  - { source: 'etc.cgrules.conf', destination: '/etc/cgrules.conf' }
+  - { source: 'etc.containerd.config.toml', destination: '/etc/containerd/config.toml' }
+  - { source: 'etc.default.docker', destination: '/etc/default/docker' }
+  - { source: 'etc.default.grub', destination: '/etc/default/grub' }
+  - { source: 'etc.docker.daemon.json', destination: '/etc/docker/daemon.json' }
+  - { source: 'etc.systemd.system.kubelet.service.d.10-kubeadm.conf', destination: '/etc/systemd/system/kubelet.service.d/10-kubeadm.conf' }
+  - { source: 'lib.systemd.system.docker.service', destination: '/lib/systemd/system/docker.service' }
+  - { source: 'lib.systemd.system.kubelet.service', destination: '/lib/systemd/system/kubelet.service' }
+
+certificates_types_prefixs:
+  - { profile: 'intermediate', type: 'etcd_ca', destination: 'etcd/ca' }
+  - { profile: 'client', type: 'etcd_healthcheck-client', destination: 'etcd/healthcheck-client' }
+  - { profile: 'peer', type: 'etcd_peer', destination: 'etcd/peer' }
+  - { profile: 'server', type: 'etcd_server', destination: 'etcd/server' }
+  - { profile: 'kubernetes', type: 'apiserver-etcd-client', destination: 'apiserver-etcd-client' }
+  - { profile: 'default', type: 'apiserver-kubelet-client', destination: 'apiserver-kubelet-client' }
+  - { profile: 'default', type: 'apiserver', destination: 'apiserver' }
+  - { profile: 'ca', type: 'ca', destination: 'ca' }
+  - { profile: 'default', type: 'front-proxy-ca', destination: 'front-proxy-ca' }
+  - { profile: 'default', type: 'front-proxy-client', destination: 'front-proxy-client' }
+
+generated_ca_etcd_keys:
+  - { source: '/opt/ca/pki/etcd-ca-key.pem', destination: '/opt/ca/pki/etcd/ca.key' }
+  - { source: '/opt/ca/pki/etcd-ca.pem', destination: '/opt/ca/pki/etcd/ca.crt' }
+  - { source: '/opt/ca/pki/etcd-ca.csr', destination: '/etc/cgrules.conf' }
+
+ca_config_templates_names:
+  - apiserver-csr.json
+  - etcd-healthcheck-client-csr.json
+  - root-ca-config.json
+  - kubernetes-front-proxy-ca-csr.json 
+  - etcd-ca-csr.json
+  - etcd-server-csr.json 
+  - etcd-peer-csr.json 
+  - root-ca-csr.json
+  - kubernetes-ca-csr.json
+  - etcd-ca-config.json
+  - apiserver-kubelet-client-csr.json
+  - front-proxy-client-csr.json
+  - apiserver-etcd-client-csr.json
+  - admin-csr.json
+  - test_inline_ca.sh
+  - apiserver-etcd-client.json
+  - admin.json
+  - apiserver.json
+  - kubernetes-healthcheck-client-csr.json
+  - etcd-healthcheck-client.json
+
+commands_to_run:
+  - swapoff -a
+  - sysctl -w vm.overcommit_memory=1
+  - sysctl -w vm.panic_on_oom=0
+  - sysctl -w kernel/panic=10
+  - sysctl -w vm.overcommit_ratio=100
+  - sysctl -w kernel/panic_on_oops=1
+  - sysctl -w vm.swappiness=0
+  - sysctl -w net.bridge.bridge-nf-call-iptables=1
+  - sysctl -w net.ipv4.ip_nonlocal_bind=1
+  - sysctl -w net.ipv4.ip_forward=1
+  - sysctl -w kernel.shmmax=17179869184
+  - sysctl -w kernel.shmall=4194304
+  - sysctl -w net.ipv4.conf.{{ second_iface }}.arp_ignore=1
+  - sysctl -w net.ipv4.conf.{{ second_iface }}.arp_announce=2
+  - sysctl -p
+  - systemctl daemon-reload
+  - update-grub
+
+attention_phase_ui: |
+        {% raw %}
+        ████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████ 
+        ████------------------------------------------------------------------------------------------------------------------------------------]
+        ████       [KUBERNETES DASHBOARD ACCESS]  
+
+        ████       [ACCESS TOKEN]: {% endraw %}{{ MESSAGE_IN | join }}{% raw %}
+
+        ████       [*] Enjoy! ;) 
+
+        ████--------------------------------------------------------------------------------------------------------------- > We love Ansible! -]
+        ████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████ {% endraw %}
+
+attention_phase_2: |
+        {% raw %}
+        ████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████ 
+        ████------------------------------------------------------------------------------------------------------------------------------------]
+        ████       [I] [N] [F] [O]   [:]  {% endraw %}{{ MESSAGE_IN }}{% raw %}
+
+        ████       [OUT]: {% endraw %}{{ STD_OUT }}{% raw %}
+
+        ████       [ERR]: {% endraw %}{{ STD_ERROR }}{% raw %}
+
+        ████------------------------------------------------------------------------------------------------------------------------------------]
+        ████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████ {% endraw %}
+
+attention_phase_1: |
+        {% raw %}
+        ████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████ 
+        ████------------------------------------------------------------------------------------------------------------------------------------]
+        ████       [I] [N] [F] [O]   [:]  {% endraw %}{{ MESSAGE_IN }}{% raw %}
+        ████------------------------------------------------------------------------------------------------------------------------------------]
+        ████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████ {% endraw %}

@@ -1,0 +1,16 @@
+dn: olcDatabase={1}mdb,cn=config
+changetype: modify
+replace: olcAccess
+olcAccess: {1}to dn.children="ou=services,dc=example,dc=com"
+  by dn.base="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth" write
+  by * auth
+olcAccess: {2}to dn.regex="(cn=.+)ou=people,dc=example,dc=com"
+  by dn.base="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth" write
+  by dn.one="ou=services,dc=example,dc=com" read
+  by * auth
+olcAccess: {3}to dn.subtree="ou=people,dc=example,dc=com"
+  by dn.base="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth" write
+  by dn.one="ou=services,dc=example,dc=com" read
+  by * none
+olcAccess: {99}to *
+  by dn.base="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth" write

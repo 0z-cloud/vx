@@ -1,0 +1,54 @@
+
+- name: Start only one master configuration
+  debug: 
+    msg: "Start only one master configuration"
+
+- name: Create Master config file from template
+  template:
+     src: redis-master.conf.j2 
+     dest: "{{ redis_io_service_settings.directories.master_path_config }}/redis-master.conf"
+
+- name: Create nodes-master.conf
+  file:
+     path: "{{ redis_io_service_settings.directories.master_path_config }}/nodes-master.conf"
+     state: touch
+     owner: 999
+     group: 999
+     mode: 0777
+
+# - name: Give full rights to main directories
+#   raw: "chmod -R 777 {{ redis_io_service_settings.directories.main_path }}"
+
+- name: re/Create a Redis Master Service docker container
+  docker_container:
+      name: redis-{{ ansible_environment }}-{{ ansible_hostname }}-master
+      image: "redis:3.2.6-alpine"
+      hostname: "{{ ansible_hostname }}"
+      command: /config/redis-master.conf
+      volumes:
+        - "{{ redis_io_service_settings.directories.master_path_config }}:/config"
+        - "{{ redis_io_service_settings.directories.master_path_data }}/master:/opt/redis"
+      privileged: yes
+      restart_policy: always
+      detach: True
+      ports:
+        - "{{ redis_io_service_settings.public_port }}:{{ redis_io_service_settings.public_port }}"
+      # docker_host: tcp://0.0.0.0:2375
+      network_mode: host
+      recreate: yes 
+      state: started
+
+- name: Update First Master Docker
+  raw: "docker exec redis-{{ ansible_environment }}-{{ ansible_hostname }}-master apk update"
+
+- name: Update First Master Docker
+  raw: "docker exec redis-{{ ansible_environment }}-{{ ansible_hostname }}-master apk add bash"
+
+# - name: Disconnect container from Bridge Network
+#   shell: "docker -H :2375 network disconnect bridge redis-{{ ansible_environment }}-{{ ansible_hostname }}-master"
+
+# - name: Connect Master container to Swarm Network
+#   shell: "docker -H :2375 network connect --ip {{ redis_master_overlay_network_ip }} {{ swarm_masters.overlay_network.network_name }} redis-{{ ansible_environment }}-{{ ansible_hostname }}-master"
+
+# - name: Restart Master Containers
+#   shell: docker restart redis-{{ ansible_environment }}-{{ ansible_hostname }}-master

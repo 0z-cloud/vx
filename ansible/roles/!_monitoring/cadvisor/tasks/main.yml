@@ -1,0 +1,48 @@
+---
+# - name: raw temp docker rm
+#   raw: docker rm -f alpine2
+#   ignore_errors: true
+
+# - name: raw temp docker run 
+#   raw: docker run -dit --name alpine2 --network swarm_ng_overlay alpine
+#   ignore_errors: true
+  
+- name: re/Create a cAdvisor Service With Swarm
+  docker_container:
+    name: "cadvisor-{{ inventory_hostname }}"
+    image: google/cadvisor
+    hostname: "{{ ansible_hostname }}"
+    volumes:
+        - "/:/rootfs:ro"
+        - "/var/lib/docker/:/var/lib/docker:ro"
+        - "/var/run:/var/run:rw"
+        - "/sys:/sys:ro"
+    ports:
+      - "{{ cadvisor_service_listen_port }}:8080"
+    # networks:
+    #   - name: "{{ swarm_masters.overlay_network.network_name }}"
+    #     ipv4_address: "{{ cadvisor_overlay_network_ip }}"
+    # purge_networks: yes
+    privileged: yes
+    state: started
+    restart_policy: unless-stopped
+    recreate: yes
+  when: swarm_disabled_inventory is not defined
+
+- name: re/Create a cAdvisor Service Without Swarm
+  docker_container:
+    name: cadvisor
+    image: "google/cadvisor:canary"
+    volumes:
+      - "/:/rootfs:ro"
+      - "/run:/var/run:rw"
+      - "/sys:/sys:ro"
+      - "/var/lib/docker/:/var/lib/docker:ro"
+    ports:
+      - "{{ cadvisor_service_listen_port }}:8080"
+    privileged: yes
+    restart_policy: always
+    detach: True
+    recreate: yes
+    state: started
+  when: swarm_disabled_inventory is defined

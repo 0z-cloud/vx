@@ -1,0 +1,27 @@
+- name: SHELL | Check the docker swarm networks are a present
+  shell: docker network ls | grep -E '{{ ansible_environment }}|docker_gwbridge|bridge' | awk '{print $2}'
+  register: docker_networks
+  ignore_errors: true
+
+- name: DEBUG | Docker networks
+  debug:
+    msg: "{{ docker_networks }}"
+  when: docker_networks.stdout != "" and debug_playbook_stdout is defined
+
+- name: DEBUG | Docker network item by item
+  debug:
+    msg: "{{ item }}"
+  with_items: "{{ docker_networks.stdout_lines }}"
+  when: debug_playbook_stdout is defined
+
+- name: SHELL | Get the Docker Swarm Subnets
+  shell: "docker network inspect -f {% raw %}'{{range .IPAM.Config}}{{.Subnet}}{{end}}'{% endraw %} {{ item }}"
+  with_items: "{{ docker_networks.stdout_lines }}"
+  register: docker_networks_subnets
+  when: docker_networks.stdout != ""
+
+- name: DEBUG | Docker networks subnets item by item
+  debug:
+    msg: "{{ item.stdout }}"
+  with_items: "{{ docker_networks_subnets.results }}"
+  when: docker_networks.stdout != "" and debug_playbook_stdout is defined

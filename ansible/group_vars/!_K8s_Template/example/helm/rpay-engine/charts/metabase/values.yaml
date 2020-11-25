@@ -1,0 +1,36 @@
+replicaCount: 1
+
+image:
+  repository: metabase/metabase
+  tag: v0.30.4
+  pullPolicy: Always
+
+container:
+  port: 3000
+
+service:
+  type: ClusterIP
+  port: 3000
+  targetPort: 3000
+
+ingress:
+  hosts:
+    - host: metabase.dev.rocketho.me
+      paths:
+        - /
+  tls:
+   - secretName: letsencrypt-metabase
+     hosts:
+       - metabase.dev.rocketho.me
+
+env:
+  MB_DB_TYPE: postgres
+  MB_DB_PORT: "5432"
+  MB_DB_USER: postgres
+  MB_DB_HOST: postgres
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

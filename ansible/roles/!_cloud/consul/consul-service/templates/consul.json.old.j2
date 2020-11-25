@@ -1,0 +1,53 @@
+{
+  "start_join_wan": [{% for host in groups['consul-masters'] %}
+  "{{ hostvars[host]['ansible_default_ipv4']['address'] }}"{% if not loop.last %}, {% endif %}{% endfor %} ],
+  "start_join": [{% for host in groups['consul-masters'] %}
+  "{{ hostvars[host]['ansible_default_ipv4']['address'] }}"{% if not loop.last %}, {% endif %}{% endfor %} ],
+  "domain": "cloud.{{ merge_consul_domain }}",
+  "data_dir": "{{ consul.directories.working_consul_data }}",
+  "server": true,
+  "ports": {
+    "dns": 8600
+  },
+  "enable_syslog": true,
+  "dns_config": {
+      "soa": {
+        "refresh": 3600,
+        "retry": 600,
+        "min_ttl": 60
+      },
+      "allow_stale": true,
+      "node_ttl": "30s",
+      "service_ttl": {
+        "*": "30s",
+        "web": "15s",
+        "db*": "10s",
+        "db-master": "10s"
+      },
+      "enable_truncate": true,
+      "only_passing": true
+    },
+    "performance": {
+      "raft_multiplier": 1
+  },
+  "recursors": [ "8.8.8.8", "8.8.4.4" ],
+	"disable_update_check": false,
+  "bootstrap_expect": 3,
+  "enable_script_checks": true,
+  "encrypt": "{{ consul.master_key }}",
+  "datacenter": "{{ consul.datacenter }}",
+  "node_name": "{{ consul.consul_name }}",
+  "client_addr": "{{ ansible_default_ipv4['address'] }}",
+  "bind_addr": "{{ ansible_default_ipv4['address'] }}",
+  "retry_join_wan": [{% for host in groups['consul-masters'] %}
+  "{{ hostvars[host]['ansible_default_ipv4']['address'] }}"{% if not loop.last %}, {% endif %}{% endfor %} ],
+  "retry_join": [{% for host in groups['consul-masters'] %}
+  "{{ hostvars[host]['ansible_default_ipv4']['address'] }}"{% if not loop.last %}, {% endif %}{% endfor %} ],
+  "rejoin_after_leave": true,
+  "leave_on_terminate": false,
+  "skip_leave_on_interrupt": true,
+  "log_level": "DEBUG",
+  "enable_debug": true,
+  "advertise_addr": "{{ ansible_default_ipv4['address'] }}",
+  "advertise_addr_wan": "{{ ansible_default_ipv4['address'] }}"
+}

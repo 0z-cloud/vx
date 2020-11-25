@@ -1,0 +1,54 @@
+- hosts: "{{ groups['nginx-frontend'] | random }}"
+  tasks:
+
+    - include_vars:
+        name: rails_application
+        file: "group_vars/!_Applications_Core/rails/{{ application_name }}/{{ application_name }}.yml"
+
+    - set_fact:
+        rails_project: "{{ rails_application.name }}"
+
+- hosts: "{{ groups['swarm-masters'] }}"
+
+  vars:
+    GLUSTERFS_CLUSTER_HOSTS: app-glusterfs-cluster
+
+  tasks:
+
+    - block:
+        - include_vars:
+            file: "group_vars/!_GlusterFS/main.yml"
+
+        - include_vars:
+            name: rails_application
+            file: "group_vars/!_Applications_Core/rails/{{ application_name }}.yml"
+
+        # - include_role:
+        #     name: "./!_hooks/slack-notify-deploy"
+        #   vars:
+        #     slack_message: "Deployment Started!"
+        #   run_once: true
+
+        - include_role:
+            name: "./!_deploy/rails-docker"
+
+        # - include_role:
+        #     name: ./!_cloud/consul/magic-join
+        #   vars:
+        #     unification_services: "{{ rails_application.unification_services }}"
+        #   when: rails_application.unification_services is defined
+
+      #   - include_role:
+      #       name: "./!_hooks/slack-notify-deploy"
+      #     vars:
+      #       slack_message: "Deployment Succeed!"
+      #       slack_color: good
+      #     run_once: true
+
+      # rescue:
+      #   - include_role:
+      #       name: "./!_hooks/slack-notify-deploy"
+      #     vars:
+      #       slack_message: "Deployment Failed!"
+      #       slack_color: "danger"
+      #     run_once: true

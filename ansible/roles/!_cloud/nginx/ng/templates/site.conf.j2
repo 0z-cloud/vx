@@ -1,0 +1,4 @@
+#{{ ansible_managed }}
+server {
+{{ item.value | replace('\', \'','; \n') | replace('[\'','') | replace('\']','; ') }}
+}

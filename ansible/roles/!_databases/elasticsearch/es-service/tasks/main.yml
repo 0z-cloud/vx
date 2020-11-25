@@ -1,0 +1,58 @@
+- name: Inject defaults
+  set_fact:
+    es_swarm: "{{ es_swarm_defaults | combine(es_swarm) }}"
+  tags: [always]
+
+- name: Create the directories for env specific configurations
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0755
+    owner: root
+    group: root
+  with_dict: "{{ es_swarm.directories | default({}) }}"
+  tags: [configuration,es-service]
+
+- name: Create elasticsearch-no-swarm.yml.j2 from template without Swarm
+  template:
+      src: elasticsearch-no-swarm.yml.j2
+      dest: "{{ es_swarm.directories.working_etc_directory }}/elasticsearch.yml"
+
+- name: Create docker-entrypoint-without-swarm.sh.j2 from template
+  template:
+      src: docker-entrypoint-without-swarm.sh.j2
+      dest: "{{ es_swarm.directories.working_etc_directory }}/docker-entrypoint.sh"
+      mode: u+rwx
+
+- name: Change owner for logs dir to 1000:1000
+  shell: chown -R 1000:1000 {{ es_swarm.directories.elasticsearch_path_logs }}
+
+- name: Change owner for data dir to 1000:1000
+  shell: chown -R 1000:1000 {{ es_swarm.directories.elasticsearch_path_data }}
+
+- name: Correct start ES Container without Swarm
+  docker_container:
+      name: "{{ es_swarm.docker_elasticsearch_name }}-{{ es_swarm.containers_prefix }}-{{ ansible_hostname }}"
+      image: elasticsearch:6.5.4
+      pull: true
+      recreate: yes
+      restart_policy: always
+      detach: True
+      volumes:
+         - "{{ es_swarm.directories.elasticsearch_path_data }}:/usr/share/elasticsearch/data"
+         - "{{ es_swarm.directories.elasticsearch_path_logs }}:/usr/share/elasticsearch/logs"
+         - "{{ es_swarm.directories.elasticsearch_path_catalina_logs }}:/var/log/elasticsearch"
+         #- "{{ es_swarm.directories.working_etc_directory }}/docker-entrypoint.sh:/docker-entrypoint.sh"
+         - "{{ es_swarm.directories.working_etc_directory }}/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml"
+      ports:
+         - "{{ es_swarm.elasticsearch_default_node_port }}:{{ es_swarm.elasticsearch_default_node_port }}"
+         - "{{ es_swarm.elasticsearch_default_http_port }}:{{ es_swarm.elasticsearch_default_http_port }}"
+         - "{{ es_swarm.elasticsearch_client_port }}:{{ es_swarm.elasticsearch_client_port }}"
+         - "{{ es_swarm.elasticsearch_client_port_publish }}:{{ es_swarm.elasticsearch_client_port_publish }}"
+      privileged: true
+      state: started
+      user: root
+      memory: "{{ es_swarm.container_memory }}"
+
+- name: Run inplace set sysctl properties
+  shell: docker exec {{ es_swarm.docker_elasticsearch_name }}-{{ es_swarm.containers_prefix }}-{{ ansible_hostname }} sysctl -w vm.max_map_count=262144

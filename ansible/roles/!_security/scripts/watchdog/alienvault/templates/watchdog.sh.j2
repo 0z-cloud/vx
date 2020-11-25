@@ -1,0 +1,969 @@
+#!/bin/bash
+START_TIME=`date +%Y-%m-%d`
+WORKING_DIR="/wrk/watchdog"
+CURRENT_HOSTNAME=`hostname`
+
+MAILING_USER="watchdog-scanner@vortex.com"
+MAILING_HOSTNAME_URI="smtp://10.16.131.51:25"
+MAILING_DESTINATION="pci-devops@vortex.com"
+PASTLOG_DIRECTORY="/wrk/watchdog/logs"
+
+MAILING_DESTINATION_CALL_CENTER1="pci-devops@vortex.com"
+MAILING_DESTINATION_CALL_CENTER2="vladislav.belinskiy@ic.gl"
+
+LOG_FILE_NAME="watchdog_scanning.log"
+LOG_FILE="${WORKING_DIR}/${LOG_FILE_NAME}"
+WATCHDOG_FILES_LIST="${WORKING_DIR}/watchdog.db"
+WATCHDOG_FILES_PAST_RESULTS="${WORKING_DIR}/watchdog_past.db"
+
+LOG_FILE_GZ="${WORKING_DIR}/watchdog_scanning.log.gz"
+WATCHDOG_FILES_LIST_GZ="${WORKING_DIR}/watchdog.db.gz"
+WATCHDOG_FILES_PAST_RESULTS_GZ="${WORKING_DIR}/watchdog_past.db.gz"
+
+HTML_MESSAGE_BODY="${WORKING_DIR}/mail_data.txt"
+HTML_MESSAGE_BODY2="${WORKING_DIR}/mail_data2.txt"
+
+IP_TO_EXCLUDE=(
+  "10.16.128.252"
+  "0.0.0.0"
+)
+
+FILE_TO_CHECK="{{ allienvalt_log }}"
+TODAY=`date +"%d"`
+HOUR=`date +"%H"`
+MINUTES_NOW=`date +%M`
+EXEC_TIMESTAMP=`date +%s`
+
+EXCLUDE_DAYS=(
+1 
+2
+3
+4
+5
+6
+7
+)
+
+EXCLUDE_HOURS=(
+1
+2
+3
+4
+)
+
+EXCLUDE_SOURCE="10.16.128.252"
+SELFTEST_HOUR="12"
+
+SELFTEST_MINUTES_START="0"
+SELFTEST_MINUTES_END="3"
+
+ALERT_LIST_MESSAGE_BODY_ARRAY=()
+ALERT_LIST_MESSAGE_BODY_P_LIST=()
+ALERT_LIST_MESSAGE_BODY_ARRAY_UNIQ=()
+
+ROTATE_TO_MD5=`date "+%d_%h_%Y_%H_%M_%S"`
+
+ROTATING_LOG_ARCHIVE_NAME=$LOG_FILE_NAME+$ROTATE_TO_MD5
+
+ROTATING_FILE_NAME=$FILE_TO_CHECK+$ROTATE_TO_MD5
+ROTATING_FILE_NAME_FP=$ROTATING_FILE_NAME-fp
+
+echo "ROTATING_FILE_NAME: $ROTATING_FILE_NAME"
+echo "EXCLUDE_SOURCE: $EXCLUDE_SOURCE"
+echo "EXCLUDE_HOURS: $EXCLUDE_HOURS"
+echo "EXCLUDE_DAYS: $EXCLUDE_DAYS"
+echo "CURRENT_HOUR: $HOUR"
+echo "CURRENT_DAY_OF_MOUTH: $TODAY"
+echo "FILE_TO_CHECK: $FILE_TO_CHECK"
+echo "IP_TO_EXCLUDE: $IP_TO_EXCLUDE"
+
+email_callcenter(){
+  
+logit "email_callcenter start"
+   
+   # SEND SELFTEST EMAIL
+   
+echo "<html>
+<body>
+    <div>
+        <p> This is security alarm!                                   </p>
+        <p> Please immediately call vortex                        </p>
+        <p> representative from the list below:                       </p>
+        <p>-----------------------------------------------------------</p>
+        <p> Rostislav Grigoriev: +7-985-508-0619                      </p>
+        <p>-----------------------------------------------------------</p>
+    </div>
+</body>
+</html>" > message.html
+
+mail_from="vortex Alarm! <$MAILING_USER>"
+mail_to="Alarm vortex <$MAILING_DESTINATION_CALL_CENTER1>, Alarm vortex <$MAILING_DESTINATION_CALL_CENTER2> "
+mail_subject="vortex Alarm!"
+mail_reply_to="Admins vortex <$MAILING_USER>"
+mail_cc=""
+
+message_base64=$(cat message.html | base64)
+
+echo "From: $mail_from
+To: $mail_to
+Subject: $mail_subject
+Reply-To: $mail_reply_to
+Cc: $mail_cc
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary=\"MULTIPART-MIXED-BOUNDARY\"
+
+--MULTIPART-MIXED-BOUNDARY
+Content-Type: multipart/alternative; boundary=\"MULTIPART-ALTERNATIVE-BOUNDARY\"
+
+--MULTIPART-ALTERNATIVE-BOUNDARY
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+$message_base64
+--MULTIPART-ALTERNATIVE-BOUNDARY--" > "$HTML_MESSAGE_BODY"
+
+echo "--MULTIPART-MIXED-BOUNDARY--" >> "$HTML_MESSAGE_BODY"
+
+curl -s "$MAILING_HOSTNAME_URI" \
+           --mail-from "$MAILING_USER" \
+           --mail-rcpt "$MAILING_DESTINATION_CALL_CENTER1" \
+           --mail-rcpt "$MAILING_DESTINATION_CALL_CENTER2" \
+           --ssl \
+           -T "$HTML_MESSAGE_BODY" -k --anyauth
+      res=$?
+      if test "$res" != "0"; then
+         echo "Sending failed with: $res"
+      else
+         echo "Sending selfcheck OK"
+      fi
+  
+}
+
+function add_file {
+  echo "Content-Type: $1
+  Content-Transfer-Encoding: base64" >> "$HTML_MESSAGE_BODY"
+
+      if [ ! -z "$2" ]; then
+          echo "Content-Disposition: inline
+  Content-Id: <$2>" >> "$HTML_MESSAGE_BODY"
+      else
+          echo "Content-Disposition: attachment; filename=\"$4\"
+  " >> "$HTML_MESSAGE_BODY"
+      fi
+      echo "$3
+
+  " >> "$HTML_MESSAGE_BODY"
+}
+
+logit()
+{
+    echo "[${USER}][`date`] - ${*}" >> ${LOG_FILE}
+}
+
+if [ ! -d "$WORKING_DIR" ]; then
+  mkdir ${WORKING_DIR}
+fi
+
+if [ ! -d "$PASTLOG_DIRECTORY" ]; then
+  mkdir ${PASTLOG_DIRECTORY}
+fi
+
+### FIRST CLEAN LOG
+
+if [ ! -f "$LOG_FILE" ]; then
+  logit "------------------------------------------"
+  echo "FILE: no $LOG_FILE exists"
+  logit "FILE: no $LOG_FILE exists"
+  logit "------------------------------------------"
+else
+  cp $LOG_FILE $PASTLOG_DIRECTORY/$ROTATING_LOG_ARCHIVE_NAME
+  rm $LOG_FILE
+  echo "FILE: Recreated $LOG_FILE"
+  logit "FILE: Recreated $LOG_FILE"
+  logit "--------------C--O--P--Y------------------" 
+  logit "--------------D--O--N--E------------------" 
+fi
+
+logit "------------------------------------------" 
+echo "START: scanning script"
+logit "START: scanning script"
+logit "------------------------------------------" 
+
+if [ ! -f "$LOG_FILE_GZ" ]; then
+  logit "------------------------------------------" 
+  echo "FILE: no $LOG_FILE_GZ exists"
+  logit "FILE: no $LOG_FILE_GZ exists"
+  logit "------------------------------------------" 
+else
+  logit "------------------------------------------" 
+  echo "FILE: $LOG_FILE_GZ exists, go remove"
+  logit "FILE: $LOG_FILE_GZ exists, go remove"
+  rm ${LOG_FILE_GZ}
+  echo "FILE: $LOG_FILE_GZ removed"
+  logit "FILE: $LOG_FILE_GZ removed"
+  logit "------------------------------------------" 
+fi
+
+if [ ! -f "$WATCHDOG_FILES_LIST_GZ" ]; then
+  logit "------------------------------------------" 
+  echo "FILE: no $WATCHDOG_FILES_LIST_GZ exists"
+  logit "FILE: no $WATCHDOG_FILES_LIST_GZ exists"
+  logit "------------------------------------------" 
+else
+  logit "------------------------------------------" 
+  echo "FILE: $WATCHDOG_FILES_LIST_GZ exists, go remove"
+  logit "FILE: $WATCHDOG_FILES_LIST_GZ exists, go remove"
+  rm ${WATCHDOG_FILES_LIST_GZ}
+  echo "FILE: $WATCHDOG_FILES_LIST_GZ removed"
+  logit "FILE: $WATCHDOG_FILES_LIST_GZ removed"
+  logit "------------------------------------------" 
+fi
+
+if [ ! -f "$WATCHDOG_FILES_LIST" ]; then
+  logit "------------------------------------------" 
+  echo "FILE: no $WATCHDOG_FILES_LIST exists"
+  logit "FILE: no $WATCHDOG_FILES_LIST exists"
+  logit "------------------------------------------" 
+else
+  logit "------------------------------------------" 
+  echo "FILE: $WATCHDOG_FILES_LIST exists, go remove"
+  logit "FILE: $WATCHDOG_FILES_LIST exists, go remove"
+  rm ${WATCHDOG_FILES_LIST}
+  echo "FILE: $WATCHDOG_FILES_LIST removed"
+  logit "FILE: $WATCHDOG_FILES_LIST removed"
+  logit "------------------------------------------" 
+fi
+
+if [ ! -f "$WATCHDOG_FILES_PAST_RESULTS" ]; then
+  logit "------------------------------------------" 
+  echo "WATCHDOG_FILES_PAST_RESULTS NOT PRESENTED"
+  logit "WATCHDOG_FILES_PAST_RESULTS NOT PRESENTED"
+  logit "------------------------------------------" 
+  BEFORE_RUN_STATUS="OK"
+  echo "BEFORE_RUN_STATUS $BEFORE_RUN_STATUS"
+  logit "BEFORE_RUN_STATUS $BEFORE_RUN_STATUS"
+  logit "------------------------------------------" 
+else
+  logit "------------------------------------------" 
+  echo "WATCHDOG_FILES_PAST_RESULTS PRESENTED"
+  logit "WATCHDOG_FILES_PAST_RESULTS PRESENTED"
+  logit "------------------------------------------" 
+  BEFORE_RUN_STATUS="FAIL"
+  echo "BEFORE_RUN_STATUS $BEFORE_RUN_STATUS"
+  logit "BEFORE_RUN_STATUS $BEFORE_RUN_STATUS"
+  logit "------------------------------------------" 
+fi
+
+if [ ! -f "$HTML_MESSAGE_BODY" ]; then
+  logit "------------------------------------------" 
+  echo "FILE: no $HTML_MESSAGE_BODY exists"
+  logit "FILE: no $HTML_MESSAGE_BODY exists"
+  logit "------------------------------------------" 
+else
+  logit "------------------------------------------" 
+  echo "FILE: $HTML_MESSAGE_BODY exists, go remove"
+  logit "FILE: $HTML_MESSAGE_BODY exists, go remove"
+  rm ${HTML_MESSAGE_BODY}
+  echo "FILE: $HTML_MESSAGE_BODY removed"
+  logit "FILE: $HTML_MESSAGE_BODY removed"
+  logit "------------------------------------------" 
+fi
+
+if [ ! -f "$HTML_MESSAGE_BODY2" ]; then
+  logit "------------------------------------------" 
+  echo "FILE: no $HTML_MESSAGE_BODY2 exists"
+  logit "FILE: no $HTML_MESSAGE_BODY2 exists"
+  logit "------------------------------------------" 
+else
+  logit "------------------------------------------" 
+  echo "FILE: $HTML_MESSAGE_BODY2 exists, go remove"
+  logit "FILE: $HTML_MESSAGE_BODY2 exists, go remove"
+  rm ${HTML_MESSAGE_BODY2}
+  echo "FILE: $HTML_MESSAGE_BODY2 removed"
+  logit "FILE: $HTML_MESSAGE_BODY2 removed"
+  logit "------------------------------------------" 
+fi
+
+if [ ! -f "$FILE_TO_CHECK" ]; then
+  logit "------------------------------------------" 
+  echo "FILE_TO_CHECK NOT PRESENTED"
+  logit "FILE_TO_CHECK NOT PRESENTED"
+  touch $FILE_TO_CHECK
+  chown {{ allienvalt_log_chown }} $FILE_TO_CHECK
+  chmod 664 $FILE_TO_CHECK
+  logit "CREATE FILE DONE - $FILE_TO_CHECK"
+  logit "------------------------------------------" 
+else
+  logit "------------------------------------------" 
+  echo "FILE_TO_CHECK PRESENTED, SCAN THEM"
+  logit "FILE_TO_CHECK PRESENTED, SCAN THEM"
+  logit "------------------------------------------" 
+fi
+
+CURRENT_ROWS_PRESENT=`cat ${FILE_TO_CHECK} | grep "Alienvault: directive_event" | wc -l`
+logit "------------------------------------------" 
+echo "CURRENT_ROWS_PRESENT is $CURRENT_ROWS_PRESENT"
+logit "CURRENT_ROWS_PRESENT is $CURRENT_ROWS_PRESENT"
+logit "------------------------------------------" 
+### SET RIGHT INTERNAL LINES SEPARATOR
+
+IFS='
+'
+
+curl_send_email(){
+  
+  curl -s "$MAILING_HOSTNAME_URI" \
+       --mail-from "$MAILING_USER" \
+       --mail-rcpt "$MAILING_DESTINATION" \
+       --ssl \
+       -T "$HTML_MESSAGE_BODY" -k --anyauth
+  res=$?
+  if test "$res" != "0"; then
+     logit "------------------------------------------" 
+     echo "sending failed with: $res"
+     logit "Sending failed with: $res"
+     logit "------------------------------------------" 
+  else
+     logit "------------------------------------------" 
+     echo "Sending OK"
+     logit "Sending OK"
+     logit "------------------------------------------" 
+  fi
+  
+}
+
+curl_send_raw_email(){
+  
+  curl -s "$MAILING_HOSTNAME_URI" \
+           --mail-from "$MAILING_USER" \
+           --mail-rcpt "$MAILING_DESTINATION" \
+           --ssl \
+           -T "$HTML_MESSAGE_BODY2" -k --anyauth
+  res=$?
+  if test "$res" != "0"; then
+     logit "------------------------------------------" 
+     echo "Sending failed with: $res"
+     logit "Sending failed with: $res"
+     logit "------------------------------------------" 
+  else
+     logit "------------------------------------------"
+     echo "Sending raw log OK"
+     logit "Sending raw log OK"
+     logit "------------------------------------------" 
+  fi
+  
+}
+
+send_main_message_result(){
+  logit "------------------------------------------" 
+  logit "send_main_message_result start"
+  logit "------------------------------------------" 
+  # html message to send
+echo "<html>
+<body>
+    <div>
+        <p>Hello, Admins! WATCHDOG AlienValut Scan completed, </p>
+        <p>Please see the logs files attached                 </p>
+        <p>---------------------------------------------------</p>
+        <p>SCAN STATUS: $SCAN_OVERALL_RESULT                  </p>
+        <p>---------------------------------------------------</p>
+        <p>LAST SCAN STATUS: $BEFORE_RUN_STATUS               </p>
+        <p>---------------------------------------------------</p>
+        <p>OVERALL RESULT: $TOTAL_CURRENT_SCAN_OVERALL_RESULT </p>
+        <p>---------------------------------------------------</p>
+        <p>START TIME: $START_TIME                            </p>
+        <p>---------------------------------------------------</p>
+        <p>END TIME: $END_TIME                                </p>
+        <p>---------------------------------------------------</p>
+        <p>TOTAL in mins: $TOTAL_EXEC_TIME_MINS               </p> 
+        <p>TOTAL in secs: $TOTAL_EXEC_TIME_SECS               </p>
+        <p>---------------------------------------------------</p>
+        <p>Have a nice day!                                   </p>
+        <p>With best regards,                                 </p>
+        <p>Wathdog Attention Job                              </p>
+    </div>
+</body>
+</html>" > message.html
+
+
+mail_from="IDS Attention! <$MAILING_USER>"
+mail_to="Admins vortex <$MAILING_DESTINATION>"
+mail_subject="IDS Attention Alert from $CURRENT_HOSTNAME"
+mail_reply_to="Admins vortex <$MAILING_USER>"
+mail_cc=""
+
+message_base64=$(cat message.html | base64)
+
+echo "From: $mail_from
+To: $mail_to
+Subject: $mail_subject
+Reply-To: $mail_reply_to
+Cc: $mail_cc
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary=\"MULTIPART-MIXED-BOUNDARY\"
+
+--MULTIPART-MIXED-BOUNDARY
+Content-Type: multipart/alternative; boundary=\"MULTIPART-ALTERNATIVE-BOUNDARY\"
+
+--MULTIPART-ALTERNATIVE-BOUNDARY
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+$message_base64
+--MULTIPART-ALTERNATIVE-BOUNDARY--" > "$HTML_MESSAGE_BODY"
+
+  echo "START: packing to archive logs files and sending mail message"
+  logit "START: packing to archive logs files and sending mail message"
+
+  if [ ! -f "$LOG_FILE" ]; then
+    echo "FILE: no $LOG_FILE exists"
+    logit "FILE: no $LOG_FILE exists"
+
+  else
+    echo "FILE: $LOG_FILE exists, go gzip and attach"
+    logit "FILE: $LOG_FILE exists, go gzip and attach"
+    gzip -k -- ${LOG_FILE}
+    LOG_FILE_MD5=`md5sum $LOG_FILE_GZ | awk '{print $1}'`
+    LOG_FILE_64=$(cat ${LOG_FILE_GZ} | base64)
+    echo "--MULTIPART-MIXED-BOUNDARY" >> "$HTML_MESSAGE_BODY"
+    echo "Content-Type: multipart/mixed; boundary=\"${LOG_FILE_MD5}\"" >> "$HTML_MESSAGE_BODY"
+    echo "
+               " >> "$HTML_MESSAGE_BODY"
+    echo "--${LOG_FILE_MD5}" >> "$HTML_MESSAGE_BODY"
+    add_file "application/zip" "" "$LOG_FILE_64" "LOG_FILE_GZ.gz"
+    echo "--${LOG_FILE_MD5}--" >> "$HTML_MESSAGE_BODY"
+    echo "FILE: $LOG_FILE added and compressed"
+    logit "FILE: $LOG_FILE added and compressed"
+  fi
+
+  if [ ! -f "$WATCHDOG_FILES_LIST" ]; then
+    echo "FILE: no $WATCHDOG_FILES_LIST exists"
+    logit "FILE: no $WATCHDOG_FILES_LIST exists"
+
+  else
+    echo "FILE: $WATCHDOG_FILES_LIST exists, go gzip and attach"
+    logit "FILE: $WATCHDOG_FILES_LIST exists, go gzip and attach"
+    gzip -k -- ${WATCHDOG_FILES_LIST}
+    WATCHDOG_FILES_LIST_MD5=`md5sum $WATCHDOG_FILES_LIST_GZ | awk '{print $1}'`
+    echo "--MULTIPART-MIXED-BOUNDARY" >> "$HTML_MESSAGE_BODY"
+    echo "Content-Type: multipart/alternative; boundary=\"${WATCHDOG_FILES_LIST_MD5}\"" >> "$HTML_MESSAGE_BODY"
+    WATCHDOG_FILES_LIST_64=$(cat ${WATCHDOG_FILES_LIST_GZ} | base64)
+    echo "
+               " >> "$HTML_MESSAGE_BODY"
+    echo "--${WATCHDOG_FILES_LIST_MD5}" >> "$HTML_MESSAGE_BODY"
+    add_file "application/zip" "" "$WATCHDOG_FILES_LIST_64" "WATCHDOG_FILES_LIST_GZ.gz"
+    echo "--${WATCHDOG_FILES_LIST_MD5}--" >> "$HTML_MESSAGE_BODY"
+    echo "FILE: $WATCHDOG_FILES_LIST added and compressed"
+    logit "FILE: $WATCHDOG_FILES_LIST added and compressed"
+  fi
+
+  echo "--MULTIPART-MIXED-BOUNDARY--" >> "$HTML_MESSAGE_BODY"
+
+  curl_send_email;
+  
+}
+
+sending_raw_log_mail(){
+ 
+ ALERT_LIST_MESSAGE_BODY_ARRAY_UNIQ=($(printf "%s\n" "${ALERT_LIST_MESSAGE_BODY_ARRAY[@]}" | sort -u))
+ 
+ echo "full alerts array: ${ALERT_LIST_MESSAGE_BODY_ARRAY[@]}"
+ echo "echo only uniq alerts array: ${ALERT_LIST_MESSAGE_BODY_ARRAY_UNIQ[@]}"
+ 
+ for row in ${ALERT_LIST_MESSAGE_BODY_ARRAY_UNIQ[*]}; do
+ ALERT_LIST_MESSAGE_BODY_P_LIST+=("<p> ${row} </p>")
+ done
+
+echo "<html>
+  <body>
+      <div>
+          <p>Hello, Admins!                    </p>
+          <p> AlienVault WATCHDOG RAW LOG      </p>
+          <p>----------------------------------</p>
+          ${ALERT_LIST_MESSAGE_BODY_P_LIST[*]}
+          <p>----------------------------------</p>
+          <p>Have a nice day!                  </p>
+          <p>With best regards,                </p>
+          <p>Wathdog Attention Job             </p>
+      </div>
+  </body>
+  </html>" > message2
+
+mail_from="IDS AlertLog! <$MAILING_USER>"
+mail_to="Admins vortex <$MAILING_DESTINATION>"
+mail_subject="IDS Alert Log from $CURRENT_HOSTNAME"
+mail_reply_to="Admins vortex <$MAILING_USER>"
+mail_cc=""
+
+message2_base64=$(cat message2 | base64)
+
+echo "From: $mail_from
+To: $mail_to
+Subject: $mail_subject
+Reply-To: $mail_reply_to
+Cc: $mail_cc
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary=\"MULTIPART-MIXED-BOUNDARY\"
+
+--MULTIPART-MIXED-BOUNDARY
+Content-Type: multipart/alternative; boundary=\"MULTIPART-ALTERNATIVE-BOUNDARY\"
+
+--MULTIPART-ALTERNATIVE-BOUNDARY
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+$message2_base64
+--MULTIPART-ALTERNATIVE-BOUNDARY--" > "$HTML_MESSAGE_BODY2"
+
+echo "--MULTIPART-MIXED-BOUNDARY--" >> "$HTML_MESSAGE_BODY2"
+
+  curl_send_raw_email;
+
+}
+
+elmail_selftest(){
+  
+   logit "elmail_selftest start"
+   
+   # SEND SELFTEST EMAIL
+   
+echo "<html>
+<body>
+    <div>
+        <p>Hello, Admins! WATCHDOG Selftest completed</p>
+        <p>----------------------------------</p>
+        <p>SELFTEST STATUS: OK</p>
+        <p>----------------------------------</p>
+        <p>Have a nice day!</p>
+        <p>With best regards,</p>
+        <p>Wathdog Attention Job</p>
+    </div>
+</body>
+</html>" > message.html
+
+
+mail_from="Wathdog Attention! <$MAILING_USER>"
+mail_to="Admins vortex <$MAILING_DESTINATION>"
+mail_subject="Wathdog Attention Log from $CURRENT_HOSTNAME"
+mail_reply_to="Admins vortex <$MAILING_USER>"
+mail_cc=""
+
+
+message_base64=$(cat message.html | base64)
+
+echo "From: $mail_from
+To: $mail_to
+Subject: $mail_subject
+Reply-To: $mail_reply_to
+Cc: $mail_cc
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary=\"MULTIPART-MIXED-BOUNDARY\"
+
+--MULTIPART-MIXED-BOUNDARY
+Content-Type: multipart/alternative; boundary=\"MULTIPART-ALTERNATIVE-BOUNDARY\"
+
+--MULTIPART-ALTERNATIVE-BOUNDARY
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+$message_base64
+--MULTIPART-ALTERNATIVE-BOUNDARY--" > "$HTML_MESSAGE_BODY"
+
+echo "--MULTIPART-MIXED-BOUNDARY--" >> "$HTML_MESSAGE_BODY"
+
+curl -s "$MAILING_HOSTNAME_URI" \
+           --mail-from "$MAILING_USER" \
+           --mail-rcpt "$MAILING_DESTINATION" \
+           --ssl \
+           -T "$HTML_MESSAGE_BODY" -k --anyauth
+      res=$?
+      if test "$res" != "0"; then
+         echo "Sending failed with: $res"
+      else
+         echo "Sending selfcheck OK"
+      fi
+  
+}
+
+exclude_check_src_dest(){
+  
+  logit "start exclude_check_src_dest"
+  
+  for exclude_item in ${IP_TO_EXCLUDE[*]}; do
+  
+  logit "------------------------------------------" 
+  echo "exclude_item: $exclude_item"
+  logit "exclude_item: $exclude_item"
+
+  SRC_IP=`echo $row | awk -F "SRC_IP:" '{print $2}' | awk '{print $1}' | sed s/,//g`
+  DST_IP=`echo $row | awk -F "DST_IP:" '{print $2}' | awk '{print $1}' | sed s/,//g`
+
+  echo "SRC_IP: $SRC_IP"
+  echo "DST_IP: $DST_IP"
+  logit "------------------------------------------" 
+  logit "SRC_IP: $SRC_IP"
+  logit "DST_IP: $DST_IP"
+  logit "------------------------------------------" 
+    if [[ "$SRC_IP" == "$exclude_item" ]] && [[ "$DST_IP" == "$exclude_item" ]]; then
+        logit "------------------------------------------" 
+        echo "SRC_IP $SRC_IP and DST_IP $DST_IP match"
+        logit "SRC_IP $SRC_IP and DST_IP $DST_IP match"
+        logit "------------------------------------------" 
+        if [[ "$exclude_item" == "0.0.0.0" ]]; then
+          logit "------------------------------------------" 
+          echo "SRC_IP $SRC_IP and DST_IP $DST_IP match 0.0.0.0"
+          echo "SET ROW_CHECK_EXCLUDE_SOURCE to 1"
+          logit "SRC_IP $SRC_IP and DST_IP $DST_IP match 0.0.0.0"
+          logit "SET ROW_CHECK_EXCLUDE_SOURCE to 1"
+          ROW_CHECK_EXCLUDE_SOURCE="1"
+          logit "------------------------------------------" 
+        else
+          logit "------------------------------------------" 
+          echo "SRC_IP $SRC_IP and DST_IP $DST_IP not match 0.0.0.0"
+          echo "SET ROW_CHECK_EXCLUDE_SOURCE to zero"
+          logit "SRC_IP $SRC_IP and DST_IP $DST_IP not match 0.0.0.0"
+          logit "SET ROW_CHECK_EXCLUDE_SOURCE to zero"
+          ROW_CHECK_EXCLUDE_SOURCE="0"
+          logit "------------------------------------------" 
+        fi
+    else
+        logit "------------------------------------------" 
+        echo "SRC_IP $SRC_IP and DST_IP $DST_IP not match"
+        logit "SRC_IP $SRC_IP and DST_IP $DST_IP not match"
+        logit "------------------------------------------" 
+        if [[ "$SRC_IP" == "$exclude_item" ]]; then
+           echo "SRC_IP $SRC_IP"
+           logit "SRC_IP $SRC_IP"
+           logit "------------------------------------------" 
+          if [[ "$exclude_item" == "10.16.128.252" ]]; then
+            logit "------------------------------------------" 
+            echo "SRC_IP $SRC_IP EXCLUDED"
+            echo "SET ROW_CHECK_EXCLUDE_SOURCE to 1"
+            logit "SRC_IP $SRC_IP EXCLUDED"
+            logit "SET ROW_CHECK_EXCLUDE_SOURCE to 1"
+            ROW_CHECK_EXCLUDE_SOURCE="1"
+            logit "------------------------------------------" 
+          else
+          logit "------------------------------------------" 
+          echo "SRC_IP $SRC_IP NOT EXCLUDED"
+          echo "SET ROW_CHECK_EXCLUDE_SOURCE to zero"
+          logit "SRC_IP $SRC_IP NOT EXCLUDED"
+          logit "SET ROW_CHECK_EXCLUDE_SOURCE to zero"
+          ROW_CHECK_EXCLUDE_SOURCE="0"
+          logit "------------------------------------------" 
+          fi
+         
+        fi
+    fi
+    
+    if [[ "$ROW_CHECK_EXCLUDE_SOURCE" -eq "1" ]]; then
+            
+                exclude_check_date;
+                
+    else
+                logit "------------------------------------------" 
+                LOG_ROTATE_ON_FINISH="1"
+                SCAN_OVERALL_RESULT="FAIL"
+                TOTAL_CURRENT_SCAN_OVERALL_RESULT="FAIL"
+                echo "Not right - its not a scanner"
+                logit "Not right row is: $row - its not a scanner"
+                echo ${row} >> ${WATCHDOG_FILES_LIST}
+                logit "${row}"
+                ALERT_LIST_MESSAGE_BODY_ARRAY+=("$row")
+                logit "------------------------------------------" 
+    fi
+    
+  done
+}
+
+exclude_check_date(){
+  
+  for exclude_day in ${EXCLUDE_DAYS[*]}; do
+    logit "------------------------------------------" 
+    echo "Check exclude_day $exclude_day"
+    logit "Check exclude_day $exclude_day"
+
+    echo "Check TODAY $TODAY"
+    logit "Check TODAY $TODAY"
+
+    if [[ "$exclude_day" -eq "$TODAY" ]]; then
+        DAY_EXCLUDED="1"
+        logit "DAY_EXCLUDED $DAY_EXCLUDED"
+    fi
+
+    echo "Check exclude_day $exclude_day"
+    logit "Check exclude_day"
+    logit "------------------------------------------" 
+  done
+                
+  for exclude_hour in ${EXCLUDE_HOURS[*]}; do
+    logit "------------------------------------------" 
+    echo "Check exclude_hour $exclude_hour"
+    logit "Check exclude_hour $exclude_hour"
+    
+    echo "Check HOUR $HOUR"
+    logit "Check HOUR $HOUR"
+    
+    if [[ "$exclude_hour" -eq "$HOUR" ]]; then
+        HOUR_EXCLUDED="1"
+        logit "HOUR_EXCLUDED $HOUR_EXCLUDED"
+        logit "------------------------------------------" 
+    fi
+
+  done
+
+  if ([[ $HOUR_EXCLUDED -eq 1 ]] && [[ $DAY_EXCLUDED -eq 1 ]]); then
+      logit "------------------------------------------" 
+      LOG_ROTATE_ON_FINISH="2"
+      SCAN_OVERALL_RESULT="FALSE_POSITIVE"
+      TOTAL_CURRENT_SCAN_OVERALL_RESULT="FALSE_POSITIVE"
+      echo "All right, its work scanner"
+      logit "All right, its work scanner"
+      logit "LOG_ROTATE_ON_FINISH $LOG_ROTATE_ON_FINISH"
+      logit "SCAN_OVERALL_RESULT $SCAN_OVERALL_RESULT"
+      logit "TOTAL_CURRENT_SCAN_OVERALL_RESULT $TOTAL_CURRENT_SCAN_OVERALL_RESULT"
+      echo ${row} >> ${WATCHDOG_FILES_LIST}
+      logit "${row}"
+      ALERT_LIST_MESSAGE_BODY_ARRAY+=("$row")
+      logit "------------------------------------------" 
+  else
+      logit "------------------------------------------" 
+      LOG_ROTATE_ON_FINISH="1"
+      SCAN_OVERALL_RESULT="FAIL"
+      TOTAL_CURRENT_SCAN_OVERALL_RESULT="FAIL"
+      echo "Not right - its not a scanner"
+      logit "Not right row is: $row - its not a scanner"
+      logit "LOG_ROTATE_ON_FINISH $LOG_ROTATE_ON_FINISH"
+      logit "SCAN_OVERALL_RESULT $SCAN_OVERALL_RESULT"
+      logit "TOTAL_CURRENT_SCAN_OVERALL_RESULT $TOTAL_CURRENT_SCAN_OVERALL_RESULT"
+      echo ${row} >> ${WATCHDOG_FILES_LIST}
+      logit "${row}"
+      ALERT_LIST_MESSAGE_BODY_ARRAY+=("$row")
+      logit "------------------------------------------" 
+  fi
+  
+}
+
+if [[ "$CURRENT_ROWS_PRESENT" -eq "0" ]]; then
+    #
+    logit "------------------------------------------" 
+    echo "Check CURRENT_ROWS_PRESENT is $CURRENT_ROWS_PRESENT"
+    logit "Check CURRENT_ROWS_PRESENT is $CURRENT_ROWS_PRESENT"
+    
+    CURRENT_SCAN_OVERALL_RESULT='OK';
+    ##
+    echo "CURRENT_SCAN_OVERALL_RESULT is $CURRENT_SCAN_OVERALL_RESULT"
+    logit "CURRENT_SCAN_OVERALL_RESULT is $CURRENT_SCAN_OVERALL_RESULT"
+    
+    if [ $HOUR -eq $SELFTEST_HOUR -a $MINUTES_NOW -ge $SELFTEST_MINUTES_START -a $MINUTES_NOW -le $SELFTEST_MINUTES_END ]; then
+      #
+      elmail_selftest;
+      #
+    fi
+    logit "------------------------------------------" 
+else
+   
+    CURRENT_SCAN_OVERALL_RESULT="FAIL, WE HAVE ROWS IN LOG, GOT TRY TO VALIDATE"
+    logit "------------------------------------------" 
+    echo "Check CURRENT_ROWS_PRESENT is $CURRENT_ROWS_PRESENT"
+    logit "Check CURRENT_ROWS_PRESENT is $CURRENT_ROWS_PRESENT"
+    logit "------------------------------------------" 
+    all_rows_in_file=`cat ${FILE_TO_CHECK} | grep "Alienvault: directive_event"`
+
+    echo "START PROCESSING ROWS in $FILE_TO_CHECK"
+    logit "START PROCESSING ROWS in $FILE_TO_CHECK"
+
+    for row in ${all_rows_in_file[*]}; do 
+      logit "------------------------------------------" 
+      echo "processing row: $row"
+      logit "processing row: $row"
+
+      exclude_check_src_dest;
+      logit "------------------------------------------" 
+    done
+   
+fi
+
+for row in ${ALERT_LIST_MESSAGE_BODY_ARRAY[*]}; do
+    logit "------------------------------------------" 
+    echo "we must add to raw mail body: <p>${row}</p>"
+    logit "we must add to raw mail body: <p>${row}</p>"
+    logit "------------------------------------------" 
+done
+
+echo "SCRIPT WORK DONE"
+logit "SCRIPT WORK DONE"
+
+## CALCULATE RUNTIME
+
+END_TIME=`date +%Y-%m-%d-%r`
+END_EXEC_TIMESTAMP=`date +%s`
+
+TOTAL_EXEC_TIME_SECS=`expr $END_EXEC_TIMESTAMP - $EXEC_TIMESTAMP`
+
+TOTAL_EXEC_TIME_MINS=`expr $TOTAL_EXEC_TIME_SECS / 60`
+
+logit "------------------------------------------" 
+echo "START TIME: $START_TIME"
+logit "START TIME: $START_TIME"
+echo "END TIME: $END_TIME"
+logit "END TIME: $END_TIME"
+echo "TOTAL in mins: $TOTAL_EXEC_TIME_MINS ; TOTAL in secs: $TOTAL_EXEC_TIME_SECS"
+logit "TOTAL in mins: $TOTAL_EXEC_TIME_MINS ; TOTAL in secs: $TOTAL_EXEC_TIME_SECS"
+logit "------------------------------------------"
+## CALCULATE COUNT OF WATCHDOG FILES
+
+if [ ! -f "$WATCHDOG_FILES_LIST" ]; then
+  WATCH_DOG_FILES_LIST="0"
+  logit "------------------------------------------" 
+  echo "WATCHDOG_FILES_LIST NOT PRESENTED"
+  logit "WATCHDOG_FILES_LIST NOT PRESENTED"
+  echo "WATCH_DOG_FILES_LIST : $WATCH_DOG_FILES_LIST"
+  logit "WATCH_DOG_FILES_LIST : $WATCH_DOG_FILES_LIST"
+  logit "------------------------------------------" 
+else
+  WATCH_DOG_FILES_LIST="1"
+  logit "------------------------------------------" 
+  echo "WATCH_DOG_FILES_LIST : $WATCH_DOG_FILES_LIST"
+  logit "WATCH_DOG_FILES_LIST : $WATCH_DOG_FILES_LIST"
+  WATCHDOG_FILES_COUNT=`(cat ${WATCHDOG_FILES_LIST} | wc -l)`
+  echo "FILE_TO_CHECK PRESENTED, SCAN THEM"
+  logit "FILE_TO_CHECK PRESENTED, SCAN THEM"
+  echo "WATCHDOG_FILES_COUNT : $WATCHDOG_FILES_COUNT"
+  logit "WATCHDOG_FILES_COUNT : $WATCHDOG_FILES_COUNT"
+  logit "------------------------------------------" 
+  
+fi
+
+if [[ "$WATCHDOG_FILES_COUNT" -eq "0" ]] && [[ $WATCH_DOG_FILES_LIST -eq "0" ]]; then
+
+  SCAN_OVERALL_RESULT="OK"
+
+  echo "SCAN_OVERALL_RESULT : $SCAN_OVERALL_RESULT"
+  logit "------------------------------------------" 
+  logit "SCAN_OVERALL_RESULT : $SCAN_OVERALL_RESULT"
+  logit "------------------------------------------"
+   
+else
+
+  SCAN_OVERALL_RESULT="FAIL"
+  
+  logit "------------------------------------------" 
+  echo "STATUS RESOLVE ON FINISH START"
+  logit "STATUS RESOLVE ON FINISH START"
+  logit "------------------------------------------" 
+  echo "SCAN_OVERALL_RESULT : $SCAN_OVERALL_RESULT"
+  logit "SCAN_OVERALL_RESULT : $SCAN_OVERALL_RESULT"
+  logit "------------------------------------------" 
+  echo "CHECKING TO FALSE POSITIVE AND IF FS NO SEND ALERT TO CALL CENTER"
+  logit "CHECKING TO FALSE POSITIVE AND IF FS NO SEND ALERT TO CALL CENTER"
+  logit "------------------------------------------" 
+
+  if [[ $TOTAL_CURRENT_SCAN_OVERALL_RESULT == "FALSE_POSITIVE" ]]; then
+
+    logit "------------------------------------------" 
+    echo "CURRENT SCAN OVERALL RESULT IS FALSE POSITIVE, EMAILING ONLY ADMINS"
+    logit "CURRENT SCAN OVERALL RESULT IS FALSE POSITIVE, EMAILING ONLY ADMINS"
+    logit "------------------------------------------" 
+
+    send_main_message_result;
+    
+    logit "------------------------------------------" 
+    echo "EMAILING ADMINS ABOUT FALSE POSITIVE IS DONE"
+    logit "EMAILING ADMINS ABOUT FALSE POSITIVE IS DONE"
+    logit "------------------------------------------" 
+
+  elif [[ $TOTAL_CURRENT_SCAN_OVERALL_RESULT == "FAIL" ]]; then
+
+    logit "------------------------------------------" 
+    echo "CURRENT SCAN OVERALL RESULT IS FAIL, EMAILING ALL"
+    logit "CURRENT SCAN OVERALL RESULT IS FAIL, EMAILING ALL"
+    logit "------------------------------------------" 
+
+    send_main_message_result;
+    email_callcenter;
+    
+    logit "------------------------------------------" 
+    echo "EMAILING ALL ABOUT FAIL IS DONE"
+    logit "EMAILING ALL ABOUT FAIL IS DONE"
+    logit "------------------------------------------" 
+
+  else
+
+    logit "------------------------------------------" 
+    echo "STATUS UNKNOWN, EMAILING ONLY ADMINS"
+    logit "STATUS UNKNOWN, EMAILING ONLY ADMINS"
+    logit "------------------------------------------" 
+
+    send_main_message_result;
+
+    logit "------------------------------------------" 
+    echo "STATUS UNKNOWN, EMAILING ONLY ADMINS DONE"
+    logit "STATUS UNKNOWN, EMAILING ONLY ADMINS DONE"
+    logit "------------------------------------------" 
+
+  fi
+  
+  logit "------------------------------------------" 
+  echo "STATUS RESOLVE ON FINISH DONE"
+  logit "STATUS RESOLVE ON FINISH DONE"
+  logit "------------------------------------------" 
+
+fi
+
+if [[ $LOG_ROTATE_ON_FINISH -eq "1" ]]; then
+
+  echo "LOG_ROTATE_ON_FINISH : $LOG_ROTATE_ON_FINISH"
+  logit "LOG_ROTATE_ON_FINISH : $LOG_ROTATE_ON_FINISH"
+
+  cp $FILE_TO_CHECK $ROTATING_FILE_NAME
+  rm $FILE_TO_CHECK
+  touch $FILE_TO_CHECK
+  chown {{ allienvalt_log_chown }} $FILE_TO_CHECK 
+  chmod 664 $FILE_TO_CHECK
+  chown {{ allienvalt_log_chown }} $ROTATING_FILE_NAME 
+  chmod 664 $ROTATING_FILE_NAME
+  echo $ROTATING_FILE_NAME >> $WATCHDOG_FILES_PAST_RESULTS
+
+  sending_raw_log_mail;
+  
+  
+else
+
+  if [[ $LOG_ROTATE_ON_FINISH -eq "2" ]]; then
+
+    echo "LOG_ROTATE_ON_FINISH : $LOG_ROTATE_ON_FINISH"
+    logit "LOG_ROTATE_ON_FINISH : $LOG_ROTATE_ON_FINISH"
+
+    cp $FILE_TO_CHECK $ROTATING_FILE_NAME_FP
+    rm $FILE_TO_CHECK
+    touch $FILE_TO_CHECK
+    chown {{ allienvalt_log_chown }} $FILE_TO_CHECK 
+    chmod 664 $FILE_TO_CHECK
+    chown {{ allienvalt_log_chown }} $ROTATING_FILE_NAME_FP 
+    chmod 664 $ROTATING_FILE_NAME_FP
+    echo $ROTATING_FILE_NAME_FP >> $WATCHDOG_FILES_PAST_RESULTS
+                    
+    sending_raw_log_mail;
+    
+   logit "--------------M--O--V--E------------------" 
+   logit "--------------D--O--N--E------------------" 
+ 
+  fi
+
+fi
+
+echo "CLEAR LOGS OLD OLDER THEN 7 DAYS"
+logit "CLEAR LOGS OLD OLDER THEN 7 DAYS"
+
+find $PASTLOG_DIRECTORY/* -mtime +7 -exec rm {} \;
+
+echo "DONE CLEAR LOGS OLD OLDER THEN 7 DAYS"
+logit "DONE CLEAR LOGS OLD OLDER THEN 7 DAYS"
+
+echo "SCRIPT: DONE"
+logit "SCRIPT: DONE"

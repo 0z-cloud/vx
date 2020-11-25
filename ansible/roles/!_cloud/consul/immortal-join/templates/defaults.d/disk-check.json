@@ -1,0 +1,8 @@
+{
+  "check": {
+    "id": "check-disk",
+    "name": "check-disk",
+    "script": "/opt/consul/check.db/check_disk -w 30% -c 5%",
+    "interval": "1m"
+  }
+}

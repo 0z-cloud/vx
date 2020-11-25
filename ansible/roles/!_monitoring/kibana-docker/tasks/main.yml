@@ -1,0 +1,34 @@
+---
+# - name: Inject defaults for templates
+#   set_fact:
+#     main_kibana_service_settings: "{{ main_kibana_service_settings_defaults | combine(main_kibana_service_settings) }}"
+
+- name: Create the directories for env specific configurations
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0755
+  with_dict: "{{ main_kibana_service_settings.directories | default({}) }}"
+
+- name: Create kibana.yml.j2 from template
+  template: 
+      src: kibana.yml.j2
+      dest: "{{ main_kibana_service_settings.directories.working_opt_kibana }}/kibana.yml"
+
+- name: re/Create a docker_kibana_image docker container
+  docker_container:
+      name: "{{ main_kibana_service_settings.docker_kibana_name }}-{{ ansible_environment }}-{{ inventory_hostname }}"
+      image: "sebp/elk"
+      pull: true
+      recreate: yes
+      restart_policy: always
+      detach: True
+      ports:
+        - "{{ main_kibana_service_settings.docker_kibana_ports }}"
+      volumes:
+        - "/etc/hosts:/etc/hosts"
+        - "{{ main_kibana_service_settings.directories.working_opt_kibana }}/kibana.yml:/opt/kibana/config/kibana.yml"
+      env:
+        ELASTICSEARCH_START: 0
+        LOGSTASH_START: 0
+      state: started

@@ -1,0 +1,17 @@
+#### GREP REALMS_CHECK FROM CONF/SERVER.XML
+
+- name: Shell gets Realm className from ansible_grep_connector_server_xml, if see error its good =)
+  shell: "grep 'Realm className' {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}/conf/server.xml | grep '{{ item }}'"
+  register: ansible_grep_connectors_server_xml_realms
+  with_items: "{{ ansible_catalina_server_xml_realms_to_check }}"
+  ignore_errors: true
+  
+- name: Debug not compliant connectors in ansible_grep_connectors_server_xml_realms
+  debug:
+    msg: "{{ ansible_grep_connectors_server_xml_realms.results | map(attribute='rc') | list }}"
+  
+- name: Check the grep Realm className in conf/server.xml, if PCI compliance ok, we ignore that and go next
+  fail:
+    msg: "Whoops! Connector have {{ item }} in File {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}/conf/server.xml conetent not PCI Compliant - please remove any usages {{ item }} in server.xml"
+  when: "{{ item }} == 0"
+  with_items: "{{ ansible_grep_connectors_server_xml_realms.results | map(attribute='rc') | list }}"

@@ -1,0 +1,49 @@
+- name: Get Special Groups in vCloud Instance with a message roles
+  vcd_roles:
+    user: "{{ anycloud_adapter_api_user }}"
+    password: "{{ anycloud_adapter_api_password }}"
+    host: "{{ anycloud_adapter_api_url_endpoint }}"
+    org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+    api_version: 30.0
+    verify_ssl_certs: "{{ anycloud_adapter_api_url_verify_ssl }}"
+    operation: list_roles
+  register: vloud_special_groups_cloud_token_storage_result
+
+- name: Debug all roles 
+  debug:
+    msg: "{{ item }}"
+  with_items: "{{ vloud_special_groups_cloud_token_storage_result.msg }}"
+  when: debug_log is defined
+
+- name: Set list of network types 
+  set_fact:
+      network_types_list:
+            - "isolated"
+            - "routed"
+            - "direct"
+            - "vpnmesh"
+
+- name: 3-way set cloud create special objects | Populate Special Groups returned list
+  set_fact:
+    vcloud_anycloud_zone_extra_subnets_adapters_networks: "{{ vcloud_anycloud_zone_extra_subnets_adapters_networks|default({}) | combine( {item['name']: item['description']} ) }}"
+  with_items: "{{ vloud_special_groups_cloud_token_storage_result.msg }}"
+  when: item.value in network_types_list and item.value in ansible_datacenter and item.value in ansible_product
+
+- name: Create dict based on following and stoted in Cloud from vCloud Groups Values
+  set_fact: 
+    loud_zone_extra_subnets_: {"{{ item.key }}": "{{ item.value }}"}
+  with_dict: "{{ vcloud_anycloud_zone_extra_subnets_adapters_networks }}"
+  when: item.value in network_types_list and item.value in ansible_datacenter and item.value in ansible_product
+
+- name: 'SET RESULT OBJECT OS METADATA 53v [FETCH STAGE] Populate Special Groups returned list'
+  set_fact: 
+    vcloud_anycloud_zone_extra_subnets_adapters_networks: "{{ anycloud_zone_extra_subnets_metadata_storage_networks.msg }}"
+
+  # when: 
+  #   - ansible_product in item['name']
+  #   - ansible_datacenter in item['name']
+  #   - item['name'] | join('') | search('network_types_list')
+
+  # when: "(item.key == 'routed' or item.key == 'direct' or item.key == 'isolated' or item.key == 'vpnmesh') and (ansible_datacenter in item['name']) and (ansible_product in item['name'])"
+
+  # when: "(('_vpnmesh_' in item['name'] or '_routed_' in item['name'] or '_isolated_' in item['name'] or '_direct_' in item['name']) and ansible_datacenter in item['name'])"

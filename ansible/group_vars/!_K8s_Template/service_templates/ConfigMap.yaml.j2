@@ -1,0 +1,16 @@
+apiVersion: v1
+{% if value['environment'] is defined %}
+data:
+{% for de in value['environment'] %}
+  {{ de | join }}
+{% endfor %}
+{% endif %}
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  labels:
+    app: business
+    chart: business-0.1.0
+    io.cattle.field/appId: rpay-engine
+  name: business-env
+  selfLink: /api/v1/namespaces/rpay-engine/configmaps/business-env

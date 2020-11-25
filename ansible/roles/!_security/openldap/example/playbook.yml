@@ -1,0 +1,17 @@
+---
+- name: OpenLDAP example playbook
+  hosts:
+    - ldap
+  vars:
+    domain: "example.com"
+    seed_sample_data: true
+  pre_tasks:
+    - include_vars: config-vault.yml
+      no_log: true
+  roles:
+    - role: gronke.openldap
+      slapd_root_password: "{{ vault_ldap_root_password }}"
+      slapd_domain: "{{ domain }}"
+  tasks:
+    - include: _seed
+      when: seed_sample_data == true

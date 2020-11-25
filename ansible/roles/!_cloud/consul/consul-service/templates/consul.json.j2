@@ -1,0 +1,94 @@
+{
+  "start_join_wan": [{% for host in groups['consul-masters'] %}{% if 'REPLACED' in hostvars[host]['second_ip'] %}
+  "{{ hostvars[host]['ansible_default_ipv4']['address'] }}"{% else %}"{{ hostvars[host]['second_ip'] }}"{% endif %}{% if not loop.last %}, {% endif %}{% endfor %} ],
+  "start_join": [{% for host in groups['consul-masters'] %}{% if 'REPLACED' in hostvars[host]['second_ip'] %}
+  "{{ hostvars[host]['ansible_default_ipv4']['address'] }}"{% else %}"{{ hostvars[host]['second_ip'] }}"{% endif %}{% if not loop.last %}, {% endif %}{% endfor %} ],
+  "domain": "cloud.{{ merge_consul_domain }}",
+  "data_dir": "{{ consul.directories.working_consul_data }}",
+  "server": true,
+  "session_ttl_min": "10s",
+  "ui" : true,
+  "ports": {
+    "dns": {{ consul_dns_service_listen_port }},
+    "https": -1,
+    "http": {{ consul_http_service_listen_port }},
+    "rpc": {{ consul_rpc_service_listen_port }},
+    "serf_lan": {{ consul_serf_lan_service_listen_port }},
+    "serf_wan": {{ consul_serf_wan_service_listen_port }},
+    "server": {{ consul_service_listen_port }}
+  },{% if 'pci' in ansible_environment_security_configuration %}
+  "auto_encrypt": {
+  "allow_tls": true
+  },
+  "ca_file": "{{ consul_defaults.cladictories.certificate_authority_root }}/{{ consul_defaults.authority_dest_sync_ca.agent_ca }}",
+  "cert_file": "{{ consul_defaults.cladictories.certificate_authority_root }}/{{ consul_defaults.dest_to_sync_cloud_ca_files.server_crt_crt }}",
+  "key_file": "{{ consul_defaults.cladictories.certificate_authority_root }}/{{ consul_defaults.dest_to_sync_cloud_ca_files.server_crt_key }}",
+  "server_name": "{{ ansible_nodename }}",
+  "verify_incoming": false,
+  "verify_outgoing": false,
+  "verify_server_hostname": false,
+  "check_update_interval": "30s",
+  "disable_anonymous_signature": false,
+  "disable_remote_exec": false,
+  "disable_update_check": false,
+  "telemetry": {
+      "statsite_address": "127.0.0.1:2180"
+  },
+  "service": {
+      "": {
+          "policy": "write"
+      }
+  },
+  "http_config": {
+    "response_headers": {
+      "Access-Control-Allow-Origin": "*"
+    }
+  },
+{% endif %}
+  "enable_syslog": true,
+  "dns_config": {
+      "soa": {
+        "refresh": 3600,
+        "retry": 600,
+        "min_ttl": 60
+      },
+      "allow_stale": false,
+      "max_stale": "5s",
+      "node_ttl": "0s",
+      "service_ttl": {
+        "*": "5s",
+        "web": "15s",
+        "db*": "10s",
+        "db-master": "10s"
+      },
+      "enable_truncate": true,
+      "only_passing": true
+    },
+    "performance": {
+      "raft_multiplier": 1
+  },
+	"disable_update_check": false,
+  "bootstrap_expect": 3,
+  "enable_script_checks": true,
+  "encrypt": "{{ consul.master_key }}",
+  "datacenter": "{{ ansible_datacenter }}",
+  "acl_datacenter": "{{ ansible_datacenter }}",
+  "acl_default_policy": "deny",
+  "acl_down_policy": "deny",
+  "node_name": "{{ ansible_nodename }}",
+  "acl_master_token": "30292353252",
+  "acl_ttl": "30s",
+  "client_addr": "{% if 'REPLACED' in hostvars[inventory_hostname]['second_ip'] %}{{ ansible_default_ipv4['address'] }}{% else %}{{ hostvars[inventory_hostname]['second_ip'] }}{% endif %}",
+  "bind_addr": "{% if 'REPLACED' in hostvars[inventory_hostname]['second_ip'] %}{{ ansible_default_ipv4['address'] }}{% else %}{{ hostvars[inventory_hostname]['second_ip'] }}{% endif %}",
+  "retry_join_wan": [{% for host in groups['consul-masters'] %}{% if 'REPLACED' in hostvars[host]['second_ip'] %}
+  "{{ hostvars[host]['ansible_default_ipv4']['address'] }}"{% else %}"{{ hostvars[host]['second_ip'] }}"{% endif %}{% if not loop.last %}, {% endif %}{% endfor %} ],
+  "retry_join": [{% for host in groups['consul-masters'] %}{% if 'REPLACED' in hostvars[host]['second_ip'] %}
+  "{{ hostvars[host]['ansible_default_ipv4']['address'] }}"{% else %}"{{ hostvars[host]['second_ip'] }}"{% endif %}{% if not loop.last %}, {% endif %}{% endfor %} ],
+  "rejoin_after_leave": true,
+  "leave_on_terminate": false,
+  "skip_leave_on_interrupt": true,
+  "log_level": "DEBUG",
+  "enable_debug": true,
+  "advertise_addr": "{% if 'REPLACED' in hostvars[inventory_hostname]['second_ip'] %}{{ ansible_default_ipv4['address'] }}{% else %}{{ hostvars[inventory_hostname]['second_ip'] }}{% endif %}",
+  "advertise_addr_wan": "{% if 'REPLACED' in hostvars[inventory_hostname]['second_ip'] %}{{ ansible_default_ipv4['address'] }}{% else %}{{ hostvars[inventory_hostname]['second_ip'] }}{% endif %}"
+}

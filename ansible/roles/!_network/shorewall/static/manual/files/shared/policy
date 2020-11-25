@@ -1,0 +1,20 @@
+# For information about entries in this file, type "man shorewall-policy"
+###############################################################################
+#SOURCE	DEST	POLICY		LEVEL LOG	LIMIT:		CONNLIMIT:      BURST		MASK
+#
+fw	    all	    DROP		info
+ipmi	all	    DROP		info
+esx	    all	    DROP		info
+web	    all	    DROP		info
+else	all	    DROP		info
+git     all     DROP        info
+sql	    all	    DROP		info
+# Bank Of Moscow for DSZN Project via ipsec
+baom    all     DROP        info
+#
+key	    all	    DROP		info
+vpn	    all	    DROP		info
+wan	    all	    DROP		info
+iscsi	all	    DROP		info
+# THE FOLLOWING POLICY MUST BE LAST
+all	    all	    DROP		info

@@ -1,0 +1,8 @@
+#!/bin/sh
+
+
+{% for host in groups['REDIS_CLUSTER_HOSTS_FULL'] %}{% if host == inventory_hostname %}
+
+redis-cli cluster nodes | grep -w '{{ hostvars[host].ansible_default_ipv4.address }}' | awk '{print $1}' | xargs -I ID redis-cli cluster replicate ID
+
+{% endif %}{% endfor %}

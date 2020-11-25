@@ -1,0 +1,23 @@
+java_services:
+  - keyserver
+  - gate-java
+  - vortex-core-app
+  - transaction-do-sandbox
+
+unification_services:
+# INTERNAL
+  - {'consul': {'target': 'consul-masters', 'listen_port': "{{ consul_service_listen_port }}", 'check_type': "http", 'script_check': "http://{{ inventory_hostname }}:{{ consul_service_listen_port }}" }}
+# CA
+  - {'acme': {'target': 'nginx-frontend', 'listen_port': "{{ acme_listen_port }}", 'check_type': "tcp", 'script_check': "{{ inventory_hostname }}:{{ acme_listen_port }}" }}
+# DATABASES
+  - {'percona': {'target': 'percona-cluster', 'listen_port': "{{ percona_service_listen_port }}", 'check_type': "tcp", 'script_check': "{{ inventory_hostname }}:{{ percona_service_listen_port }}" }}
+  - {'rabbitmq': {'target': 'rabbitmq-cluster', 'listen_port': "{{ rabbitmq_service_listen_port }}", 'check_type': "tcp", 'script_check': "{{ inventory_hostname }}:{{ rabbitmq_service_listen_port }}" }}
+# PHP
+  - {'wallets': {'target': 'wallets', 'listen_port': "{{ wallets_service_listen_port }}", 'check_type': "http", 'script_check': "http://{{ inventory_hostname }}:{{ wallets_service_listen_port }}" }}
+  - {'checkout': {'target': 'checkout', 'listen_port': "{{ checkout_service_listen_port }}", 'check_type': "http", 'script_check': "http://{{ inventory_hostname }}:{{ checkout_service_listen_port }}" }}
+  - {'admin': {'target': 'admin', 'listen_port': "{{ admin_service_listen_port }}", 'check_type': "http", 'script_check': "http://{{ inventory_hostname }}:{{ admin_service_listen_port }}" }}
+# JAVA
+  - {'keyserver': {'target': 'keyserver', 'listen_port': "{{ keyserver_service_listen_port }}", 'check_type': "http", 'script_check': "http://{{ inventory_hostname }}:{{ keyserver_service_listen_port }}" }}
+  - {'gate-java': {'target': 'gate-java', 'listen_port': "{{ gate_java_service_listen_port }}", 'check_type': "http", 'script_check': "http://{{ inventory_hostname }}:{{ gate_java_service_listen_port }}" }}
+  - {'vortex-core-app': {'target': 'vortex-core-app', 'listen_port': "{{ coreapp_service_listen_port }}", 'check_type': "tcp", 'script_check': "{{ inventory_hostname }}:{{ coreapp_service_listen_port }}" }}
+  - {'processing-sandbox': {'target': 'processing-sandbox', 'listen_port': "{{ processing_sandbox_service_listen_port }}", 'check_type': "tcp", 'script_check': "{{ inventory_hostname }}:{{ processing_sandbox_service_listen_port }}" }}

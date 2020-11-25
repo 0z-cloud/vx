@@ -1,0 +1,28 @@
+name: public-api
+published_port: "{{ public_api_service_listen_port }}"
+docker_image: "gitlab.vortex.ru:4567/vortex/api"
+docker_image_tag: latest
+replicas: 1
+
+db_migrate: true
+
+variables:
+  APP_NAME: "public-api"
+  APP_ENV: "stage"
+  APP_KEY: "base64:KhF2eUaXwE1tL3t2KET5qbq7/GBMmgj1HB+AhUl1rI0="
+  APP_DEBUG: "true"
+  APP_URL: "https://public-api.vortex.me"
+  LOG_CHANNEL: "single"
+  DB_CONNECTION: "mysql"
+  DB_HOST: "percona.service.cloud.vortex.me"
+  DB_DATABASE: "public_api"
+  DB_USERNAME: "root"
+  DB_PASSWORD: "root"
+  CACHE_DRIVER: "file"
+  QUEUE_DRIVER: "sync"
+  JWT_SECRET: "wf7t3rUMIlfd9DqkxPpzzEHcGA3IDG0f"
+  SENTRY_LARAVEL_DSN: "http://c657fab0bddf44c1bdf688118bbd95a4:3a4295a6426f4171a2d14a4cfd871d6a@sentry.service.cloud.vortex.me:9000/3"
+
+secured_variables:
+  - {name: "app.key", value: "base64:KhF2eUaXwE1tL3t2KET5qbq7/GBMmgj1HB+AhUl1rI0="}
+

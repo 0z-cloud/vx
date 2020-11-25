@@ -1,0 +1,19 @@
+# ОБЪЯВЛЕНИЕ: КОГДА СПИСОК ЭЛЕМЕНТОВ ПУСТ ДЛЯ VPN ДОСТУПА ИЗ ВНЕШНИХ СЕТЕЙ
+- name: WHEN NO RULE IDs in list by length check
+  set_fact:
+    to_do_set_fact_with_vpn_to_internal_nat_rule_ids: 'fillme'
+  when: length_set_fact_with_vpn_to_internal_nat_rule_ids | int == 0
+
+# ОБЪЯВЛЕНИЕ: КОГДА СПИСОК ЭЛЕМЕНТОВ СОДЕРЖИТ ОДИН ЭЛЕМЕНТ ДЛЯ VPN ДОСТУПА ИЗ ВНЕШНИХ СЕТЕЙ
+- name: WHEN ONE RULE IDs in list by length check
+  set_fact:
+    to_do_set_fact_with_vpn_to_internal_nat_rule_ids: 'present'
+    presented_id_of_with_vpn_to_internal_nat_rule_ids: "{{ set_fact_with_vpn_to_internal_nat_rule_ids }}"
+  when: length_set_fact_with_vpn_to_internal_nat_rule_ids | int == 1
+
+# ОБЪЯВЛЕНИЕ: КОГДА СПИСОК ЭЛЕМЕНТОВ СОДЕРЖИТ БОЛЕЕ ОДНОГО ЭЛЕМЕНТА ДЛЯ VPN ДОСТУПА ИЗ ВНЕШНИХ СЕТЕЙ
+- name: WHEN TO MUCH RULEs IDs in list by length check
+  set_fact:
+    to_do_set_fact_with_vpn_to_internal_nat_rule_ids: 'error'
+    length_set_fact_with_vpn_to_internal_nat_rule_ids_to_delete: "{{ set_fact_with_vpn_to_internal_nat_rule_ids[1:] }}"
+  when: length_set_fact_with_vpn_to_internal_nat_rule_ids | int > 1

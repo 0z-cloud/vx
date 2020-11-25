@@ -1,0 +1,91 @@
+- name: Inject defaults for template config.json.j2
+  set_fact:
+    fluentd_service_env: "{{ fluentd_service_env_defaults | combine(fluentd_service_env) }}"
+
+- name: Create the directories for env specific configurations
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0777
+  with_dict: "{{ fluentd_service_env.directories | default({}) }}"
+  tags: [configuration,fluentd]
+
+- name: Copy Dockerfile file
+  copy:
+     src: files/Dockerfile
+     dest: "{{ fluentd_service_env.directories.working_etc_fluentd }}/"
+
+- name: Copy Patterns file
+  copy:
+     src: files/patterns.txt
+     dest: "{{ fluentd_service_env.directories.working_etc_fluentd_confd }}/patterns.txt"
+
+- name: Copy Default Config file
+  copy:
+     src: files/fluent.conf
+     dest: "{{ fluentd_service_env.directories.working_etc_fluentd_confd }}/fluent.conf"
+
+- name: Create nginx.output.conf.j2 from template
+  template: 
+      src: nginx.output.conf.j2
+      dest: "{{ fluentd_service_env.directories.working_etc_fluentd_confd }}/nginx.output.conf"
+
+- name: Create nginx.access.conf.j2 from template
+  template: 
+      src: nginx.access.conf.j2
+      dest: "{{ fluentd_service_env.directories.working_etc_fluentd_confd }}/nginx.access.conf"
+
+- name: Create nginx.error.conf.j2 from template
+  template: 
+      src: nginx.error.conf.j2
+      dest: "{{ fluentd_service_env.directories.working_etc_fluentd_confd }}/nginx.error.conf"
+
+- name: Kill a fluentd docker container with swarm
+  docker_container:
+      name: "fluentd-{{ ansible_environment }}-{{ inventory_hostname }}"
+      image: "fluentd-local-{{ ansible_environment }}"
+      state: absent
+      docker_host: tcp://0.0.0.0:2375
+  when: swarm_disabled_inventory is not defined
+
+- name: Kill a fluentd docker container without swarm
+  docker_container:
+      name: "fluentd-{{ ansible_environment }}-{{ inventory_hostname }}"
+      image: "fluentd-local-{{ ansible_environment }}"
+      state: absent
+  when: swarm_disabled_inventory is defined
+
+- name: Raw build Dockerfile
+  raw: docker build -t fluentd-local-{{ ansible_environment }} -f {{ fluentd_service_env.directories.working_etc_fluentd }}/Dockerfile {{ fluentd_service_env.directories.working_etc_fluentd }}
+
+- name: Create a fluentd Service docker container {{ ansible_environment }} with swarm
+  docker_container:
+      name: "fluentd-{{ ansible_environment }}-{{ inventory_hostname }}"
+      image: "fluentd-local-{{ ansible_environment }}"
+      recreate: yes
+      volumes:
+        - "{{ fluentd_service_env.directories.working_etc_fluentd_confd }}/:/fluentd/etc/"
+        - "{{ fluentd_service_env.directories.nginx_mountpoint }}:{{ fluentd_service_env.directories.nginx_mountpoint }}"
+        - "{{ fluentd_service_env.directories.working_etc_fluentd_positions }}:/positions"
+      # networks:
+      #   - name: "{{ swarm_masters.overlay_network.network_name }}"
+      #     ipv4_address: "{{ fluentd_overlay_network_ip }}"
+      restart_policy: always
+      detach: True
+      docker_host: tcp://0.0.0.0:2375
+      state: started
+  when: swarm_disabled_inventory is not defined
+
+- name: Create a fluentd Service docker container {{ ansible_environment }} without swarm
+  docker_container:
+      name: "fluentd-{{ ansible_environment }}-{{ inventory_hostname }}"
+      image: "fluentd-local-{{ ansible_environment }}"
+      recreate: yes
+      volumes:
+        - "{{ fluentd_service_env.directories.working_etc_fluentd_confd }}/:/fluentd/etc/"
+        - "{{ fluentd_service_env.directories.nginx_mountpoint }}:{{ fluentd_service_env.directories.nginx_mountpoint }}"
+        - "{{ fluentd_service_env.directories.working_etc_fluentd_positions }}:/positions"
+      restart_policy: always
+      detach: True
+      state: started
+  when: swarm_disabled_inventory is defined

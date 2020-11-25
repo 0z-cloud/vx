@@ -1,0 +1,31 @@
+INSERT INTO role (name, description) VALUES ('Administrator', 'Administrator');
+INSERT INTO role (name, description) VALUES ('User', 'User');
+INSERT INTO setting (name, value) VALUES ('maintenance', 'True');
+
+
+INSERT INTO user (username, password, plain_text_password, firstname, lastname, role_id, email, avatar, otp_secret
+) VALUES ('powerdnsadmin', 'passowrd', 'plain_text_password', 'firstname', 'lastname', 'Administrator', 'powerdnsadmin@email.com', 'avatar', 'asd819hr1br12br18');
+
+
+     def __init__(self, id=None, username=None, password=None, plain_text_password=None, firstname=None, lastname=None, role_id=None, email=None, avatar=None, otp_secret=None, reload_info=True):
+        self.id = id
+        self.username = username
+        self.password = password
+        self.plain_text_password = plain_text_password
+        self.firstname = firstname
+        self.lastname = lastname
+        self.role_id = role_id
+        self.email = email
+        self.avatar = avatar
+        self.otp_secret = otp_secret
+
+
+INSERT INTO public.user (username, password, firstname, lastname, role_id) VALUES ('powerdnsadmin', 'passowrd', 'firstname', 'lastname', '1');
+
+select * from public.user;
+
+   psql -v ON_ERROR_STOP=1 --username "postgres" -qtA <<-EOSQL 
+    \c powerdns_consul2;  
+    INSERT INTO public.user (username, password, firstname, lastname, role_id) VALUES
+('route53master', '$2a$07$2JFO59oXGQQjZdvxMqIwlOS1R/jV8ETlz90KB6YsvQC/P2cI.m..m', 'Administrator', 'Route53', '1');
+EOSQL

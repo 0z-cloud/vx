@@ -1,0 +1,19 @@
+---
+
+- name: Install and configure redis for develop
+  hosts: "{{ HOSTS | default('redis-cluster') }}"
+  become: true
+  roles:
+    - name: Install redis instances
+      role: ./!_databases/redis
+      redis_instance:
+        port: "{{ redis_service_listen_port }}"
+        cluster_enabled: "{{ redis_cluster_enabled }}"
+
+- name: Initialize cluster
+  hosts: "{{ HOSTS | default('redis-cluster') }}"
+  roles:
+    - role: ./!_databases/redis-cluster
+      when: "{{ redis_cluster_enabled }} == true"
+  tags:
+    - cluster

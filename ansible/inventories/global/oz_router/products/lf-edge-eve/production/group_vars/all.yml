@@ -1,0 +1,113 @@
+subnets_excluded_and_must_to_be_check:
+  - "172.16.74.0"
+  - "192.168.67.0"
+  - "172.16.77.0"
+  - "172.16.89.0"
+
+ports_excluded_and_must_to_be_check:
+  - "19287"
+  - "11443"
+  - "22222"
+  - "22422"
+
+VPN_REMOTE_SERVER_WEB_PORT: "{{ OZ_ROUTER_DEFAULT_PUBLIC_WEB_SERVER_PORT }}"
+VPN_REMOTE_SERVER_VPN_PORT: "{{ OZ_ROUTER_DEFAULT_PUBLIC_VPN_SERVER_PORT }}"
+VPN_REMOTE_SERVER_NAME: "{{ OZ_MASTER_DEFAULT_VPN_MESH_NETWORK_ENDPOINT_SERVICE_INSTANCE_NAME }}"
+
+###############################################################################################################################################
+# SETUP VALUES FOR ABLE INTERCONNECT TWO/THREE/MORE NETWORKS THROUGH 1 MASTER
+###############################################################################################################################################
+INSTANCE_TARGET_STATE: "OK"
+###############################################################################################################################################
+# SETTINGS ABOUT MASTER INTERCONNECT MESH ZONE
+# OZ_MASTER_VPN_MESH_NETWORK_ENDPOINT_SERVICE_
+###############################################################################################################################################
+
+OZ_MASTER_DEFAULT_VPN_MESH_NETWORK_ENDPOINT_SERVICE_INSTANCE_NAME: ozCloudRouter_vZone_Sector_Network_Between_{{ ansible_product }}_between_{{ ansible_environment }}_{{ ansible_datacenter }}
+OZ_MASTER_DEFAULT_VPN_MESH_NETWORK_ENDPOINT_SERVICE_SERVER_NAME: "{{ groups[hostvars['oz-primary-master-vpn-mesh-endpoint-host']['ansible_nodename']] }}"
+OZ_MASTER_DEFAULT_VPN_MESH_NETWORK_ENDPOINT_SERVICE_CLUSTER_TYPE: "{{ groups[hostvars['oz-primary-master-vpn-mesh-endpoint-host'].cluster_type] }}"
+OZ_MASTER_DEFAULT_VPN_MESH_NETWORK_ENDPOINT_SERVICE_CLUSTER_PREFIX_NAME: "{{ groups[hostvars['oz-primary-master-vpn-mesh-endpoint-host'].cluster_prefix_name] }}"
+OZ_MASTER_DEFAULT_VPN_MESH_NETWORK_ENDPOINT_SERVICE_PUBLIC_IP: "{{ groups[hostvars['oz-primary-master-vpn-mesh-endpoint-host'].public_nat_ip] }}"
+OZ_MASTER_DEFAULT_VPN_MESH_NETWORK_ENDPOINT_SERVICE_HOSTNAME_IP: "{{ groups[hostvars['oz-primary-master-vpn-mesh-endpoint-host']['ansible_host']] }}"
+OZ_MASTER_DEFAULT_VPN_MESH_NETWORK_ENDPOINT_SERVICE_FQDN: "{{ groups[hostvars['oz-primary-master-vpn-mesh-endpoint-host'].primary_oz_dns_name] }}"
+
+OZ_MASTER_DEFAULT_VPN_MESH_NETWORK_ENDPOINT_SERVICE_SUBNET_WITHOUT_LAST_OCTET: "{{ OZ_MASTER_DEFAULT_VPN_MESH_NETWORK_ENDPOINT_SERVICE_HOSTNAME_IP.split('.')[3] }}"
+OZ_MASTER_DEFAULT_VPN_MESH_NETWORK_ENDPOINT_SERVICE_SUBNET: "{{ OZ_MASTER_DEFAULT_VPN_MESH_NETWORK_ENDPOINT_SERVICE_SUBNET_WITHOUT_LAST_OCTET }}0"
+OZ_MASTER_DEFAULT_VPN_MESH_NETWORK_ENDPOINT_SERVICE_SUBNET_WITH_PREFIX: "{{ OZ_MASTER_DEFAULT_VPN_MESH_NETWORK_ENDPOINT_SERVICE_SUBNET }}/24"
+OZ_MASTER_DEFAULT_VPN_MESH_NETWORK_ENDPOINT_SERVICE_EDGE_INTERNAL_IP: "{{ OZ_MASTER_DEFAULT_VPN_MESH_NETWORK_ENDPOINT_SERVICE_SUBNET_WITHOUT_LAST_OCTET }}1"
+
+OZ_MASTER_DEFAULT_VPN_MESH_NETWORK_ENDPOINT_SERVICE_VPN_PORT: 19287
+OZ_MASTER_DEFAULT_VPN_MESH_NETWORK_ENDPOINT_SERVICE_WEB_PORT: 11443
+OZ_MASTER_DEFAULT_VPN_MESH_NETWORK_ENDPOINT_SERVICE_PUBLIC_SSH_PORT: 22422
+
+###############################################################################################################################################
+# OZ_MESH_ INTERCONNECT NETWORK VPNMESH CALCULATE VARS
+###############################################################################################################################################
+
+OZ_ROUTER_DEFAULT_VPNMESH_NETWORK_SUBNET: "{{ vcloud_anycloud_zone_extra_subnets_adapters_networks.vpnmesh.subnet }}"
+OZ_ROUTER_DEFAULT_VPNMESH_NETWORK_SUBNET_WITHOUT_LAST_OCTET: "{{ OZ_ROUTER_DEFAULT_VPNMESH_NETWORK_SUBNET.split('.')[3] }}"
+OZ_ROUTER_DEFAULT_VPNMESH_NETWORK_SUBNET_WITH_PREFIX: "{{ OZ_ROUTER_DEFAULT_VPNMESH_NETWORK_SUBNET }}/24"
+OZ_ROUTER_DEFAULT_VPNMESH_NETWORK_SUBNET_ROUTER: "{{ OZ_ROUTER_DEFAULT_VPNMESH_NETWORK_SUBNET_WITHOUT_LAST_OCTET }}1"
+
+###############################################################################################################################################
+# OZ_ROUTER_ LOCAL ON BOOTSTRAPED oZrouter in new Zone, prefix 
+###############################################################################################################################################
+
+OZ_ROUTER_DEFAULT_PUBLIC_NETWORK_INTERFACE: ens33
+OZ_ROUTER_DEFAULT_PIVATE_NETWORK_INTERFACE: ens37
+
+OZ_ROUTER_DEFAULT_PUBLIC_VPN_SERVER_PORT: "{{ anycloud_zone_extra_subnets_metadata_storage_networks.mesh_connect.port }}"
+OZ_ROUTER_DEFAULT_PUBLIC_WEB_SERVER_PORT: "{{ anycloud_zone_extra_subnets_metadata_storage_networks.ui_publish.port }}"
+
+OZ_ROUTER_DEFAULT_PUBLIC_NETWORK_SUBNET: "{{ anycloud_zone_extra_subnets_metadata_storage_networks.routed.subnet }}"
+OZ_ROUTER_DEFAULT_PRIVATE_NETWORK_SUBNET: "{{ anycloud_zone_extra_subnets_metadata_storage_networks.isolated.subnet }}"
+
+OZ_ROUTER_DEFAULT_PUBLIC_NETWORK_SUBNET_WITHOUT_LAST_OCTET: "{{ OZ_ROUTER_DEFAULT_PUBLIC_NETWORK_SUBNET.split('.')[3] }}"
+OZ_ROUTED_DEFAULT_PUBLIC_NETWORK_ENDPOINT_SERVICE_SUBNET_WITH_PREFIX: "{{ OZ_ROUTER_DEFAULT_PUBLIC_NETWORK_SUBNET }}/24"
+OZ_ROUTER_DEFAULT_PUBLIC_NETWORK_SERVER_IP: "{{ OZ_ROUTER_DEFAULT_PUBLIC_NETWORK_SUBNET_WITHOUT_LAST_OCTET }}2"
+
+###############################################################################################################################################
+
+# OZ_MASTER_DEFAULT_VPN_MESH_NETWORK_ENDPOINT_SERVICE_SUBNET: "172.16.77.0"
+# OZ_MASTER_DEFAULT_VPN_MESH_NETWORK_ENDPOINT_SERVICE_SUBNET_WITH_PREFIX: "172.16.77.0/24"
+# OZ_MASTER_DEFAULT_VPN_MESH_NETWORK_ENDPOINT_SERVICE_SUBNET_WITHOUT_LAST_OCTET: "172.16.77."
+# OZ_MASTER_VPN_MESH_NETWORK_ENDPOINT_SERVICE_PRIVATE_DNS_SERVER: 172.168.74.102
+
+OZ_ROUTER_DEFAULT_DIRECT_NETWORK_NAME_PREFIX: direct
+OZ_ROUTER_DEFAULT_PUBLIC_NETWORK_NAME_PREFIX: routed
+OZ_ROUTER_DEFAULT_VPNMESH_NETWORK_NAME_PREFIX: vpnmesh
+OZ_ROUTER_DEFAULT_PIVATE_NETWORK_NAME_PREFIX: isolated
+
+###############################################################################################################################################
+
+VPN_SUBNET_PRIVATE_DNS_SERVER: 172.168.74.102
+VPN_SUBNET_PRIVATE_DNS_SERVER_NAME: "dns-oz.{{ public_consul_domain }}"
+VPN_SERVER_NAME: ozPrefixRouter_
+VPN_SERVER_VPN_PORT: 19287
+VPN_SERVER_WEB_PORT: 11443
+
+VPN_SUBNET_INTERCONNECT: 172.16.89.0/24
+VPN_SUBNET_PRIVATE: 172.16.74.0/24
+VPN_SUBNET_PRIVATE_WITHOUT_LAST_OCTET: "172.16.74."
+VPN_SUBNET_INTERCONNECT_WITHOUT_LAST_OCTET: "172.16.89."
+VPN_SUBNET_PRIVATE_START: 172.16.74.10
+VPN_SUBNET_PRIVATE_END: 172.16.74.254
+VPN_SUBNET_PRIVATE_ROUTER: 172.16.74.1
+VPN_SERVER_PRIVATE_SUBNET_INTERFACE: ens37
+VPN_SERVER_PUBLIC_SUBNET_INTERFACE: ens33
+VPN_SERVER_PUBLIC_IP: 91.211.107.22
+
+INSTANCE_NAME: "testdc01"
+INSTANCE_VPN_SUBNET: "{{ OZ_ROUTER_DEFAULT_VPNMESH_NETWORK_SUBNET_WITH_PREFIX }}"
+INSTANCE_PRIVATE_SUBNET: "{{ VPN_SUBNET_PRIVATE }}"
+INSTANCE_VPN_PRIVATE_PORT: "{{ VPN_SERVER_VPN_PORT }}"
+SUBNET_VPN: "{{ INSTANCE_VPN_SUBNET }}"
+SUBNET_PRIVATE: "{{ VPN_SUBNET_PRIVATE }}"
+VPN_SUBNET_PUBLIC_INTERFACE: "{{ VPN_SERVER_PUBLIC_SUBNET_INTERFACE }}"
+VPN_SUBNET_PUBLIC_ROUTER: "{{ VPN_SUBNET_PRIVATE_ROUTER }}"
+VPN_PUBLIC_EDGE_ROUTER: "{% for host in groups['oz-primary-master-vpn-mesh-endpoint-host'] %}{{ hostvars[host].ansible_host }}{% endfor %}"
+VPN_SUBNET_PRIVATE_INTERFACE: "{{ VPN_SERVER_PRIVATE_SUBNET_INTERFACE }}"
+VPN_PRIVATE_SUBNET_NETMASK: 255.255.255.0
+PRIMARY_DOMAIN: "{{ public_consul_domain }}"
+CLOUD_DNS_SERVICE_GEO: "8.8.8.8"
+OZ_DHCP_SERVER_INTERFACE: "{{ VPN_SERVER_PUBLIC_SUBNET_INTERFACE }}"

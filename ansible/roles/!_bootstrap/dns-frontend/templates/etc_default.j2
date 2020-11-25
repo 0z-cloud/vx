@@ -1,0 +1,5 @@
+# run resolvconf?
+RESOLVCONF=no
+
+# startup options for the server
+OPTIONS="-f -4 -u bind -c {{ bind_cloud_settings.bind_etc }}/named.conf"

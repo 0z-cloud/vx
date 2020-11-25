@@ -1,0 +1,4 @@
+- name: Restart queue workers (supervisor)
+  shell: service supervisor restart
+  become: true
+  when: LARAVEL_QUEUES is defined or LARAVEL_HORIZON == "yes"

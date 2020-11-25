@@ -1,0 +1,10 @@
+
+- name: UPDATE PASSWORD | Show current user name
+  debug:
+    msg: "{{ hostvars[inventory_hostname].ansible_env.SUDO_USER }}"
+
+- name: UPDATE PASSWORD | Update user password for the environment
+  user:
+    name: "{{ hostvars[inventory_hostname].ansible_env.SUDO_USER }}"
+    update_password: always
+    password: "{{ NEW_PASSWORD | password_hash('sha512') }}"

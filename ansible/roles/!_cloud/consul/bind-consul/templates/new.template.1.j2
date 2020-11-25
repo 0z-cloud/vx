@@ -1,0 +1,63 @@
+$ORIGIN {{ consul_merge_domain_name }}
+$TTL 3600
+@         IN  SOA  {{ ansible_hostname }}.{{ consul_merge_domain_name }}  hostmaster.{{ consul_merge_domain_name }} (
+              2016113001  ; serial
+              21600       ; refresh after 6 hours
+              3600        ; retry after 1 hour
+              604800      ; expire after 1 week
+              3600 )     ; minimum TTL of 1 day
+;
+;
+
+
+{% for host in groups['consul-masters'] %}
+      IN  NS      {{ hostvars[host].ansible_nodename }}.{{ consul_merge_domain_name }}{% raw %}
+{% endraw %}
+{% endfor %}
+      IN  NS      ns.{{ consul_merge_domain_name }}
+      IN  NS      ns.service.{{ consul_merge_domain_name }}
+      IN  NS      consul.{{ consul_merge_domain_name }}
+{% for host in groups['consul-masters'] %}
+consul.service.{{ consul_merge_domain_name }}      IN  A     {{ hostvars[host].ansible_default_ipv4.address }}{% raw %}
+{% endraw %}
+{% endfor %}
+{% for host in groups['consul-masters'] %}
+{{ hostvars[host].ansible_nodename }}      IN  A     {{ hostvars[host].ansible_default_ipv4.address }}{% raw %}
+{% endraw %}
+{% endfor %}
+{% for host in groups['consul-masters'] %}
+ns.service.{{ consul_merge_domain_name }}    IN  A     {{ hostvars[host].ansible_default_ipv4.address }}{% raw %}
+{% endraw %}
+{% endfor %}
+{% for host in groups['consul-masters'] %}
+ns    IN  A     {{ hostvars[host].ansible_default_ipv4.address }}{% raw %}
+{% endraw %}
+{% endfor %}
+{% for host in groups['consul-masters'] %}
+consul    IN  A     {{ hostvars[host].ansible_default_ipv4.address }}{% raw %}
+{% endraw %}
+{% endfor %}
+;
+;
+
+{% for host in groups['consul-masters'] %}
+@         IN  MX  10     mail.{{ consul_merge_domain_name }}{% raw %}
+{% endraw %}
+{% endfor %}
+{% for host in groups['consul-masters'] %}
+mail      IN  A     {{ hostvars[host].ansible_default_ipv4.address }}{% raw %}
+{% endraw %}
+{% endfor %}
+
+;
+;
+
+{% for dict_item in unificated_consul_services %}
+{% for key, value in dict_item.items() if ( (key != "consul") and (key != "ns") ) %}
+{{ key | replace('\n', '') }}      IN  CNAME      {{ key | replace('\n', '') }}.service.{{ consul_merge_domain_name }}{% raw %}
+{% endraw %}
+{% endfor %}
+{% endfor %}
+
+;
+;

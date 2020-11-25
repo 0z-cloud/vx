@@ -1,0 +1,344 @@
+global_defs {
+   notification_email {
+        {{ unificated_keepalive_services.shared_settings.notification_email }}
+   }
+   notification_email_from {{ unificated_keepalive_services.shared_settings.notification_email }}
+   smtp_server {{ unificated_keepalive_services.shared_settings.smtp_server }}
+   smtp_connect_timeout {{ unificated_keepalive_services.shared_settings.smtp_connect_timeout }}
+   lvs_id {{ unificated_keepalive_services.shared_settings.lvs_id }}
+}
+
+vrrp_sync_group IFS {
+   group {
+      IFS-web
+   }
+}
+
+vrrp_instance IFS-web {
+        state MASTER
+        interface eth0
+        lvs_sync_daemon_inteface eth0
+        virtual_router_id 50
+        priority 150
+        advert_int 3
+        smtp_alert
+        authentication {
+                auth_type PASS
+                auth_pass 31337PASS1
+        }
+        virtual_ipaddress {
+                10.1.0.21
+                10.1.0.22
+                10.1.0.23
+                10.1.0.24
+                10.1.0.25
+		10.1.0.27
+		10.1.0.28
+		10.1.0.19
+}
+
+
+#https://gateway.vortex.com
+virtual_server 10.1.0.23 443 {
+    delay_loop 6
+    lvs_sched rr
+    lb_kind NAT
+    protocol TCP
+    real_server 10.1.1.231 443 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 443
+                        connect_timeout 5
+                        }
+                }
+    real_server 10.1.1.232 443 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 443
+                        connect_timeout 5
+                        }
+                }
+
+}
+
+#https://messenger.vortex.com
+virtual_server 10.1.0.25 443 {
+    delay_loop 6
+    lvs_sched rr
+    lb_kind NAT
+    protocol TCP
+    real_server 10.1.1.251 443 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 443
+                        connect_timeout 5
+                        }
+                }
+    real_server 10.1.1.252 443 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 443
+                        connect_timeout 5
+                        }
+                }
+
+}
+
+#https://secure.vortex.com
+virtual_server 10.1.0.21 443 {
+#    delay_loop 6
+    lvs_sched rr
+    lb_kind NAT
+#    persistence_timeout 900
+    protocol TCP
+    real_server 10.1.1.211 443 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 443
+                        connect_timeout 5
+                        }
+                }
+    real_server 10.1.1.212 443 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 443
+                        connect_timeout 5
+                        }
+                }
+
+}
+#http://secure.vortex.com
+virtual_server 10.1.0.21 80 {
+    delay_loop 6
+    lvs_sched rr
+    lb_kind NAT
+    persistence_timeout 900
+    protocol TCP
+    real_server 10.1.1.211 80 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 80
+                        connect_timeout 5
+                        }
+                }
+    real_server 10.1.1.212 80 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 80
+                        connect_timeout 5
+                        }
+                }
+
+}
+
+#https://admin.vortex.com
+virtual_server 10.1.0.22 443 {
+    delay_loop 6
+    lvs_sched rr
+    lb_kind NAT
+    persistence_timeout 900
+    protocol TCP
+    real_server 10.1.1.221 443 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 443
+                        connect_timeout 5
+                        }
+                }
+    real_server 10.1.1.222 443 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 443
+                        connect_timeout 5
+                        }
+                }
+
+}
+#http://admin.vortex.com
+virtual_server 10.1.0.22 80 {
+    delay_loop 6
+    lvs_sched rr
+    lb_kind NAT
+    persistence_timeout 900
+    protocol TCP
+    real_server 10.1.1.221 80 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 443
+                        connect_timeout 5
+                        }
+                }
+    real_server 10.1.1.222 80 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 443
+                        connect_timeout 5
+                        }
+                }
+
+}
+
+#https://client.vortex.com
+virtual_server 10.1.0.24 443 {
+    delay_loop 6
+    lvs_sched rr
+    lb_kind NAT
+    persistence_timeout 900
+    protocol TCP
+    real_server 10.1.1.241 443 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 443
+                        connect_timeout 5
+                        }
+                }
+    real_server 10.1.1.242 443 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 443
+                        connect_timeout 5
+                        }
+                }
+
+}
+#http://client.vortex.com
+virtual_server 10.1.0.24 80 {
+    delay_loop 6
+    lvs_sched rr
+    lb_kind NAT
+    persistence_timeout 900
+    protocol TCP
+    real_server 10.1.1.241 80 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 80
+                        connect_timeout 5
+                        }
+                }
+    real_server 10.1.1.242 80 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 80
+                        connect_timeout 5
+                        }
+                }
+
+}
+
+#http://clientnew.vortex.com
+virtual_server 10.1.0.27 80 {
+    delay_loop 6
+    lvs_sched rr
+    lb_kind NAT
+    persistence_timeout 900
+    protocol TCP
+    real_server 10.1.1.201 80 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 80
+                        connect_timeout 5
+                        }
+                }
+    real_server 10.1.1.202 80 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 80
+                        connect_timeout 5
+                        }
+                }
+
+}
+
+#https://clientnew.vortex.com
+virtual_server 10.1.0.27 443 {
+    delay_loop 6
+    lvs_sched rr
+    lb_kind NAT
+    persistence_timeout 900
+    protocol TCP
+    real_server 10.1.1.201 443 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 443
+                        connect_timeout 5
+                        }
+                }
+    real_server 10.1.1.202 443 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 443
+                        connect_timeout 5
+                        }
+                }
+
+}
+#http://clientnew.vortex.com
+virtual_server 10.1.0.28 80 {
+    delay_loop 6
+    lvs_sched rr
+    lb_kind NAT
+ #   persistence_timeout 900
+    protocol TCP
+    real_server 10.1.1.111 80 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 80
+                        connect_timeout 5
+                        }
+                }
+    real_server 10.1.1.112 80 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 80
+                        connect_timeout 5
+                        }
+                }
+
+}
+
+#https://proc-serv.vortex.com
+virtual_server 10.1.0.28 443 {
+    delay_loop 6
+    lvs_sched rr
+    lb_kind NAT
+#    persistence_timeout 900
+    protocol TCP
+    real_server 10.1.1.111 443 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 443
+                        connect_timeout 5
+                        }
+                }
+    real_server 10.1.1.112 443 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 443
+                        connect_timeout 5
+                        }
+                }
+
+}
+#https://proc-serv.vortex.com
+virtual_server 10.1.0.19 443 {
+    delay_loop 6
+    lvs_sched rr
+    lb_kind NAT
+#    persistence_timeout 900
+    protocol TCP
+    real_server 10.1.1.191 443 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 443
+                        connect_timeout 5
+                        }
+                }
+    real_server 10.1.1.192 443 {
+                weight 100
+                TCP_CHECK {
+                        connect_port 443
+                        connect_timeout 5
+                        }
+                }
+
+}

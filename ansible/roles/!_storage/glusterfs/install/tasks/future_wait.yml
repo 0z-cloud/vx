@@ -1,0 +1,147 @@
+
+# - name: Creating GlusterFS Volume with Arbiter Configuration
+#   gluster_volume: 
+#       state: present 
+#       name: "{{ glusterfs_settings.directories.volume_name }}"
+#       bricks: "{% for brick in glusterfs_settings.bricks_array %}{{ brick }}{% if not loop.last %},{% endif %}{% endfor %}"
+#       #rebalance: yes
+#       directory: "{{ glusterfs_settings.directories.opt_dir }}"
+#       transport: tcp
+#       force: true
+#       #replicas: 2
+#       replicas: "{{ hostvars[inventory_hostname].glusterfs_replica_count }}"
+#       arbiters: '1'
+#       cluster: "{% for host in groups['GLUSTERFS_CLUSTER_HOSTS_FULL'] %}{% if host in groups['cloud-bind-frontend-dns'] %}glusterfs.{{ hostvars[host]['inventory_hostname'] }}.{{ public_consul_domain }}{% else %}{{ hostvars[host]['inventory_hostname'] }}.{{ public_consul_domain }}{% endif %}{% if not loop.last %},{% endif %}{% endfor %}"
+#       # options:
+#       #     performance.readdir-ahead: 'on'
+#       #     transport.address-family: 'inet'
+#       #     cluster.quorum-type: 'auto'
+#       #     cluster.server-quorum-type: 'server'
+#       #     cluster.data-self-heal-algorithm: 'full'
+#       #     cluster.self-heal-readdir-size: '2KB'
+#       #     performance.write-behind-window-size: '10MB'
+#       #     server.allow-insecure: 'on'
+#       #     cluster.lookup-optimize: 'on'
+#       #     storage.batch-fsync-delay-usec: '0'
+#       #     performance.low-prio-threads: '64'
+#       #     performance.io-thread-count: '64'
+#       #     performance.client-io-threads: 'on'
+#       #     cache-max-file-size: '10MB'
+#       #     performance.cache-refresh-timeout: '5'
+#       #     performance.cache-size: '5GB'
+#       #     performance.read-ahead: 'off'
+#       #     write-behind: 'off'
+#       #     quick-read: 'off'
+#       #     network.inode-lru-limit: '1000000'
+#       #     network.remote-dio: 'enable'
+#       #     cluster.eager-lock: 'enable'
+#       #     performance.stat-prefetch: 'off'
+#       #     performance.io-cache: 'off'
+#       #     network.ping-timeout: '20'
+#       #     nfs.nlm: 'on'
+#       #     nfs.addr-namelookup: 'on'
+#       #     nfs.enable-ino32: 'on'
+#       #     nfs.disable: 'on'
+#       #     network.frame-timeout: '60'
+#       #     performance.quick-read: 'off'
+#       #     performance.flush-behind: 'off'
+#       #     performance.high-prio-threads: '64'
+#       #     performance.normal-prio-threads: '64'
+#       #     server.event-threads: '16'
+#       #     client.event-threads: '16'
+#       #     features.shard: 'on'
+#       #     features.shard-block-size: '512MB'
+#       #     # disperse.shd-max-threads: '6'
+#       #     disperse.self-heal-window-size: '4'
+#       #     cluster.self-heal-window-size: '2'
+#       #     cluster.heal-timeout: '500'
+#       #     cluster.background-self-heal-count: '20'
+#       #     #cluster.disperse-self-heal-daemon: 'enable'
+#       #     disperse.background-heals: '18'
+#       #     storage.owner-gid: '36'
+#       #     storage.owner-uid: '36'
+#       #  }
+#       # options:
+#       #   performance.cache-size: 256MB
+#       #   server.allow-insecure: on
+#       # 
+#       # nfs.disable: on
+#       # performance.client-io-threads: off
+#       #NEW OPTIONS
+#   ignore_errors: true
+#   when: glusterfs_arbiter_no_present is not defined
+#   run_once: true
+#   #delegate_to: "{{ item }}"
+#   #with_items: groups['GLUSTERFS_CLUSTER_HOSTS_FULL']
+#   #with_items: "{{ groups['GLUSTERFS_CLUSTER_HOSTS_BOOTSTRAP'] }}"
+#   #when: inventory_hostname in groups['GLUSTERFS_CLUSTER_HOSTS_BOOTSTRAP']
+#   tags: [create-volume]
+
+# - name: Creating GlusterFS Volume without Arbiter Configuration
+#   gluster_volume: 
+#       state: present 
+#       name: "{{ glusterfs_settings.directories.volume_name }}"
+#       bricks: "{% for brick in glusterfs_settings.bricks_array %}{{ brick }}{% if not loop.last %},{% endif %}{% endfor %}"
+#       rebalance: yes
+#       directory: "{{ glusterfs_settings.directories.opt_dir }}"
+#       transport: tcp
+#       force: true
+#       replicas: "{{ hostvars[inventory_hostname].glusterfs_replica_count }}"
+#       #arbiters: 1
+#       cluster: "{% for host in groups['GLUSTERFS_CLUSTER_HOSTS_FULL'] %}{% if host in groups['cloud-bind-frontend-dns'] %}glusterfs.{{ hostvars[host]['inventory_hostname'] }}.{{ public_consul_domain }}{% else %}{{ hostvars[host]['inventory_hostname'] }}.{{ public_consul_domain }}{% endif %}{% if not loop.last %},{% endif %}{% endfor %}"
+#       # options:
+#       #     performance.readdir-ahead: 'on'
+#       #     transport.address-family: 'inet'
+#       #     cluster.quorum-type: 'auto'
+#       #     cluster.server-quorum-type: 'server'
+#       #     cluster.data-self-heal-algorithm: 'full'
+#       #     cluster.self-heal-readdir-size: '2KB'
+#       #     performance.write-behind-window-size: '10MB'
+#       #     server.allow-insecure: 'on'
+#       #     cluster.lookup-optimize: 'on'
+#       #     storage.batch-fsync-delay-usec: '0'
+#       #     performance.low-prio-threads: '64'
+#       #     performance.io-thread-count: '64'
+#       #     performance.client-io-threads: 'on'
+#       #     cache-max-file-size: '10MB'
+#       #     performance.cache-refresh-timeout: '5'
+#       #     performance.cache-size: '5GB'
+#       #     performance.read-ahead: 'off'
+#       #     write-behind: 'off'
+#       #     quick-read: 'off'
+#       #     network.inode-lru-limit: '1000000'
+#       #     network.remote-dio: 'enable'
+#       #     cluster.eager-lock: 'enable'
+#       #     performance.stat-prefetch: 'off'
+#       #     performance.io-cache: 'off'
+#       #     network.ping-timeout: '20'
+#       #     nfs.nlm: 'on'
+#       #     nfs.addr-namelookup: 'on'
+#       #     nfs.enable-ino32: 'on'
+#       #     nfs.disable: 'on'
+#       #     network.frame-timeout: '60'
+#       #     performance.quick-read: 'off'
+#       #     performance.flush-behind: 'off'
+#       #     performance.high-prio-threads: '64'
+#       #     performance.normal-prio-threads: '64'
+#       #     server.event-threads: '16'
+#       #     client.event-threads: '16'
+#       #     features.shard: 'on'
+#       #     features.shard-block-size: '512MB'
+#       #     #disperse.shd-max-threads: '6'
+#       #     #disperse.self-heal-window-size: '4'
+#       #     cluster.self-heal-window-size: '2'
+#       #     cluster.heal-timeout: '500'
+#       #     cluster.background-self-heal-count: '20'
+#       #     #cluster.disperse-self-heal-daemon: 'enable'
+#       #     #disperse.background-heals: '18'
+#       #     storage.owner-gid: '36'
+#       #     storage.owner-uid: '36'
+#   run_once: true
+#   ignore_errors: true
+#   when: glusterfs_arbiter_no_present is defined
+#   #delegate_to: "{{ item }}"
+#   #with_items: groups['GLUSTERFS_CLUSTER_HOSTS_FULL']
+#   #with_items: "{{ groups['GLUSTERFS_CLUSTER_HOSTS_BOOTSTRAP'] }}"
+#   #when: inventory_hostname in groups['GLUSTERFS_CLUSTER_HOSTS_BOOTSTRAP']
+#   tags: [create-volume]

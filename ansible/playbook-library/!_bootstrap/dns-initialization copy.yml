@@ -1,0 +1,146 @@
+
+
+- hosts: localhost
+  gather_facts: true 
+  become: false
+  vars_files:
+    - "group_vars/products/{{ ansible_product }}/{{ ansible_cloud_type }}.yml"
+    - "group_vars/!_anyCloud/anyCloud.yml"
+    - "group_vars/all.yml"
+    - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/dns/dns-initialization/dns-initialization.yml"
+    # - "{{ inventory_dir }}/group_vars/dns/{{ HOSTS | default('master-bind-master-backend') }}/{{ HOSTS | default('master-bind-master-backend') }}.yml"
+    - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+    - "inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+  tasks: 
+
+  - name: Load default inventory group_vars
+    include_vars: "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+
+  - name: Template 0z-cloud configuration state to all nodes
+    template:
+      src: inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml
+      dest: /tmp/cloud_info.yml
+    delegate_to: localhost
+  
+  - name: Load Zero Cloud configuration for current environment, product, and cloud type
+    vars:
+      zero_cloud_load: "{{ lookup('file', '/tmp/cloud_info.yml') | from_yaml }}"
+    set_fact:
+      zero_cloud: "{{ zero_cloud_load }}"
+
+# - hosts: localhost
+#   vars_files:
+#     - "group_vars/products/{{ ansible_product }}/{{ ansible_cloud_type }}.yml"
+#     - "group_vars/!_anyCloud/anyCloud.yml"
+#     - "group_vars/all.yml"
+#     - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+#     - "inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+
+#   vars:
+#     my_vars_keys: [AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN]
+#   tasks:
+#     - set_fact:
+#         my_vars: "{{ my_vars|default({})|
+#                     combine({item:
+#                               lookup('ini',
+#                                       item ~ ' type=properties file=conf.ini')})
+#                                       }}"
+#       loop: "{{ my_vars_keys }}"
+#     - debug:
+#         msg: "{{ my_vars[item] }}"
+#       loop: "{{ my_vars_keys }}"
+
+# Facts Getting from All Server's clients for DNS templating
+- name: Fact gathering
+  gather_facts: true 
+  hosts: cloud-bind-frontend-dns:all
+  # vars_files:
+  #   - "group_vars/products/{{ ansible_product }}/{{ ansible_cloud_type }}.yml"
+  #   - "group_vars/!_anyCloud/anyCloud.yml"
+  #   - "group_vars/all.yml"
+  #   # - "{{ inventory_dir }}/group_vars/dns/{{ default('cloud-bind-frontend-dns:all') }}/{{ HOSTS | default('master-bind-master-backend') }}.yml"
+  #   - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+  #   - "inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+  tasks: []
+
+    # - name: Debug values
+    #   debug:
+    #     msg: "{{ item }}"
+    #   with_items:
+    #     - "ansible_product: {{ ansible_product }}"
+    #     - "ansible_environment: {{ ansible_environment }}"
+    #     - "ansible_cloud_type: {{ ansible_cloud_type }}"
+
+    # - name: Load default inventory group_vars
+    #   include_vars: "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+  
+    # - name: Template 0z-cloud configuration state to all nodes
+    #   template:
+    #     src: inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml
+    #     dest: /tmp/cloud_info.yml
+    #   delegate_to: "{{ inventory_hostname }}"
+    #   #delegate_to: localhost
+    
+    # - name: Shell get_facts
+    #   shell: cat /tmp/cloud_info.yml
+    #   register: cloud_info
+
+    # - name: Debug value cloud_info
+    #   debug:
+    #     msg: "{{ cloud_info }}"
+
+    # - set_fact:
+    #     zero_cloud: "{{ zero_cloud | default({}) | combine({item: lookup('file', '/tmp/cloud_info.yml')}) }}"
+
+    # - name: update facts
+    #   setup:
+    #   delegate_to: '{{ item }}'
+    #   delegate_facts: yes
+    #       # when: hostvars[item]["ansible_all_ipv4_addresses"] is not defined
+    #   with_items: '{{ groups["all"] }}'
+    #   tags:
+    #     - always
+
+    # - name: Load Zero Cloud configuration for current environment, product, and cloud type
+    #   set_fact:
+    #     zero_cloud: "{{ lookup('file', '/tmp/cloud_info.yml') | from_yaml }}"
+      # set_fact:
+      #   zero_cloud: "{{ zero_cloud_load }}"
+
+
+      # remote_src: true
+      # set_fact:
+      #   zero_cloud: "{{ zero_cloud_load }}"
+      # delegate_to: "{{ inventory_hostname }}"
+      # remote_src: true
+
+    # - name: Load a variable file based on the OS type, or a default if not found. Using free-form to specify the file.
+    #   include_vars: /tmp/cloud_info.yml
+    #   remote_src: true
+
+    # - name: Load Zero Cloud configuration for current environment, product, and cloud type
+    #   vars:
+    #     zero_cloud_load: "{{ lookup('file', '/tmp/cloud_info.yml') | from_yaml }}"
+    #   set_fact:
+    #     zero_cloud: "{{ zero_cloud_load }}"
+    #   delegate_to: "{{ inventory_hostname }}"
+
+  tags: [get_facts, always]
+
+- name: Setup dns service for run specific tasks
+  hosts: cloud-bind-frontend-dns:all
+  vars_files:
+    - "group_vars/products/{{ ansible_product }}/{{ ansible_cloud_type }}.yml"
+    - "group_vars/!_anyCloud/anyCloud.yml"
+    - "group_vars/all.yml"
+    - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/dns/dns-initialization/dns-initialization.yml"
+    # - "{{ inventory_dir }}/group_vars/dns/{{ HOSTS | default('master-bind-master-backend') }}/{{ HOSTS | default('master-bind-master-backend') }}.yml"
+    - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+    - "inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+  roles:
+  
+    - name: GET CLOUD FACTS | Load the anycloud settings from Zero Cloud Inventory
+      role: ./!_0_init/anycloud
+  
+    - name: Run dns service role
+      role: ./!_bootstrap/dns-initialization

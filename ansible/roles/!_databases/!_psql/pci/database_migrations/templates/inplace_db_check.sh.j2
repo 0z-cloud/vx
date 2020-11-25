@@ -1,0 +1,21 @@
+#!/bin/bash
+printf '...try postgres reached...'
+
+attempt_counter=0
+max_attempts=12
+#max_sleep[5]=
+max_sleep=5
+
+until $(curl --output /dev/null --silent --head --fail http://postgres:5432); do
+    if [ ${attempt_counter} -eq ${max_attempts} ];then
+      echo "Max attempts reached, skip step with exit error"
+      exit 1
+    fi
+
+    printf '...in checking awaiting postgres...'
+    attempt_counter=$(($attempt_counter+1))
+    sleep $max_sleep
+
+done
+
+printf '...postgres reached...'

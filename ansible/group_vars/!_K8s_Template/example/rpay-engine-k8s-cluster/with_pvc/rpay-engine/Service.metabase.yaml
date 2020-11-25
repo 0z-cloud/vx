@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: metabase
+    chart: metabase-0.1.0
+    heritage: Tiller
+    io.cattle.field/appId: rpay-engine
+    release: rpay-engine
+  name: metabase
+  selfLink: /api/v1/namespaces/rpay-engine/services/metabase
+spec:
+  ports:
+  - port: 3000
+    protocol: TCP
+    targetPort: 3000
+  selector:
+    app: metabase
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}

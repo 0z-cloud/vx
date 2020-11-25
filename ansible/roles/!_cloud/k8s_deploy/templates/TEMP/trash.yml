@@ -1,0 +1,25 @@
+    #field.cattle.io/publicEndpoints: '[{"addresses":["142.93.81.218"],"port":80,"protocol":"HTTP","serviceName":"default:ingress-ea406cef0c86616c5c91a0cbb764c577","ingressName":"default:webapp-ingress","hostname":"webapp-ingress.default.142.93.81.218.xip.io","allNodes":true}]'
+    field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":443,"protocol":"HTTPS","serviceName":"{{ ansible_product}}-{{ ansible_environment }}:{{ item.key }}","ingressName":"{{ ansible_product}}-{{ ansible_environment }}:{{ item.key }}","hostname":"{{ item.key }}.{{ public_consul_domain }}","path":"/","allNodes":true}]'
+
+    field.cattle.io/creatorId: user-955kz
+    field.cattle.io/ingressState: '{"azhzLWRlYWRpbnNpLmRl":"mastodon:k8s-deadinsi.de","bWFzdG9kb24vbWFzdG9kb24vazhzLmRlYWRpbnNpLmRlLy8vODA=":""}'
+    field.cattle.io/publicEndpoints: '[{"addresses":["95.216.190.83"],"port":80,"protocol":"HTTP","serviceName":"mastodon:mastodon-web","ingressName":"mastodon:mastodon","hostname":"k8s.deadinsi.de","path":"/","allNodes":true}]'
+
+    {{ hostvars[host]['ansible_default_ipv4']['address'] }}
+{{ hostvars[host]['public_nat_ip'] }}
+    {% if hostvars[host]['public_nat_ip'] != 'REPLACED' %}
+
+        # with_items: "{{ update_array_data.results }}"
+
+    # - name: Debug and show files prepared for update
+    #   debug: 
+    #     msg: '{{ item.stdout_lines }}'
+    #   register: "{{ item.stdout_lines[0] | regex_replace("^.*?[\s.]", "") | regex_replace("([\s.])yaml", "") }}"
+    #   with_items: "{{ update_array_data.results }}"
+    #      with_dict: "{{ installed_app_settings }}"
+
+    # - name: Start a Deployment process by reading the definition from a local file
+    #   k8s:
+    #     state: present
+    #     src: /testing/deployment.yml
+    #   with_dict: "{{ installed_app_settings }}"

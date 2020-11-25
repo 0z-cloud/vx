@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# NAT FOR BACKEND SERVERS
+{% if unificated_keepalive_services.backend_services is defined %}
+{% for dict_item in unificated_keepalive_services.backend_services %}
+{% for a,b in dict_item|dictsort(['virtual_server']) if loop.changed(b['virtual_server']['ip']) %}
+{% for host in groups[b['backend_server']['group']] %}
+#(iptables -t nat -C POSTROUTING -s {{ hostvars[host]['ansible_ssh_host'] }} -o {{ hostvars[inventory_hostname].lb_interface_02 }} -j SNAT --to-source {{ b['virtual_server']['ip'] }} -m comment --comment "Keepalive - NAT for {{ b['comment'] }}" || iptables -t nat -A POSTROUTING -s {{ hostvars[host]['ansible_ssh_host'] }} -o {{ hostvars[inventory_hostname].lb_interface_02 }} -j SNAT --to-source {{ b['virtual_server']['ip'] }} -m comment --comment "Keepalive - NAT for {{ b['comment'] }}")
+{% endfor %}
+{% endfor %}
+{% endfor %}
+{% endif %}
+
+# LOCALHOST DNS FIX
+
+iptables -t nat -A POSTROUTING -o {{ hostvars[inventory_hostname].lb_interface_02 }} -j MASQUERADE
+
+iptables -A FORWARD -i {{ hostvars[inventory_hostname].lb_interface_02 }} -o {{ hostvars[inventory_hostname].lb_interface_02 }} -m state --state RELATED,ESTABLISHED -j ACCEPT
+
+iptables -t nat -A POSTROUTING -o {{ hostvars[inventory_hostname].lb_interface_01 }} -j MASQUERADE
+
+iptables -A FORWARD -i {{ hostvars[inventory_hostname].lb_interface_01 }} -o {{ hostvars[inventory_hostname].lb_interface_02 }} -m state --state RELATED,ESTABLISHED -j ACCEPT
+iptables -A FORWARD -i {{ hostvars[inventory_hostname].lb_interface_02 }} -o {{ hostvars[inventory_hostname].lb_interface_01 }} -j ACCEPT
+
+iptables -t nat -A POSTROUTING  -d 127.0.0.53 -o lo -m comment --comment "SNAT for systemd-resolved" -j SNAT --to-source 127.0.0.1
+
+# iptables -t nat -A POSTROUTING -o ens192 -j MASQUERADE
+# iptables -A FORWARD -i ens192 -o ens192 -m state --state RELATED,ESTABLISHED -j ACCEPT
+# iptables -t nat -A POSTROUTING -o ens160 -j MASQUERADE
+# iptables -A FORWARD -i ens160 -o ens192 -m state --state RELATED,ESTABLISHED -j ACCEPT
+# iptables -A FORWARD -i ens192 -o ens160 -j ACCEPT
+# iptables -A OUTPUT -i ens192 -o ens192 -j ACCEPT
+# iptables -t nat -A POSTROUTING  -d 127.0.0.53 -o lo -m comment --comment "SNAT for systemd-resolved" -j SNAT --to-source 127.0.0.1
+# iptables -t nat -A POSTROUTING -s 172.16.1.0/24 -o ens192 -j MASQUERADE
+# iptables -A INPUT -i ens192 -m state --state RELATED,ESTABLISHED -j ACCEPT
+# iptables -A FORWARD -i ens160 -o ens192 -m state   --state RELATED,ESTABLISHED -j ACCEPT
+# iptables -A FORWARD -i ens192 -o ens160 -j ACCEPT
+# iptables -A FORWARD -j REJECT --reject-with icmp-host-prohibited
+# iptables -A FORWARD -i ens192 -o ens160 -m state   --state RELATED,ESTABLISHED -j ACCEPT
+# iptables -A FORWARD -i ens160 -o ens192 -j ACCEPT
+# iptables -A FORWARD -j REJECT --reject-with icmp-host-prohibited
+# iptables save
+# iptables -t nat -A POSTROUTING -o ens192 -j MASQUERADE
+# iptables -I OUTPUT -o ens192 -d 224.0.0.0/8 -p vrrp -j ACCEPT

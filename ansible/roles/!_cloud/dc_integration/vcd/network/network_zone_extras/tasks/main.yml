@@ -1,0 +1,30 @@
+# tasks
+
+# - name: DEBUG | All values network_zone_extras
+#   no_log: True
+#   debug:
+#     msg: "{{ item }}"
+#   with_items:
+#     - "user - {{ anycloud_adapter_api_user }}"
+#     - "password - {{ anycloud_adapter_api_password }}"
+#     - "host http uri - {{ anycloud_adapter_api_url_http_uri }}" 
+#     - "host - {{ anycloud_adapter_api_url_endpoint }}"
+#     - "api_version - {{ anycloud_adapter_api_url_version }}"
+#     - "verify_ssl_certs - {{ anycloud_adapter_api_url_verify_ssl }}"
+#     - "org - {{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+#     - "org_name - {{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+#     - "vdc_name - {{ anycloud_defaults_virtual_datacenter }}"
+#     - "vdc - {{ anycloud_defaults_virtual_datacenter }}"
+#     - "gateway_name - {{ anycloud_virtual_cloud_name }}"
+#     - "network_name - {{ anycloud_defaults_cloud_name }}"
+#     - "description - {{ anycloud_virtual_cloud_description }}"
+#     - "parent_network_name - {{ anycloud_result_edge_router }}"
+#     - "primary_dns_ip - {{ anycloud_defaults_vpc_zone_virtual_abstract.dns_servers[0] }}"
+#     - "secondary_dns_ip - {{ anycloud_defaults_vpc_zone_virtual_abstract.dns_servers[1] }}"
+#     - "network_cidr - {{ anycloud_defaults_virtual_cloud_primary_network_virtual_communication_cidr }}"
+#     - "dns_suffix - {{ anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_dns_suffix }}"
+#     - "ip_range_start - {{ anycloud_defaults_virtual_edge_start_static_pool }}"
+#     - "ip_range_end: {{ anycloud_defaults_virtual_edge_end_static_pool }}"
+#     - "dhcp_ip_range_end: {{ anycloud_defaults_virtual_edge_end_dhcp_pool }}"
+#     - "dhcp_ip_range_start: {{ anycloud_defaults_virtual_edge_start_dhcp_pool }}"
+#   when: debug_playbook_stdout is defined 

@@ -1,0 +1,95 @@
+
+## RE ADD NEW KEYS TO KNOWN_HOSTS
+
+### USERKEYS
+
+- name: USERKEYS | Readd user keys fingerprints by name type rsa1
+  shell: "ssh-keyscan -t rsa1 {{ item.key }} | tee >> /root/.ssh/known_hosts"
+  with_dict: "{{ dict_new_keys }}"
+
+# - name: DEBUG USERKEYS | Readd user keys fingerprints by name
+#   debug:
+#     msg: "ssh-keyscan {{ item.key }} | tee >> /root/.ssh/known_hosts"
+#   with_dict: "{{ dict_new_keys }}"
+
+- name: USERKEYS | Readd user keys fingerprints by name type rsa1
+  shell: "ssh-keyscan -t rsa1 {{ item.key }} | tee >> /root/.ssh/known_hosts"
+  with_dict: "{{ dict_new_keys }}"
+
+# - name: DEBUG USERKEYS | Readd user keys fingerprints by name
+#   debug:
+#     msg: "ssh-keyscan {{ item.key }} | tee >> /root/.ssh/known_hosts"
+#   with_dict: "{{ dict_new_keys }}"
+
+### MACHINE KEYS
+
+- name: RSA | Readd host fingerprints by name type rsa
+  shell: "ssh-keyscan -t rsa {{ item.key }} | tee >> /root/.ssh/known_hosts"
+  with_dict: "{{ dict_new_host_keys }}"
+
+# - name: RSA DEBUG | Readd host fingerprints by name
+#   debug:
+#     msg: "ssh-keyscan {{ item.key }} | tee >> /root/.ssh/known_hosts"
+#   with_dict: "{{ dict_new_host_keys }}"
+
+- name: RSA | Readd host fingerprints by name type rsa
+  shell: "ssh-keyscan -t rsa {{ item.key }} | tee >> /root/.ssh/known_hosts"
+  with_dict: "{{ dict_new_host_keys }}"
+
+# - name: RSA DEBUG | Readd host fingerprints by name
+#   debug:
+#     msg: "ssh-keyscan {{ item.key }} | tee >> /root/.ssh/known_hosts"
+#   with_dict: "{{ dict_new_host_keys }}"
+
+- name: DSA | Readd host fingerprints by name type dsa
+  shell: "ssh-keyscan -t dsa {{ item.key }} | tee >> /root/.ssh/known_hosts"
+  with_dict: "{{ dict_new_host_keys_dsa }}"
+
+# - name: DSA DEBUG | Readd host fingerprints by name
+#   debug:
+#     msg: "ssh-keyscan {{ item.key }} | tee >> /root/.ssh/known_hosts"
+#   with_dict: "{{ dict_new_host_keys_dsa }}"
+
+- name: DSA | Readd host fingerprints by name type dsa
+  shell: "ssh-keyscan -t dsa {{ item.key }} | tee >> /root/.ssh/known_hosts"
+  with_dict: "{{ dict_new_host_keys_dsa }}"
+
+# - name: DSA DEBUG | Readd host fingerprints by name
+#   debug:
+#     msg: "ssh-keyscan {{ item.key }} | tee >> /root/.ssh/known_hosts"
+#   with_dict: "{{ dict_new_host_keys_dsa }}"
+
+- name: ECDSA | Readd host fingerprints by name type ecdsa
+  shell: "ssh-keyscan -t ecdsa {{ item.key }} | tee >> /root/.ssh/known_hosts"
+  with_dict: "{{ dict_new_host_keys_ecdsa }}"
+
+# - name: ECDSA DEBUG | Readd host fingerprints by name
+#   debug:
+#     msg: "ssh-keyscan {{ item.key }} | tee >> /root/.ssh/known_hosts"
+#   with_dict: "{{ dict_new_host_keys_ecdsa }}"
+
+- name: ECDSA | Readd host fingerprints by name type ecdsa
+  shell: "ssh-keyscan -t ecdsa {{ item.key }} | tee >> /root/.ssh/known_hosts"
+  with_dict: "{{ dict_new_host_keys_ecdsa }}"
+
+# - name: ECDSA DEBUG | Readd host fingerprints by name
+#   debug:
+#     msg: "ssh-keyscan {{ item.key }} | tee >> /root/.ssh/known_hosts"
+#   with_dict: "{{ dict_new_host_keys_ecdsa }}"
+
+#
+
+- name: RSA IP | Readd host fingerprints by name
+  shell: "ssh-keyscan {{ hostvars[item.key]['ansible_default_ipv4']['address'] }} | tee >> /root/.ssh/known_hosts"
+  with_dict: "{{ dict_new_keys }}"
+  ignore_errors: true
+
+- name: ECDSA IP | Readd host fingerprints by name
+  shell: "ssh-keyscan -t ecdsa {{ hostvars[item.key]['ansible_default_ipv4']['address'] }} | tee >> /root/.ssh/known_hosts"
+  with_dict: "{{ dict_new_keys }}"
+  ignore_errors: true
+
+- name: DSA IP | Readd host fingerprints by name
+  shell: "ssh-keyscan -t dsa {{ hostvars[item.key]['ansible_default_ipv4']['address'] }} | tee >> /root/.ssh/known_hosts"
+  with_dict: "{{ dict_new_keys }}"
+  ignore_errors: true

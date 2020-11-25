@@ -1,0 +1,8 @@
+- name: Load default inventory group_vars
+  include_vars: "group_vars/products/{{ ansible_product }}/{{ ansible_cloud_type }}.yml"
+
+- name: Load Zero Cloud configuration for current environment, product, and cloud type
+  vars:
+    zero_cloud_load: "{{ lookup('file', '/tmp/cloud_info.yml') | from_yaml }}"
+  set_fact:
+    zero_cloud: "{{ zero_cloud_load }}"

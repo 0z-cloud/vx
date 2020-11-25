@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    field.cattle.io/creatorId: user-rxbgq
+    pv.kubernetes.io/bind-completed: "yes"
+    pv.kubernetes.io/bound-by-controller: "yes"
+    volume.beta.kubernetes.io/storage-provisioner: openebs.io/local
+    volume.kubernetes.io/selected-node: worker2
+  creationTimestamp: null
+  finalizers:
+  - kubernetes.io/pvc-protection
+  labels:
+    cattle.io/creator: norman
+  name: redis-data
+  selfLink: /api/v1/namespaces/default/persistentvolumeclaims/redis-data
+spec:
+  accessModes:
+  - ReadWriteOnce
+  dataSource: null
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: openebs-hostpath
+  volumeMode: Filesystem
+  volumeName: pvc-74f37bfd-99b3-11e9-890b-b42e994820d9
+status: {}

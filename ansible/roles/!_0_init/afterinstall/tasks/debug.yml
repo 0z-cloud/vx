@@ -1,0 +1,43 @@
+- name: DEBUG | Show unification_services map
+  debug:
+    var: "{{ item }}"
+  with_items: "{{ unification_services }}"
+
+- name: DEBUG | Show nginx_same map
+  debug:
+    msg: "{{ nginx_same }}"
+
+- name: DEBUG | Show unification_sites map
+  debug:
+    var: "{{ item }}"
+  with_items: "{{ unification_sites }}"
+
+- name: DEBUG | Show dynamic map
+  debug:
+    msg: "{{ static_dns_mappings }}"
+
+- name: DEBUG | Show dynamic map
+  debug:
+    msg: "{{ item }}"
+  with_items: "{{ static_dns_mappings.main.website_ip }}"
+
+- name: DEBUG | Show lsb_release
+  debug:
+    msg: "{{ lsb_release.stdout_lines | join }}"
+
+- name: DEBUG | Show hosts keys result of renew the RSA DSA ECDSA lists
+  debug: 
+    var: "{{ item }}"
+  with_items:
+    - "ecdsa_host_public_keys_list"
+    - "dsa_host_public_keys_list"
+    - "rsa_host_public_keys_list"
+
+- name: DEBUG | new_keys
+  debug: 
+    msg: "{{ new_keys.public_key }}"
+  when: full_clean is defined
+
+- name: DEBUG | public_keys_list
+  debug: 
+    msg: "{{ public_keys_list }}"

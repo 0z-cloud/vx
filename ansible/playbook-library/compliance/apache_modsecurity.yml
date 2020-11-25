@@ -1,0 +1,7 @@
+- name: Run the apache2 mod_security
+  become: true
+  hosts: "{{ HOSTS | default('web-servers') }}"
+  roles:
+    - name: Run apache2 mod security on runned hosts
+      role: ./!_cloud/apache/mod_security
+  tags: [apach2-mod-security]

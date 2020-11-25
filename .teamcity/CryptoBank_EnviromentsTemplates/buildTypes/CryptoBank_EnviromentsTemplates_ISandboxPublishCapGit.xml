@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="bb2cee74-6279-47cd-b27b-59f0215e9832" xsi:noNamespaceSchemaLocation="https://www.jetbrains.com/teamcity/schemas/2018.1/project-config.xsd">
+  <name>I. Sandbox-Publish ^ Cap ^ Git</name>
+  <description />
+  <settings>
+    <options>
+      <option name="allowPersonalBuildTriggering" value="false" />
+      <option name="buildConfigurationType" value="DEPLOYMENT" />
+      <option name="maximumNumberOfBuilds" value="1" />
+      <option name="showDependenciesChanges" value="true" />
+    </options>
+    <disabled-settings>
+      <setting-ref ref="BUILD_EXT_10" />
+      <setting-ref ref="BUILD_EXT_11" />
+    </disabled-settings>
+    <parameters>
+      <param name="BuildNumber" value="%build.number%" />
+      <param name="env.A_MAIN_VERSION" value="%main_build_id%" />
+      <param name="env.reverse.dep.*.env.A_MAIN_VERSION" value="%env.A_MAIN_VERSION%" />
+      <param name="main_build_id" value="%dep.CryptoBank_BuildChain_2buildBuildAndPushDockerImages.build.counter%" />
+      <param name="reverse.dep.*.ANSIBLE_APPLICATION_TYPE" value="rails" />
+      <param name="reverse.dep.*.ANSIBLE_CI_PROJECT_NAME" value="wirecapital_gate" />
+      <param name="reverse.dep.*.ANSIBLE_CI_PROJECT_NAMESPACE" value="wirecapital" />
+      <param name="reverse.dep.*.ANSIBLE_CLOUD_TYPE" value="bare" />
+      <param name="reverse.dep.*.ANSIBLE_COMMIT_SHA" value="%system.build.vcs.number%" />
+      <param name="reverse.dep.*.ANSIBLE_DEPLOY_USERNAME" value="" spec="text label='DEPLOY USERNAME' validationMode='any' display='prompt'" />
+      <param name="reverse.dep.*.ANSIBLE_ENVIRONMENT" value="stage" />
+      <param name="reverse.dep.*.ANSIBLE_PRODUCT_NAME" value="office" />
+      <param name="reverse.dep.*.ANSIBLE_REGISTRY_URL" value="registry.adam.local.cloud.eve.vortice.eden" />
+      <param name="reverse.dep.*.ANSIBLE_REGISTRY_USERNAME" value="root" />
+      <param name="reverse.dep.*.ANSIBLE_RUN_TYPE" value="true" />
+      <param name="reverse.dep.*.ANSIBLE_TRIGGER_TOKEN" value="o5hqKNkto4-VPRP2xQh4" spec="text validationMode='any' display='normal'" />
+      <param name="reverse.dep.*.A_DEPLOY_PASSWORD" value="" spec="text label='A_DEPLOY_PASSWORD' validationMode='any' display='prompt'" />
+      <param name="reverse.dep.*.A_ENV_SECURITY" value="minimal" />
+      <param name="reverse.dep.*.A_VAULT_PASSWORD" value="" spec="text label='A_VAULT_PASSWORD' validationMode='any' display='prompt'" />
+      <param name="reverse.dep.*.RunningOfferForBuild" value="" spec="checkbox label='Disable run Build suite pipeline step' uncheckedValue='false' display='prompt' checkedValue='true'" />
+      <param name="reverse.dep.*.RunningOfferForPublish" value="" spec="checkbox label='Disable run Publish suite pipeline step' uncheckedValue='false' display='prompt' checkedValue='true'" />
+      <param name="reverse.dep.*.RunningOnlyQA" value="" spec="checkbox label='Running only test suite' uncheckedValue='false' display='prompt' checkedValue='true'" />
+      <param name="reverse.dep.*.TEST_VALUE" value="TEST_VALUE" />
+    </parameters>
+    <build-runners />
+    <vcs-settings>
+      <vcs-entry-ref root-id="Teamcity" />
+    </vcs-settings>
+    <requirements />
+    <build-triggers />
+    <build-extensions>
+      <extension id="BUILD_EXT_10" type="commit-status-publisher">
+        <parameters>
+          <param name="gitlabApiUrl" value="https://gitlab.adam.local.cloud.eve.vortice.eden/api/v4" />
+          <param name="publisherId" value="gitlabStatusPublisher" />
+          <param name="secure:gitlabAccessToken" value="credentialsJSON:3bdec7f0-9bfb-470b-befb-cde6bcf141cb" />
+          <param name="vcsRootId" value="Teamcity" />
+        </parameters>
+      </extension>
+      <extension id="BUILD_EXT_11" type="pullRequests">
+        <parameters>
+          <param name="authenticationType" value="token" />
+          <param name="providerType" value="gitlab" />
+          <param name="secure:accessToken" value="credentialsJSON:3bdec7f0-9bfb-470b-befb-cde6bcf141cb" />
+          <param name="vcsRootId" value="Teamctity" />
+        </parameters>
+      </extension>
+    </build-extensions>
+    <dependencies>
+      <depend-on sourceBuildTypeId="CryptoBank_BuildChain_PythonQA">
+        <options>
+          <option name="take-started-build-with-same-revisions" value="true" />
+        </options>
+      </depend-on>
+    </dependencies>
+    <cleanup />
+  </settings>
+</build-type>
+

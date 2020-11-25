@@ -1,0 +1,30 @@
+# RESET ALL
+
+# RESET CA
+
+- name: Clear ca directories
+  shell: rm -rf {{ item.value }}
+  with_dict: "{{ ca_service_settings.directories | default({}) }}"
+
+# RESET KUBE
+
+- name: Stop kubelet
+  shell: systemctl stop kubelet
+
+- name: Reset Kubernetes component
+  shell: "kubeadm reset --force"
+
+- name: Clear kube directories
+  shell: rm -rf {{ item.value }}
+  with_dict: "{{ k8s_service_settings.directories | default({}) }}"
+
+# RESET ETCD
+
+- name: Stop etcd
+  shell: systemctl stop etcd
+  when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Clear etcd directories
+  shell: rm -rf {{ item.value }}
+  with_dict: "{{ etcd_service_settings.directories | default({}) }}"
+  when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']

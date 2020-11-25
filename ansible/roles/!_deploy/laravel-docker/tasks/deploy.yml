@@ -1,0 +1,117 @@
+- include_vars:
+    name: laravel_application
+    file: "{{ inventory_dir }}/group_vars/!_Applications_Core/laravel/{{ application_name }}.yml"
+
+- set_fact:
+    timestamp: '{{ ansible_date_time.epoch }}'
+
+- set_fact:
+    application_secret_name: "{{ laravel_application.name }}_{{ timestamp }}_env"
+
+- set_fact:
+    encryption_password: "{{ application_secret_name | hash('md5') }}"
+
+- name: encrypt config
+  shell: "echo '{{ laravel_application.secured_variables | to_json | b64encode }}' | openssl enc -aes-256-cbc -A -a -k {{ encryption_password }} -nosalt -p"
+  register: encrypted_config
+
+- set_fact:
+    config_encryption_key: "{{ encrypted_config.stdout_lines[0][4:] }}"
+
+- set_fact:
+    config_encryption_key_part1: "{{ config_encryption_key[0:32] }}"
+    config_encryption_key_part2: "{{ config_encryption_key[32:64] }}"
+
+- name: save encrypted config to consul
+  consul_kv:
+    host: "{{ groups['consul-masters'] | shuffle | random }}"
+    key: "{{ laravel_application.name }}/config_encrypted"
+    value: "{{ {\"key_part_2\": config_encryption_key_part2, \"iv\": encrypted_config.stdout_lines[1][4:], \"value\": encrypted_config.stdout_lines[2]} | to_json | b64encode }}"
+
+- name: create docker stack config
+  template:
+    src: docker-stack.yml
+    dest: "{{ glusterfs_settings.directories.cloud_dir }}/docker-stacks-laravel/{{ laravel_application.name }}.yml"
+
+- name: create docker secret for app
+  docker_secret:
+    name: "{{ application_secret_name }}"
+    data: |
+      {% for item in laravel_application.variables | dict2items %}
+      {{ item.key }}={{ item.value }}
+      {% endfor %}
+    state: present
+  register: docker_secret
+
+- name: create folders for application in glusterfs
+  file:
+    path: "{{ glusterfs_settings.directories.cloud_dir }}/laravel/{{ laravel_application.name }}/{{ dir }}"
+    state: directory
+  with_items:
+    - storage/app/public
+    - storage/framework/cache/data
+    - storage/framework/sessions
+    - storage/framework/views
+    - storage/logs
+  loop_control:
+    loop_var: dir
+
+- name: shutdown application
+  shell: "docker stack rm {{ laravel_application.name }}"
+  when: shutdown_application | bool
+
+- include: "deploy/migrations.yml"
+  when: laravel_application.db_migrate | default(false)
+
+- include: "deploy/seeds.yml"
+  when: laravel_application.db_seed | default(false)
+
+- name: deploy application stack
+  shell: "docker stack deploy --prune --compose-file={{ glusterfs_settings.directories.cloud_dir }}/docker-stacks-laravel/{{ laravel_application.name }}.yml {{ laravel_application.name }}"
+  register: deploy_application_stack_result
+  until: deploy_application_stack_result.rc == 0
+  retries: 10
+  delay: 2
+  ignore_errors: yes
+
+  #- name: waiting for seeds to finish
+  #  shell: "docker service ps {{ application_name }}_seeds --format '{% raw %}{{json .}}{% endraw %}'"
+  #  register: result
+  #    :>
+  #    (result.stdout | from_json).DesiredState == 'Shutdown' and
+  #    (result.stdout | from_json).Error == '' and
+  #    (result.stdout | from_json).CurrentState is match("Complete *")
+  #  retries: 3600
+  #  delay: 1
+  #  when: laravel_db_seed is defined and laravel_db_seed == "yes"
+  #
+  #- docker_swarm_service:
+  #    name: "{{ application_name }}_seeds"
+  #    state: absent
+  #  when: laravel_db_seed is defined and laravel_db_seed == "yes"
+  #
+  #- name: deploy application stack
+  #  shell: "docker stack deploy --prune --compose-file={{ glusterfs_settings.directories.cloud_dir }}/docker-stacks-laravel/{{ application_name }}.yml {{ application_name }}"
+
+  #
+#    #- name: create network for api gateway
+#    #  docker_network:
+#    #    name: "api_services_network"
+#    #    driver: overlay
+#
+#    #- name: create network for application containers
+#    #  docker_network:
+#    #    name: "{{ application_name }}_network"
+#    #    driver: overlay
+#    #
+#    #- name: deploy fluentd container
+#    #  docker_swarm_service:
+#    #    name: fluentd
+#    #    image: "gitlab.vortex.ru:4567/devops/docker/fluentd:1.3"
+#    #    restart_policy: any
+#    #    mode: global
+#    #    state: present
+#    #    publish:
+#    #      - { published_port: "24224", target_port: "24224", protocol: "tcp" }
+#    #
+#

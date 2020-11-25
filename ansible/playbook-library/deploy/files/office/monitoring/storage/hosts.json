@@ -1,0 +1,32 @@
+[
+  {
+    "url": "https://perevod.beeline.ru",
+    "uptime_check_enabled": true,
+    "certificate_check_enabled": true
+  },
+  {
+    "url": "http://perevod.tele2.ru",
+    "uptime_check_enabled": true,
+    "certificate_check_enabled": false
+  },
+  {
+    "url": "https://api.vortex.io",
+    "uptime_check_enabled": true,
+    "certificate_check_enabled": true
+  },
+  {
+    "url": "https://perevod.ubank.net",
+    "uptime_check_enabled": true,
+    "certificate_check_enabled": true
+  },
+  {
+    "url": "https://admin.vortex.io:8443",
+    "uptime_check_enabled": true,
+    "certificate_check_enabled": false
+  },
+  {
+    "url": "https://applepay.tele2.ru",
+    "uptime_check_enabled": true,
+    "certificate_check_enabled": true
+  }
+]

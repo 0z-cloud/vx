@@ -1,0 +1,13 @@
+- name: Fact gathering
+  hosts: all
+  vars_files:
+    - "group_vars/all.yml"
+  tasks: []
+  tags: [get-facts, always]
+
+- name: INIT | Calling Checking and spawn main databases role with global settings
+  become: true
+  hosts: "{{ HOSTS }}"
+  roles:
+    - name: Calling the init DBs role
+      role: ./!_databases/!_psql/pci/database_create/

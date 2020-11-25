@@ -1,0 +1,3 @@
+---
+# defaults file for roles/ssh_access
+ssh_access_port: 22

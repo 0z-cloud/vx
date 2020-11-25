@@ -1,0 +1,38 @@
+- name: Create the directories for settings ISO
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0755
+  with_dict: "{{ vcd_settings.directories | default({}) }}"
+
+- name: Remove current ISO file from host
+  file:
+    path: "{{ vcd_settings.directories.iso_dir }}/{{ vcd_settings.iso_name }}"
+    state: absent
+
+- name: Regenerate the configurations to ISO source path
+  shell: mkisofs -lJR -o {{ vcd_settings.directories.iso_dir }}/{{ vcd_settings.iso_name }} {{ vcd_settings.configs }}
+
+- name: Remove ISO with settings from target
+  vcd_catalog_item:
+    catalog_name: "0z"
+    item_name: "{{ vcd_settings.iso_name }}"
+    file_name : "{{ vcd_settings.directories.iso_dir }}/{{ vcd_settings.iso_name }}"
+    state: "absent"
+  register: absent_catalog_item_result
+  ignore_errors: true
+
+- name: Upload ISO with settings for target and included to role invocation VM Instance
+  vcd_catalog_item:
+    catalog_name: "0z"
+    item_name: "{{ vcd_settings.iso_name }}"
+    file_name : "{{ vcd_settings.directories.iso_dir }}/{{ vcd_settings.iso_name }}"
+    state: "present"
+  register: upload_catalog_item_result
+
+- name: Show states for upload/remove the media ISO with settings
+  debug:
+    msg: "{{ item }}"
+  with_items:
+    - "upload_result: {{ upload_catalog_item_result }}"
+    - "remove_result: {{ absent_catalog_item_result }}"

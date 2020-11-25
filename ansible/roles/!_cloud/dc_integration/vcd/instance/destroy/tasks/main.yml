@@ -1,0 +1,185 @@
+---
+- name: Show all variables for debug
+  debug:
+    msg: "{{ item }}"
+  with_items: 
+    - "anycloud_adapter_api_user: {{ anycloud_adapter_api_user }}"
+    - "anycloud_adapter_api_password: {{ anycloud_adapter_api_password }}"
+    - "anycloud_adapter_virtual_organization: {{ anycloud_adapter_virtual_organization }}"
+    - "anycloud_defaults_virtual_datacenter: {{ anycloud_defaults_virtual_datacenter }}"
+    - "anycloud_defaults_virtual_cloud_application_box_sector: {{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+    - "anycloud_adapter_virtual_datacenter: {{ anycloud_adapter_virtual_datacenter }}"
+    - "anycloud_defaults_virtual_organization: {{ anycloud_defaults_virtual_organization }}"
+    - "anycloud_defaults_api_url_endpoint: {{ anycloud_defaults_api_url_endpoint }}"
+    - "anycloud_adapter_api_url_endpoint: {{ anycloud_adapter_api_url_endpoint }}"
+
+# - name: '[vCloud Director] | re/Create VM Machine in to vApp'
+#   no_log: False
+#   vcd_vapp_vm:
+#     org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}" # need to check how its real behaivor passing in differents situations
+#     host: "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}" # {{ anycloud_adapter_api_url_endpoint }}
+#     user: "{{ anycloud_adapter_api_user }}"
+#     password: "{{ anycloud_adapter_api_password }}" # must changed to real username password (string)
+#     target_vm_name: "{{ item.value.name }}"
+#     target_vapp: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+#     source_vdc: "{{ anycloud_adapter_virtual_datacenter }}"
+#     target_vdc: "{{ anycloud_adapter_virtual_datacenter }}"
+#     source_catalog_name: "0z"
+#     source_template_name: "{{ item.value.anycloud_vm_vapp_box_name }}"
+#     source_vm_name: "{{ item.value.anycloud_vm_template_name }}"
+#     hostname: "{{ item.value.name }}"
+#     vmpassword: "{{ anycloud_vm_access_pass }}" 
+#     vmpassword_auto: "false"
+#     vmpassword_reset: "false"
+#     ip_allocation_mode: "DHCP"
+#     network: "{{ item.value.anycloud_virtual_cloud_zone }}"
+#     state: ""
+#     power_on: "true"
+#     all_eulas_accepted: "true"
+#     storage_profile: "{{ item.value.anycloud_vm_storage_configuration }}"
+#     verify_ssl_certs: True
+#   # retries: 3
+#   # delay: 3
+#   register: create_instance_result
+#   with_dict: "{{ cloud_bootstrap.servers }}"
+
+# - name: '[vCloud Director] | re/Create VM Machine in vApp instance results'
+#   debug:
+#     msg: '{{ create_instance_result }}'
+
+# - name: '[vCloud Director] | Update VM Machine in the vApp'
+#   no_log: False
+#   vcd_vapp_vm:
+#     org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}" # need to check how its real behaivor passing in differents situations
+#     host: "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}" # {{ anycloud_adapter_api_url_endpoint }}
+#     user: "{{ anycloud_adapter_api_user }}"
+#     password: "{{ anycloud_adapter_api_password }}" # must changed to real username password (string)
+#     target_vm_name: "{{ item.value.name }}"
+#     target_vapp: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+#     source_vdc: "{{ anycloud_adapter_virtual_datacenter }}"
+#     target_vdc: "{{ anycloud_adapter_virtual_datacenter }}"
+#     source_catalog_name: "0z"
+#     source_template_name: "{{ item.value.anycloud_vm_vapp_box_name }}"
+#     source_vm_name: "{{ item.value.anycloud_vm_template_name }}"
+#     hostname: "{{ item.value.name }}"
+#     vmpassword: "{{ anycloud_vm_access_pass }}" 
+#     vmpassword_auto: "false"
+#     vmpassword_reset: "false"
+#     ip_allocation_mode: "dhcp"
+#     network: "{{ item.value.anycloud_virtual_cloud_zone }}"
+#     state: "update"
+#     power_on: "true"
+#     all_eulas_accepted: "true"
+#     storage_profile: "{{ item.value.anycloud_vm_storage_configuration }}"
+#     verify_ssl_certs: True
+#   # retries: 3
+#   # delay: 3
+#   register: update_instance_result
+#   with_dict: "{{ cloud_bootstrap.servers }}"
+
+# - name: '[vCloud Director] | Update VM Machine in the vApp results'
+#   debug:
+#     msg: '{{ create_instance_result }}'
+
+
+# - name: Debug dict
+#   debug:
+#     msg: "{{ item.value.network }} {{ item.value.ip }} {{ item.value.name }}"
+#   with_dict: "{{ vcloud_bootstrap.servers }}"
+
+# - name: ONE NET | Test debug when second_ip == null
+#   debug:
+#     msg: "{{ item.value.ip }} {{ lookup('random_mac') }}"
+#   when: (item.value.second_ip is defined and item.value.second_ip == '') or (item.value.second_ip is not defined) or (item.value.second_ip == 'null')
+#   with_dict: "{{ vcloud_bootstrap.servers }}"
+
+# - name: MULTI NET | Test debug when second_ip != null
+#   debug:
+#     msg: "{{ item.value.ip }} {{ lookup('random_mac') }}"
+#   when: item.value.second_ip is defined and item.value.second_ip != '' and item.value.second_ip != 'null'
+#   with_dict: "{{ vcloud_bootstrap.servers }}"
+
+# - name: ead vApp Networks
+#   vcd_vapp_network:
+#     vapp: web2
+#     vdc: test_vdc
+#     operation: read
+
+    # - name: Bootstrap or validate vCloud VM configuration
+    #   vcd_vapp_vm:
+    #     target_vm_name: "test_vapp_vm"
+    #     target_vapp: "web2"
+    #     source_vdc: "test_vdc"
+    #     target_vdc: "test_vdc"
+    #     source_catalog_name: "test_catalog"
+    #     source_template_name: "centos7"
+    #     source_vm_name: "CentOS7"
+    #     hostname: "vcdcell"
+    #     vmpassword: "rootpass"
+    #     vmpassword_auto: "false"
+    #     vmpassword_reset: "false"
+    #     ip_allocation_mode: "DHCP"
+    #     power_on: "false"
+    #     all_eulas_accepted: "true"
+    #     storage_profile: "Standard"
+    #     network: "web2Network"
+    #     cust_script: "test_script"
+    #     deploy: false
+    #     state: "present"
+
+
+
+
+
+
+
+
+
+    # - name: STOPPING | Stopping for destroy a VM
+    #   vmware_guest:
+    #     hostname: "{{ vcloud_fqdn }}"
+    #     username: "{{ vcloud_login }}"
+    #     password: "{{ vcloud_pass }}"
+    #     validate_certs: no
+    #     datacenter: "{{ vcloud_dc }}"
+    #     folder: "/"
+    #     name: "{{ item.value.name }}"
+    #     state: poweredoff
+    #   with_dict: "{{ vcloud_bootstrap.servers }}"
+    #   ignore_errors: true
+    #   register: stopping_topology_deploy
+    #   async: 7200
+    #   poll: 0
+    #   delegate_to: localhost
+
+    # - name: Wait for topology deploy to complete
+    #   async_status: jid={{ item.ansible_job_id }}
+    #   register: stopping_topology_jobs
+    #   until: stopping_topology_jobs.finished
+    #   retries: 300
+    #   with_items: "{{ stopping_topology_deploy.results }}"
+    #   delegate_to: localhost
+    #   ignore_errors: true
+
+    # - name: DESTROYING | Destroying a VM
+    #   vmware_guest:
+    #     hostname: "{{ vcloud_fqdn }}"
+    #     username: "{{ vcloud_login }}"
+    #     password: "{{ vcloud_pass }}"
+    #     validate_certs: no
+    #     datacenter: "{{ vcloud_dc }}"
+    #     folder: "/"
+    #     name: "{{ item.value.name }}"
+    #     state: absent
+    #   with_dict: "{{ vcloud_bootstrap.servers }}"
+    #   register: destroying_topology_deploy
+    #   async: 7200
+    #   poll: 0
+
+    # - name: Wait for topology deploy to complete
+    #   async_status: jid={{ item.ansible_job_id }}
+    #   register: destroying_topology_jobs
+    #   until: destroying_topology_jobs.finished
+    #   retries: 300
+    #   with_items: "{{ destroying_topology_deploy.results }}"
+    #   ignore_errors: true

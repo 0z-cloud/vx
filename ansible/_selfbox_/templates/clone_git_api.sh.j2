@@ -1,0 +1,3 @@
+{% for repository in eden_eve_cloud_repositories_list %}
+{% raw %}https://{% endraw %}{{ anycloud_ci_cd_vcs_project_checkout_service_auth_identity_from_vault_real_token | default(anycloud_ci_cd_vcs_project_checkout_service_auth_identity_pass_or_token) }}{% raw %}:@{% endraw %}{{ repository }}{% raw %}
+{% endraw %}{% endfor %}

@@ -1,0 +1,171 @@
+
+# - name: SSH Host fingerprints remove
+#   shell: ssh-keygen -R "{{ item }}"
+#   delegate_to: "{{ item }}"
+#   with_items: 
+#     - "{{ groups['all'] }}"
+
+# ssh-keygen -R $host
+# ssh-keygen -R $(dig +short $host)
+# ssh-keyscan -t rsa1 $host | tee >> $HOME/.ssh/known_hosts
+# ssh-keyscan $host | tee >> $HOME/.ssh/known_hosts
+
+- name: Generate new ssh-keys
+  openssh_keypair:
+    path: /root/.ssh/id_rsa
+    force: True
+    comment: "{{ inventory_hostname }}"
+  register: new_keys
+  when: full_clean is defined
+
+- name: Merge all results from remote localhost
+  set_fact:
+    dict_new_keys: |
+      {
+      {% for s in groups['all'] | map('extract',hostvars,'new_keys') %}
+      "{{ s.comment }}":"{{ s.public_key }}" {% if not loop.last %},{% endif %}
+      {% endfor %}
+      }
+  delegate_to: "{{ item }}"
+  delegate_facts: true
+  with_items:
+    - "{{ groups['all'] }}"
+  # - localhost
+
+- name: debug
+  debug:
+    msg: "{{ dict_new_keys }}"
+
+- name: Set result merge array with known_hosts on whole group
+  debug:
+    msg: "{% set node_address = hostvars[item.key]['ansible_default_ipv4']['address'] %}'{{ item.key }},{{ node_address }} {{ item.value }}'"
+  with_dict: "{{ dict_new_keys }}"
+  register: dict_new_keys_list_with_ip
+
+# - name: Merge all results from remote on nodes
+#   set_fact:
+#     dict_new_keys: |
+#       {
+#       {% for s in groups['all'] | map('extract',hostvars,'new_keys') %}
+#       "{{ s.comment }}":"{{ s.public_key }}" {% if not loop.last %},{% endif %}
+#       {% endfor %}
+#       }
+#   delegate_facts: true
+# # "{{ groups['all'] | map('extract',hostvars,'new_keys') }}"
+
+# - name: CHECKING ALL Merge all results from remote
+#   debug:
+#     msg: "{{ dict_new_keys }}"
+#   delegate_to: localhost
+#   delegate_facts: true
+#   register: dict_new_keys_list
+
+# - name: remote_result remote_result CHECKING ALL Merge all results from remote
+#   set_fact:
+#     remote_result: "{{ dict_new_keys_list }}"
+#   delegate_to: localhost
+#   delegate_facts: true
+
+# - name: CHECKING ITEMS
+#   debug:
+#     msg: "{{ item }}"
+#   with_items: "{{ remote_result }}"
+
+- name: Set result merge array with known_hosts on whole group
+  debug:
+    msg: "{% set node_address = hostvars[item.key]['ansible_default_ipv4']['address'] %}'{{ item.key }},{{ node_address }} {{ item.value }}'"
+  with_dict: "{{ dict_new_keys }}"
+  delegate_to: localhost
+  delegate_facts: true
+  register: dict_new_keys_list_with_ip
+
+- name: Debug all keys on remote known_hosts_result
+  set_fact:
+    keys_result: "{{ dict_new_keys_list_with_ip }}"
+  delegate_to: |
+        {% for host in groups['all'] %}
+        {{ host }}{% if not loop.last %},{% endif %}
+        {% endfor %}
+
+  # delegate_to: |
+  #       {% for host in groups['all'] %}
+  #       {{ host }}{% if not loop.last %},{% endif %}
+  #       {% endfor %}
+
+- name: Debug all keys on remote known_hosts_result
+  debug:
+    msg: "{{ item }}"
+  with_items: "{{ known_hosts_result }}"
+  delegate_to: |
+        {% for host in groups['all'] %}
+        {{ host }}{% if not loop.last %},{% endif %}
+        {% endfor %}
+
+- name: Merge all results from remote
+  set_fact:
+    new_keys: "{{ groups['all'] | map('extract',hostvars,'new_keys') | sum(start=[]) }}"
+  delegate_to: |
+        {% for host in groups['all'] %}
+        {{ host }}{% if not loop.last %},{% endif %}
+        {% endfor %}
+
+- name: Debug all keys
+  debug:
+    msg: "{{ item }}"
+  with_items: "{{ all_keys }}"
+  delegate_to: |
+        {% for host in groups['all'] %}
+        {{ host }}{% if not loop.last %},{% endif %}
+        {% endfor %}
+
+# - name: DEBUG | new_keys
+#   debug: 
+#     msg: "{{ item.comment }} {{ item.public_key }} {{ public_keys }} {{ comments }}"
+#   vars:
+#     public_keys: |
+#         {% set public_keys_list = [] %}
+#         {% for key in item.public_key %}{% if key == 'public_key' %}
+#         {% set public_keys_list2 = public_keys_list.append(key) %}{{ public_keys_list2 }}{% if not loop.last %},{% endif %}
+#         {% endif %}
+#         {% endfor %}
+#     comments: |
+#         {% set commentlist = [] %}
+#         {% for key in item.comment %}{% if key == 'comment' %}
+#         {% set commentlist2 = commentlist.append(key) %}{{ commentlist2 }}{% if not loop.last %},{% endif %}
+#         {% endif %}
+#         {% endfor %}
+#   delegate_to: |
+#         {% for host in groups['all'] %}
+#         {{ host }}{% if not loop.last %},{% endif %}
+#         {% endfor %}
+#   with_items: 
+#     - "{{ new_keys }}"
+#   when: "inventory_hostname != item.comment "
+  
+
+# - hosts: mygroup
+#   gather_facts: no
+#   tasks:
+#     - shell: echo begin; echo {{ inventory_hostname }}; echo end;
+#       register: cmd_output
+#     - set_fact:
+#         my_lines: "{{ cmd_output.stdout_lines }}"
+
+# - hosts: localhost
+#   gather_facts: no
+#   vars:
+#     new_keys: "{{ groups['all'] | map('extract',hostvars,'new_keys') | sum(start=[]) }}"
+#   tasks:
+
+
+- name: Echo public_keys_list to authorized_keys
+  lineinfile:
+    dest: /root/.ssh/authorized_keys
+    create: yes
+    state: present
+    line: "{{ item[0] }} {{ item[1].public_key }}"
+  delegate_to: "{{ item[0] }}"
+  with_nested: 
+    - "{{ groups['all'] }}"
+    - "{{ new_keys }}"
+  when: full_clean is defined and item[1].comment != item[0]

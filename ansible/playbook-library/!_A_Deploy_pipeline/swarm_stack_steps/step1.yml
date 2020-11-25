@@ -1,0 +1,155 @@
+- name: '|S1| STACK WORKERS UPLOAD IMAGES | Run to remote generate the docker-compose and download images on workers'
+  become: true
+  hosts: "localhost"
+  tasks:
+
+    - name: '|S1| Include vars'
+      include_vars: "{{ ansible_root_directory }}/group_vars/!_ApplicationDocker_Template/docker-compose-template.yml"
+      
+    - name: '|S1| Include vars by list'
+      include_vars: "{{ item }}"
+      with_items: 
+        - "{{ ansible_root_directory }}/group_vars/products/{{ ansible_product }}/main.yml"
+        - "{{ ansible_root_directory }}/group_vars/products/{{ ansible_product }}/{{ ansible_cloud_type }}.yml"
+        - "{{ ansible_root_directory }}/group_vars/products/{{ ansible_product }}/shared.yml"
+        - "{{ ansible_root_directory }}/group_vars/products/{{ ansible_product }}/zone.yml"
+        - "{{ ansible_root_directory }}/group_vars/!_anyCloud/anyCloud.yml"
+        - "{{ ansible_root_directory }}/group_vars/all.yml"
+        - "{{ ansible_root_directory }}/group_vars/all/directories.map.yml"
+        - "{{ ansible_root_directory }}/inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/dns/{{ HOSTS | default('cloud-bind-frontend-dns') }}/{{ HOSTS | default('cloud-bind-frontend-dns') }}.yml"
+        - "{{ ansible_root_directory }}/inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+        - "{{ ansible_root_directory }}/inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+
+    # - name: RAW SHELL | Install docker-compose AND little hooks
+    #   shell: "{{ item }}"
+    #   with_items:
+    #     - "docker-compose --version"
+    #     - "sysctl -w vm.max_map_count=262145"
+
+    - name: '|S1| Get and set current workdir'
+      shell: ls -la ./../../../
+      register: current_working_directory
+
+    - name: '|S1| Show current directory path'
+      debug:
+        msg: "{{ current_working_directory }}"
+
+    - name: '|S1| INCLUDE | Variables passed on-fly from CI'
+      include_vars: "{{ root_dir_path }}/.local/ci_version.yml"
+
+    - name: '|S1| INCLUDE | Variables passed on-fly from CI about tags'
+      include_vars: "{{ root_dir_path }}/.local/current_tags.yml"
+
+- name: '|S1|STACK WORKERS UPLOAD IMAGES | Run to remote generate the docker-compose and download images on workers'
+  become: true
+  hosts: "swarm-clients"
+  vars_files:
+    - "{{ ansible_root_directory }}/group_vars/!_ApplicationDocker_Template/docker-compose-template.yml"
+    - "{{ current_working_directory }}/.local/ci_version.yml"
+    - "{{ root_dir_path }}/.local/current_tags.yml"
+    - "{{ ansible_root_directory }}/group_vars/products/{{ ansible_product }}/main.yml"
+    - "{{ ansible_root_directory }}/group_vars/products/{{ ansible_product }}/{{ ansible_cloud_type }}.yml"
+    - "{{ ansible_root_directory }}/group_vars/products/{{ ansible_product }}/shared.yml"
+    - "{{ ansible_root_directory }}/group_vars/products/{{ ansible_product }}/zone.yml"
+    - "{{ ansible_root_directory }}/group_vars/!_anyCloud/anyCloud.yml"
+    - "{{ ansible_root_directory }}/group_vars/all.yml"
+    - "{{ ansible_root_directory }}/group_vars/all/directories.map.yml"
+    - "{{ ansible_root_directory }}/inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/dns/{{ HOSTS | default('cloud-bind-frontend-dns') }}/{{ HOSTS | default('cloud-bind-frontend-dns') }}.yml"
+    - "{{ ansible_root_directory }}/inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+    - "{{ ansible_root_directory }}/inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+
+    # # - "../.local/ci_version.yml"
+    # # - "../.local/current_tags.yml"
+  pre_tasks:
+    - name: Include env docker-compose-template.yml
+      include_vars: "{{ ansible_root_directory }}/group_vars/!_ApplicationDocker_Template/docker-compose-template.yml"
+      tags: ["always"]
+
+    - name: Include vault for ci_version.yml
+      include_vars: "{{ current_working_directory }}/.local/ci_version.yml"
+      tags: ["always"]
+
+    - name: Include vault for current_tags.yml
+      include_vars: "{{ current_working_directory }}/.local/current_tags.yml"
+      tags: ["always"]
+
+    - name: Include vault for DNS settings.yml
+      include_vars: "{{ ansible_root_directory }}/group_vars/dns/{{ HOSTS | default('cloud-bind-frontend-dns') }}/{{ HOSTS | default('cloud-bind-frontend-dns') }}.yml"
+      tags: ["always"]
+
+    - name: '|S1| Include environment variables for applications'
+      include_vars: "{{ ansible_root_directory }}/group_vars/!_Applications_Core/{{ ANSIBLE_APPLICATION_TYPE }}/{{ ANSIBLE_APPLICATION_TYPE }}_folders_map.yml"
+
+    - name: Include vault for Application Set settings.yml
+      include_vars: "{{ ansible_root_directory }}/group_vars/!_Applications_Core/{{ ANSIBLE_APPLICATION_TYPE }}/{{ ANSIBLE_APPLICATION_TYPE }}_settings_map.yml"
+      tags: ["always"]
+
+  tasks:
+
+    - name: '|S1| RAW SHELL | Install docker-compose AND little hooks'
+      shell: "{{ item }}"
+      with_items:
+        - "docker-compose --version"
+        - "sysctl -w vm.max_map_count=262145"
+
+    - name: '|S1| Get and set current workdir'
+      shell: ls -la ./../
+      register: current_working_directory
+
+    - name: '|S1| Show current directory path'
+      debug:
+        msg: "{{ current_working_directory }}"
+
+    # - name: '|S1| INCLUDE | Variables passed on-fly from CI'
+    #   include_vars: "{{ current_working_directory }}/.local/ci_version.yml"
+      # remote_src: yes
+
+      #delegate_to: localhost
+
+    # - name: INCLUDE | Variables passed on-fly from CI about tags
+    #   include_vars: ../.local/current_tags.yml
+
+    # - name: '|S1| PREPARE | Include environment variables for environment cloud'
+    #   include_vars: "{{ ansible_root_directory }}/group_vars/dns/{{ HOSTS | default('cloud-bind-frontend-dns') }}/{{ HOSTS | default('cloud-bind-frontend-dns') }}.yml"
+    #   delegate_to: localhost
+
+    # - name: '|S1| PREPARE | Include environment variables for applications'
+    #   include_vars: "{{ ansible_root_directory }}/group_vars/!_Applications_Core/{{ ANSIBLE_APPLICATION_TYPE }}/{{ ANSIBLE_APPLICATION_TYPE }}_settings_map.yml"
+    #   delegate_to: localhost
+
+    - name: '|S1| DEBUG | show items in dict'
+      debug:
+        msg: "{{ item }}"
+      with_items: "{{ all_services_settings_map }}"
+
+    - name: '|S1| DEBUG | show items in dict about spec tags'
+      debug:
+        msg: "{{ lookup('vars', 'passed_ci_docker_tag_' + item) }}"
+      with_items: "{{ all_services_settings_map }}"
+
+    - name: '|S1| PREPARE | Create the directories'
+      file:
+        path: "{{ item.value }}"
+        state: directory
+        mode: 0755
+      with_dict: "{{ all_services_location_map.directories | default({}) }}"
+
+    - name: '|S1| PREPARE | Template the docker-stack.yml'
+      template:
+        src: "{{ ansible_root_directory }}/group_vars/!_ApplicationDocker_Template/docker-compose-template.yml.j2"
+        dest: "{{ all_services_location_map.directories.stack }}/docker-stack.yml"
+      run_once: true
+
+    - name: '|S1| PREPARE | Template the docker-compose-image-puller.yml.j2'
+      template:
+        src: "{{ ansible_root_directory }}/group_vars/!_ApplicationDocker_Template/docker-compose-image-puller.yml.j2"
+        dest: "{{ all_services_location_map.directories.stack }}/docker-compose-image-puller.yml"
+      run_once: true
+
+    - name: '|S1| PREPARE | Docker login'
+      shell: "echo {{ ANSIBLE_TRIGGER_TOKEN }} | docker login {{ ANSIBLE_REGISTRY_URL }} -u root --password-stdin"
+      register: docker_login_result
+
+    - name: '|S1| PULL | Download and updage all local images imadently'
+      command: docker-compose -f {{ all_services_location_map.directories.stack }}/docker-compose-image-puller.yml pull 
+      register: docker_pull_result

@@ -1,0 +1,4 @@
+{% block 0z_ll_privileged_vx %}{% if value['privileged'] is defined %}
+      privileged: true
+{% endif %}
+{% endblock %}

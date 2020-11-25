@@ -1,0 +1,54 @@
+- name: '[FETCH STAGE][LOOK IT] Important! Get Special Groups in vCloud Instance with a message roles'
+  vcd_roles:
+    user: "{{ anycloud_adapter_api_user }}"
+    password: "{{ anycloud_adapter_api_password }}"
+    host: "{{ anycloud_adapter_api_url_endpoint }}"
+    org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+    api_version: 30.0
+    verify_ssl_certs: "{{ anycloud_adapter_api_url_verify_ssl }}"
+    operation: list_roles
+  register: vloud_special_groups_cloud_token_storage_result
+
+- name: SET VPN PORT GET BY META 
+  set_fact:
+    anycloud_zone_extra_port_vpn_adapters_networks_get_on_fly_port: "{{ item.name | replace('port: ', '')}}"
+    anycloud_zone_extra_port_vpn_adapters_networks_get_on_fly_name: "{{ item['name'] }}"
+  with_items: "{{ vloud_special_groups_cloud_token_storage_result.msg }}"
+  when: "('port:' in item['name'] and 'VPN' in item['name'] and ansible_datacenter in item['name'] and ansible_product in item['name'] and ansible_environment in item['name'])"
+
+- name: SET WEB PORT GET BY META 
+  set_fact:
+    anycloud_zone_extra_port_web_adapters_networks_get_on_fly_port: "{{ item.name | replace('port: ', '')}}"
+    anycloud_zone_extra_port_web_adapters_networks_get_on_fly_name: "{{ item['name'] }}"
+  with_items: "{{ vloud_special_groups_cloud_token_storage_result.msg }}"
+  when: "('port:' in item['name'] and 'WEB' in item['name'] and ansible_datacenter in item['name'] and ansible_product in item['name'] and ansible_environment in item['name'])"
+
+# - name: Debug values PORT GETTED FROM META
+#   debug:
+#     msg: "{{ item }}"
+#   with_items:
+#     - "anycloud_zone_extra_port_web_adapters_networks_get_on_fly_port: {{ anycloud_zone_extra_port_web_adapters_networks_get_on_fly_port }}"
+#     - "anycloud_zone_extra_port_web_adapters_networks_get_on_fly_name: {{ anycloud_zone_extra_port_web_adapters_networks_get_on_fly_name }}"
+#     - "anycloud_zone_extra_port_vpn_adapters_networks_get_on_fly_port: {{ anycloud_zone_extra_port_vpn_adapters_networks_get_on_fly_port }}"
+#     - "anycloud_zone_extra_port_vpn_adapters_networks_get_on_fly_name: {{ anycloud_zone_extra_port_vpn_adapters_networks_get_on_fly_name }}"
+
+- name: ВЫБИРАЕМ ЗАПИСАННЫЕ РАНЕЕ ЗНАЧЕНИЯ ИЗ МЕТАДАННЫХ
+  set_fact:
+    oz_router_subnet_anycloud_vpn_port: "{{ anycloud_zone_extra_port_vpn_adapters_networks_get_on_fly_port }}"
+    oz_router_subnet_anycloud_web_port: "{{ anycloud_zone_extra_port_web_adapters_networks_get_on_fly_port }}"
+  with_items: "{{ vloud_special_ports_cloud_token_storage_result.changed }}"
+  when: "item is not defined"
+
+# - name: 'Generate with vCloud Getted Routed networks anycloud_zone_extra_subnets_adapters_networks_get_on_fly_direct_subnet'
+#   set_fact:
+#     anycloud_zone_extra_port_vpn_adapters_networks_get_on_fly_port: "{{ item.description | replace('port: ', '')}}"
+#     anycloud_zone_extra_port_vpn_adapters_networks_get_on_fly_name: "{{ item['name'] }}"
+#   with_items: "{{ vloud_special_ports_cloud_token_storage_result.msg }}"
+#   when: "('port:' in item['description'] and 'VPN' in item['name'] and ansible_datacenter in item['name'] and ansible_product in item['name'] and ansible_environment in item['name'])"
+
+# - name: Generate with vCloud Getted Routed networks anycloud_zone_extra_subnets_adapters_networks_get_on_fly_direct_subnet
+#   set_fact:
+#     anycloud_zone_extra_port_web_adapters_networks_get_on_fly_port: "{{ item.description | replace('port: ', '')}}"
+#     anycloud_zone_extra_port_web_adapters_networks_get_on_fly_name: "{{ item['name'] }}"
+#   with_items: "{{ vloud_special_ports_cloud_token_storage_result.msg }}"
+#   when: "('port:' in item['description'] and 'WEB' in item['name'] and ansible_datacenter in item['name'] and ansible_product in item['name'] and ansible_environment in item['name'])"

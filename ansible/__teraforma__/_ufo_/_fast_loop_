@@ -1,0 +1,20 @@
+#
+
+    - name: async
+      command: "ansible-playbook playbooks/{{ item }}.yml"
+      async: 3600
+      poll: 0
+      register: aysnc_play
+      with_items:
+       - one
+       - two
+
+    - name: retrieve async status
+      async_status:
+        jid: "{{ item.ansible_job_id }}"
+      register: async_jobs
+      until: async_jobs.finished
+      with_items:
+        - "{{ aysnc_play.results }}"
+      retries: 60
+      delay: 60

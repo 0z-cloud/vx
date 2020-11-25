@@ -1,0 +1,19 @@
+cloud_dir: /opt
+
+postgres_cluster_settings:
+    directories:
+        main_path: "{{ cloud_dir }}/postgres-persistent/{{ ansible_environment }}"
+        data_path: "{{ cloud_dir }}/postgres-persistent/{{ ansible_environment }}/data"
+        config_path: "{{ cloud_dir }}/postgres-persistent/{{ ansible_environment }}/configuration"
+        archive_path: "{{ cloud_dir }}/postgres-persistent/{{ ansible_environment }}/archive"
+    use_datastore_container: true
+    datastore_container_name: "postgres-persistent-{{ ansible_environment }}"
+    postgres_docker_tag: ''
+    postgres_container_name: "postgres-persistent-{{ ansible_environment }}"
+    postgres_docker_env: []
+    expose_host_port: 0
+    root_password: 9entry_postgresa9u12
+    postgres_user: sentry_postgres
+
+ANSIBLE_REGISTRY_URL: "{{ ansible_global_gitlab_registry_site_name }}"
+ANSIBLE_TRIGGER_TOKEN: "F2ScKehMtaLGGxyzUDLy"

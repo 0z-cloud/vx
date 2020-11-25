@@ -1,0 +1,7 @@
+- name: Bootstrap infrastructure from localhost to ESXi Vcenter Appliance 
+  hosts: localhost
+  gather_facts: False
+  roles:
+
+    - name: Include Bootstrap role
+      role: ./!_cloud/vsphere/powered_on_bootstrap

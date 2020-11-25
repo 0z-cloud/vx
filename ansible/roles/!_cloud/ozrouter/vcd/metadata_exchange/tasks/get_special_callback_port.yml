@@ -1,0 +1,87 @@
+# ПОВТОРНЫЙ ВЫЗОВ ДОБАВЛЕНИЯ ОБЪЕКТА SECURITY/GROUPS(ROLES), ИМЯ ОБЪЕКТА = КЛЮЧ, DESCRIPTION = ЗНАЧЕНИЕ 
+# РОЛЬ КАК ОБЪЕКТ ДЛЯ БЛОКИРОВКИ И УСТАНОВЛЕНИЯ ФАКТА НАЛИЧИЯ СЕТЕЙ ДЛЯ ПОРТА/ПОДСЕТИ - КЛЮЧ / ЗНАЧЕНИЕ
+# ВОЗВРАЩАЕТ СОСТОЯНИЕ - $(ИЗМЕНЕНО) - Catalog_Zone_Object_ports_Results.changed - да / нет -> \n
+# ЕСЛИ: changed is true ТОГДА итерируемые сети добавлены как объект k/v\ -> 
+# ЕСЛИ: changed is false ТОГДА итерируемые сети заменены на полученные объекты из k/v\ -> 
+# ПОВТОРНЫЙ ОБРАБОТЧИК СОСТОЯНИЯ: port_dispetcher.yml
+
+############################################################################################
+# ГЕНЕРИРУЕМ ПОРТЫ АВТОМАТИЧЕСКИ, ПРОВЕРЯЕМ
+############################################################################################
+# - name: SPECIAL CALLBACK PORT | 3-WAY Ports | Include the 3-way ports for services keys renew
+#   include_tasks: oz-ports.yml
+
+# # INCLUDE SELECT RUN TYPE AND SELECT TARGET NETWORKS OBJECTS DETERMINATION
+# - name: META RERUN | Run ports Network Zones Dispetcher
+#   include_tasks: get_special_meta_main.yml
+
+- name: '[PRESENT CHECK FIRST][LOOK IT] GET LIST OF CURRENT PORTS'
+  vcd_roles:
+    user: "{{ anycloud_adapter_api_user }}"
+    password: "{{ anycloud_adapter_api_password }}"
+    host: "{{ anycloud_adapter_api_url_endpoint }}"
+    org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+    api_version: 30.0
+    verify_ssl_certs: "{{ anycloud_adapter_api_url_verify_ssl }}"
+    role_name: "{{ anycloud_zone_extra_subnets_adapters_vpn_ozrouter_ports[item]['name'] }}"
+    role_description: "port: {{ anycloud_zone_extra_subnets_adapters_vpn_ozrouter_ports[item]['port'] }}"
+    state: "present"
+  with_items: "{{ anycloud_zone_extra_subnets_adapters_vpn_ozrouter_ports.keys() | list }}"
+  register: vloud_special_ports_cloud_token_storage_result
+  #with_dict: "{{ anycloud_zone_extra_subnets_adapters_vpn_ozrouter_ports }}"
+
+# - name: '[PRESENT CHECK FIRST][LOOK IT] SHOW LIST OF CURRENT PORTS'
+#   debug:
+#     msg: "{{ item }}"
+#   with_items: "{{ vloud_special_ports_cloud_token_storage_result }}"
+#   when: debug_log is defined
+
+# - name: 'changed [PRESENT CHECK FIRST][LOOK IT] SHOW LIST OF CURRENT PORTS'
+#   debug:
+#     msg: "{{ item }}"
+#   with_items: "{{ vloud_special_ports_cloud_token_storage_result.changed }}"
+#   when: debug_log is defined
+
+# - name: 'CHANGE TRUE [PRESENT CHECK FIRST][LOOK IT] SHOW LIST OF CURRENT PORTS'
+#   debug:
+#     msg: "{{ item }}"
+#   with_items: "{{ vloud_special_ports_cloud_token_storage_result.changed }}"
+#   when: item is true
+
+# - name: 'CHANGE FALSE [PRESENT CHECK FIRST][LOOK IT] SHOW LIST OF CURRENT PORTS'
+#   debug:
+#     msg: "{{ item }}"
+#   with_items: "{{ vloud_special_ports_cloud_token_storage_result.changed }}"
+#   when: item is false
+
+##
+# INCLUDE SELECT RUN TYPE AND SELECT TARGET NETWORKS OBJECTS DETERMINATION
+- name: ВЫБИРАЕМ ЗАПИСАННЫЕ РАНЕЕ ЗНАЧЕНИЯ ИЗ МЕТАДАННЫХ
+  include_tasks: fetch_ports.yml
+  # with_items: "{{ vloud_special_ports_cloud_token_storage_result.changed }}"
+  # when: item is false
+
+# INCLUDE SELECT RUN TYPE AND SELECT TARGET NETWORKS OBJECTS DETERMINATION
+# - name: УСТАНАВЛИВАЕМ СГЕНЕРИРОВАННЫЕ ЗНАЧЕНИЯ ВТЧ В МЕТАДАННЫЕ
+#   include_tasks: set_ports.yml
+#   with_items: "{{ vloud_special_ports_cloud_token_storage_result.changed }}"
+#   when: item is true
+
+# - name: '[FETCH PORT][LOOK IT] Important! Get Special Groups in vCloud Instance with a message roles'
+#   vcd_roles:
+#     user: "{{ anycloud_adapter_api_user }}"
+#     password: "{{ anycloud_adapter_api_password }}"
+#     host: "{{ anycloud_adapter_api_url_endpoint }}"
+#     org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+#     api_version: 30.0
+#     verify_ssl_certs: "{{ anycloud_adapter_api_url_verify_ssl }}"
+#     operation: list_roles
+#   register: vloud_special_groups_cloud_token_storage_result
+
+
+# # "{{ anycloud_zone_extra_subnets_adapters_vpn_ozrouter_ports }}
+# ##
+# # INCLUDE SELECT RUN TYPE AND SELECT TARGET NETWORKS OBJECTS DETERMINATION
+# - name: SET SPECIAL CALLBACK PORT | 3-WAY Ports | Include the 3-way ports for services keys renew
+#   include_tasks: set_special_meta_port.yml
+

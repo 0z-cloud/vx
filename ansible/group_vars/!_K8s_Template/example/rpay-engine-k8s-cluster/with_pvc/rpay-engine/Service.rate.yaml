@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: rate
+    chart: rate-0.1.0
+    heritage: Tiller
+    io.cattle.field/appId: rpay-engine
+    release: rpay-engine
+  name: rate
+  selfLink: /api/v1/namespaces/rpay-engine/services/rate
+spec:
+  ports:
+  - port: 4040
+    protocol: TCP
+    targetPort: 4040
+  selector:
+    app: rate
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}

@@ -1,0 +1,7 @@
+- name: Run the apt compliance role
+  become: true
+  hosts: linux-hosts
+  roles:
+    - name: run the apt compliance role
+      role: apt/compliance
+  tags: [apt_compliance_install]

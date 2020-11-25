@@ -1,0 +1,16 @@
+port {{ redis_io_service_settings.public_port }}
+{% if redis_io_cluster_enabled == "true" %}
+cluster-enabled yes
+{% else %}
+cluster-enabled no
+slaveof {{ ansible_default_ipv4.address }} {{ redis_io_service_settings.public_port }}
+{% endif %}
+cluster-config-file /config/nodes-slave.conf
+cluster-node-timeout 5000
+slave-read-only yes
+slave-serve-stale-data yes
+cluster-slave-validity-factor 0
+cluster-migration-barrier 0
+cluster-require-full-coverage yes
+save ""
+dir /opt/redis/

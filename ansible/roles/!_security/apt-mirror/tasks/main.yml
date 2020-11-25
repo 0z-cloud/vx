@@ -1,0 +1,11 @@
+- name: Inject defaults
+  set_fact:
+    apt_mirror_settings: "{{ apt_mirror_settings_defaults | combine(apt_mirror_settings) }}"
+  tags: [always]
+
+- name: Include apt mirror server tasks
+  include_tasks: "apt-mirror-server.yml"
+  when: "inventory_hostname in groups['apt-repository-mirror']"
+
+- name: Include update sources.list for all
+  include_tasks: "source-from-mirror-server.yml"

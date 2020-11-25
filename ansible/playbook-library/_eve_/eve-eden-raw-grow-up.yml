@@ -1,0 +1,88 @@
+- name: EVE RAW WORKFLOW | Run the simple pipeline where separately run EDEN & EVE. 
+  hosts: "eve:eden"
+  become: true
+  vars_files:
+    - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+    - "group_vars/products/{{ ansible_product }}/main.yml"
+    - "group_vars/products/{{ ansible_product }}/shared.yml"
+    - "group_vars/products/{{ ansible_product }}/{{ ansible_cloud_type }}.yml"
+    - "inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+    - "group_vars/!_anyCloud/anyCloud.yml"
+    #
+    - "group_vars/all.yml"
+  environment:
+    PATH: "/eve/src/eden:/eve/src/eve:{{ ansible_env.PATH }}"
+  roles:
+
+    - name: Disabling AppArmor for QEUMU by pointer placement file
+      role: '!_9_EVE/apparmor_off'
+    
+    - name: Calling pre-requirements install role 
+      role: '!_9_EVE/pre_install'
+
+    - name: Running Show Info about instance's
+      role: '!_9_EVE/info'
+       
+    - name: Running EVE compile on EVE TARGET instance 
+      role: '!_9_EVE/simple/eden'
+      when: "'eden' in group_names"
+
+    # - name: Running EVE compile on EVE TARGET instance 
+    #   role: '!_9_EVE/simple/eve'
+    #   when: "'eve' in group_names"
+
+    - name: Running EVE compile on EVE TARGET instance 
+      role: '!_9_EVE/dist_get'
+      when: "'eden' in group_names"
+
+- name: Runlocal task to the copy to artifacts dir  
+  become: true
+  hosts: "localhost"
+  tasks:
+   
+
+    - name: Get status from binary local pack with eden
+      stat:
+        path: /tmp/vx-eden-linux-amd64
+      register: pulled_eden_local_stat_bin
+
+    - name: Debug the temp location bin
+      debug:
+        msg: "{{ pulled_eden_local_stat_bin }}"
+    
+    - name: Run the fetch-eden-binary role
+      shell: cp -R /tmp/vx-eden-linux-amd64 /opt/tc-agent/work/b67e9b113f3d7ea0/.local/eden
+
+    - name: Get status from binary local pack with eden
+      stat:
+        path: /opt/tc-agent/work/b67e9b113f3d7ea0/.local/eden
+      register: simulated_eden_local_stat_bin
+
+    - name: "islnk isn't defined (path doesn't exist)"
+      debug:
+        msg: "islnk isn't defined (path doesn't exist)"
+      when: simulated_eden_local_stat_bin.stat.islnk is not defined
+
+    - name: "islnk is defined (path must exist)"
+      debug:
+        msg: "islnk is defined (path must exist)"
+      when: simulated_eden_local_stat_bin.stat.islnk is defined
+
+    - name: "Path exists and is a symlink"
+      debug:
+        msg: "Path exists and is a symlink"
+      when: simulated_eden_local_stat_bin.stat.islnk is defined and simulated_eden_local_stat_bin.stat.islnk
+
+    - name: Path exists and isn't a symlink
+      debug:
+        msg: "Path exists and isn't a symlink"
+      when: simulated_eden_local_stat_bin.stat.islnk is defined and simulated_eden_local_stat_bin.stat.islnk == False
+
+# - name: Run the fetch-eden-binary role 
+#   become: true
+#   hosts: "eden"
+#   roles:
+#     - name: Run the fetch-eden-binary role
+#       role: ./!_hooks/fetch_something/fetch-eden-binary 
+#   tags: 
+#     - fetch-eden-binary 

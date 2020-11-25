@@ -1,0 +1,39 @@
+# For information on the settings in this file, type "man shorewall-rules"
+######################################################################################################################################################################################################
+#ACTION		SOURCE		DEST		PROTO	DEST	SOURCE		ORIGINAL	RATE		USER/	MARK	CONNLIMITTIME		HEADERS		SWITCH		HELPER
+#							PORT	PORT(S)		DEST		LIMIT		GROUP
+# ADMIN WEB
+DNAT		        wan		          web:10.16.211.100:443	   tcp	   443	   -		           77.243.80.70
+
+# SECURE WEB
+DNAT            wan             web:10.16.211.21:443     tcp     443     -               77.243.80.71
+
+# PROCESSING / FROM INET
+# DISABLED DUE BUSSINES NON ACTIVITY
+#DNAT            wan             web:10.16.211.30:443     tcp     443     -               77.243.80.69
+
+# MESSENGER
+# DISABLED DUE BUSSINES NON ACTIVITY
+#DNAT            wan             web:10.16.211.25:443     tcp     443     -               77.243.80.79
+
+# GATEWAY
+DNAT            wan             web:10.16.211.23:443     tcp     443     -               77.243.80.72
+
+# MOBICOM
+DNAT            wan             web:10.16.211.171:8443    tcp     8443    -               77.243.80.72
+
+# API
+DNAT            wan             web:10.16.211.171:443     tcp     443     -               77.243.80.74
+
+# MCOM
+DNAT            wan             web:10.16.211.171:443     tcp     443     -               77.243.80.77
+
+# MERCHANT
+DNAT            wan             web:10.16.211.171:443     tcp     443     -               77.243.80.76
+
+# BOTS
+DNAT            wan             web:10.16.211.171:443     tcp     443     -               77.243.80.73
+
+# PAYGOOGLE
+# DISABLED BY TELE2 REQUEST
+# DNAT            wan             web:10.16.211.171:443     tcp     443     -               77.243.80.75

@@ -1,0 +1,26 @@
+<filter docker.**>
+  @type record_transformer
+  <record>
+    hostname {{ inventory_hostname }}
+    environment {{ ansible_environment }}
+  </record>
+</filter>
+
+<match docker.*>
+      @type elasticsearch
+      @log_level debug
+      host logging-elasticsearch-cluster.{{ public_consul_domain }}
+      port {{ logging_elasticsearch_cluster_listen_port }}
+      logstash_format true
+      num_threads 8
+      reload_on_failure true
+      buffer_type file
+      buffer_path /fluentd/log/buffer_docker
+      buffer_chunk_limit 8m
+      flush_interval 5s
+      retry_wait 20s
+      disable_retry_limit false
+      retry_limit 3
+      buffer_queue_limit 256
+      logstash_prefix docker
+</match>

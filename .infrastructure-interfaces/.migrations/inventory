@@ -1,0 +1,5 @@
+[old]
+172.16.77.77 ansible_ssh_user=template
+
+[new]
+172.16.77.17 ansible_ssh_user=template ansible_become_pass=1235

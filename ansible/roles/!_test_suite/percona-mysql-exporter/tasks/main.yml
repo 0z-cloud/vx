@@ -1,0 +1,39 @@
+- name: Inject defaults
+  set_fact:
+    percona_mysql_exporter: "{{ percona_mysql_exporter_defaults | combine(percona_mysql_exporter) }}"
+  tags: [always]
+
+- name: Create application directory structure
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0755
+  with_dict: "{{ percona_mysql_exporter.directories | default({}) }}"
+
+- name: Copy storage files
+  copy:
+    src: "{{ item }}"
+    dest: "{{ percona_mysql_exporter.directories.working_docker_build_directory }}"
+  with_fileglob:
+    - "files/*"
+
+- name: re/Build the Docker image from raw Dockerfile
+  docker_image:
+     path: "{{ percona_mysql_exporter.directories.working_docker_build_directory }}"
+     name: percona-mysql-exporter
+
+- name: re/Create a Percona MYSQL Exporter Service Without Swarm
+  docker_container:
+      name: percona-mysql-exporter-{{ ansible_environment }}-{{ inventory_hostname }}-{% for key, value in item.items() %}{{ value.data_dir | replace('\n', '') }}{% endfor %}
+      image: "percona-mysql-exporter"
+      command: "-p 9207 -s {{ hostvars[inventory_hostname].ansible_default_ipv4.address }}:{% for key, value in item.items() %}{% for host in groups['percona-cluster'] %}{% if host == inventory_hostname %}{{ value.port }}{% endif %}{% endfor %}{% endfor %} -u root -P {{ percona_root_password }} -c /exporter.cfg -d {% for key, value in item.items() %}{% for host in groups['percona-cluster'] %}{% if host == inventory_hostname %}{{ key }}{% endif %}{% endfor %}{% endfor %}"
+      ports:
+        - "{% for key, value in item.items() %}{% for host in groups['percona-cluster'] %}{% if host == inventory_hostname %}{{ value.metrics_port }}{% endif %}{% endfor %}{% endfor %}:{{ percona_mysql_exporter_service_listnen_port }}"
+      privileged: yes
+      restart_policy: always
+      detach: True
+      recreate: yes
+      state: started
+  with_items:
+     - "{{ percona_mysql_exporter_databases }}"
+  when: swarm_disabled_inventory is defined

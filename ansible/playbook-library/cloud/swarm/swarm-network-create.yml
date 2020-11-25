@@ -1,0 +1,8 @@
+- name: Playbook for creation and removing the swarm networks in new SwarmKit
+  hosts: "swarm-masters[0]"
+  become: true
+  vars_files: 
+    - "{{ inventory_dir }}/group_vars/swarm-network/swarm-main.yml"
+  roles:
+    - name: Call create network role
+      role: swarm/network/create

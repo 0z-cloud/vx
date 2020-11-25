@@ -1,0 +1,6 @@
+vcd_settings:
+  directories:
+    main: "/opt/vcd_init"
+    configs: "/opt/vcd_init/configs-{{ play_host_for_iso_upload }}/"
+    iso_dir: "/opt/vcd_init/iso-{{ play_host_for_iso_upload }}"
+  iso_name: vcd_init_settings-{{ play_host_for_iso_upload }}.iso

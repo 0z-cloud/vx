@@ -1,0 +1,94 @@
+
+# https://docs.ansible.com/ansible/latest/modules/docker_compose_module.html#requirements
+
+- name: Localhost development configuration docker-compose generator
+  hosts: localhost
+  become: true
+  vars_files:
+    - "./group_vars/!_ApplicationDocker_Template/docker-compose-template.yml"
+    - "group_vars/all.yml"
+  vars:
+    # ansible_environment: production
+    # ansible_product: adam
+    version_ansible_build_id: latest
+    cloud_dir: /opt/cloud_dir
+    # ansible_python_interpreter: "/usr/local/bin/python3.7"
+  # vars_prompt:
+  #   - name: "ANSIBLE_APPLICATION_TYPE"
+  #     prompt: "Provide your Application Type Name"
+  #     default: "vortex"
+  #     private: no
+  #   - name: "ansible_environment"
+  #     prompt: "Provide your Environment Name"
+  #     default: "production"
+  #     private: no
+  #   - name: "ansible_product"
+  #     prompt: "Provide your Product Name"
+  #     default: "vortex"
+  #     private: no
+  tasks:
+
+    - name: Install python docker compose
+      pip:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - docker-compose
+        - PyYAML
+
+    - name: Load default inventory group_vars
+      include_vars: "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+
+    - name: Include environment variables for applications
+      include_vars: "group_vars/!_Applications_Core/{{ ANSIBLE_APPLICATION_TYPE }}/{{ ANSIBLE_APPLICATION_TYPE }}_folders_map.yml"
+
+    - name: Include environment variables for applications
+      include_vars: "group_vars/!_Applications_Core/{{ ANSIBLE_APPLICATION_TYPE }}/{{ ANSIBLE_APPLICATION_TYPE }}_settings_map.yml"
+      
+    - name: Include environment variables for environment cloud
+      include_vars: "group_vars/!_DNS/cloud-bind-frontend-dns/cloud-bind-frontend-dns.yml"
+
+    - name: Template the docker-compose.yml
+      template:
+        src: "./group_vars/!_ApplicationDocker_Template/docker-compose-localhost.yml.j2"
+        dest: "./../../../docker-compose.yml"
+
+    - name: Create directories list
+      set_fact:
+        directories_primary: |
+           {% set dirlist = [] %}
+           {% if special_all_services_remap_docker_compose_generate is defined %}
+           {% for key,value in special_all_services_remap_docker_compose_generate.items() %}
+           {% for app,data in special_all_services_settings_map.items()%}
+           {% if key == app %}{% if value['volumes'] is defined %}
+           {% for volume in value['volumes'] %}{% set mount_volume_path = volume.split(':') %}{% set dirlist = dirlist.append(mount_volume_path[0]) %}
+           {% endfor %}{% endif %}{% endif %}{% endfor %}{% endfor %}{% endif %}{{ dirlist }}
+        directories_seconds: |
+           {% set dirlist = [] %}
+           {% for key,value in all_services_remap_docker_compose_generate.items() %}
+           {% for app,data in all_services_settings_map.items()%}
+           {% if key == app %}{% if value['volumes'] is defined %}
+           {% for volume in value['volumes'] %}{% set mount_volume_path = volume.split(':') %}{% set dirlist = dirlist.append(mount_volume_path[0]) %}
+           {% endfor %}{% endif %}{% endif %}{% endfor %}{% endfor %}{{ dirlist }}
+
+    - name: Create local dirs
+      file:
+        path: "{{ item }}"
+        state: directory
+      with_items: 
+        # - "{{ directories_primary }}"
+        - "{{ directories_seconds }}"
+
+    - name: Docker build and restart
+      docker_compose:
+        project_name: "{{ ansible_environment }}-{{ ansible_product }}-localhost"
+        project_src: "./../../../"
+        build: yes
+
+    - name: Docker build and restart
+      docker_compose:
+        project_name: "{{ ansible_environment }}-{{ ansible_product }}-localhost"
+        project_src: "./../../../"
+        recreate: always
+        build: yes
+        restarted: yes

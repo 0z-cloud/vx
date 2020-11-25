@@ -1,0 +1,31 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    certmanager.k8s.io/cluster-issuer: letsencrypt-prod
+    field.cattle.io/creatorId: user-rxbgq
+    field.cattle.io/ingressState: '{"d2FsbGV0L3JwYXktZW5naW5lL3dhbGxldC5kZXYucm9ja2V0aG8ubWUvLy84ODAw":"deployment:rpay-engine:wallet","d2FsbGV0LWRldi1yb2NrZXRoby1tZQ==":"rpay-engine:wallet-dev-rocketho-me"}'
+    field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":443,"protocol":"HTTPS","serviceName":"rpay-engine:ingress-cc8d32ff010cd1dfbdf3430a79b4f242","ingressName":"rpay-engine:wallet","hostname":"wallet.dev.rocketho.me","path":"/","allNodes":true}]'
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: '"true"'
+  creationTimestamp: null
+  generation: 1
+  labels:
+    cattle.io/creator: norman
+  name: wallet
+  selfLink: /apis/extensions/v1beta1/namespaces/rpay-engine/ingresses/wallet
+spec:
+  rules:
+  - host: wallet.dev.rocketho.me
+    http:
+      paths:
+      - backend:
+          serviceName: ingress-cc8d32ff010cd1dfbdf3430a79b4f242
+          servicePort: 8800
+        path: /
+  tls:
+  - hosts:
+    - wallet.dev.rocketho.me
+    secretName: wallet-dev-rocketho-me
+status:
+  loadBalancer: {}

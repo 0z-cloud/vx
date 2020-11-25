@@ -1,0 +1,25 @@
+- name: Apt install cracklib
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items: 
+    - libpam-cracklib
+    - cracklib-runtime
+
+- name: Creating right common-account file
+  template:
+    src: common-account
+    dest: /etc/pam.d/common-account
+    backup: yes
+
+- name: Creating right common-auth file
+  template:
+    src: common-auth
+    dest: /etc/pam.d/common-auth
+    backup: yes
+
+- name: Creating right common-password file
+  template:
+    src: common-password
+    dest: /etc/pam.d/common-password
+    backup: yes

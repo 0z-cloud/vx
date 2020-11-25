@@ -1,0 +1,10 @@
+- name: Run the clamav role on all servers
+  become: true
+  hosts: "{{ HOSTS | default('all') }}"
+  roles:
+    - name: Run the clamav role
+      role: ./!_security/clamav/deploy
+      when: ansible_children_environment == 'no'
+  tags: 
+    - clamav_install
+    - linux-hosts

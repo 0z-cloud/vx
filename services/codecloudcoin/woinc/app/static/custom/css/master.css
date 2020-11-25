@@ -1,0 +1,68 @@
+
+.icon a
+{
+    display: block;
+    width: 32px;
+    height: 32px;
+}
+
+.iconFriends
+{
+    background: url(icon.png) transparent;
+    width: 48px;
+    height: 48px;
+    border: none;
+    float: left;
+    position: relative;
+}
+
+
+.iconF32
+{
+    background: url(icon.png) transparent;
+    width: 32px;
+    height: 32px;
+    border: none;
+    float: left;
+    position: relative;
+}
+
+.logoLeftpadding {
+    padding: 25px 20px 20px;
+}
+
+.totalPaddingadding {
+    padding: 20px 20px 20px;
+}
+
+.totalPaddingaddingFive {
+    padding: 5px 5px 5px;
+}
+
+.positionAbsolute {
+    position: absolute;
+}
+
+
+
+
+.imageCuttering {
+    height: auto;
+    width: auto;
+    position: relative;
+    max-width: 30%;
+    max-height: 30%;
+}
+
+.imageCutteringAbsolute {
+    height: auto;
+    width: auto;
+    position: absolute;
+    max-width: 30%;
+    max-height: 30%;
+    object-fit: cover;
+}
+
+#ImageContainerDiv {
+    overflow: hidden;
+}

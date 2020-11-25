@@ -1,0 +1,7 @@
+#! /bin/sh
+if [ -e /var/run/mysqld/mysql-proxy.pid ]
+then
+ exit 0;
+else
+ /usr/bin/mysql-proxy-run.sh
+fi

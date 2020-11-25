@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "business-docs.name" . }}
+  labels:
+    app: {{ include "business-docs.name" . }}
+    chart: {{ template "business-docs.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ include "business-docs.name" . }}
+      release: {{ .Release.Name }}
+  strategy:
+    type: RollingUpdate
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "business-docs.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+      - image: "{{ .Values.global.image.repository }}{{ .Values.image.image_name }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        name: {{ .Chart.Name }}
+        envFrom:
+          - configMapRef:
+              name: {{ include "business-docs.name" . }}-env
+        ports:
+        - containerPort: {{ .Values.container.port }}
+          name: {{ include "business-docs.name" . }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.container.port }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.container.port }}          
+      imagePullSecrets:
+      - name: rpay-key-reg
+
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

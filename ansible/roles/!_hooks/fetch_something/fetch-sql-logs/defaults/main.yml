@@ -1,0 +1,7 @@
+files_to_fetch:
+  path: /var/log
+  files:
+     - "mysql/error.log"
+     - "mysql/mysql-slow.log"
+     - "mysql.err"
+     - "mysql.log"

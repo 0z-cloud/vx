@@ -1,0 +1,4 @@
+files_to_fetch:
+  path: /srv/logs/vortex-processing
+  files:
+     - "processing.log-20190124.gz"

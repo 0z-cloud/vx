@@ -1,0 +1,110 @@
+# - name: Install necessary packages mysql-router
+#   apt:
+#     name: mysql-router
+#     state: present
+
+- name: Install debs
+  apt:
+    name: "{{ item }}"
+    state: present
+    force: yes
+  with_items:
+    - cmake
+    - mysql-client
+    - libevent-dev
+    - build-essential
+    - libmysqlclient-dev
+
+- name: Copy storage files
+  copy:
+    src: "{{ item }}"
+    dest: "/tmp"
+  with_fileglob:
+    - "files/*"
+
+# - name: Install a .deb package
+#   apt:
+#     deb: /tmp/mysql-router.deb
+#     dpkg_options: 'force-confold,force-confdef'
+
+# - name: Extract foo.tgz into /var/lib/foo
+#   unarchive:
+#     src: /tmp/mysql-router-8.0.12.tar.gz
+#     dest: /tmp
+#   remote_src: true
+
+- name: Shell hardcore
+  shell: tar -xvf /tmp/mysql-router-8.0.12.tar.gz
+  args:
+    chdir: /tmp/
+
+# - name: Make install
+#   shell: somescript.sh >> somelog.txt
+#   args:
+#     chdir: /tmp/
+
+- name: LS -la
+  shell: ls -la /tmp/mysql-router-8.0.12
+  register: result_ls
+
+- name: Debug show ls
+  debug:
+    msg: "{{ result_ls }}"
+
+- name: Make cmake
+  shell: cmake .
+  args:
+    chdir: /tmp/mysql-router-8.0.12/
+
+- name: Make make
+  shell: make .
+  args:
+    chdir: /tmp/mysql-router-8.0.12/
+
+- name: Make make install
+  shell: make install
+  args:
+    chdir: /tmp/mysql-router-8.0.12/
+
+- name: ADD USER | Add mysqlrouter user
+  user:
+    name: "mysqlrouter"
+    append: yes
+  tags: service
+
+- name: Creates /etc/mysqlrouter directory
+  file:
+    path: /etc/mysqlrouter
+    mode: 0755
+    state: directory
+  tags: service
+
+- name: Generates the mysql-router configuration
+  template:
+    src: mysqlrouter.conf.j2
+    dest: /etc/mysqlrouter/mysqlrouter.conf
+  tags: service
+
+- name: Generates the init.d mysql-router configuration
+  template:
+    src: init.d.j2
+    dest: /etc/init.d/mysqlrouter
+    mode: 0777
+  tags: service
+
+- name: Enable service mysqlrouter, and not touch the running state
+  service:
+    name: mysqlrouter
+    enabled: yes
+  tags: service
+
+- name: just force systemd to reread configs (2.4 and above)
+  systemd:
+    daemon_reload: yes
+  tags: service
+
+- name: Restart service httpd, in all cases
+  service:
+    name: mysqlrouter
+    state: restarted
+  tags: service

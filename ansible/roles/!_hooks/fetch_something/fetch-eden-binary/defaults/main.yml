@@ -1,0 +1,4 @@
+files_to_fetch:
+  path: /eve/src/eden/dist/bin
+  files:
+     - "eden-linux-amd64"

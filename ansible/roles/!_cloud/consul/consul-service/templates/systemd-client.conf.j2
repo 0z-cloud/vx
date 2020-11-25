@@ -1,0 +1,16 @@
+[Unit]
+Description=Consul Client Agent
+After=network.target
+
+[Service]
+User={{ consul_defaults.consul_security.linux_username }}
+Group={{ consul_defaults.consul_security.linux_group }}
+
+ExecStart=/bin/consul agent -data-dir {{ consul.directories.working_consul_data }} -config-file {{ consul.directories.working_etc_directory }}/consul.json  -log-file {{ consul.directories.logging_dir }} -config-dir {{ consul.directories.configs_dir }}
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+LimitNOFILE=131072
+
+[Install]
+WantedBy=multi-user.target
+

@@ -1,0 +1,9 @@
+
+
+- name: Run the apt-mirror role on all servers
+  become: true
+  hosts: "all"
+  roles:
+    - name: Run the clamav role
+      role: ./!_security/apt-mirror
+      when: ansible_children_environment == 'no'

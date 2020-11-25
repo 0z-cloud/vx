@@ -1,0 +1,11 @@
+- hosts: "{{ teamcity_app }}"
+  become: true
+  vars:
+    RELEASE_OWNER: "{{ tomcat_properties.security.owner_user }}"
+    RELEASE_GROUP: "{{ RELEASE_OWNER }}"
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/java/{{ teamcity_app }}.yml"
+  roles:
+    - ./!_deploy/create-release-directory
+    - ./!_deploy/download-artifacts
+    - ./!_deploy/java/deploy

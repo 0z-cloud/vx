@@ -1,0 +1,59 @@
+# Add all services to consul
+
+- name: Install Python-Postgres Library for Python3
+  pip:
+    name: psycopg2
+    executable: pip3
+
+- name: Add presented checks to Consul K/V
+  shell: |
+      curl --data [{"Node":"cloud-{{ ansible_hostname }}","Address":"{{ ansible_default_ipv4['address'] }}","ServiceID":"{% for key, value in item.items() %}%}{{ key | replace('\n', '') }}{% endfor %}", "ServiceName":"{% for key, value in item.items() %}{{ key | replace('\n', '') }}{% endfor %}","ServiceTags":["rails"],"ServicePort":"{% for key, value in item.items() %}{{ value.listen_port | replace('\n', '') }}{% endfor %}"}] http://{{ ansible_default_ipv4['address'] }}:8500/v1/catalog/service/{% for key, value in item.items() %}{{ value.target | replace('\n', '') }}{% endfor %}
+  with_items: 
+    - "{{ cloud_immortal_services }}"
+
+- name: Register ServiceID
+  template:
+    src: reg.service.j2
+    dest: "{{ consul.directories.configs_dir }}/{% for key, value in item.items() %}{{ key | replace('\n', '') }}{% endfor %}.json"
+  with_items: 
+    - "{{ cloud_immortal_services }}"
+
+####
+##
+#
+# WIP
+# - name: Create CRAZY HOP{AGGAIN_@@-CAN_BE_RESTORED_AGAIN>}
+#   template:
+#     src: consul.d/crazy_hop_d.j2
+#     dest: "{{ consul.directories.configs_dir }}/{% for key, value in item.items() %}{{ key | replace('\n', '') }}{% endfor %}.json"
+#   with_items: |
+#     { {% for dict_item in crazy_hop_consul_services %}{% for key, value in dict_item.items() %}
+#     '{{ value.name }}',
+#     {% endfor %}{% endfor %} }
+#   tags: crazy_hop_d
+
+# - name: Cloud init crazy step
+#   template: 
+#     src: "./crazy_hop.d/{{ item }}"
+#     dest: "{{ consul.directories.crazy_hop_d }}/{{ item }}"
+#   tags: crazy_hop_d
+#   with_items: |
+#     { {% for dict_item in crazy_hop_consul_services %}{% for key, value in dict_item.items() %}
+#     '{{ value.name }}.{{ value.exec }}',
+#     {% endfor %}{% endfor %} }
+
+# - name: Create Consul Basic Tests (RAM, CPU, DISK)
+#   template:
+#     src: reg.service.j2
+#     dest: "{{ consul.directories.configs_dir }}/{% for key, value in item.items() %}{{ key | replace('\n', '') }}{% endfor %}.json"
+#   with_items: 
+#     - "{{ basic_consul_services }}"
+
+# - name: Create Custom tests (Redis, Rabbit, etc)
+
+- name: Consul Restart with delay between run on Masters
+  raw: /etc/init.d/consul restart
+  with_sequence: start=0 end={{ (( play_hosts | length ) / 2 ) | round (0, 'floor') | int }}
+  loop_control:
+    pause: 10
+  when: "(( ansible_play_batch.index(inventory_hostname) % (( play_hosts | length ) / 2 )) | round) == (item | int)"

@@ -1,0 +1,46 @@
+---
+
+- name: Disable possible PritUNL on frontend nodes
+  systemd:
+    name: "pritunl"
+    state: "stopped"
+    enabled: no
+  ignore_errors: true
+
+- include_tasks: nginx-official-repo.yml
+  when: nginx_official_repo == True
+
+- include_tasks: installation.packages.yml
+  when: nginx_installation_type == "packages"
+
+- include_tasks: ensure-dirs.yml
+
+- include_tasks: remove-defaults.yml
+  when: not keep_only_specified
+
+- include_tasks: remove-extras.yml
+  when: keep_only_specified
+
+- include_tasks: remove-unwanted.yml
+
+- include_tasks: copy-mime.yml
+
+- include_tasks: copy-ssl.yml
+
+- include_tasks: configuration.yml
+
+- name: Get raw check by nginx -t
+  shell: nginx -t
+  register: nginx_t_result
+
+- name: Show T result from nginx check
+  debug:
+    msg: "{{ nginx_t_result }}"
+
+- name: Start the nginx service
+  service: 
+    name: "{{ nginx_service_name }}" 
+    state: restarted 
+    enabled: yes
+  when: nginx_installation_type in nginx_installation_types_using_service and nginx_daemon_mode == "on"
+  tags: [service, nginx, passwordfile]

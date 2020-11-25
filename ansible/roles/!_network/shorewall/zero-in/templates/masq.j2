@@ -1,0 +1,23 @@
+# For information about entries in this file, type "man shorewall-masq"
+################################################################################################################
+# INTERFACE:DEST		                    SOURCE		        ADDRESS		PROTO	PORT(S)	IPSEC	MARK	USER/	SWITCH	ORIGINAL
+# MASQ
+
+# INTERFACE     SOURCE          ADDRESS
+# eth0           10.0.1.0/24     ...            # 10.0.1.0/24 is the local network on LAN A and LAN B
+
+#INTERFACE       SOURCE               ADDRESS
+# eth0             !206.124.146.176/29  206.124.146.176
+# eth1             0.0.0.0/0            130.252.99.27
+
+{% if hostvars[inventory_hostname]['ansible_default_ipv4']['interface'] == hostvars[inventory_hostname]['second_iface'] %}
+
+# /etc/shorewall/masq
+# INTERFACE              SOURCE          ADDRESS
+#{{ hostvars[inventory_hostname]['second_iface'] }}:!{% for host in groups['all'] %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}/32{% if not loop.last %},{% endif %}{% endfor %}    {{ second_network_subnet | ipaddr('network') }}/24
+
+# /etc/shorewall/snat
+# ACTION                SOURCE          DEST                PROTO   PORT
+#MASQUERADE              {{ second_network_subnet | ipaddr('network') }}/24           {{ hostvars[inventory_hostname]['second_iface'] }}:!{% for host in groups['all'] %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}/32{% if not loop.last %},{% endif %}{% endfor %}
+
+{% endif %}

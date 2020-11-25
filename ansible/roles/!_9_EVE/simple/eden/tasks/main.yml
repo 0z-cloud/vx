@@ -1,0 +1,244 @@
+
+- name: '|[_E_D_E_N_]| Absent old dir Eden'
+  shell: rm -rf /eve/src/eden
+
+# - name: Kill possible eve 
+#   shell: 'ps -aux | grep eve | grep "qemu-system-x86_64" | awk "{print $2}" | xargs -I ID kill -9 ID'
+
+- name: '|[_E_D_E_N_]| Raw call the commands - git clone Eden'
+  shell: "cd /eve/src && git clone https://github.com/lf-edge/eden.git"
+
+# - name: async Vx
+#   command: "{{ item }}"
+#   async: 3600
+#   poll: 0
+#   register: aysnc_play
+#   with_items:
+#     - make build
+#     - cd /eve/src/eden
+
+# - name: retrieve async status
+#   async_status:
+#     jid: "{{ item.ansible_job_id }}"
+#   register: async_jobs
+#   until: async_jobs.finished
+#   with_items:
+#     - "{{ aysnc_play.results }}"
+#   retries: 60
+#   delay: 60
+
+- name: '|[_E_D_E_N_]| Make to clean the new run command - prepared to start build Eden'
+  make:
+    chdir: /eve/src/eden/
+    target: clean
+    params:
+      NUM_THREADS: 4
+  register: eden_clean_build_home
+
+- name: '|[_E_D_E_N_]| Make to call the make command - start build Eden'
+  make:
+    chdir: /eve/src/eden/
+    target: build
+    params:
+      NUM_THREADS: 4
+  register: eden_build
+  # until: eden_build.stdout.find("load") != -1
+  # retries: 6
+  # delay: 10
+
+- name: '|[_E_D_E_N_]| Show Build result'
+  debug:
+    msg: "{{ eden_build.stdout_lines }}"
+
+# - name: Raw call the commands - start build Eden
+#   shell:
+#     cmd: "make build"
+#     chdir: "cd /eve/src/eden"
+#   async: 500
+#   poll: 5
+#   register: my_task
+
+# - name: Run uptime and register output - Wait for task to complete
+#   shell: "uptime"
+#   register: uptime
+#   until: uptime.stdout.find("load") != -1
+#   retries: 6
+#   delay: 10
+
+# - name: Get the task status using ansible async_status
+#   async_status:
+#     jid: "{{ my_task.ansible_job_id }}"
+#   register: result
+#   until: result.finished
+#   retries: 30
+
+# - name: 'Eden Build Status | make build | - check on async build task'
+#   async_status:
+#     jid: "{{ eden_build.ansible_job_id }}"
+#   register: job_result
+#   until: job_result.finished
+#   retries: 30
+
+- name: '|[_E_D_E_N_]| Show Eden Build results'
+  debug:
+    msg: "{{ eden_build.stdout_lines }}"
+
+- name: '|[_E_D_E_N_]| Shell to call the commands - Eden create config after build'
+  shell: 
+    chdir: /eve/src/eden/
+    cmd: ./eden config add default
+  register: eden_add_default
+
+- name: '|[_E_D_E_N_]| Shell to call the commands - Eden add config after build'
+  shell: 
+    chdir: /eve/src/eden/
+    cmd: ./eden config set default --key=eve.accel --value=false
+  register: eden_add_kv_default
+
+- name: Copy generated config to default place
+  shell: cp -r /root/.eden/contexts/default.yml /eve/src/eden/dist/default-config_saved.yml
+
+- name: '|[_E_D_E_N_]| Show Config Add Default result'
+  debug:
+    msg: "{{ eden_add_default }}"
+
+- name: '|[_E_D_E_N_]| Shell to call the commands - Eden build setup'
+  shell: 
+    chdir: /eve/src/eden
+    cmd: eden setup
+  register: eden_add_setup
+
+- name: '|[_E_D_E_N_]| Show After Eden Setup result'
+  debug:
+    msg: "{{ eden_add_setup.stdout_lines }}"
+
+- name: '|[_E_D_E_N_]| Shell to call the commands - Eden start'
+  shell: 
+    chdir: /eve/src/eden
+    cmd: eden start
+  register: eden_add_start
+
+- name: '|[_E_D_E_N_]| Show After Eden Start result'
+  debug:
+    msg: "{{ eden_add_start.stdout_lines }}"
+
+# - name: Kill possible eve. Bullet two.
+#   shell: 'ps -aux | grep eve | grep "qemu-system-x86_64" | awk "{print $2}" | xargs -I ID kill -9 ID'
+
+- name: '|[_N_E_O_N_]| Make are call to say eve can start now'
+  shell:
+    chdir: /eve/src/eden
+    cmd: ./eden eve start
+  register: between_start_eve_instance
+
+- name: '|[_N_E_O_N_]| Show Results After Eden ask EVE to Start'
+  debug:
+    msg: "{{ between_start_eve_instance.stdout_lines }}"
+
+- name: Get running processes list from remote host
+  ignore_errors: yes
+  shell: "ps -few | grep '/eve/src/eden' | grep qemu | awk '{print $2}'"
+  register: running_processes
+
+- name: Kill running processes
+  ignore_errors: yes
+  shell: "kill -9 {{ item }}"
+  with_items: "{{ running_processes.stdout_lines }}"
+
+- name: '|[_N_E_O_N_]| Make are call to say eve can start now'
+  shell:
+    chdir: /eve/src/eden
+    cmd: ./eden eve start
+  register: between_start_eve_instance
+
+- name: '|[_N_E_O_N_]| Make are call to say eve can start now'
+  shell:
+    cmd: nohup /eve/src/eden/dist/bin/eden-linux-amd64 eve start &
+  register: between_start_eve_instance_nohup
+  
+# - name: Shell get hohup start nohup results
+#   shell: cat nohup.out
+#   register: hohup_start_result
+  
+- name: Show between_start_eve_instance_nohup log from EVE
+  debug: 
+    msg: "{{ between_start_eve_instance_nohup.stdout_lines }}"
+
+# /eve/src/eden/dist/eve.log
+
+#  You can use shell to run other executables to perform actions inline
+# - name: Run expect to wait for a successful PXE boot via out-of-band CIMC
+#   shell: |
+#     set timeout 300
+#     spawn ssh admin@{{ cimc_host }}
+
+#     expect "password:"
+#     send "{{ cimc_password }}\n"
+
+#     expect "\n{{ cimc_name }}"
+#     send "connect host\n"
+
+#     expect "pxeboot.n12"
+#     send "\n"
+
+#     exit 0
+#   args:
+#     executable: /usr/bin/expect
+#   delegate_to: localhost
+
+- name: '|[_E_D_E_N_]| Shell to call the commands - Eden Eve onboard'
+  shell: 
+    chdir: /eve/src/eden
+    cmd: eden eve onboard
+  retries: 7
+  delay: 15
+  register: eden_add_onboard
+  until: eden_add_onboard.rc == 0
+  # because each time are a crash now
+  ignore_errors: true
+
+- name: '|[_E_D_E_N_]| Show After Eden Onboard result'
+  debug:
+    msg: "{{ eden_add_onboard.stdout_lines }}"
+
+- name: '|[_E_D_E_N_]| Shell to call the commands - Eden get status'
+  shell: 
+    chdir: /eve/src/eden
+    cmd: eden status
+  register: eden_status
+
+- name: '|[_E_D_E_N_]| Show After Eden Status result'
+  debug:
+    msg: "{{ eden_status.stdout_lines }}"
+
+- name: '|[_E_D_E_N_]| Make to call the commands - Eden making the tests suite'
+  make:
+    chdir: /eve/src/eden/
+    target: build-tests
+    params:
+      NUM_THREADS: 4
+  register: eden_make_tests
+
+- name: '|[_E_D_E_N_]| Show After Eden Status Maked Tests'
+  debug:
+    msg: "{{ eden_make_tests.stdout_lines }}"
+
+- name: '|[_E_D_E_N_]| Shell to call the commands - Eden run to get Eden status by run tests suite'
+  shell: 
+    chdir: /eve/src/eden
+    cmd: eden test
+  register: eden_tests_start
+  # because fails now
+  ignore_errors: true
+
+- name: '|[_E_D_E_N_]| Show After Eden Status Results Tests'
+  debug:
+    msg: "{{ eden_tests_start.stdout_lines }}"
+
+- name: Print to screen EVE log details
+  command: cat /eve/src/eden/dist/eve.log
+  register: eve_last_log
+
+- name: Show last log from EVE
+  debug: 
+    msg: "{{ eve_last_log.stdout_lines }}"

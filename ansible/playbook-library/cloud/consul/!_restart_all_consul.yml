@@ -1,0 +1,13 @@
+---
+- name: re/Start all consul agents on all hosts
+  hosts: all
+  tasks: 
+  - name: reStart Consul service
+    systemd:
+      name: consul
+      state: restarted
+      enabled: yes
+    with_sequence: start=0 end={{ (( play_hosts | length ) / 2 ) | round (0, 'floor') | int }}
+    loop_control:
+      pause: 1
+    when: "(( ansible_play_batch.index(inventory_hostname) % (( play_hosts | length ) / 2 )) | round) == (item | int)"

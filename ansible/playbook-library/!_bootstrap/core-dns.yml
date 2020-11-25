@@ -1,0 +1,85 @@
+
+
+
+- hosts: localhost
+  gather_facts: true 
+  become: false
+  vars_files:
+    - "group_vars/products/{{ ansible_product }}/main.yml"
+    - "group_vars/products/{{ ansible_product }}/{{ ansible_cloud_type }}.yml"
+    - "group_vars/products/{{ ansible_product }}/shared.yml"
+    - "group_vars/products/{{ ansible_product }}/zone.yml"
+    - "group_vars/!_anyCloud/anyCloud.yml"
+    - "group_vars/all.yml"
+    - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/dns/{{ HOSTS | default('cloud-bind-frontend-dns') }}/{{ HOSTS | default('cloud-bind-frontend-dns') }}.yml"
+    - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+    - "inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+  tasks: 
+
+    - name: Load default inventory group_vars
+      include_vars: "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+
+    - name: Template 0z-cloud configuration state to all nodes
+      template:
+        src: inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml
+        dest: /tmp/cloud_info.yml
+      delegate_to: localhost
+
+    - name: Load Zero Cloud configuration for current environment, product, and cloud type
+      vars:
+        zero_cloud_load: "{{ lookup('file', '/tmp/cloud_info.yml') | from_yaml }}"
+      set_fact:
+        zero_cloud: "{{ zero_cloud_load }}"
+
+# Facts Getting from All Server's clients for DNS templating
+- name: Fact gathering
+  gather_facts: true 
+  hosts: cloud-bind-frontend-dns:all
+  tasks: []
+  tags: [get_facts, always]
+
+# - hosts: "{{ HOSTS | default('cloud-bind-frontend-dns') }}:all:vlan_backend_node:nginx-frontend:vlan_network_balancer:vlan_frontend"
+#   gather_facts: true 
+#   vars_files:
+#     - "group_vars/products/{{ ansible_product }}/{{ ansible_cloud_type }}.yml"
+#     - "group_vars/!_anyCloud/anyCloud.yml"
+#     - "group_vars/all.yml"
+#     - "{{ inventory_dir }}/group_vars/dns/{{ HOSTS | default('cloud-bind-frontend-dns') }}/{{ HOSTS | default('cloud-bind-frontend-dns') }}.yml"
+#     - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+#     - "inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+#     tasks: 
+
+#     - name: Load default inventory group_vars
+#       include_vars: "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+  
+#     - name: Template 0z-cloud configuration state to all nodes
+#       template:
+#         src: inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml
+#         dest: /tmp/cloud_info.yml
+#       delegate_to: localhost
+    
+#     - name: Load Zero Cloud configuration for current environment, product, and cloud type
+#       vars:
+#         zero_cloud_load: "{{ lookup('file', '/tmp/cloud_info.yml') | from_yaml }}"
+#       set_fact:
+#         zero_cloud: "{{ zero_cloud_load }}"
+
+- name: Setup CoreDNS backend service for run specific tasks
+  vars_files:
+    - "group_vars/products/{{ ansible_product }}/main.yml"
+    - "group_vars/products/{{ ansible_product }}/{{ ansible_cloud_type }}.yml"
+    - "group_vars/products/{{ ansible_product }}/shared.yml"
+    - "group_vars/products/{{ ansible_product }}/zone.yml"
+    - "group_vars/!_anyCloud/anyCloud.yml"
+    - "group_vars/all.yml"
+    - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/dns/{{ HOSTS | default('cloud-bind-frontend-dns') }}/{{ HOSTS | default('cloud-bind-frontend-dns') }}.yml"
+    - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+    - "inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+  hosts: "{{ HOSTS | default('cloud-bind-frontend-dns') }}:all"
+  roles:
+
+    - name: GET CLOUD FACTS | Load the anycloud settings from Zero Cloud Inventory
+      role: ./!_0_init/anycloud
+
+    - name: Run CoreDNS service role
+      role: ./!_bootstrap/core_dns

@@ -1,0 +1,10 @@
+- name: Selftest killer point - go ahead
+  hosts: localhost
+    
+# PLAYBOOK
+
+
+# ROLE
+
+roles: 
+  - explain

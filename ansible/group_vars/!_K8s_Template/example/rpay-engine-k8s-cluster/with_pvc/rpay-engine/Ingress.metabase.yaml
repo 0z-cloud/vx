@@ -1,0 +1,31 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    certmanager.k8s.io/cluster-issuer: letsencrypt-prod
+    field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":443,"protocol":"HTTPS","serviceName":"rpay-engine:metabase","ingressName":"rpay-engine:metabase","hostname":"metabase.dev.rocketho.me","path":"/","allNodes":true}]'
+    ingress.kubernetes.io/force-ssl-redirect: "true"
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: "true"
+  creationTimestamp: null
+  generation: 1
+  labels:
+    app: metabase
+    io.cattle.field/appId: rpay-engine
+  name: metabase
+  selfLink: /apis/extensions/v1beta1/namespaces/rpay-engine/ingresses/metabase
+spec:
+  rules:
+  - host: metabase.dev.rocketho.me
+    http:
+      paths:
+      - backend:
+          serviceName: metabase
+          servicePort: 3000
+        path: /
+  tls:
+  - hosts:
+    - metabase.dev.rocketho.me
+    secretName: letsencrypt-metabase
+status:
+  loadBalancer: {}

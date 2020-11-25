@@ -1,0 +1,17 @@
+/var/log/nginx/*.log {
+        su www-data www-data
+        daily
+        copytruncate
+        missingok
+        rotate {{ environment_rsyslog_rotate_days }}
+        compress
+        delaycompress
+        notifempty
+        create 640 nginx adm
+        sharedscripts
+        postrotate
+                if [ -f /var/run/nginx.pid ]; then
+                        kill -USR1 `cat /var/run/nginx.pid`
+                fi
+        endscript
+}

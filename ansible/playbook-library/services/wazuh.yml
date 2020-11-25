@@ -1,0 +1,45 @@
+- name: Gathering all facts
+  hosts: all
+  tasks: []
+  tags: always
+
+- name: Setup Elasticsearch
+  hosts: wazuh-elasticsearch
+  become: true
+  roles:
+    - name: Run the wazuh elasticsearch role
+      role: ./!_security/wazuh/elasticsearch
+      when: ansible_children_environment == 'no'
+      tags:
+        - wazuh-elasticsearch
+
+- name: Setup Kibana
+  hosts: wazuh-kibana
+  become: true
+  roles:
+    - name: Run the wazuh kibana role
+      role: ./!_security/wazuh/kibana
+      when: ansible_children_environment == 'no'
+      tags:
+        - wazuh-kibana
+
+- name: Setup Wazuh Manager
+  hosts: wazuh-manager
+  become: true
+  roles:
+
+    - name: Run the wazuh manager role
+      role: ./!_security/wazuh/manager
+      when: ansible_children_environment == 'no'
+      tags:
+        - wazuh-server
+
+- name: Setup Wazuh Agent
+  hosts: wazuh-agent
+  become: true
+  roles:
+    - name: Run the wazuh agent role
+      role: ./!_security/wazuh/agent
+      when: ansible_children_environment == 'no'
+      tags:
+        - wazuh-agent

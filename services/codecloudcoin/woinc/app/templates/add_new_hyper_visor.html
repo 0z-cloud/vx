@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+  {% block title %}<title>Wo inc. Control Panel - Add hyper-visor server</title>{% endblock %}
+{% block dashboard_stat %}
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <h1>
+        Add hyper-visor server
+      </h1>
+      <ol class="breadcrumb">
+        <li><a href="{{ url_for('hypervisor') }}"><i class="fa fa-dashboard"></i>Hyper-visor's</a></li>
+        <li class="active">Add hyper-visor</li>
+      </ol>
+    </section>
+{% endblock %}
+{% block content %}
+<section class="content">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Add new server</h3>
+                </div>
+                <div class="box-body">
+                    <!-- Custom Tabs -->
+                    <div class="nav-tabs-custom" id="tabs">
+
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="tabs-personal">
+                                <form role="form" method="post" action="{{ url_for('add_new_hyper_visor') }}">
+                                    <div class="form-group">
+                                        <label for="hv_server_name">Name</label> <input type="text"
+                                            class="form-control" name="hv_server_name" id="hv_server_name"
+                                            placeholder="{{ hv_server_name }}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="hv_server_ip">IP</label> <input type="text"
+                                            class="form-control" name="hv_server_ip" id="hv_server_ip"
+                                            placeholder="{{ hv_server_ip }}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="hv_server_api_user">User</label> <input type="text"
+                                            class="form-control" name="hv_server_api_user" id="hv_server_api_user"
+                                            placeholder="{{ hv_server_api_user }}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="hv_server_api_password">Password</label> <input type="text"
+                                            class="form-control" name="hv_server_api_password" id="hv_server_api_password"
+                                            placeholder="{{ hv_server_api_password }}">
+                                    </div>
+                                    <div class="form-group">
+                                        <button type="submit" class="btn btn-flat btn-primary">Test and Add</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+{% block extrascripts %}
+<!-- TODO: add password and password confirmation comparisson check -->
+<script>
+
+    $(function() {
+        $('#tabs').tabs({
+            // add url anchor tags
+            activate: function(event, ui) {
+                window.location.hash = ui.newPanel.attr('id');
+            }
+        });
+        // re-set active tab (ui)
+        var activeTabIdx = $('#tabs').tabs('option','active');
+        $('#tabs li:eq('+activeTabIdx+')').tab('show')
+    });
+
+</script>
+{% endblock %}

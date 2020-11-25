@@ -1,0 +1,15 @@
+# Sync all ca_certificates from local issue center
+
+- name: SYNC | Sync abtained letsencrypt certificates from backend service to nginx frontend
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/dns/{{ HOSTS | default('master-bind-master-backend') }}/{{ HOSTS | default('master-bind-master-backend') }}.yml"
+  vars:
+     destination_dict: "{{ lookup('file','{{ inventory_dir }}/group_vars/dns/cloud-bind-frontend-dns/cloud-bind-frontend-dns.yml') | from_yaml }}"
+  hosts: "master-bind-master-backend:nginx-frontend"
+  become: true
+  roles:
+
+    - name: Calling CA Sync from backend-dns to front-end dns service
+      role: ./!_acme/ca_sync
+
+  tags: sync

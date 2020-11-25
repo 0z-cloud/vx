@@ -1,0 +1,21 @@
+---
+
+- include: set_admin_password.yml
+  when:    "{{ slapd_set_password or slapd_reset_password }}"
+  tags:    [passwords]
+
+- name: Disable anonymous bind
+  when: slapd_disable_anon_bind
+  ldap_attr:
+    dn:        "olcDatabase={-1}frontend,cn=config"
+    name:      olcRequires
+    values:    authc
+    state:     exact
+
+# - name: Ensure access controls are defined
+#   when: slapd_acls | length
+#   ldap_upsert:
+#     objectClass: olcDatabaseConfig #  won't be used since this DN already exists
+#     dn:          "olcDatabase={1}hdb,cn=config"
+#     olcAccess:   "{{ slapd_acls }}"
+#   tags: [slapd, acls]

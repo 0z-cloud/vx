@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<vcs-root xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="690cc1a2-fcee-4696-9168-9610554ed0e6" type="jetbrains.git" xsi:noNamespaceSchemaLocation="https://www.jetbrains.com/teamcity/schemas/2018.1/project-config.xsd">
+  <name>teamcity</name>
+  <param name="agentCleanFilesPolicy" value="ALL_UNTRACKED" />
+  <param name="agentCleanPolicy" value="ON_BRANCH_CHANGE" />
+  <param name="authMethod" value="PASSWORD" />
+  <param name="branch" value="refs/heads/develop" />
+  <param name="ignoreKnownHosts" value="true" />
+  <param name="push_url" value="https://bb-vcs.local.cloud.eve.vortice.eden/scm/lf-edge/eden-vertice.git" />
+  <param name="secure:password" value="credentialsJSON:09d26f48-c12d-46b0-b149-32be7aba40ac" />
+  <param name="submoduleCheckout" value="CHECKOUT" />
+  <param name="teamcity:branchSpec"><![CDATA[+:refs/(pull/*)/head
++:refs/heads/(*)
++:refs/(merge-requests/*)
++:refs/pull/*/merge
++:refs/(pull/*)/head
++:refs/heads/(*)]]></param>
+  <param name="url" value="https://bb-vcs.local.cloud.eve.vortice.eden/scm/lf-edge/eden-vertice.git" />
+  <param name="useAlternates" value="true" />
+  <param name="username" value="teamcity" />
+  <param name="usernameStyle" value="USERID" />
+</vcs-root>

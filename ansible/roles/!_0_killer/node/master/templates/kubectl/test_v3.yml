@@ -1,0 +1,25 @@
+apiVersion: kubeadm.k8s.io/v1beta2
+imageRepository: k8s.gcr.io
+kind: ClusterConfiguration
+kubernetesVersion: v1.18.0
+scheduler: {}
+apiServer:
+    timeoutForControlPlane: 4m0s
+certificatesDir: /opt/ca/pki
+clusterName: "main_k8_cluster"
+controllerManager: {}
+dns:
+  type: CoreDNS
+etcd:
+    external:
+        endpoints:
+        - https://172.16.50.206:2379
+        - https://172.16.50.205:2379
+        - https://172.16.50.207:2379
+        caFile: /opt/ca/pki/ca.pem
+        certFile: /opt/ca/pki/etcd.pem
+        keyFile: /opt/ca/pki/etcd-key.pem
+networking:
+  dnsDomain: vless.ru
+  podSubnet: 192.168.0.0/16
+  serviceSubnet: 10.32.0.0/16

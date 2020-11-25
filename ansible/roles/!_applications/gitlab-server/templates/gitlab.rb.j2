@@ -1,0 +1,16 @@
+external_url 'https://{{ ansible_global_gitlab_site_name }}'
+registry_external_url 'https://{{ ansible_global_gitlab_registry_site_name }}:{{ registry_service_listen_port }}'
+nginx['redirect_http_to_https'] = true
+nginx['ssl_certificate'] = "/etc/gitlab/ssl/{{ acme_wildcard_domain }}.cer"
+nginx['ssl_certificate_key'] = "/etc/gitlab/ssl/{{ acme_wildcard_domain }}.key"
+nginx['listen_addresses'] = ["0.0.0.0"]
+registry_nginx['ssl_certificate'] = "/etc/gitlab/ssl/{{ acme_wildcard_domain }}.cer"
+registry_nginx['ssl_certificate_key'] = "/etc/gitlab/ssl/{{ acme_wildcard_domain }}.key"
+registry_nginx['enable'] = true
+registry_nginx['listen_port'] = {{ registry_service_listen_port }}
+registry_nginx['port'] = {{ registry_service_listen_port }}
+registry_nginx['redirect_http_to_https'] = true
+registry_nginx['listen_addresses'] = ['*', '[::]']
+nginx['listen_port'] = {{ git_service_listen_port }}
+# gitlab_rails['anycloud_ci_cd_vcs_project_checkout_service_auth_identity_pass_or_token'] = '{{ anycloud_ci_cd_vcs_project_checkout_service_auth_identity_pass_or_token }}'
+gitlab_rails['anycloud_ci_cd_vcs_project_checkout_service_auth_identity_pass_or_token'] = 'HOGEHOGETOKEN'

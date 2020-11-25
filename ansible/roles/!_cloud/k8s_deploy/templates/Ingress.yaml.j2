@@ -1,0 +1,37 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    certmanager.k8s.io/cluster-issuer: letsencrypt-{{ ansible_environment }}
+    field.cattle.io/ingressState: '{"YnVzaW5lc3MvcnBheS1lbmdpbmUvYnVzaW5lc3MuZGV2LnJvY2tldGhvLm1lLy8vNDAwMA==":"","bGV0c2VuY3J5cHQtYnVzaW5lc3M=":"{{ ansible_product}}-{{ ansible_environment }}:letsencrypt-{{ item.key }}"}'{% set acme_servers_ips = [] %}{% for host in groups['cloud-bind-frontend-dns'] %}{{ acme_servers_ips.append( hostvars[host]['second_ip'] ) | default("", True) }}{% endfor %}
+    {% raw %}field.cattle.io/publicEndpoints: '[{"addresses":[{% endraw %}{% for acme_node_ip in acme_servers_ips %}{% raw %}"{% endraw %}{{ acme_node_ip }}{% raw %}"{% endraw %}{% if not loop.last %},{% endif %}{% endfor %}{% raw %}],"port":{% endraw %}{{ nginx_https_service_listen_port }}{% raw %},"protocol":"{% endraw %}{{ item.value['k8s_service_protocol'] }}{% raw %}","serviceName":"{% endraw %}{{ ansible_product}}{% raw %}-{% endraw %}{{ ansible_environment }}{% raw %}:{% endraw %}{{ item.key }}{% raw %}","ingressName":"{% endraw %}{{ ansible_product}}{% raw %}-{% endraw %}{{ ansible_environment }}{% raw %}:{% endraw %}{{ item.key }}{% raw %}","hostname":"{% endraw %}{{ item.key }}{% raw %}.{% endraw %}{{ public_consul_domain }}{% raw %}","path":"/","allNodes":{% endraw %}{{ item.value['k8s_service_placement'] }}{% raw %}}]'{% endraw %}{% raw %}}
+    {% endraw %}ingress.kubernetes.io/force-ssl-redirect: "true"
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: "true"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+    nginx.ingress.kubernetes.io/cors-allow-methods: PUT, GET, POST, OPTIONS
+    nginx.ingress.kubernetes.io/cors-allow-origin: https://{{ item.key }}.{{ public_consul_domain }}
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+  creationTimestamp: null
+  generation: 1
+  labels:
+    app: {{ item.key }}
+    io.cattle.field/appId: {{ ansible_product}}-{{ ansible_environment }}
+  name: {{ item.key }}
+  selfLink: /apis/extensions/v1beta1/namespaces/{{ ansible_product}}-{{ ansible_environment }}/ingresses/{{ item.key }}
+spec:
+  rules:
+{% if item.value['ports'] is defined %}{% set ports_array = [] %}{% for portnum in item.value['ports'] %}{% set portlist = portnum.split(':') %}{{ ports_array.append(portlist) }}{% endfor %}{% raw %}
+  - host: {% endraw %}{{ item.key }}.{{ public_consul_domain }}
+    http:
+      paths:{% for port_item in ports_array %}{% raw %}
+      {% endraw %}- backend:
+          serviceName: {{ item.key }}
+          servicePort: {{ port_item[0] }}
+        path: /{% endfor %}{% endif %}{% raw %}
+  {% endraw %}tls:
+  - hosts:
+    - {{ item.key }}.{{ public_consul_domain }}
+    secretName: letsencrypt-{{ item.key }}
+status:
+  loadBalancer: {}

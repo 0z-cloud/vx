@@ -1,0 +1,114 @@
+# NG DEPLOY STRATEGY
+
+deploy_strategy:
+  main:
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        parallelism: 1
+        failure_action: pause
+        delay: 10s
+      restart_policy:
+        condition: always
+        delay: 50s
+        max_attempts: 10
+        window: 120s
+      # placement:
+      #   constraints:
+      #     - node.role == worker
+  stateless:
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        parallelism: 1
+        failure_action: pause
+        delay: 10s
+      restart_policy:
+        condition: always
+        delay: 10s
+        max_attempts: 5
+        window: 120s
+  longress:
+    deploy:
+      mode: replicated
+      replicas: 2
+      update_config:
+        parallelism: 1
+        failure_action: pause
+        delay: 300s
+      restart_policy:
+        condition: always
+        delay: 90s
+        max_attempts: 6
+        window: 300s
+
+all_security_services_remap_docker_compose_generate:
+
+    # openvas:
+    #   image: "openvas"
+    #   tag: "{{ version_ansible_build_id }}"
+    #   location: "{{ default_docker_image_environment_location }}"
+    #   ports: 
+    #     - "{{ openvas_web_https_service_listen_port }}:{{ openvas_web_https_service_internal_listen_port }}"
+    #     - "{{ openvas_web_http_service_listen_port }}:{{ openvas_web_http_service_internal_listen_port }}"
+    #   #volumes:
+    #   #  - "{{ default_docker_database_openvas_environment_location }}"
+    #   scale: 1
+    #   mode: global
+    #   endpoint_mode: vip
+    #   order: start-first
+    #   container_type: standalone
+
+    wazuh_elasticsearch:
+      image: "wazuh-elasticsearch"
+      tag: "{{ version_ansible_build_id }}"
+      location: "{{ default_docker_image_environment_location }}"
+      ports: 
+        - "{{ wazuh_elasticsearch_web_https_service_listen_port }}:{{ wazuh_elasticsearch_web_https_service_internal_listen_port }}"
+        - "{{ wazuh_elasticsearch_web_http_service_listen_port }}:{{ wazuh_elasticsearch_web_http_service_internal_listen_port }}"
+      #volumes:
+      #  - "{{ default_wazuh_elasticsearch_database_environment_location }}"
+      scale: 1
+      mode: global
+      endpoint_mode: vip
+      order: start-first
+      container_type: standalone
+      resources:
+        limits:
+          cpus: "6"
+          memory: "6045M"
+        reservations:
+          cpus: "2"
+          memory: "6045M"
+
+    wazuh_manager:
+      image: "wazuh-manager"
+      tag: "{{ version_ansible_build_id }}"
+      location: "{{ default_docker_image_environment_location }}"
+      ports: 
+        - "{{ wazuh_manager_web_https_service_listen_port }}:{{ wazuh_manager_web_https_service_internal_listen_port }}"
+        - "{{ wazuh_manager_web_http_service_listen_port }}:{{ wazuh_manager_web_http_service_internal_listen_port }}"
+      #volumes:
+      #  - "{{ default_wazuh_manager_database_environment_location }}"
+      scale: 1
+      mode: global
+      endpoint_mode: vip
+      order: start-first
+      container_type: standalone
+
+    wazuh_kibana:
+      image: "wazuh-kibana"
+      tag: "{{ version_ansible_build_id }}"
+      location: "{{ default_docker_image_environment_location }}"
+      ports: 
+        - "{{ wazuh_kibana_web_https_service_listen_port }}:{{ wazuh_kibana_web_https_service_internal_listen_port }}"
+        - "{{ wazuh_kibana_web_http_service_listen_port }}:{{ wazuh_kibana_web_http_service_internal_listen_port }}"
+      #volumes:
+      #  - "{{ default_wazuh_kibana_database_environment_location }}"
+      scale: 1
+      mode: global
+      endpoint_mode: vip
+      order: start-first
+      container_type: standalone

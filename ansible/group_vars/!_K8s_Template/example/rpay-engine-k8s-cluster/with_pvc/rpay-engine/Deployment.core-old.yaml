@@ -1,0 +1,92 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "7"
+    field.cattle.io/creatorId: user-rxbgq
+    field.cattle.io/publicEndpoints: "null"
+  creationTimestamp: null
+  generation: 1
+  labels:
+    cattle.io/creator: norman
+    workload.user.cattle.io/workloadselector: deployment-rpay-engine-core-old
+  name: core-old
+  selfLink: /apis/extensions/v1beta1/namespaces/rpay-engine/deployments/core-old
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      workload.user.cattle.io/workloadselector: deployment-rpay-engine-core-old
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        cattle.io/timestamp: "2019-07-03T20:54:31Z"
+        field.cattle.io/ports: '[[{"containerPort":3000,"dnsName":"core-old","kind":"ClusterIP","name":"3000tcp2","protocol":"TCP"}]]'
+      creationTimestamp: null
+      labels:
+        workload.user.cattle.io/workloadselector: deployment-rpay-engine-core-old
+    spec:
+      containers:
+      - envFrom:
+        - configMapRef:
+            name: core-env
+            optional: false
+        image: rg.fr-par.scw.cloud/devpay/core:dev-2
+        imagePullPolicy: Always
+        name: core-old
+        ports:
+        - containerPort: 3000
+          name: 3000tcp2
+          protocol: TCP
+        resources: {}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: {}
+          privileged: false
+          procMount: Default
+          readOnlyRootFilesystem: false
+          runAsNonRoot: false
+        stdin: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        tty: true
+      dnsConfig: {}
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+      - name: rpay-key-reg
+      initContainers:
+      - command:
+        - bundle
+        - exec
+        - rake
+        - db:migrate
+        envFrom:
+        - configMapRef:
+            name: core-env
+            optional: false
+        image: rg.fr-par.scw.cloud/devpay/core:dev-2
+        imagePullPolicy: Always
+        name: "2"
+        resources: {}
+        securityContext:
+          allowPrivilegeEscalation: false
+          privileged: false
+          procMount: Default
+          readOnlyRootFilesystem: false
+          runAsNonRoot: false
+        stdin: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        tty: true
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+status: {}

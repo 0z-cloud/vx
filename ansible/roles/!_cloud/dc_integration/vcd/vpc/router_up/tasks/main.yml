@@ -1,0 +1,211 @@
+
+- name: SHOW CURRENT {{ item['value']['name'] }}
+  debug:
+    msg: "{{ item['value']['name'] }}"
+  with_dict: "{{ cloud_bootstrap.oz_routers }}"
+
+- name: '[eth0] Attach vRouter to Direct to Routed Primary Network in vCloud vApp Zone'
+  vcd_vapp_vm_nic_validate:
+    org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+    user: "{{ anycloud_adapter_api_user }}"
+    password: "{{ anycloud_adapter_api_password }}"
+    host: "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}"
+    vm_name: "{{ item['value']['name'] }}"
+    vapp: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+    vdc: "{{ anycloud_adapter_virtual_datacenter }}"
+    network: "{{ anycloud_result_routed_network_name }}"
+    ip_allocation_mode: "DHCP"
+    is_connected: True
+    verify_ssl_certs: True
+    api_version: '31.0'
+    nic_id: "0"
+    is_primary: 0
+    nic_ids: 
+      - "0"
+      - "1"
+    adapter_type: "E1000"
+    state: "present"
+    verification: "meta"
+    operation: "validate"
+  register: vm_instance_nic_check_present_eth0_result
+  with_dict: "{{ cloud_bootstrap.oz_routers }}"
+
+- name: '[eth1] Attach vRouter to Routed on Direct Network in vCloud vApp Zone'
+  vcd_vapp_vm_nic_validate:
+    org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+    user: "{{ anycloud_adapter_api_user }}"
+    password: "{{ anycloud_adapter_api_password }}"
+    host: "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}"
+    vm_name: "{{ item['value']['name'] }}"
+    vapp: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+    vdc: "{{ anycloud_adapter_virtual_datacenter }}"
+    network: "{{ anycloud_result_direct_network_name }}"
+    ip_allocation_mode: "DHCP"
+    is_connected: True
+    verify_ssl_certs: False
+    api_version: '31.0'
+    nic_id: "1"
+    is_primary: 0
+    nic_ids: 
+      - "1"
+      - "0"
+    adapter_type: "E1000"
+    state: "present"
+    verification: "meta"
+    operation: "validate"
+  register: vm_instance_nic_check_present_eth1_result
+  with_dict: "{{ cloud_bootstrap.oz_routers }}"
+
+- name: Show result of working the validate nic module eth0
+  debug:
+    msg: "{{ item }}"
+  with_dict: "{{ vm_instance_nic_check_present_eth0_result }}"
+
+- name: Show result of working the validate nic module eth1
+  debug:
+    msg: "{{ item }}"
+  with_dict: "{{ vm_instance_nic_check_present_eth1_result }}"
+
+- name: '[eth0] Await MAC ADDRESS on Primary NIC vRouter to Routed Primary Network in vCloud vApp Zone'
+  vcd_vapp_vm_nic_read_mac:
+    #org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+    #user: "{{ anycloud_adapter_api_user }}"
+    #password: "{{ anycloud_adapter_api_password }}"
+    #host: "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}"
+    vm_name: "{{ item['value']['name'] }}"
+    vapp: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+    vdc: "{{ anycloud_adapter_virtual_datacenter }}"
+    network: "{{ anycloud_result_routed_network_name }}"
+    ip_allocation_mode: "DHCP"
+    is_connected: True
+    #verify_ssl_certs: True
+    #api_version: '31.0'
+    nic_id: "0"
+    is_primary: 0
+    nic_ids: 
+      - "0"
+      - "1"
+    adapter_type: "E1000"
+    state: "present"
+    verification: "meta"
+    operation: "validate"
+  with_dict: "{{ cloud_bootstrap.oz_routers }}"
+  register: response_awaiter_router_mac_eth0
+  until: response_awaiter_router_mac_eth0 | json_query('[mac_address]') is defined and 'Zero' not in response_awaiter_router_mac_eth0 | json_query('[mac_address]')
+  retries: 7
+  delay: 7
+
+- name: '[eth1] Await MAC ADDRESS on Secondary NIC vRouter to Direct Secondary Network in vCloud vApp Zone'
+  vcd_vapp_vm_nic_read_mac:
+    org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+    user: "{{ anycloud_adapter_api_user }}"
+    password: "{{ anycloud_adapter_api_password }}"
+    host: "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}"
+    vm_name: "{{ item['value']['name'] }}"
+    vapp: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+    vdc: "{{ anycloud_adapter_virtual_datacenter }}"
+    network: "{{ anycloud_result_direct_network_name }}"
+    ip_allocation_mode: "DHCP"
+    is_connected: True
+    #verify_ssl_certs: True
+    #api_version: '31.0'
+    nic_id: "1"
+    is_primary: 0
+    nic_ids: 
+      - "0"
+      - "1"
+    adapter_type: "E1000"
+    state: "present"
+    verification: "meta"
+    operation: "validate"
+  with_dict: "{{ cloud_bootstrap.oz_routers }}"
+  register: response_awaiter_router_mac_eth1
+  until: response_awaiter_router_mac_eth1 | json_query('[mac_address]') is defined and 'Zero' not in response_awaiter_router_mac_eth1 | json_query('[mac_address]')
+  retries: 7
+  delay: 7
+
+- name: Show result of working the validate nic module eth0
+  debug:
+    msg: "{{ item }}"
+  with_dict: "{{ response_awaiter_router_mac_eth0 }}"
+
+- name: Show result of working the validate nic module eth1
+  debug:
+    msg: "{{ item }}"
+  with_dict: "{{ response_awaiter_router_mac_eth1 }}"
+
+- name: Template updated bootstrap router initialization script with MAC Addresses mapping to interfaces names
+  template:
+    src: vmware_customization_updated_mac.sh
+    dest: /tmp/vmware_customization.sh
+    mode: 0777
+
+- name: TRE oZrouter | Register contents for oZrouter VMware Customization Script to Bootstrap
+  shell: cat /tmp/vmware_customization.sh
+  register: ozrouter_customization_shell_result_raw
+
+- name: 'Finale per tutti fiesta grande! [oZvRouter Warm-up.2.] | re/Update Startup Config for VPN oZvRouter in to vApp'
+  vcd_vapp_vm:
+    target_vm_name: "{{ item['value']['name'] }}"
+    target_vapp: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+    target_vdc: "{{ anycloud_adapter_virtual_datacenter }}"
+    operation: "poweroff"
+  register: stop_instance_result_updated
+  with_dict: "{{ cloud_bootstrap.oz_routers }}"
+
+# - name: Include ISO Settings Role for each Router
+#   with_dict: "{{ cloud_bootstrap.oz_routers }}"
+#   include_role:
+#     name: ../iso_settings
+#   vars:
+#     play_host_for_iso_upload: "{{ item['value']['name'] }}"
+
+- name: 'Otto Setta! [oZvRouter Warm-up.3.] | re/Update Startup Config for VPN oZvRouter in to vApp'
+  vcd_vapp_vm_update_customization_script:
+    target_vm_name: "{{ item['value']['name'] }}"
+    target_vapp: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+    target_vdc: "{{ anycloud_adapter_virtual_datacenter }}"
+    virtual_cpus: 2
+    cores_per_socket: 1
+    cust_script: "{{ ozrouter_customization_shell_result_raw.stdout | join }}"
+    state: "update"
+  register: create_instance_result_updated
+  with_dict: "{{ cloud_bootstrap.oz_routers }}"
+
+# - name: 'TRE! [oZvRouter Warm-up.3.] | re/Update Startup Config for VPN oZvRouter in to vApp'
+#   vcd_vapp_vm_up_cust_update:
+#     org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}" # need to check how its real behaivor passing in differents situations
+#     host: "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}" # {{ anycloud_adapter_api_url_endpoint }}
+#     user: "{{ anycloud_adapter_api_user }}"
+#     password: "{{ anycloud_adapter_api_password }}" # must changed to real username password (string)
+#     target_vm_name: "{{ item['value']['name'] }}"
+#     target_vapp: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+#     source_vapp: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+#     source_vdc: "{{ anycloud_adapter_virtual_datacenter }}"
+#     target_vdc: "{{ anycloud_adapter_virtual_datacenter }}"
+#     source_catalog_name: "{{ anycloud_template_adapter_root_folder }}"
+#     source_template_name: "{{ item['value']['name'] }}"
+#     source_vm_name: "{{ item['value']['name'] }}"
+#     hostname: "{{ item['value']['name'] }}"
+#     vmpassword: "{{ anycloud_vm_access_pass }}" 
+#     vmpassword_auto: False
+#     vmpassword_reset: False
+#     ip_allocation_mode: "DHCP"
+#     force_customization: "true"
+#     network: "{{ anycloud_result_routed_network_name }}"
+#     #power_on: "false"
+#     #operation: "poweroff"
+#     #deploy: "false"
+#     state: "update"
+#     all_eulas_accepted: "true"
+#     storage_profile: "{{ item.value.anycloud_vm_storage_configuration }}"
+#     verify_ssl_certs: True
+#     cust_script: "{{ ozrouter_customization_shell_result_raw.stdout | join }}"
+#   # retries: 3
+#   # delay: 3
+#   register: create_instance_result_updated
+#   with_dict: "{{ cloud_bootstrap.oz_routers }}"
+
+- name: Debug create_instance_result_updated
+  debug:
+    msg: "{{ create_instance_result_updated }}"

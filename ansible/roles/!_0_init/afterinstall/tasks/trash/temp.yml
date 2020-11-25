@@ -1,0 +1,247 @@
+
+# - name: Generate /etc/ssh/ RSA host key
+#   command : echo -e 'y\n'|ssh-keygen -q -t rsa -f /etc/ssh/ssh_host_rsa_key -C "" -N ""
+#   register: output_rsa
+
+# - debug: var=output_rsa.stdout_lines
+
+# - name: Generate /etc/ssh/ DSA host key
+#   command : echo -e 'y\n'|ssh-keygen -q -t dsa -f /etc/ssh/ssh_host_dsa_key -C "" -N ""
+#   register: output_dsa
+
+# - debug: var=output_dsa.stdout_lines
+
+# - name: Generate /etc/ssh/ ECDSA host key
+#   command : echo -e 'y\n'|ssh-keygen -q -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key -C "" -N ""
+#   register: output_edcsa
+
+# - debug: var=output_edcsa.stdout_lines
+
+# - name: Debug
+#   debug:
+#     msg: "{{ item }}"
+#   with_items: |
+#     {% set hostslist = [] %}
+#     {% for host in groups['all'] %}
+#     {% set hostslist2 = hostslist.append(hostvars[host]['ansible_default_ipv4']['address']) %}
+#     {% endfor %}
+#     {{ hostslist }}
+
+# - name: Debug
+#   debug:
+#     msg: "{{ item }}"
+#   with_items: |
+#     {% set hostslist = [] %}
+#     {% for host in groups['all'] %}
+#     {% set hostslist2 = hostslist.append(hostvars[host]['ansible_nodename']) %}
+#     {% endfor %}
+#     {{ hostslist }}
+
+###
+
+# - name: Debug public_keys_list
+#   debug: 
+#     msg: "{{ public_keys_list }}"
+
+- name: Echo host public_keys_list to known_hosts
+  lineinfile:
+    dest: ~/.ssh/known_hosts
+    create: yes
+    state: present
+    line: "{{ item[1] }}"
+  delegate_to: "{{ item[0] }}"
+  with_nested: 
+    - "{{ groups['all'] }}"
+    - "{{ new_keys.public_key }}"
+  when: full_clean is defined
+
+# - name: Echo public_keys_list to known_hosts
+#   lineinfile:
+#     dest: ~/.ssh/known_hosts
+#     create: yes
+#     state: present
+#     line: "{{ item[1] }}"
+#   delegate_to: "{{ item[0] }}"
+#   with_nested: 
+#     - "{{ groups['all'] }}"
+#     - "{{ new_keys.public_key }}"
+#   when: full_clean is defined
+
+# - name: Ensure ssh host key known for Hostname
+#   delegate_to: "{{ item }}"
+#   lineinfile:
+#     dest: ~/.ssh/known_hosts
+#     create: yes
+#     state: present
+#     line: "{{ lookup('pipe', 'ssh-keyscan -trsa -p' + ansible_ssh_port + ' ' + hostvars[item].['ansible_default_ipv4']['address'] }}"
+#   with_items: "{{ groups['all'] }}"
+
+# - name: Generate new ssh-keys
+#   openssh_keypair:
+#     path: /tmp/id_rsa.pub
+#   register: new_keys
+
+# - name: Set fact
+#   shell: "cat /root/.ssh/id_rsa.pub"
+#   register: public_keys_list
+
+# - name: remove temp /tmp/public_keys_list.txt
+#   shell: rm /tmp/public_keys_list.txt
+
+# - name: Echo public_keys_list to tmp
+#   lineinfile:
+#     dest: /tmp/public_keys_list.txt
+#     create: yes
+#     state: present
+#     line: "{{ public_keys_list.stdout }}"
+#   delegate_to: "{{ item }}"
+#   with_items: "{{ groups['all'] }}"
+
+# - name: Copy ssh public keys result to authorized hosts and known hosts
+#   shell: cat /tmp/public_keys_list.txt >> "{{ item }}"
+#   with_items:
+#     - /root/.ssh/authorized_keys
+#     - /root/.ssh/known_hosts
+
+# - name: use find to get the files list which you want to copy/fetch
+#   shell: cat ~/.ssh/id_rsa.pub
+#   register: file_2_fetch
+
+# - name: use fetch to get the files
+#   fetch:
+#     src: "{{ item.path }}"
+#     dest: /tmp/
+#     flat: yes
+#   with_items: "{{ file_2_fetch.files }}"
+
+# - name: Generate a ssh keys
+#   shell: "ssh-keygen -q -b 2048 -t rsa -N '' -C 'creating SSH' -f ~/.ssh/id_rsa creates='~/.ssh/id_rsa'"
+
+# - name: Create public keys list
+#   shell: cat ~/.ssh/id_rsa.pub
+#   register: public_keys_list
+
+#########
+# - name: Fetch keys
+#   fetch: 
+#     src: '~/.ssh/id_rsa.pub'
+#     dest: 'buffer/{{ inventory_hostname }}-id_rsa.pub' 
+#     flat: 'yes'
+#   register: public_keys_list
+
+# - name: Import public keys
+#   authorized_key:
+#     user: root 
+#     state: present
+#     key: "{{ lookup('file', 'buffer/' + item + '-id_rsa.pub') }}'"
+#   with_items: "{{ groups['all'] }}"
+
+# - name: Scan inventory hosts and adding fingerprints to known_hosts by Primary IP
+#   shell: ssh-keyscan -t rsa hostvars[item].['ansible_default_ipv4']['address'] >> ~/.ssh/known_hosts
+#   with_items: "{{ groups['all'] }}"
+
+# - name: Scan inventory hosts and adding fingerprints to known_hosts by Secondary IP
+#   shell: ssh-keyscan -t rsa hostvars[item].[second_ip] >> ~/.ssh/known_hosts
+#   with_items: "{{ groups['all'] }}"
+
+# - name: Scan inventory hosts and adding fingerprints to known_hosts by hostname
+#   shell: ssh-keyscan -t rsa hostvars[item].[ansible_hostname] >> ~/.ssh/known_hosts
+#   with_items: "{{ groups['all'] }}"
+####
+
+- name: Remove old ssh public host key known for IP
+  raw:  ssh-keygen -R {{ item }}
+  with_items: |
+        {% set hostslist = [] %}
+        {% for host in groups['all'] %}
+        {% set hostslist2 = hostslist.append(hostvars[host]['ansible_default_ipv4']['address']) %}
+        {% endfor %}
+        {{ hostslist }}
+
+- name: Remove old ssh public host key known for hostname
+  raw: ssh-keygen -R {{ item }}
+  with_items: |
+        {% set hostslist = [] %}
+        {% for host in groups['all'] %}
+        {% set hostslist2 = hostslist.append(hostvars[host]['ansible_nodename']) %}
+        {% endfor %}
+        {{ hostslist }}
+
+- name: Ensure ssh host key known for IP
+  raw: ssh-keyscan -trsa -p 22 {{ item }} >> ~/.ssh/known_hosts
+  with_items: |
+        {% set hostslist = [] %}
+        {% for host in groups['all'] %}
+        {% set hostslist2 = hostslist.append(hostvars[host]['ansible_nodename']) %}
+        {% endfor %}
+        {{ hostslist }}
+
+ - name: SLEEP
+#   sleep: 30
+
+########
+
+# - name: Set fact RSA host keys 
+#   shell: "cat /wrk/ssh_keys/ssh_host_rsa_key.pub"
+#   register: rsa_host_public_keys_list
+
+# - name: Set fact DSA host keys 
+#   shell: "cat /wrk/ssh_keys/ssh_host_dsa_key.pub"
+#   register: dsa_host_public_keys_list
+
+# - name: Set fact ECDSA host keys 
+#   shell: "cat /wrk/ssh_keys/ssh_host_ecdsa_key.pub"
+#   register: ecdsa_host_public_keys_list
+
+# - name: FETCH | Merge all ecdsa_host_public_keys_list from remote localhost
+#   set_fact:
+#     ecdsa_host_public_keys_list_dict: |
+#       {
+#       {% for s in groups['all'] | map('extract',hostvars,'ecdsa_host_public_keys_list') %}
+#       "{{ s[0] }}":"{{ s[1] }}" {% if not loop.last %},{% endif %}
+#       {% endfor %}
+#       }
+#   delegate_to: "{{ item }}"
+#   delegate_facts: true
+#   with_items:
+#     - "{{ groups['all'] }}"
+
+# - name: DEBUG | Dict with keys ecdsa_host_public_keys_list_dict
+#   debug:
+#     msg: "{{ ecdsa_host_public_keys_list_dict }}"
+
+# - name: Fill RSA lists to node_known_hosts
+#   lineinfile:
+#     dest: /root/.ssh/node_known_hosts
+#     create: yes
+#     state: present
+#     line: "{{ item[0] }} {{ item[1] | join }}"
+#   delegate_to: "{{ item[0] }}"
+#   with_nested: 
+#     - "{{ groups['all'] }}"
+#     - "{{ rsa_host_public_keys_list.stdout }}"
+#   when: full_clean is defined
+
+# - name: Fill DSA lists to node_known_hosts
+#   lineinfile:
+#     dest: /root/.ssh/node_known_hosts
+#     create: yes
+#     state: present
+#     line: "{{ item[0] }} {{ item[1] | join }}"
+#   delegate_to: "{{ item[0] }}"
+#   with_nested: 
+#     - "{{ groups['all'] }}"
+#     - "{{ dsa_host_public_keys_list.stdout }}"
+#   when: full_clean is defined
+
+# - name: Fill ECDSA lists to node_known_hosts
+#   lineinfile:
+#     dest: /root/.ssh/node_known_hosts
+#     create: yes
+#     state: present
+#     line: "{{ item[0] }} {{ item[1] | join }}"
+#   delegate_to: "{{ item[0] }}"
+#   with_nested: 
+#     - "{{ groups['all'] }}"
+#     - "{{ ecdsa_host_public_keys_list.stdout }}"
+#   when: full_clean is defined

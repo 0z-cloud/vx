@@ -1,0 +1,65 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "10"
+    field.cattle.io/creatorId: user-rxbgq
+    field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":443,"protocol":"HTTPS","serviceName":"rpay-engine:ingress-cc8d32ff010cd1dfbdf3430a79b4f242","ingressName":"rpay-engine:wallet","hostname":"wallet.dev.rocketho.me","path":"/","allNodes":true}]'
+  creationTimestamp: null
+  generation: 1
+  labels:
+    cattle.io/creator: norman
+    workload.user.cattle.io/workloadselector: deployment-rpay-engine-wallet
+  name: wallet
+  selfLink: /apis/extensions/v1beta1/namespaces/rpay-engine/deployments/wallet
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      workload.user.cattle.io/workloadselector: deployment-rpay-engine-wallet
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        cattle.io/timestamp: "2019-07-06T22:09:24Z"
+      creationTimestamp: null
+      labels:
+        workload.user.cattle.io/workloadselector: deployment-rpay-engine-wallet
+    spec:
+      containers:
+      - command:
+        - sh
+        - -c
+        - rails server -b 0.0.0.0 -p 8800
+        envFrom:
+        - configMapRef:
+            name: wallet-env
+        image: registry.rocketho.me/wallet:latest
+        imagePullPolicy: Always
+        name: wallet
+        resources: {}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: {}
+          privileged: false
+          procMount: Default
+          readOnlyRootFilesystem: false
+          runAsNonRoot: false
+        stdin: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        tty: true
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+      - name: rokethome
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+status: {}

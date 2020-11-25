@@ -1,0 +1,27 @@
+- name: Fact gathering
+  hosts: all
+  tasks: []
+  tags: [get-facts, always]
+    
+- name: Consul create the Immortal DNS Cloud ... step... Unix work...
+  become: true
+  hosts: consul-masters:cloud-bind-frontend-dns:master-bind-master-backend
+  vars:
+    cloud_immortal: true
+    cloud_immortal_services:
+        - {'consul-masters': {'target': 'consul-masters', 'listen_port': "{{ default_dns_service_listen_port }}", 'check_type': "script", 'exec_bin': "/usr/bin/dig", 'script_check': " @{{ inventory_hostname }} {{ consul_service_cloud_domain_name }}" }}
+        - {'cloud-bind-frontend-dns': {'target': 'consul-masters', 'listen_port': "{{ default_dns_service_listen_port }}", 'check_type': "script", 'exec_bin': "/usr/bin/dig", 'script_check': " @{{ inventory_hostname }} {{ consul_service_cloud_domain_name }}" }}
+        - {'master-bind-master-backend': {'target': 'consul-masters', 'listen_port': "{{ default_dns_service_listen_port }}", 'check_type': "script", 'exec_bin': "/usr/bin/dig", 'script_check': " @{{ inventory_hostname }} {{ consul_service_cloud_domain_name }}" }}
+        
+        - {'consul-masters': {'target': 'cloud-bind-frontend-dns', 'listen_port': "{{ default_dns_service_listen_port }}", 'check_type': "script", 'exec_bin': "/usr/bin/dig", 'script_check': " @{{ inventory_hostname }} {{ consul_service_cloud_domain_name }}" }}
+        - {'cloud-bind-frontend-dns': {'target': 'cloud-bind-frontend-dns', 'listen_port': "{{ default_dns_service_listen_port }}", 'check_type': "script", 'exec_bin': "/usr/bin/dig", 'script_check': " @{{ inventory_hostname }} {{ consul_service_cloud_domain_name }}" }}
+        - {'master-bind-master-backend': {'target': 'cloud-bind-frontend-dns', 'listen_port': "{{ default_dns_service_listen_port }}", 'check_type': "script", 'exec_bin': "/usr/bin/dig", 'script_check': " @{{ inventory_hostname }} {{ consul_service_cloud_domain_name }}" }}
+
+        - {'consul-masters': {'target': 'master-bind-master-backend', 'listen_port': "{{ default_dns_service_listen_port }}", 'check_type': "script", 'exec_bin': "/usr/bin/dig", 'script_check': "  @{{ inventory_hostname }} {{ consul_service_cloud_domain_name }} " }}
+        - {'cloud-bind-frontend-dns': {'target': 'master-bind-master-backend', 'listen_port': "{{ default_dns_service_listen_port }}", 'check_type': "script", 'exec_bin': "/usr/bin/dig", 'script_check': " @{{ inventory_hostname }} {{ consul_service_cloud_domain_name }}" }}
+        - {'master-bind-master-backend': {'target': 'master-bind-master-backend', 'listen_port': "{{ default_dns_service_listen_port }}", 'check_type': "script", 'exec_bin': "/usr/bin/dig", 'script_check': " @{{ inventory_hostname }} {{ consul_service_cloud_domain_name }}" }}
+
+  roles:
+    - name: Consul immortal do...
+      role: ./!_cloud/consul/immortal-join
+  tags: [consul-dns-join]

@@ -1,0 +1,29 @@
+{
+    "CA": {
+        "expiry": "127200h",
+        "pathlen": 0
+    },
+    "CN": "ca",
+    "key": {
+        "algo": "rsa",
+        "size": 4096
+    },
+    "names": [
+        {
+            "C": "CA",
+            "O": "test",
+            "OU": "test"
+        }
+    ],
+    "signing": {
+        "default": {
+          "expiry": "8760h"
+        },
+        "profiles": {
+          "kubernetes": {
+            "usages": ["signing", "key encipherment", "server auth", "client auth"],
+            "expiry": "8760h"
+          }
+        }
+      }
+}

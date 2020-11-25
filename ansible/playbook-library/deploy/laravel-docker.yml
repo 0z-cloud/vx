@@ -1,0 +1,18 @@
+- hosts: "{{ groups['app-glusterfs-cluster'] }}"
+
+  vars:
+    GLUSTERFS_CLUSTER_HOSTS: app-glusterfs-cluster
+
+  tasks:
+    - include_vars:
+        file: "group_vars/!_GlusterFS/main.yml"
+
+    - include_role:
+        name: "./!_deploy/laravel-docker"
+
+    - include_role:
+        name: ./!_cloud/consul/magic-join
+
+    - include_role:
+        name: "./!_hooks/sentry-track-deploy"
+#

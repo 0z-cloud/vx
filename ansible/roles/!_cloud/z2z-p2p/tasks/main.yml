@@ -1,0 +1,55 @@
+- name: Template vpn reconfiguration script for ozRouter bootstrap
+  template:
+    src: cloud_settings_initialization_iso.sh.j2
+    dest: "/tmp/cloud_settings_initialization_iso.sh"
+    mode: 0777
+
+- name: Cinque Setta oZrouter | Register contents for oZrouter VMware Customization Script to Bootstrap
+  shell: cat /tmp/cloud_settings_initialization_iso.sh
+  register: ozrouter_customization_shell_result_raw
+
+- name: '[vCloud Director] Read vApp Networks'
+  vcd_vnet:
+    user: "{{ anycloud_adapter_api_user }}"
+    password: "{{ anycloud_adapter_api_password }}"
+    org: "{{ anycloud_adapter_virtual_organization }}"
+    vdc: "{{ anycloud_defaults_virtual_datacenter }}"
+    vapp: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+    operation: read
+  register: output
+
+# - name: '[vCloud Director] | Read vApp Networks result'
+#   debug:
+#     msg: "{{ output }}"
+
+- name: 'UNO! [oZvRouter Warm-up...] | re/Create Mesh VPN oZvRouter in to vApp'
+  vcd_vapp_vm:
+    org: "{{ anycloud_adapter_virtual_organization  }}" # need to check how its real behaivor passing in differents situations
+    host: "{{ anycloud_adapter_api_url_endpoint }}" # {{ anycloud_adapter_api_url_endpoint }}
+    user: "{{ anycloud_adapter_api_user }}"
+    password: "{{ anycloud_adapter_api_password }}" # must changed to real username password (string)
+    target_vm_name: "{{ item.value.name }}"
+    target_vapp: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+    source_vdc: "{{ anycloud_adapter_virtual_datacenter }}"
+    target_vdc: "{{ anycloud_adapter_virtual_datacenter }}"
+    source_catalog_name: "0z"
+    source_template_name: "{{ item.value.anycloud_vm_template_name }}"
+    source_vm_name: "{{ item.value.anycloud_vm_template_name }}"
+    hostname: "{{ item.value.name }}"
+    vmpassword: "{{ anycloud_vm_access_pass }}" 
+    vmpassword_auto: False
+    vmpassword_reset: False
+    ip_allocation_mode: 'DHCP'
+    # network: "{{ anycloud_result_routed_network_name }}"
+    power_on: "false"
+    #operation: deploy
+    deploy: false
+    state: "present"
+    all_eulas_accepted: true
+    storage_profile: "{{ item.value.anycloud_vm_storage_configuration }}"
+    verify_ssl_certs: True
+    cust_script: '{{ ozrouter_customization_shell_result_raw.stdout | join }}'
+  # retries: 3
+  # delay: 3
+  register: create_instance_result
+  with_dict: "{{ cloud_bootstrap.oz_routers }}"

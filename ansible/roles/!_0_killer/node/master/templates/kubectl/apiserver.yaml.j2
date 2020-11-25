@@ -1,0 +1,16 @@
+apiVersion: kubeadm.k8s.io/v1beta2
+kind: ClusterConfiguration
+kubernetesVersion: v1.18.0
+apiServer:
+  extraArgs:
+    advertise-address: {{ hostvars[inventory_hostname]['second_ip'] }}
+    anonymous-auth: "false"
+    enable-admission-plugins: AlwaysPullImages,DefaultStorageClass
+    audit-log-path: /var/log/k8-audit.log
+etcd:
+  external:
+        endpoints:{% for host in groups['kubernetes-master'] %}{% raw %}
+        - https://{% endraw %}{{ hostvars[host]['second_ip'] }}:{{ K8S_CLUSTER_LISTEN_PORT_2379 }}{% endfor %}{% raw %}
+        caFile: {% endraw %}/opt/ca/pki/ca.crt
+        certFile: /opt/ca/pki/server.crt
+        keyFile: /opt/ca/pki/server.key

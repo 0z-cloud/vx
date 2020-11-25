@@ -1,0 +1,43 @@
+# For information about this file, type "man shorewall-zones"
+###############################################################################
+#ZONE	TYPE		OPTIONS		IN			OUT
+#					OPTIONS			OPTIONS
+
+## FIREWALL
+fw	firewall
+
+## WAN
+wan	ipv4
+
+## IPMI
+ipmi	ipv4
+
+## ESX
+esx	ipv4
+
+## WEB
+web	ipv4
+
+## ELSE
+else	ipv4
+
+## SQL
+sql	ipv4
+
+## VPN
+vpn    ipv4
+mac    ipv4
+
+## KEY
+key	ipv4
+
+# ISCSI
+iscsi	ipv4
+
+# Bank of Moscow for DSZN Project
+baom ipsec mode=tunnel mss=1024
+
+# GitLab Access Tunnel
+git ipsec mode=tunnel mss=1024
+
+############

@@ -1,0 +1,65 @@
+
+- name: Get all NAT Rules
+  shell: vcd gateway services nat list {{ anycloud_result_edge_router }} | tail -n +3 | awk '{print $3}'
+  register: list_with_nat_rules_ids
+
+# - name: Show all nat rules IDs
+#   debug:
+#     msg: "{{ item }}"
+#   with_items: "{{ list_with_nat_rules_ids.stdout_lines }}"
+#   when: debug_log is defined
+
+- name: FIREWALL GET FULL | Get all NAT Rules
+  shell: vcd gateway services nat info {{ anycloud_result_edge_router }} {{ item }}
+  with_items: "{{ list_with_nat_rules_ids.stdout_lines }}"
+  register: list_with_nat_rules_ids_full_complete
+
+# - name: FIREWALL SHOW ALL STDOUT | Show all nat rules IDs
+#   debug:
+#     msg: "{{ item.stdout_lines }}"
+#   with_items: "{{ list_with_nat_rules_ids_full_complete.results }}"
+#   when: debug_log is defined
+
+# - name: FIREWALL SHOW ALL | Show all nat rules IDs
+#   debug:
+#     msg: "{{ item }}"
+#   with_items: "{{ list_with_nat_rules_ids_full_complete.results }}"
+
+##############################################################################################################
+# GET NAT RULES
+- name: Register current NAT Rules and published ports
+  shell: echo {{ list_with_nat_rules_ids_full_complete.results }} | egrep '(Action|OriginalAddress|TranslatedAddress|OriginalPort|TranslatedPort)' | grep Port | sort -u | grep -v any | awk '{print $2}' | sort -u | sed 's/,//g' | sort -u
+  register: featched_uniq_list_mapped_ports
+
+# - name: Show all nat rules Ports Uniq List
+#   debug:
+#     msg: "{{ item }}"
+#   with_items: "{{ featched_uniq_list_mapped_ports.stdout_lines }}"
+#   when: debug_log is defined
+
+# ##############################################################################################################
+# ### RAW WAY ROUTED TO INTERNET
+# ##############################################################################################################
+# - name: Check and update SNAT rule for Routed network access to internet via public_ips_from_edge[0]
+#   shell: vcd gateway services nat update-snat --enabled -o {{ anycloud_result_routed_network_cut }}0/24 -t {{ public_ips_from_edge[0] }} --desc "{{ anycloud_defaults_virtual_cloud_application_box_sector }} Routed {{ anycloud_result_routed_network_cut }}0/24 to Internet"
+
+# - name: Check and update SNAT rule for Routed network access to internet via public_ips_from_edge[0]
+#   shell: vcd gateway services nat update-dnat -o {{ public_ips_from_edge[0] }} -t {{ anycloud_result_routed_network_cut }}2 -op {{ oz_router_subnet_anycloud_vpn_port }} -tp {{ oz_router_subnet_anycloud_vpn_port }} -p tcp --enabled --desc "{{ anycloud_defaults_virtual_cloud_application_box_sector }} VPN port {{ oz_router_subnet_anycloud_vpn_port }} From Internet To {{ anycloud_result_routed_network_cut }}2"
+
+###########################
+############################
+
+# - name: TUTTI FRUTTI | Register multi-object array
+#   shell: 
+#   register: featched_uniq_list_mapped_ports
+#   with_items:
+#     - "vcd gateway services nat list {{ anycloud_result_edge_router }} | tail -n +3 | awk '{print $3}' | xargs -I ID bash -c 'string="ID"; vcd gateway services nat info {{ anycloud_result_edge_router }} $string' | egrep '(Action|OriginalAddress|TranslatedAddress|OriginalPort|TranslatedPort)' | grep Port | sort -u | grep -v any | awk '{print $2}' | sort -u"
+#     - "vcd gateway services nat list {{ anycloud_result_edge_router }} | tail -n +3 | awk '{print $3}' | xargs -I ID bash -c 'string="ID"; vcd gateway services nat info {{ anycloud_result_edge_router }} $string' | egrep '(Action|OriginalAddress|TranslatedAddress|OriginalPort|TranslatedPort)' | grep Port | sort -u | grep -v any | awk '{print $2}' | sort -u"
+
+# - name: Get Public IP Addresses on EDGE
+#   shell: vcd -j gateway list-config-ip-settings `vcd gateway list | tail -n +3`
+#   register: whole_edge_interfaces_info
+
+# - name: Get the firewall rules all
+#   shell: vcd gateway services firewall list-objects {{ anycloud_result_edge_router }} --type source --object-type gatewayinterface
+#   register: whole_firewall_rules

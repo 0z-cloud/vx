@@ -1,0 +1,14 @@
+
+# Facts Getting from All Server's clients for DNS templating
+- name: Fact gathering
+  hosts: "{{ HOSTS | default('cloud-bind-frontend-dns') }}:all"
+  tasks: []
+  tags: [get_facts, always]
+
+- name: Setup dns frontend service for run specific tasks
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/dns/{{ HOSTS | default('cloud-bind-frontend-dns') }}/{{ HOSTS | default('cloud-bind-frontend-dns') }}.yml"
+  hosts: "{{ HOSTS | default('cloud-bind-frontend-dns') }}:all"
+  roles:
+  - name: Run dns service role
+    role: ./!_bootstrap/dns-frontend

@@ -1,0 +1,4 @@
+- name: DEBUG | Show item vars
+  debug: 
+    msg: "{{ item }}"
+  with_items: "{{ nagios_client_packages }}"

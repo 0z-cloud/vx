@@ -1,0 +1,51 @@
+# PHASE 1, FIRST MASTER INIT
+
+## SETUP BASIC TEMPLATES
+- name: BASIC TEMPLATES GEN | Include templates
+  include_tasks: templates.yml
+
+# ## SETUP CA CERTS
+# - name: INIT BASIC CA CERTS | Include cert_init
+#   include_tasks: cert_init.yml
+
+# ## GENERATE BASIC CLUSTER CERTS FOR FIRST MASTER
+# - name: GENERATE BASIC CLUSTER CERTS FOR ALL MASTERS | Include nasters/main.yml
+#   include_tasks: masters/main.yml
+
+# ## COPY CERTS FROM FIRST MASTER
+
+# - name: Copy certificates from first master
+#   synchronize:
+#     src: "/opt/ca/{{ hostvars[item].ansible_nodename }}/pki"
+#     dest: "/opt/ca/{{ hostvars[item].ansible_nodename }}/"
+#   delegate_to: "{{ groups['kubernetes-master'][0] }}"
+#   tags: certificates_copy
+#   with_items: |
+#     {% set hostslist = [] %}
+#     {% for host in groups['kubernetes-master'] %}
+#     {% if host not in groups['kubernetes-master'][0] %}
+#     {% set hostslist2 = hostslist.append(hostvars[host]['ansible_nodename']) %}
+#     {% endif %}
+#     {% endfor %}
+#     {{ hostslist }}
+#   when: inventory_hostname not in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+
+# - name: Copy local pki dir to kubernetes pki dir
+#   shell: cp -R /opt/ca/{{ hostvars[inventory_hostname].ansible_nodename }}/pki /etc/kubernetes/
+#   when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+#   ignore_errors: true
+
+# # RUN AND RUN ETCD WITH NEW CERTS
+
+# - name: Conditional role etcd
+#   include_role:
+#     name: ./!_cloud/kubernetes/etcd
+#   when: inventory_hostname in groups['kubernetes-master']
+
+# # PHASE 1, OTHER MASTERS INIT DONE
+
+# # PHASE 1.1, ETCD INIT ON ALL MASTERS
+
+# # - name: Init etcd local on all masters
+# #   shell: kubeadm init phase etcd local --config=/etc/kubernetes/kubeadmcfg.yaml
+# #   when: inventory_hostname not in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']

@@ -1,0 +1,131 @@
+#!/bin/bash
+
+rm -rf /tmp/inventory_${ansible_product}_${ansible_run_environment}
+
+ansible_run_environment=$1
+ansible_product=$2
+
+ansible_production_env=production
+echo "ansible_run_environment: $ansible_run_environment"
+
+SWARM_LEADER=$(docker node ls --format "{% raw %}{{.Hostname}} {{.ManagerStatus}}{% endraw %}" | grep Leader | awk '{print $1}')
+echo "SWARM_LEADER: $SWARM_LEADER"
+
+if [ "$ansible_run_environment" != "$ansible_production_env" ]; then
+
+    echo "inventory not a production"
+    echo "sed 's/$ansible_production_env/$ansible_run_environment/'"
+    remapper_leader=$(echo $SWARM_LEADER | sed "s|${ansible_production_env}|${ansible_run_environment}|g")
+    echo "remapper_leader $remapper_leader"
+
+fi
+
+#IFS=""
+
+{% for key,value in ENVIRONMENT_DB_SETTINGS.items() %}
+
+#SERVICENAME {{ key }}
+
+service_name={{ key }}
+
+app_user_username={{ value.APP_DB_USERNAME_ENV }}
+app_user_passowrd={{ value.APP_DB_PASSWORD_ENV }}
+app_database_name={{ value.APP_DB_USERNAME_ENV }}_${ansible_run_environment}
+
+echo "app_user_username: $app_user_username"
+echo "app_user_passowrd: $app_user_passowrd"
+echo "app_database_name: $app_database_name"
+echo "service_name: $service_name"
+
+run_container={{ PCI_IN_SWARM_POSTGRESQL_NAME }}
+db_container={{ PCI_IN_SWARM_POSTGRESQL_NAME }}
+
+db_name=$app_database_name
+full_service_name="${ansible_product}-${ansible_run_environment}_${run_container}"
+echo "full_service_name $full_service_name"
+
+
+#CHECK DBs SECTION
+
+db_service_stack_name="${db_service_name}.1.${db_service_locator}"
+echo "db_service_stack_name: $db_service_stack_name"
+
+db_service_name="${ansible_product}-${ansible_run_environment}_${db_container}"
+echo "db_service_name $db_service_name"
+
+db_service_locator=$(docker service ps ${db_service_name} -q --no-trunc | head -n1)
+echo "db_service_locator $db_service_locator"
+
+db_worker_locator=$(docker service ps ${db_service_name} | head -2 | awk '{print $4}' | head -n2 | tail -n +2)
+echo "db_worker_locator $db_worker_locator"
+
+echo '[db_worker_locator]' >> /tmp/inventory_${ansible_product}_${ansible_run_environment}
+
+echo $db_worker_locator >> /tmp/inventory_${ansible_product}_${ansible_run_environment}
+
+#CHECK DBs SECTION
+# ansible -m shell -a "docker exec $db_service_stack_name /bin/sh -c \'psql -h localhost -p 5432 -U postgres -c \'grant all privileges on database business_sandbox to business;\'\' -l postgres" -i /tmp/inventory_${ansible_product}_${ansible_run_environment} db_worker_locator
+
+
+
+ng_1=`echo "docker exec $db_service_stack_name /bin/sh -c \'psql -h localhost -p 5432 -U postgres -c \"create user settings with password \'\\\'$app_user_passowrd\\\'\';"\' -l postgres"`
+ng_2=`echo "docker exec $db_service_stack_name /bin/sh -c \'psql -h localhost -p 5432 -U postgres -c \"grant all privileges on database $db_name to $app_user_username;\"\' -l postgres"`
+#ng_2=`echo "docker exec $db_service_stack_name /bin/sh -c \'psql -h localhost -p 5432 -U postgres -c \"grant all privileges on database $db_name to $app_user_username;\"\' -l postgres"`
+echo "NG1: $ng_1"
+echo "NG2: $ng_2"
+
+# db_command_1="ansible -m shell -a \"docker exec $db_service_stack_name /bin/sh -c \'psql -h localhost -p 5432 -U postgres -c \'alter user $app_user_username with encrypted password \'$app_user_passowrd\';\'\' -l postgres\" -i /tmp/inventory_${ansible_product}_${ansible_run_environment} db_worker_locator"
+# db_command_2="ansible -m shell -a \"docker exec $db_service_stack_name /bin/sh -c \'psql -h localhost -p 5432 -U postgres -c \'grant all privileges on database $db_name to $app_user_username;\'\' -l postgres\" -i /tmp/inventory_${ansible_product}_${ansible_run_environment} db_worker_locator"
+
+# echo "db_command_1 $db_command_1"
+# echo "db_command_2 $db_command_2"
+
+# create_user=$(eval $db_command_1)
+# create_rights=$(eval $db_command_2)
+
+# echo "fullstring: ansible -m shell -a "docker exec $db_service_stack_name /bin/sh -c '$db_command_1' -l postgres" -i /tmp/inventory_${ansible_product}_${ansible_run_environment} db_worker_locator"
+# echo "fullstring: ansible -m shell -a "docker exec $db_service_stack_name /bin/sh -c '$db_command_2' -l postgres" -i /tmp/inventory_${ansible_product}_${ansible_run_environment} db_worker_locator"
+
+# ansible_run_string_1='ansible -m shell -a \"docker exec $db_service_stack_name /bin/sh -c '$db_command_1' -l postgres\" -i /tmp/inventory_${ansible_product}_${ansible_run_environment} db_worker_locator'
+# ansible_run_string_2='ansible -m shell -a \"docker exec $db_service_stack_name /bin/sh -c '$db_command_2' -l postgres\" -i /tmp/inventory_${ansible_product}_${ansible_run_environment} db_worker_locator'
+
+# echo "ansible_run_string_1: $ansible_run_string_1"
+# echo "ansible_run_string_2: $ansible_run_string_2"
+
+# create_user=$(eval $ansible_run_string_1)
+# create_rights=$(eval $ansible_run_string_2)
+
+echo "create_user: $create_user"
+echo "create_rights: $create_rights"
+
+rm /tmp/inventory_${ansible_product}_${ansible_run_environment}
+
+
+{% endfor %}
+
+docker exec 5b /bin/sh -c 'psql -h localhost -p 5432 -U postgres -c "alter user settings with password '\'a8schn91n2r9gb\'';"' -l postgres
+docker exec 5b /bin/sh -c 'psql -h localhost -p 5432 -U postgres -c "grant all privileges on database settings_sandbox to settings;"' -l postgres
+
+docker exec 5b /bin/sh -c 'psql -h localhost -p 5432 -U postgres -c "alter user wallet with password '\'1209u214s9cj901n2r\'';"' -l postgres
+docker exec 5b /bin/sh -c 'psql -h localhost -p 5432 -U postgres -c "grant all privileges on database wallet_sandbox to wallet;"' -l postgres
+
+docker exec 5b /bin/sh -c 'psql -h localhost -p 5432 -U postgres -c "alter user card_storage with password '\'sq9c8hb819b2r9u\'';"' -l postgres
+docker exec 5b /bin/sh -c 'psql -h localhost -p 5432 -U postgres -c "grant all privileges on database card_storage_sandbox to card_storage;"' -l postgres
+
+docker exec 5b /bin/sh -c 'psql -h localhost -p 5432 -U postgres -c "alter user business with password '\'810urhnifvun981h2r\'';"' -l postgres
+docker exec 5b /bin/sh -c 'psql -h localhost -p 5432 -U postgres -c "grant all privileges on database business_sandbox to business;"' -l postgres
+
+docker exec 5b /bin/sh -c 'psql -h localhost -p 5432 -U postgres -c "alter user core with password '\'1083htfnvidws0981\'';"' -l postgres
+docker exec 5b /bin/sh -c 'psql -h localhost -p 5432 -U postgres -c "grant all privileges on database core_sandbox to core;"' -l postgres
+
+docker exec 5b /bin/sh -c 'psql -h localhost -p 5432 -U postgres -c "alter user metabase with password '\'ascv9jq3nt1ih9gv\'';"' -l postgres
+docker exec 5b /bin/sh -c 'psql -h localhost -p 5432 -U postgres -c "grant all privileges on database metabase_sandbox to metabase;"' -l postgres
+
+
+# ALTER DATABASE "business_stage" RENAME TO "business_sandbox";
+# ALTER DATABASE "card_storage_stage" RENAME TO "card_storage_sandbox";
+# ALTER DATABASE "core_stage" RENAME TO "core_sandbox";
+# ALTER DATABASE "metabase_stage" RENAME TO "metabase_sandbox";
+# ALTER DATABASE "settings_stage" RENAME TO "settings_sandbox";
+# ALTER DATABASE "wallet_stage" RENAME TO "wallet_sandbox";
+# ALTER DATABASE "wc_proxy_stage" RENAME TO "wc_proxy_sandbox";

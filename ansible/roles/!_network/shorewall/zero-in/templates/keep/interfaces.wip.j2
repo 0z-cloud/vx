@@ -1,0 +1,198 @@
+{% raw %}
+################################################################################################################################################################################################################################################################################################################         
+#                   #   ANSIBLE MANAGED:                                   {% endraw %}{{ ansible_managed }}{% raw %}     
+################################################################################################################################################################################################################################################################################################################
+#                   #   INTERFACES                                    #   FILE:                                               #   /etc/shorewall/interfaces                     #    detect     
+################################################################################################################################################################################################################################################################################################################
+#                   #   ZONE        #                                 #   INTERFACE   #                                       #   BROARCAST   #                                 #    OPTIONS    #
+#                   #################                                 #################                                       #################                                 #################
+                       #                                                 #                                                       #                                                  #
+################################################################################################################################################################################################################################################################################################################
+## examples for options:                                                 #                                                       #                                                   dhcp,tcpflags,nosmurfs,routefilter,logmartians,sourceroute=0         
+################################################################################################################################################################################################################################################################################################################
+#                      #                                                 #                                                       #                                                  #   
+#   EXAMPLES CASES:                                                      #                                                       #                                                  #
+#   1: When two interfaces in one bridge:                                #                                                       #                                                  #
+#                      #                                                 #                                                       #                                                  #
+#                       world                                             br0                                                     detect                                             bridge      
+#                       world                                             br1                                                     detect                                             bridge      
+#                       z1                                                br0:p+                                                 #                                                  #
+#                       z2                                                br1:p+                                                 #                                                  #
+#                      #                                                 #                                                       #                                                  #
+################################################################################################################################################################################################################################################################################################################
+#######        #1 WAN & DMZ PUBLIC INTERFACES [[ WAN & LAN || WAN LAN:WAN ]]  
+################################################################################################################################################################################################################################################################################################################
+{% endraw %}
+{% if hostvars[inventory_hostname]['ansible_default_ipv4']['interface'] != hostvars[inventory_hostname]['second_iface'] %}
+
+                        wan                                                 {{ hostvars[inventory_hostname]['ansible_default_ipv4']['interface'] }}                                            detect                                          tcpflags,routeback,routefilter,bridge                               
+                        net                                                 {{ hostvars[inventory_hostname]['second_iface'] }}                                           detect                                          tcpflags,routeback,routefilter,bridge
+                                      
+{% else %}
+                        wan                                         {{ hostvars[inventory_hostname]['second_iface'] }}                                              detect                                          tcpflags,routeback,routefilter,bridge                                 
+                        net:wan                                         {{ hostvars[inventory_hostname]['second_iface'] }}                                             detect                                          tcpflags,routeback,routefilter,bridge                                 
+
+################################################################################################################################################################################################################################################################################################################
+######        #1 WAN & DMZ ZONEs END                         
+################################################################################################################################################################################################################################################################################################################
+{% endif %}
+
+
+
+    {% for bridge in bridges_interfaces.results %}
+    {% for bridge_name in bridge.stdout_lines %}
+    {% for interface in docker_networks_array_interfaces.results %}
+    {% for network_subnet in docker_networks_array.results %}
+        ######## DEFAULT INTERFACES GETTED
+        # SET interface_string from current interface by docker_networks_array_interfaces
+        {% set interface_string = interface.stdout_lines | join %}
+        # SEARCH TO SEARCH AND REPLACE interface_string from BRIDGE IN CURRENT bridge_name
+        {% set bridge_veth_ = bridge_name | replace(interface_string, "") %}
+        ######## DOCKER ZONES AND DEFAULT INTERFACES
+        #
+        # SET ANSIBLE DOCKER_GWBRIGE OVERLAY GW INTERFACE NAME FOR CHECKING
+        {% set docker_geov_network_interface = 'ansible_' + 'docker_gwbridge' %}
+        # SET ZONE NAME FOR ess DOCKER_GWBRIGE OVERLAY NETWORK
+        {% set docker_geov_network_shorewall_zone = 'geov' %}
+        # SET ANSIBLE DOCKER0 BRIDGE GW INTERFACE NAME FOR CHECKING
+        {% set docker_brg_network_interface = 'ansible_' + 'docker0' %}
+        # SET ZONE FOR DEFAULT DOCKER BRIDGE
+        {% set docker_brg_network_shorewall_zone = 'brg' %}
+        #
+        #########
+
+        {% if inventory_hostname in groups['nginx-frontend'] or inventory_hostname in groups['database-swarm-cluster'] %}
+
+            {% if hostvars[inventory_hostname][docker_geov_network_interface] is defined %}
+
+                {% set docker_geov_network_interface_bridged_veth_phydev = hostvars[inventory_hostname][docker_geov_network_interface]['interfaces'] %}
+                # WE HAVE AN A OVERLAY NETWORKS
+                # {{ hostvars[inventory_hostname][docker_geov_network_interface] }}
+                # {{ docker_geov_network_interface }}_bridge_veth_network_subnet info by adapter: {{ hostvars[inventory_hostname][docker_geov_network_interface]['ipv4']['network'] }}
+                # {{ docker_geov_network_interface }}_bridge_veth_network_broadcast info by adapter: {{ hostvars[inventory_hostname][docker_geov_network_interface]['ipv4']['broadcast'] }}
+                # {{ docker_geov_network_interface }}_bridge_veth_network_gw_ip info by adapter: {{ hostvars[inventory_hostname][docker_geov_network_interface]['ipv4']['address'] }} 
+                # {{ docker_geov_network_interface }}_bridge_veth_network_netmask info by adapter: {{ hostvars[inventory_hostname][docker_geov_network_interface]['ipv4']['netmask'] }}
+                
+                
+                {% for ansible_getted_interface_veth_geov in docker_geov_network_interface_bridged_veth_phydev %}  
+                    # interface physical veth: {{ ansible_getted_interface_veth_geov }}
+                {% endfor %}
+                
+                # PRIMARY SHOREWALL ZONE FOR DOCKER_GWBRIDGE: {{ docker_geov_network_shorewall_zone }}
+
+
+            {% else %}
+        
+                # BLOCK OVERLAY NETWORKS, THEN
+
+                {% if hostvars[inventory_hostname][docker_brg_network_interface] is defined %}
+
+                    {% set docker_brg_network_interface_bridged_veth_phydev = hostvars[inventory_hostname][docker_brg_network_interface]['interfaces'] %}
+
+
+                    # WE HAVE AN A LOCAL DOCKER NETWORKS
+                    # {{ hostvars[inventory_hostname][docker_brg_network_interface] }}  
+                    # {{ docker_brg_network_interface }}_bridge_veth_network_netwokr info by adapter: {{ hostvars[inventory_hostname][docker_brg_network_interface]['ipv4']['network'] }}
+                    # {{ docker_brg_network_interface }}_bridge_veth_network_broadcast info by adapter: {{ hostvars[inventory_hostname][docker_brg_network_interface]['ipv4']['broadcast'] }}
+                    # {{ docker_brg_network_interface }}_bridge_veth_network_gw_ip info by adapter: {{ hostvars[inventory_hostname][docker_brg_network_interface]['ipv4']['address'] }} 
+                    # {{ docker_brg_network_interface }}_bridge_veth_network_netmask info by adapter: {{ hostvars[inventory_hostname][docker_brg_network_interface]['ipv4']['netmask'] }}
+
+                    {% for ansible_getted_interface_veth_brg in docker_brg_network_interface_bridged_veth_phydev %}  
+                    # interface physical veth: {{ ansible_getted_interface_veth_brg }}
+                    {% endfor %}
+
+                    # PRIMARY SHOREWALL ZONE FOR DOCKER0: {{ docker_brg_network_shorewall_zone }}
+
+                {% endif %}
+        
+            {% endif %}
+
+        {% endif %}
+
+        ##### settings for current entry  
+        #
+        # MIX OF {{ bridge_name }} & {{ interface_string }}
+        # interface_string: {{ interface_string }}
+        # interface_full: {{ interface }}
+        # network_subnet from networks array: {{ network_subnet }}
+        # bridge: {{ bridge }}
+        # bridge_name: {{ bridge_name }}
+
+        {% if interface_string not in bridge_name %}
+        ##### DIFFERENT NETWORKS ONLY SHOW
+        # DIFFERENT {{ bridge_name }} & {{ interface_string }}
+
+        {% else %}
+            {% if "" != interface_string %}
+
+                # EMPTY NOW INTERFACE {{ interface_string }}
+                {% set bridge_veth = bridge_name | replace('_veth', "=veth") %}
+                {% set bridge_veth_interface = bridge_veth | regex_replace('.*=', '') %}
+                {% set bridge_veth_name = bridge_veth | regex_replace('=[^=]+$', '') %}
+                {% set network_subnet_joined = network_subnet.stdout_lines %}
+                {% set network_subnet_joined_cleaned = network_subnet_joined | join %}
+                {% set network_subnet_joined_kv = network_subnet_joined_cleaned | replace(': ', "=") %}
+                {% set network_subnet_name_cleaned = network_subnet_joined_kv |  regex_replace('.*=', '') %}
+                {% set network_subnet_cleaned = network_subnet_joined_kv |  regex_replace('=[^=]+$', '') %}
+                {% set default_ess_network_prefix = ansible_product + '-' + ansible_environment + '_default' %}
+                {% set default_ess_vpn_network_prefix = ansible_product + '-' + ansible_environment + '-vpn' + '_default' %}
+                # bridge_veth: {{ bridge_veth }}
+                # bridge_veth_name: {{ bridge_veth_name }}
+                # bridge_veth_interface: {{ bridge_veth_interface }}
+                # bridge: {{ bridge }}
+                # bridge_name: {{ bridge_name }}
+                # interface: {{ interface }}
+                # network_subnet_joined: {{ network_subnet_joined }}
+                # network_subnet_joined_cleaned: {{ network_subnet_joined_cleaned }}
+                # network_subnet_joined_kv: {{ network_subnet_joined_kv }}
+                # network_subnet_name_cleaned: {{ network_subnet_name_cleaned }}
+                # network_subnet_cleaned: {{ network_subnet_cleaned }}         
+
+            {% else %}
+
+                {% set bridge_veth = bridge_name | replace('_veth', "=veth") %}
+                {% set bridge_veth_interface = bridge_veth | regex_replace('.*=', '') %}
+                {% set bridge_veth_name = bridge_veth | regex_replace('=[^=]+$', '') %}
+                {% set network_subnet_joined = network_subnet.stdout_lines %}
+                {% set network_subnet_joined_cleaned = network_subnet_joined | join %}
+                {% set network_subnet_joined_kv = network_subnet_joined_cleaned | replace(': ', "=") %}
+                {% set network_subnet_name_cleaned = network_subnet_joined_kv |  regex_replace('.*=', '') %}
+                {% set network_subnet_cleaned = network_subnet_joined_kv |  regex_replace('=[^=]+$', '') %}
+                {% set ansible_bridge_vetch_network_interface = 'ansible_' + bridge_veth_name %}
+                {% set default_ess_network_prefix = ansible_product + '-' + ansible_environment + '_default' %}
+                {% set default_ess_vpn_network_prefix = ansible_product + '-' + ansible_environment + '-vpn' + '_default' %}
+
+                # bridge_veth: {{ bridge_veth }}
+                # bridge_veth_name: {{ bridge_veth_name }}
+                # bridge_veth_interface: {{ bridge_veth_interface }}
+                # bridge: {{ bridge }}
+                # bridge_name: {{ bridge_name }}
+                # interface: {{ interface }}
+                # network_subnet_joined: {{ network_subnet_joined }}
+                # network_subnet_joined_cleaned: {{ network_subnet_joined_cleaned }}
+                # network_subnet_joined_kv: {{ network_subnet_joined_kv }}
+                # network_subnet_name_cleaned: {{ network_subnet_name_cleaned }}
+                # network_subnet_cleaned: {{ network_subnet_cleaned }}
+                # ansible_bridge_vetch_network_interface: {{ ansible_bridge_vetch_network_interface }}
+
+                {% if hostvars[inventory_hostname][ansible_bridge_vetch_network_interface] is defined %}
+
+                # ansible info by adapter: {{ hostvars[inventory_hostname][ansible_bridge_vetch_network_interface] }}
+                # bridge_veth_network_netwokr info by adapter: {{ hostvars[inventory_hostname][ansible_bridge_vetch_network_interface]['ipv4']['network'] }}
+                # bridge_veth_network_broadcast info by adapter: {{ hostvars[inventory_hostname][ansible_bridge_vetch_network_interface]['ipv4']['broadcast'] }}
+                # bridge_veth_network_gw_ip info by adapter: {{ hostvars[inventory_hostname][ansible_bridge_vetch_network_interface]['ipv4']['address'] }}
+                # bridge_veth_network_netmask info by adapter: {{ hostvars[inventory_hostname][docker_brg_network_interface]['ipv4']['netmask'] }}
+
+                {% endif %}
+
+                # default_ess_network_prefix: {{ default_ess_network_prefix }}
+                # default_ess_vpn_network_prefix: {{ default_ess_vpn_network_prefix }}
+
+        {% endif %}
+
+    {% endif %}
+
+{% endfor %}
+{% endfor %}
+{% endfor %}
+{% endfor %}

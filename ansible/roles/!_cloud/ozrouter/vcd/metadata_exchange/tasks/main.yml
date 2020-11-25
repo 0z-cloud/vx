@@ -1,0 +1,31 @@
+
+# # Заголовок и вывод основных переменных
+# 1. FETCH ALL USED PORTS FROM METADATA
+# 2. MERGE REPO + FETCHED
+# 3. IF PORT IN CURRENT LIST, SET REGENERATE AND PASS CHECK AGAIN
+
+#oz_router_subnet_anycloud_vpn_port
+#oz_router_subnet_anycloud_web_port
+
+# СМОТРИМ ГЛОБАЛЬНЫЙ ОБЪЕКТ zero_cloud
+
+# - name: DEBUG | zero_cloud
+#   debug:
+#     msg: "{{ zero_cloud }}"
+#   when: debug_log is defined
+
+# - name: META | Include Head
+#   include_tasks: head.yml
+
+# Идем в vCloud проверяем/забираем настройки сети
+# Создаем объекты в облаке vCloud непосредственно указатели = ключ/значение
+# Выполняем требуемые сценарии
+- name: META PORT | Inspect vCloud Group Objects Tasks - check state of subnets for networks keys | present status in there is - set(changed:true) / present(changed:false)
+  include_tasks: get_special_meta_main.yml
+
+# Вывод всех пременных и их значений если передан параметр ansible - debug_playbook_stdout
+# Передать можно как на примере ниже, в конце добавьте, - ```-e debug_playbook_stdout=1```
+# ansible-playbook -i inv... some-playbook.yml -e debug_playbook_stdout=1
+
+# - name: META | Run Results of run role vCloud Group Objects Tasks
+#   include_tasks: result_show.yml

@@ -1,0 +1,13 @@
+- name: Inject defaults
+  set_fact:
+    consul: "{{ consul_defaults | combine(consul) }}"
+
+- name: Consul Join Masters
+  shell: consul join -rpc-addr {{ ansible_default_ipv4['address'] | join }}:8400 -wan {{ item | join }}:8301 &
+  when: consul_type == "master" and item != "{{ ansible_hostname }}"
+  with_items: "{{ groups['consul-masters'] }}"
+
+- name: Consul Join Clients To Master
+  shell: consul join -rpc-addr {{ ansible_default_ipv4['address'] | join }}:8400 {{ item | join }}:8301 &
+  when: consul_type == "client"
+  with_items: "{{ groups['consul-masters'] }}"

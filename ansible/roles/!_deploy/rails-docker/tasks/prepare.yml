@@ -1,0 +1,38 @@
+- name: remove old docker python extensions
+  pip:
+    name: ['docker', 'docker-py']
+    state: absent
+
+- name: install docker python extension
+  pip:
+    name: docker
+    state: forcereinstall
+
+- name: install consul python extension
+  pip:
+    name: python-consul
+
+- name: add gitlab to hosts
+  lineinfile:
+    dest: /etc/hosts
+    line: "{% for host in groups['gitlab-server'] %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}{% endfor %}   gitlab.{{ public_consul_domain }}"
+
+- name: login to docker registry
+  docker_login:
+    registry: gitlab.{{ public_consul_domain }}
+    username: "{{ docker_registry_username }}"
+    password: "{{ docker_registry_password }}"
+    reauthorize: yes
+
+- name: pull application image
+  docker_image:
+    name: "{{ rails_application.docker_image }}:{{ rails_application.docker_image_tag }}"
+    pull: yes
+    force: yes
+
+- name: pull filebeat image
+  docker_image:
+    name: "{{ filebeat_docker_image }}"
+    pull: yes
+    force: yes
+

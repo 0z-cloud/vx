@@ -1,0 +1,21 @@
+concurrent = 50
+check_interval = 0
+
+[[runners]]
+  name = "gitlab-runner-{{ inventory_hostname }}"
+  url = "https://{{ ansible_global_gitlab_site_name }}/"
+  token = "{{ anycloud_ci_cd_vcs_project_checkout_service_auth_identity_pass_or_token }}"
+  executor = "docker"
+  [runners.docker]
+    tls_verify = false
+    image = "php:7.2"
+    privileged = true
+    disable_cache = false
+    volumes = ["/cache"]
+    shm_size = 0
+    extra_hosts = ["{{ ansible_global_gitlab_site_name }}:{% for host in groups['gitlab-server'] %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}{% endfor %}}"]
+    [runners.docker.tmpfs]
+      "/var/lib/mysql" = "rw,noexec"
+    [runners.docker.services_tmpfs]
+      "/var/lib/mysql" = "rw,noexec"
+  [runners.cache]

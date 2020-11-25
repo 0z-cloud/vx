@@ -1,0 +1,254 @@
+
+anycloud_defaults_virtual_application_box_sector: vapp_{{ ansible_environment }}_{{ ansible_product }}_sector
+anycloud_defaults_virtual_vpc_zone_sectors: sector_{{ anycloud_results_vpc_zone_virtual_abstract.layout }}
+anycloud_defaults_virtual_organization: AIM # any group or subgroup in datacenter sectors hold names of organization unit, as example any name - AIM/SUPPORT/FINANCE/PROCESSING 
+anycloud_defaults_virtual_datacenter: lf-vx-z1e-vcd # virtualization abstract level for { INFRA } or for { INFRASTRUCTURE }, choisen by real type or layout
+anycloud_defaults_virtual_cloud_application_box_sector: "{{ anycloud_adapter_virtual_cloud_application_box_sector | default('simple') }}"
+anycloud_defaults_virtual_cloud_cidr: "{{ anycloud_adapter_virtual_cloud_cidr | default('10.0.0.0/8') }}"
+anycloud_defaults_virtual_cloud_name: "{{ anycloud_adapter_virtual_cloud_name | default('anycloud-default-cloud') }}"
+anycloud_defaults_cloud_description: "{{ anycloud_adapter_virtual_cloud_description | default('vCloud Director Simple Template nothing to explain') }}"
+anycloud_defaults_api_url_endpoint: vcd.example.com # vcloud main api public endpoint listener
+anycloud_defaults_cloud_name: "vZone_Sector_Network_Exchange_{{ ansible_product }}_zone_{{ ansible_environment }}_{{ ansible_datacenter }}"
+anycloud_defaults_image_hostname: ai_dev_vm_ # example for template itself parts with index count { +index count for count in do ...-{$i}...- }
+ansible_environment: production
+ansible_product: eden-vortice
+ansible_datacenter: dc1
+ansible_datacenter_location: moscow
+anycloud_one_instance_duplicates_count: 1
+ssh_connect_type_self: "defaults"
+ssh_connect_type_via: "ansible_ssh_common_args='-o ProxyCommand=\"ssh -W %h:%p %r@REPLACED_BY_BASTION_DMZ_MACHINE_IP\"'"
+anycloud_vm_template_name: "{{ anycloud_adapter_vm_template | default(anycloud_defaults_vm_template) }}"
+anycloud_template_root_folder: "{{ anycloud_template_adapter_root_folder | default(anycloud_template_defaults_root_folder) }}"
+anycloud_template_defaults_root_folder: "/"
+anycloud_domain_result: "{{ anycloud_adapter_domain_fqdn | default(anycloud_domain_default) }}"
+anycloud_domain_default: "vortex.com"
+anycloud_results_vpc_zone_virtual_abstract: 
+    dns_servers: "{{ anycloud_adapter_vpc_zone_virtual_abstract_dns_servers | default(anycloud_defaults_vpc_zone_virtual_abstract.dns_servers) }}"
+    zones: "{{ anycloud_adapter_vpc_zone_virtual_abstract | default(anycloud_defaults_vpc_zone_virtual_abstract) }}"
+    initial_only_dns_servers: "{{ anycloud_adapter_vpc_zone_virtual_abstract_initial_only_dns_servers | default(anycloud_defaults_vpc_zone_virtual_abstract.initial_only_dns_servers) }}"
+    layout: "{{ ansilbe_infrastructure_target_layout_default | default(anycloud_result_vpc_zone_virtual_abstract_layout) }}"
+    landscape: "{{ anycloud_adapter_vpc_zone_virtual_abstract_layout | default(anycloud_defaults_vpc_zone_virtual_abstract_layout) }}"
+cloud_bootstrap:
+  ids_network:
+        zones:
+            primary:
+                public_inet: enp0s3
+                vrrp_network: enp0s8
+                front_network: enp0s9
+                master_network: enp0s10
+                backend_network: enp0s16
+                misc_network: enp0s17
+            secondary:
+                public_inet: enp0s11 # EXAMPLE FOR DYNAMIC LOAD OR RELOAD
+                vrrp_network: enp0s8
+                front_network: enp0s9
+                master_network: enp0s10
+                backend_network: enp0s16
+                misc_network: enp0s17
+  servers:
+    ai_dev_vm_05:
+        network: "REPLACED"
+        ip: "ai-dev-vm-05_public_ip_address_REPLACED"
+        gw: "REPLACED"
+        anycloud_vm_vapp_box_name: "{{ anycloud_vm_vapp_box_name }}"
+        anycloud_vm_template_name: "{{ anycloud_vm_template_name }}"
+        name: "ai-dev-vm-05"
+        anycloud_vm_performance_configuration: "{{ anycloud_vm_performance_configuration }}"
+        anycloud_vm_storage_configuration: "{{ anycloud_vm_storage_configuration }}"
+        anycloud_virtual_cloud_zone: "{{ anycloud_virtual_cloud_zone }}"
+        initial_only_dns_servers: "{{ anycloud_results_vpc_zone_virtual_abstract.initial_only_dns_servers }}"
+        ansible_inventory_groups:
+            - vx_vlan_all
+            - vlan_network_balancer
+            - cadvisor-service
+            - node-exporter
+            - wazuh-agent
+            - wazuh-manager
+            - master-bind-master-backend
+            - storage-master-glusterfs
+            - wazuh-elasticsearch
+            - vortex-core-master-backend
+            - kubernetes-balancer-stack
+            - teamcity-agent
+            - grafana
+            - prometheus
+            - alertmanager
+            - wazuh-kibana
+            - kubernetes-cluster
+            - kubernetes-master
+        ansible_inventory_vars:
+            second_network_type: "dmz"
+            second_network_zone: "cluster"
+            second_network_cluster_group: "network-balancer"
+            second_ip: "ai-dev-vm-05_public_ip_address_REPLACED" 
+            second_network_subnet: "REPLACED"
+            second_network: "REPLACED"
+            second_iface: "REPLACED"
+            green_ip: "REPLACED"
+            green_subnet: "REPLACED"
+            public_nat_ip: "REPLACED"
+            public_nat_gw: "REPLACED"
+            lb_router_priority: "150"
+            lb_router_role: "MASTER"
+            lb_advert_int: "1"
+            lb_notification_email_from: "ai-dev-vm-05@local.cloud.eve.vortice.eden"
+            lb_lvs_id: "ai-dev-vm-05"
+            lb_interface_01: "enp0s17"
+            lb_interface_02: "enp0s8"    glusterfs_replica_count: "3"
+            swarm_node_type: "client"
+            consul_type: "client"
+            kubernetes_type: ""
+            ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+            ansible_python_interpreter: "python3"
+            clamav_startup_hour: "3"
+            clamav_startup_minutes: "30"
+            clamav_mirror_update_hour: "2"
+            clamav_mirror_update_minutes: "30"
+            apt_mirror_startup_hour: "3"
+            apt_mirror_startup_minutes: "05"
+
+    ai_dev_vm_02:
+        network: "REPLACED"
+        ip: "ai-dev-vm-02_public_ip_address_REPLACED"
+        gw: "REPLACED"
+        anycloud_vm_vapp_box_name: "{{ anycloud_vm_vapp_box_name }}"
+        anycloud_vm_template_name: "{{ anycloud_vm_template_name }}"
+        name: "ai-dev-vm-02"
+        anycloud_vm_performance_configuration: "{{ anycloud_vm_performance_configuration }}"
+        anycloud_vm_storage_configuration: "{{ anycloud_vm_storage_configuration }}"
+        anycloud_virtual_cloud_zone: "{{ anycloud_virtual_cloud_zone }}"
+        initial_only_dns_servers: "{{ anycloud_results_vpc_zone_virtual_abstract.initial_only_dns_servers }}"
+        ansible_inventory_groups:
+            - vx_vlan_all
+            - vlan_frontend
+            - postgres-pgpool-cluster
+            - postgres-pgmanager-cluster
+            - postgres-pgcontrol-cluster
+            - cadvisor-service
+            - node-exporter
+            - wazuh-agent
+            - gitlab-server
+            - cloud-bind-frontend-dns
+            - cloud-bind-glusterfs-storage
+            - swarm-cluster
+            - nginx-frontend
+            - core
+            - consul-masters
+            - consul-cluster
+            - pritunl-stack
+            - kubernetes-cluster
+            - kubernetes-worker
+        ansible_inventory_vars:
+            second_network_type: "dmz"
+            second_network_zone: "cluster"
+            second_network_cluster_group: "nginx-frontend"
+            second_network: "REPLACED"
+            second_iface: "REPLACED"
+            second_ip: "ai-dev-vm-02_public_ip_address_REPLACED" 
+            second_network_subnet: "REPLACED"
+            green_ip: "REPLACED"
+            green_subnet: "REPLACED"
+            public_nat_ip: "37.18.116.45"
+            public_nat_gw: "REPLACED"
+            glusterfs_replica_count: "3"
+            cloud_ns_name: "ns2-cloud"
+            swarm_node_type: "master"
+            consul_type: "master"
+            kubernetes_type: "worker"
+            ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+            ansible_python_interpreter: "python3"
+            clamav_startup_hour: "3"
+            clamav_startup_minutes: "30"
+            clamav_mirror_update_hour: "2"
+            clamav_mirror_update_minutes: "30"
+            apt_mirror_startup_minutes: "05"
+            apt_mirror_startup_hour: "3"
+
+    ai_dev_vm_01:
+        network: "REPLACED"
+        ip: "ai-dev-vm-01_public_ip_address_REPLACED"
+        gw: "REPLACED"
+        anycloud_vm_vapp_box_name: "{{ anycloud_vm_vapp_box_name }}"
+        anycloud_vm_template_name: "{{ anycloud_vm_template_name }}"
+        name: "ai-dev-vm-01"
+        anycloud_vm_performance_configuration: "{{ anycloud_vm_performance_configuration }}"
+        anycloud_vm_storage_configuration: "{{ anycloud_vm_storage_configuration }}"
+        anycloud_virtual_cloud_zone: "{{ anycloud_virtual_cloud_zone }}"
+        initial_only_dns_servers: "{{ anycloud_results_vpc_zone_virtual_abstract.initial_only_dns_servers }}"
+        ansible_inventory_groups:
+            - vx_vlan_all
+            - vlan_frontend
+            - postgres-pgpool-cluster
+            - postgres-pgmanager-cluster
+            - postgres-pgcontrol-cluster
+            - cadvisor-service
+            - node-exporter
+            - wazuh-agent
+            - gitlab-server
+            - cloud-bind-frontend-dns
+            - cloud-bind-glusterfs-storage
+            - swarm-cluster
+            - nginx-frontend
+            - core
+            - consul-masters
+            - consul-cluster
+            - pritunl-stack
+            - kubernetes-cluster
+            - kubernetes-worker
+        ansible_inventory_vars:
+            second_network_type: "dmz"
+            second_network_zone: "cluster"
+            second_network_cluster_group: "nginx-frontend"
+            second_network: "REPLACED"
+            second_iface: "REPLACED"
+            second_ip: "ai-dev-vm-01_public_ip_address_REPLACED" 
+            second_network_subnet: "REPLACED"
+            green_ip: "REPLACED"
+            green_subnet: "REPLACED"
+            public_nat_ip: "37.18.116.46"
+            public_nat_gw: "REPLACED"
+            glusterfs_replica_count: "3"
+            cloud_ns_name: "ns1-cloud"
+            swarm_node_type: "master"
+            consul_type: "master"
+            kubernetes_type: "worker"
+            ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+            ansible_python_interpreter: "python3"
+            clamav_startup_hour: "3"
+            clamav_startup_minutes: "30"
+            clamav_mirror_update_hour: "2"
+            clamav_mirror_update_minutes: "30"
+            apt_mirror_startup_minutes: "05"
+            apt_mirror_startup_hour: "3"
+
+    switches:
+        vswitch_01:
+            anycloud_virtual_cloud_name: "{{ anycloud_defaults_cloud_name }}"
+            anycloud_zone: "{{ anycloud_zone }}"
+            anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_description: "{{ anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_description }}"
+            anycloud_region: "{{ anycloud_region }}"
+            anycloud_defaults_virtual_cloud_cidr: '{{ anycloud_defaults_virtual_cloud_cidr }}'
+            anycloud_communication_device_id: "REPLACED"
+    vpc_zones:
+        vpc_0001:
+            anycloud_virtual_cloud_name: "{{ anycloud_defaults_cloud_name }}"
+            anycloud_region: "{{ anycloud_region }}"
+            anycloud_virtual_cloud_description: "{{ anycloud_virtual_cloud_description }}"
+            anycloud_virtual_zone_anycloud_virtual_zone_cidr_block: "{{ anycloud_defaults_virtual_cloud_cidr }}"
+    security_zones:
+        sg_zone_0001:
+            sg_group_id: "REPLACED"
+    basic_roles:
+        - '!_bootstrap/update-dns-config'
+        - '!_bootstrap/ntp-client'
+        - '!_bootstrap/local-repository'
+        - auditd
+        - rsyslog
+        - ossim-agent
+    services:
+        inventory_groups_vars:
+            test-sentry-redis-io-cluster:
+                redis_public_port: 6379
+                redis_slave_public_port: 6380
+                redis_username: redis
+                redis_passowrd: dc1d494f7915da973d6c037357c548adbaee349e35

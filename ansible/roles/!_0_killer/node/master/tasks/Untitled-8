@@ -1,0 +1,84 @@
+apiVersion: kubeadm.k8s.io/v1beta2
+bootstrapTokens:
+- groups:
+  - system:bootstrappers:kubeadm:default-node-token
+  token: abcdef.0123456789abcdef
+  ttl: 24h0m0s
+  usages:
+  - signing
+  - authentication
+kind: InitConfiguration
+localAPIEndpoint:
+  advertiseAddress: 172.16.50.206
+  bindPort: 6443
+nodeRegistration:
+  criSocket: /var/run/dockershim.sock
+  name: vortex-node-05-production
+  taints:
+  - effect: NoSchedule
+    key: node-role.kubernetes.io/master
+  kubeletExtraArgs:
+    node-ip: 172.16.50.206
+---
+apiServer:
+    timeoutForControlPlane: 4m0s
+    advertise-address: 172.16.50.206
+    anonymous-auth: "false"
+    enable-admission-plugins: PodSecurityPolicy,AlwaysPullImages,DefaultStorageClass
+    audit-log-path: /var/log/k8s-audit.log
+apiVersion: kubeadm.k8s.io/v1beta2
+certificatesDir: /opt/ca/pki
+clusterName: "main_k8_cluster"
+controllerManager:
+  extraArgs:
+    cluster-signing-key-file: /opt/ca/pki/ca.key
+    bind-address: 172.16.50.206
+    deployment-controller-sync-period: "50s"
+dns:
+  type: CoreDNS
+etcd:
+  external:
+        endpoints:
+        - https://172.16.50.206:2379
+        - https://172.16.50.205:2379
+        - https://172.16.50.207:2379
+        caFile: /opt/ca/pki/ca.pem
+        certFile: /opt/ca/pki/etcd.pem
+        keyFile: /opt/ca/pki/etcd-key.pem
+        serverCertSANs:
+        - "172.16.50.101"
+        - "vortex-node-05-production"
+        - "172.16.50.206"
+        - "185.40.28.115"
+        - "vortex-node-04-production"
+        - "172.16.50.205"
+        - "185.40.28.126"
+        - "vortex-node-06-production"
+        - "172.16.50.207"
+        - "185.40.28.91"
+        peerCertSANs:
+        - "172.16.50.101"
+        - "vortex-node-05-production"
+        - "172.16.50.206"
+        - "185.40.28.115"
+        - "vortex-node-04-production"
+        - "172.16.50.205"
+        - "185.40.28.126"
+        - "vortex-node-06-production"
+        - "172.16.50.207"
+        - "185.40.28.91"
+        extraArgs:
+            listen-client-urls: "https://127.0.0.1:2379,https://172.16.50.206:2379"
+            advertise-client-urls: "https://172.16.50.206:2379"
+            listen-peer-urls: "https://172.16.50.206:2380"
+            initial-advertise-peer-urls: "https://172.16.50.206:2380"
+            initial-cluster: "vortex-node-05-production=https://172.16.50.206:2380,vortex-node-04-production=https://172.16.50.205:2380,vortex-node-06-production=https://172.16.50.207:2380"
+            initial-cluster-state: new
+            name: vortex-node-05-production
+imageRepository: k8s.gcr.io
+kind: ClusterConfiguration
+kubernetesVersion: v1.17.0
+networking:
+  dnsDomain: vless.ru
+  serviceSubnet: 172.16.50.0/24
+scheduler: {}

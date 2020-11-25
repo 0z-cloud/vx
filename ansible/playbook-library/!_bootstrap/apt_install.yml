@@ -1,0 +1,6 @@
+- name: Setup apt secondary packages services for run specific tasks
+  hosts: "all"
+  roles:
+  - name: Run apt install necessary system packages service role
+    role: ./!_bootstrap/apt/deploy
+    when: ansible_children_environment == 'no'

@@ -1,0 +1,77 @@
+# For information on the settings in this file, type "man shorewall-rules"
+######################################################################################################################################################################################################
+#ACTION		        SOURCE		                                DEST		                    PROTO	    DEST	SOURCE		ORIGINAL	RATE		USER/	MARK	CONNLIMIT	TIME	HEADERS		SWITCH		HELPER
+#							                                    PORT	                    PORT(S)		    DEST		LIMIT		GROUP
+
+#IPSEC
+
+ACCEPT		        wan:185.243.244.162                         fw                              ah
+ACCEPT		        wan:195.238.239.217                         fw                              ah
+
+ACCEPT		        wan:185.243.244.162                         fw                              esp
+ACCEPT		        wan:195.238.239.217                         fw                              esp
+
+ACCEPT		        wan:185.243.244.162                         fw                              udp	        4500,500
+ACCEPT		        wan:195.238.239.217                         fw                              udp	        4500,500
+
+ACCEPT		        wan:185.243.244.162                         fw                              tcp	        4500
+ACCEPT		        wan:195.238.239.217                         fw                              tcp	        4500
+
+#######################
+
+#ACCEPT ADMIN vortex.COM
+ACCEPT		        wan		                                    web:10.16.211.100		            tcp	        443
+
+# SSH MAINTANANCE MODE
+#ACCEPT              wan                                         fw:77.243.80.66			    tcp	        22
+#ACCEPT              wan                                         fw:77.243.80.67	            tcp	        22
+
+# VPN MAINTANANCE MODE
+#ACCEPT              wan                                         fw:77.243.80.68	            tcp	        19811
+
+# MAIN PCI DSS VPN
+ACCEPT              wan                                         fw:77.243.80.68		            tcp	        13972
+
+########################
+# block local ip from wan
+# DEFAULT DROP FROM WAN LAN_IP SUBNETS
+DROP		        wan:$LAN_IP	                                fw
+
+# IPSec VPN
+IPsecnat(ACCEPT)    wan:185.243.244.162                         fw                              
+IPsecnat(ACCEPT)    wan:195.238.239.217                         fw                              
+
+########################
+# Dummy - ping, drop telnet, accept traceroute from wan to fw
+Ping(ACCEPT)	    wan		                                    fw		-	-	-		-		s:2/sec
+
+# anti ping flood
+ACCEPT		        wan		                                    fw		                        icmp	    0,3/4,8,11
+
+# ping response
+ACCEPT		        wan		                                    fw		                        udp	        33434:33529
+
+# for traceroute
+DROP		        wan		                                    fw		                        tcp	        23
+# block telnet
+
+########################
+# accept from WAN to WEB
+ACCEPT		        wan		                                    web:10.16.211.19	                tcp	        443
+ACCEPT		        wan		                                    web:10.16.211.21	                tcp	        80,443
+
+# DISABLED DUE WIP
+#ACCEPT		        wan		                                    web:10.16.211.22	                tcp	        80,443
+
+ACCEPT		        wan		                                    web:10.16.211.23	                tcp	        443,444
+
+# DISABLED DUE WIP
+#ACCEPT		        wan		                                    web:10.16.211.24	                tcp	        80,443
+
+ACCEPT		        wan		                                    web:10.16.211.25	                tcp	        443
+ACCEPT		        wan		                                    web:10.16.211.30	                tcp	        8083
+
+# Bank Of Moscow DSZN Callbacks
+
+ACCEPT              wan:172.100.100.7,172.100.100.5             web:10.16.211.34
+ACCEPT              wan:172.100.100.7,172.100.100.5             web:10.16.211.35

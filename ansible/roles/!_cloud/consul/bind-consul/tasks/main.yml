@@ -1,0 +1,76 @@
+
+- name: Generate initiate resolv.conf 
+  template:
+    src: resolv.conf.init.j2
+    dest: /etc/resolv.conf
+    mode: 0444
+
+- name: Install Bind9 packages
+  apt:
+    pkg: "{{ item }}" 
+    state: installed
+  with_items:
+       - bind9
+       - bind9utils
+       - bind9-doc
+
+- name: Create Dir's
+  file: 
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+  with_items:
+    - /etc/bind/data
+    - /etc/bind/dynamic
+
+- name: Give Rights To Consul folder
+  raw: chmod -R 777 /opt/consul/*
+
+- name: generate configs consul.conf
+  template:
+    src: consul.conf.j2
+    dest: /etc/bind/pri.{{ merge_consul_domain }}.conf
+
+- name: generate configs bind local
+  template:
+    src: bind.conf.j2
+    dest: /etc/bind/named.conf.local
+
+- name: generate configs main bind
+  template:
+    src: named.conf.options.j2
+    dest: /etc/bind/named.conf.options
+
+- name: generate configs main bind
+  template:
+    src: named.conf.j2
+    dest: /etc/bind/named.conf
+
+- name: Give rights to all bind9 files
+  raw: chmod -R 777 /etc/bind/*
+
+- name: generate resolv.conf 
+  template:
+    src: resolv.conf.j2
+    dest: /etc/resolv.conf
+    mode: 0444
+
+- name: Generate Zones with necessary records (NS,MX,PTR)
+  template:
+    src: new.template.j2
+    dest: /etc/bind/new.{{ merge_consul_domain }}
+  tags: [generate-new]
+
+- name: Generate reverse Zones with necessary records (NS,MX,PTR)
+  template:
+    src: new.reverse.j2
+    dest: /etc/bind/new.reverse.{{ hostvars[inventory_hostname].ansible_default_ipv4.address | ipaddr('revdns') | join }}zone
+  tags: [generate-new]
+
+- name: Add domain to local bind config
+  lineinfile: "dest=/etc/bind/named.conf.local state=present regexp='^%pri.{{ merge_consul_domain }}.conf' line='include \"/etc/bind/pri.{{ merge_consul_domain }}.conf\";'"
+
+- name: restart Bind9
+  service: 
+    name: bind9 
+    state: restarted

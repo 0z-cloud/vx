@@ -1,0 +1,41 @@
+- name: You must no use default connector - Shell gets ansible_grep_connector_server_xml, if see error its good =)
+  shell: " grep ' <Connector className=' {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}/conf/server.xml"
+  register: ansible_grep_connector_server_xml
+  tags: ansible_grep_connector_server_xml
+  ignore_errors: true
+
+- name: Check the ansible_grep_connector_server_xml, if PCI compliance ok, we ignore that and go next
+  fail:
+    msg: "Whoops! File {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}/conf/server.xml conetent not PCI Compliant - please remove Connector className= property"
+  when: ansible_grep_connector_server_xml.rc != 1
+  tags: ansible_grep_connector_server_xml
+  
+- name: Include server_info.yml PCI test cases, go to run -
+  include: server_info.yml
+
+#### GREP XPOWERED_BY FROM CONF/SERVER.XML
+
+- name: Shell gets ansible_grep_connector_server_xml, if see error its good =)
+  shell: " grep ' <Connector' {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}/conf/server.xml"
+  register: ansible_grep_connectors_server_xml
+  tags: ansible_grep_connectors_server_xml
+  ignore_errors: true
+
+- name: Register stdout from all connectors by shell echo grep
+  shell: "echo '{{ item }}'| grep 'xpoweredBy=\"false\"'"
+  with_items: "{{ ansible_grep_connectors_server_xml.stdout_lines }}"
+  register: ansible_grep_connectors_server_xml_stdout_lines
+  ignore_errors: true
+  tags: ansible_grep_connectors_server_xml
+  
+- name: Debug not compliant connectors in ansible_grep_connectors_server_xml_stdout_lines
+  debug:
+    msg: "{{ ansible_grep_connectors_server_xml_stdout_lines.results | map(attribute='rc') | list }}"
+  tags: ansible_grep_connectors_server_xml
+  
+- name: Check the grep xpoweredBy conf/server.xml, if PCI compliance ok, we ignore that and go next
+  fail:
+    msg: "Whoops! Connector have {{ item }} in File {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}/conf/server.xml conetent not PCI Compliant - please change set each connector to have xpoweredBy to false"
+  when: "{{ item }} != 0"
+  tags: ansible_grep_xpowered_by_from_server_properties
+  with_items: "{{ ansible_grep_connectors_server_xml_stdout_lines.results | map(attribute='rc') | list }}"

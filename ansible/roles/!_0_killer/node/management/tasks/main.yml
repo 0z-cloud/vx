@@ -1,0 +1,23 @@
+- name: Enabling the kube-proxy to rc.local
+  lineinfile:
+    dest: /etc/rc.local
+    line: "kubectl proxy --address='0.0.0.0' &"
+
+- name: Template ui configs
+  template:
+    src: "{{ item }}.yml"
+    dest: "/root/{{ item }}.yml"
+  with_items:
+    - users-ui
+    - groups-ui
+
+- name: Enable permissions by configurations
+  k8s_raw:
+    state: present
+    src: "/root/{{ item }}.yml"
+  with_items:
+    - users-ui
+    - groups-ui
+
+# kubectl create clusterrolebinding cluster-system-anonymous --clusterrole=cluster-admin --user=system:anonymous
+# kubelet kubeadm kubectl unzip tar apt-transport-https btrfs-tools libseccomp2 socat util-linux mc vim keepalived

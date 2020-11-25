@@ -1,0 +1,12 @@
+- name: re/Create a Prometheus MYSQL exporter Without Swarm
+  docker_container:
+      name: prometheus-mysql-exporter
+      image: "braedon/prometheus-mysql-exporter:latest"
+      ports:
+        - "{{ prometheus_mysql_exporter_listnen_port }}:9207"
+      privileged: yes
+      restart_policy: always
+      detach: True
+      recreate: yes
+      state: started
+  when: swarm_disabled_inventory is defined

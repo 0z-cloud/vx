@@ -1,0 +1,119 @@
+{% extends "./_0z_loops/0z_ll_check_vx.j2b" %}
+{% extends "./_0z_loops/0z_ll_footer_vx.j2b" %}
+{% extends "./_0z_loops/0z_ll_queen_vx.j2b" %}
+{% extends "./_0z_loops/0z_ll_privileged_vx.j2b" %}
+{% extends "./_0z_loops/0z_ll_environment_vx.j2b" %}
+{% extends "./_0z_loops/0z_ll_volumes_vx.j2b" %}
+
+depends_on
+environment
+entrypoint
+
+{% raw %}
+############################################################################################################################################
+#### SECTION 1: EXTENDED SERVICES
+############################################################################################################################################
+{% endraw %} 
+
+{% if extended_all_services_remap_docker_compose_generate is defined and extended_services_settings_map is defined %}
+{% for key,value in extended_all_services_remap_docker_compose_generate.items() %}{% for app,data in extended_services_settings_map.items() %}{% if key == app %}{% if 'nginx' not in key %}{% raw %}
+{% endraw %}{% block 0z_ll_check_vx %}{% endblock %}{% raw %}
+{% endraw %}
+
+{% raw %}
+{% endraw %}{% block 0z_ll_volumes_vx %}{% endblock %}{% raw %}
+{% endraw %}
+
+{% raw %}
+{% endraw %}{% block 0z_ll_depends_on_vx %}{% endblock %}{% raw %}
+{% endraw %}
+
+{% raw %}
+{% endraw %}{% block 0z_ll_entrypoint_vx %}{% endblock %}{% raw %}
+{% endraw %}
+
+{% raw %}
+{% endraw %}{% block 0z_ll_environment_vx %}{% endblock %}{% raw %}
+{% endraw %}
+
+{% raw %}
+{% endraw %}{% block 0z_ll_ports_vx %}{% endblock %}{% raw %}
+{% endraw %}
+
+
+
+
+
+{% if value['environment'] is defined %}{% raw %}
+      environment:
+{% endraw %}{% for de in value['environment'] %}{% raw %}
+        {% endraw %}{{ de | join }}{% raw %}
+{% endraw %}{% endfor %}
+{% endif %}
+
+{% if value['depends_on'] is defined %}{% raw %}
+      depends_on: 
+{% endraw %}{% for depend in value['depends_on'] %}{% raw %}
+        - {% endraw %}{{ depend | join }}{% raw %}
+{% endraw %}{% endfor %}
+{% endif %}
+
+{% if value['no_healthcheck'] is defined %}{% raw %}
+      healthcheck:
+        disable: true
+{% endraw %}
+{% endif %}
+
+{% if value['ports'] is defined %}{% raw %}
+      ports: 
+        - {% endraw %}{{ value['ports'] | join }}{% raw %}
+{% endraw %}
+{% endif %}
+
+{% if value['entrypoint'] is defined %}{% raw %}
+      entrypoint: {% endraw %}{{ value['entrypoint'] }}{% raw %}
+{% endraw %}
+{% endif %}
+
+{% if data is defined %}{% raw %}
+      environment: 
+        SERVICE_VERSION: {% endraw %}{{ lookup('vars', 'passed_ci_docker_tag_' + app) }}{% raw %}
+{% endraw %}
+{% for d in data %}{% raw %}
+        {% endraw %}{{ d | join }}{% raw %}
+{% endraw %}{% endfor %}
+{% endif %}
+
+{% if ('mariadb' not in key) or ('elasticsearch' not in key)  %}{% raw %}
+      logging:
+        driver: syslog
+        options:
+          tag: "docker_{% endraw %}{{ ansible_environment }}{% raw %}-{% endraw %}{{ key }}{% raw %}"
+{% endraw %}
+{% endif %}
+
+{% if value['scale'] is defined and value['placement'] is defined %}{% raw %}
+      deploy:
+        mode: replicated
+        replicas: {% endraw %}{{ value['scale'] }}{% raw %}
+        placement:
+          constraints:
+            - node.role == {% endraw %}{{ value['placement'] }}{% raw %}
+        restart_policy:
+          condition: on-failure
+          delay: 120s
+          window: 120s
+        update_config:
+          parallelism: 1
+          order: {% endraw %}{{ value['order'] }}{% raw %}
+{% endraw %}
+{% endif %}
+
+{% endif %}{% endif %}{% endfor %}
+
+{% endfor %}{% endif %}
+
+{% raw %}
+
+
+{% raw %}

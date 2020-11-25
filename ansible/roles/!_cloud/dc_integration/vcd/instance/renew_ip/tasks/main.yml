@@ -1,0 +1,30 @@
+
+- name: vCloud VM Instance modify vm nic
+  vcd_vapp_vm_nic:
+      vm_name: "{{ item.value.name }}"
+      vapp: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+      vdc: "{{ anycloud_adapter_virtual_datacenter }}"
+      network: "{{ item.value.anycloud_virtual_cloud_zone }}"
+      ip_allocation_mode: "DHCP"
+      is_connected: true
+      #is_primary: yes
+      state: "present"
+  register: vm_instance_nic_update_result
+  with_dict: "{{ cloud_bootstrap.servers }}"
+
+- name: Show VM instance nic update results
+  debug:
+    msg: '{{ vm_instance_nic_update_result }}'
+
+- name: vCloud vApp VMs nics
+  vcd_vapp_vm:
+    target_vm_name: "{{ item.value.name }}"
+    target_vapp: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+    target_vdc: "{{ anycloud_adapter_virtual_datacenter }}"
+    operation: "list_nics"
+  register: vms_instance_nics_current_result
+  with_dict: "{{ cloud_bootstrap.servers }}"
+
+- name: Show VMs instances nics vApp VMs nics
+  debug:
+    msg: '{{ vms_instance_nics_current_result }}'

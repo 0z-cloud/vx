@@ -1,0 +1,5 @@
+{% block 0z_ll_no_ports
+_vx %}{% if value['ports'] is defined %}{% raw %}
+      ports: 
+        - {% endraw %}{{ value['ports'] | join }}{% raw %}
+{% endraw %}{% endif %}{% endblock %}

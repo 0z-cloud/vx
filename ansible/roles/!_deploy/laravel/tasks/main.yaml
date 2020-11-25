@@ -1,0 +1,153 @@
+- name: Delete standard .env file
+  file:
+    path: "{{ RELEASE_DIRECTORY }}/.env"
+    state: absent
+
+- name: Create empty .env file
+  file:
+    path: "{{ RELEASE_DIRECTORY }}/.env"
+    state: touch
+    owner: "{{ RELEASE_OWNER }}"
+    group: "{{ RELEASE_GROUP }}"
+    mode: 0775
+
+- name: Add application variables to .env
+  template:
+    src: env.j2
+    dest: "{{ RELEASE_DIRECTORY }}/.env"
+    owner: "{{ RELEASE_OWNER }}"
+    group: "{{ RELEASE_GROUP }}"
+    mode: 0775
+
+- name: Delete shared directories from release
+  file:
+    path: "{{ RELEASE_DIRECTORY }}/{{ item.path }}"
+    state: absent
+  with_items: "{{ APPLICATION_SHARED_DIRECTORIES }}"
+
+- name: Symlink shared directories
+  file:
+    src: "{{ APPLICATION_DIRECTORY }}/shared/{{ item.path }}"
+    dest: "{{ RELEASE_DIRECTORY }}/{{ item.path }}"
+    owner: "{{ RELEASE_OWNER }}"
+    group: "{{ RELEASE_GROUP }}"
+    state: link
+    mode: 0775
+  with_items: "{{ APPLICATION_SHARED_DIRECTORIES | selectattr('symlink') | list }}"
+
+- name: Copy storage files
+  copy:
+    src: "{{ item }}"
+    dest: "{{ RELEASE_DIRECTORY }}/storage"
+    owner: "{{ RELEASE_OWNER }}"
+    group: "{{ RELEASE_GROUP }}"
+  with_fileglob:
+    - "{{ inventory_dir }}/group_vars/{{ HOSTS }}/storage/*"
+
+- name: Put the application into maintenance mode
+  raw: sudo -u www-data php {{ APPLICATION_DIRECTORY }}/current/artisan down
+  # args:
+    # chdir: "{{ APPLICATION_DIRECTORY }}/current"
+  # become: yes
+  # become_user: www-data
+  when: LARAVEL_MAINTENANCE == "yes"
+
+- name: Optimize application
+  shell: php {{ RELEASE_DIRECTORY }}/artisan {{ item }}
+  with_items: "{{ LARAVEL_OPTIMIZATION_COMMANDS }}"
+
+- name: Link storage
+  shell: php {{ RELEASE_DIRECTORY }}/artisan storage:link
+  when: LARAVEL_LINK_STORAGE == "yes"
+
+- name: Database | Migrations
+  shell: "php {{ RELEASE_DIRECTORY }}/artisan migrate --force"
+  when: LARAVEL_DB_MIGRATE == "yes" and inventory_hostname == groups[HOSTS][0]
+
+- name: Database | Seeds
+  shell: "php {{ RELEASE_DIRECTORY }}/artisan db:seed --force"
+  when: LARAVEL_DB_SEED == "yes" and inventory_hostname == groups[HOSTS][0]
+
+- name: Scheduler | Add to cron
+  cron:
+    name: "Laravel Scheduler: {{ APPLICATION_DIRECTORY }}"
+    job: "php {{ APPLICATION_DIRECTORY }}/current/artisan schedule:run >> /dev/null 2>&1"
+    user: "{{ RELEASE_OWNER }}"
+
+- name: Laravel Vault | Run
+  shell: php {{ RELEASE_DIRECTORY }}/artisan vault --force
+  when: LARAVEL_VAULT == "yes"
+
+- name: Set Application Version
+  copy:
+      content: "{{ GITLAB_JOB }}"
+      dest: "{{ RELEASE_DIRECTORY }}/.version"
+
+- name: Change application directory permissions
+  file:
+    path: "{{ RELEASE_DIRECTORY }}"
+    state: directory
+    owner: "{{ RELEASE_OWNER }}"
+    group: "{{ RELEASE_GROUP }}"
+    mode: 0775
+    recurse: true
+
+- name: Set release as current
+  file:
+    src: "{{ RELEASE_DIRECTORY }}"
+    dest: "{{ APPLICATION_DIRECTORY }}/current"
+    owner: "{{ RELEASE_OWNER }}"
+    group: "{{ RELEASE_GROUP }}"
+    state: link
+
+- name: Create supervisor programs for queue workers
+  template:
+    src: queue.j2
+    dest: /etc/supervisor/conf.d/{{ item.program }}.conf
+  with_items: "{{ LARAVEL_QUEUES }}"
+  when: LARAVEL_QUEUES is defined
+
+- name: Horizon | Create supervisor configuration
+  template:
+    src: horizon.j2
+    dest: "/etc/supervisor/conf.d/{{ APPLICATION_DIRECTORY.split('/') | last }}_horizon.conf"
+  when: LARAVEL_HORIZON == "yes"
+
+- include_tasks: supervisord.yml
+  when: LARAVEL_QUEUES is defined or LARAVEL_HORIZON == "yes"
+  tags: supervisord
+
+- name: Horizon | Terminate any rogue processes
+  shell: php {{ APPLICATION_DIRECTORY }}/current/artisan horizon:purge
+  become: yes
+  when: LARAVEL_HORIZON == "yes"
+
+- name: Restart webserver
+  service:
+    name: "{{ WEB_SERVER }}"
+    state: reloaded
+  when: WEB_SERVER is defined
+  tags: supervisord
+
+- name: Reload php-fpm
+  service:
+    name: php7.2-fpm
+    state: reloaded
+  when: WEB_SERVER == "nginx"
+
+- name: Bring the application out of maintenance mode
+  shell: php {{ APPLICATION_DIRECTORY }}/current/artisan up
+  when: LARAVEL_MAINTENANCE == "yes"
+
+- name: Find old releases
+  find:
+    paths: "{{ APPLICATION_DIRECTORY }}/releases"
+    file_type: directory
+  register: old_releases
+
+- name: Delete old releases
+  file:
+    dest: "{{ item[1].path }}"
+    state: absent
+  with_indexed_items:
+    - "{{ (old_releases.files | sort(attribute='mtime', reverse=true))[3:] }}"

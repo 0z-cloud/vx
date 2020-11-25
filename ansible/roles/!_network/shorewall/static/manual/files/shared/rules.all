@@ -1,0 +1,58 @@
+######################################################################################################################################################################################################
+#ACTION		    SOURCE		    DEST		        PROTO	DEST	SOURCE		ORIGINAL	RATE		USER/	MARK	CONNLIMIT	TIME	HEADERS		SWITCH		HELPER
+#							    PORT	PORT(S)     DEST		LIMIT		GROUP
+ACCEPT		    all		        fw		            icmp       -       -               -               s:2/sec
+#
+
+# accept all VMs send events to ossim
+ACCEPT		    all		        esx:10.16.128.252	    udp	    514,1514,162
+
+# ossim
+ACCEPT          all             esx:10.16.128.252     tcp     514,1514,162
+
+# ossec client to ping master
+ACCEPT          all             esx:10.16.128.252     icmp
+
+# ossim to perform internal scan all via tcp
+ACCEPT          esx:10.16.128.252	all		            tcp
+
+# ossim to perform internal scan all via udp
+ACCEPT          esx:10.16.128.252 all                 udp
+
+# accept all VMs to get apt updates from vortex-repo-01
+ACCEPT		all		            else:10.16.131.110   tcp     80
+
+# accept all VMs to get DNS from vortex-dns-01
+ACCEPT		all		            else:10.16.131.51	udp	    53
+
+# accept all VMs to send mail through vortex-dns-01
+ACCEPT		all		            else:10.16.131.51	tcp	    25
+
+# accept all VMs to send logs vortex-rsyslog-01
+ACCEPT		all		            else:10.16.131.150   tcp,udp 514
+
+#### JAVA UPDATES FROM ORACLE CDN
+
+# accept to download java
+#ACCEPT		    all		        wan:88.221.133.72   tcp	    80
+
+# oracle-java8-installer
+#ACCEPT		    all		        wan:23.61.230.140   tcp	    443
+
+# oracle-java8-installer
+#ACCEPT          all             wan:23.214.194.175  tcp     443
+
+# oracle-java8-installer
+#ACCEPT          all             wan:23.214.194.175  tcp     80
+
+# orac$
+#ACCEPT          all             wan:2.18.72.125     tcp     443
+
+# oracle-java8-installer
+#ACCEPT          all             wan:2.18.72.125     tcp     80
+
+# oracle-$
+#ACCEPT          all             wan:23.61.215.103   tcp     80
+
+# oracle-$
+#ACCEPT          all             wan:23.61.215.103   tcp     443

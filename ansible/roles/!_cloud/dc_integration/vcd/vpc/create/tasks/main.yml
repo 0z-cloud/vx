@@ -1,0 +1,114 @@
+# - name: '[!!!!SHOW CHANGED!!!!] DEBUG ROUTED III PHASE'
+#   debug:
+#     msg: "{{ item }}"
+#   with_items: 
+#     - "{{ anycloud_result_routed_network_name }}"
+#     - "{{ anycloud_result_routed_network_subnet }}"
+#     - "{{ anycloud_result_routed_network_router }}"
+#     - "{{ anycloud_result_routed_network_with_suffix }}"
+#     - "{{ anycloud_result_routed_network_cut }}"
+#     - "{{ anycloud_result_routed_network_dhcp_start }}"
+#     - "{{ anycloud_result_routed_network_dhcp_end }}"
+#     - "{{ anycloud_result_routed_network_static_pool_start }}"
+#     - "{{ anycloud_result_routed_network_static_pool_end }}"
+#     - "{{ anycloud_result_direct_network_name }}"
+#     - "{{ anycloud_result_direct_network_subnet }}"
+#     - "{{ anycloud_result_direct_network_router }}"
+#     - "{{ anycloud_result_direct_network_with_suffix }}"
+#     - "{{ anycloud_result_direct_network_cut }}"
+#     - "{{ anycloud_result_direct_network_dhcp_start }}"
+#     - "{{ anycloud_result_direct_network_dhcp_end }}"
+#     - "{{ anycloud_result_direct_network_static_pool_start }}"
+#     - "{{ anycloud_result_direct_network_static_pool_end }}"
+#     - "{{ anycloud_result_isolated_network_name }}"
+#     - "{{ anycloud_result_isolated_network_subnet }}"
+#     - "{{ anycloud_result_isolated_network_router }}"
+#     - "{{ anycloud_result_isolated_network_with_suffix }}"
+#     - "{{ anycloud_result_isolated_network_cut }}"
+#     - "{{ anycloud_result_isolated_network_dhcp_start }}"
+#     - "{{ anycloud_result_isolated_network_dhcp_end }}"
+#     - "{{ anycloud_result_isolated_network_static_pool_start }}"
+#     - "{{ anycloud_result_isolated_network_static_pool_end }}"
+
+- name: "[any.box][VMWare vCloud Director]: re/Create or/& validate Virtual Application/s group/name/s/group_name/s, by using vcd_vapp module"
+  vcd_vapp:
+    user: "{{ anycloud_adapter_api_user }}"
+    password: "{{ anycloud_adapter_api_password }}" # must changed to real username password (string)
+    host: "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}" # {{ anycloud_adapter_api_url_endpoint }}
+    org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_api_datacenter) }}" # need to check how its real behaivor passing in differents situations
+    vapp_name: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}" #
+    state: present
+    #network: "{{ anycloud_result_routed_network_name }}"
+    #network: "{{ anycloud_result_routed_network_name }}"
+    #fence_mode: natRouted
+    #fence_mode: "bridged"
+    operation: deploy
+    vdc: "{{ anycloud_defaults_virtual_datacenter }}"
+    force: true
+    #ip_allocation_mode: 'DHCP'
+    deploy: True
+    power_on: false
+    #fence_mode: natRouted
+  register: anycloud_defaults_virtual_vapp_task_results
+
+# - name: "[any.box][VMWare vCloud Director]: vApp Checking Result Debug View"
+#   debug:
+#     msg: '{{ anycloud_defaults_virtual_vapp_task_results }}'
+
+####
+
+
+# - name: "[any.box][VMWare vCloud Director]: vApp Checking Result Debug View"
+#   debug:
+#     msg: '{{ anycloud_defaults_virtual_vapp_task_results }}'
+
+# - name: Read vNetwork with out message
+#   vcd_v_network:
+#     user: "{{ anycloud_adapter_api_user }}"
+#     password: "{{ anycloud_adapter_api_password }}"
+#     host: "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}"
+#     org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_api_datacenter) }}" 
+#     api_version: '30.0'
+#     verify_ssl_certs: true
+#     network: "{{ anycloud_defaults_cloud_name }}"
+#     vapp: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}" 
+#     vdc: "{{ anycloud_defaults_virtual_datacenter }}"
+#     fence_mode: "bridged"
+#     parent_network:
+#     # ip_scope: ""
+#     state: "read"
+#   register: vcd_v_network
+
+# - name: "[any.box][VMWare vCloud Director]: vcd_v_network Checking Result Debug View"
+#   debug:
+#     msg: '{{ vcd_v_network }}'
+
+
+
+########
+#>>>>
+
+
+
+# - name: "[any.box][VMWare vCloud Director]: re/Create or/& validate Virtual Application/s group/name/s/group_name/s, by using vcd_vapp module"
+#   vcd_vapp:
+#     user: "{{ anycloud_adapter_api_user }}"
+#     password: "{{ anycloud_adapter_api_password }}" # must changed to real username password (string)
+#     host: "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}" # {{ anycloud_adapter_api_url_endpoint }}
+#     org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_api_datacenter) }}" # need to check how its real behaivor passing in differents situations
+#     vapp_name: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}" #
+#     state: present
+#     network: "{{ anycloud_defaults_cloud_name }}"
+#     #fence_mode: "bridged"
+#     operation: deploy
+#     vdc: "{{ anycloud_defaults_virtual_datacenter }}"
+#     force: true
+#     ip_allocation_mode: 'dhcp'
+#     deploy: true
+#     power_on: true
+#     fence_mode: natRouted
+#   register: anycloud_defaults_virtual_vapp_task_results
+
+# - name: "[any.box][VMWare vCloud Director]: vApp Checking Result Debug View"
+#   debug:
+#     msg: '{{ anycloud_defaults_virtual_vapp_task_results }}'

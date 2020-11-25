@@ -1,0 +1,10 @@
+- name: "deploy failed"
+  uri:
+    url: "http://tggw.vortex.io:81/bot{{ NOTIFIER_TELEGRAM_TOKEN }}/sendMessage"
+    method: POST
+    body_format: form-urlencoded
+    body:
+      chat_id: "{{ NOTIFIER_TELEGRAM_CHAT_ID }}"
+      text: "{{ HOSTS }}: Job {{ GITLAB_JOB }} deploy FAILED."
+    status_code: 200
+  when: NOTIFIER_TELEGRAM_TOKEN is defined and NOTIFIER_TELEGRAM_CHAT_ID is defined

@@ -1,0 +1,43 @@
+127.0.0.1	localhost.localdomain	localhost
+::1		localhost6.localdomain6	localhost6
+
+# The following lines are desirable for IPv6 capable hosts
+::1     localhost ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+ff02::3 ip6-allhosts
+
+# PRIMARY SITE SERVICES PUBLISH EACH NGINX MUST LOOK TO ITSELF
+
+{% for dict_item in unification_dns_primary_services %}{% for key, value in dict_item.items() %}
+{% if '@' not in key %}
+{% if hostvars[inventory_hostname]['second_ip'] is defined %}
+{{ hostvars[inventory_hostname]['second_ip'] }} {{ key | replace('\n', '') }}.{{ public_consul_domain }}
+{% else %}
+{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }} {{ key | replace('\n', '') }}.{{ public_consul_domain }}
+{% endif %}
+
+{% endif %}
+{% endfor %}
+{% endfor %}
+
+{% for dict_item in unification_services %}{% for key, value in dict_item.items() %}
+{% if '_' not in key %}
+{% if hostvars[inventory_hostname]['second_ip'] is defined %}
+{{ hostvars[inventory_hostname]['second_ip'] }} {{ key | replace('\n', '') }}.{{ public_consul_domain }}
+{% else %}
+{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }} {{ key | replace('\n', '') }}.{{ public_consul_domain }}
+{% endif %}
+
+{% endif %}
+{% endfor %}
+{% endfor %}
+
+{% for host in groups['all'] %}
+{{ hostvars[host]['second_ip'] }} glusterfs.{{ hostvars[host].ansible_nodename }}
+{% endfor %}
+
+{% for host in groups['all'] %}
+{{ hostvars[host]['second_ip'] }} {{ hostvars[host].inventory_hostname }}
+{% endfor %}

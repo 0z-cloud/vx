@@ -1,0 +1,44 @@
+# DMZ
+# For information on the settings in this file, type "man shorewall-rules"
+######################################################################################################################################################################################################
+#ACTION		SOURCE		                DEST		                    PROTO	    DEST	SOURCE		ORIGINAL	RATE		USER/	MARK	CONNLIMIT	TIME	HEADERS		SWITCH		HELPER
+#######--------->
+#()<comment tag if #! first line of tag must to be reviewed for neede usage in next revision
+#!(revision:1:0z)
+#
+
+####################################################################################################################################################################################################
+# ACTION		SOURCE		                                DEST		                PROTO	    DEST	SOURCE		ORIGINAL	RATE		USER/	MARK	CONNLIMIT	TIME	HEADERS		SWITCH		HELPER
+#	
+#						                                    PORT	                    PORT(S)		    DEST		LIMIT		GROUP
+{% if inventory_hostname in groups['nginx-frontend'] %}
+
+# ACCEPT ICMP REQUESTS
+ACCEPT		dmz		                    bas	            icmp
+
+# ACCEPT DNS FROM dmz
+ACCEPT		dmz		                    nginx:{% for host in groups['nginx-frontend'] %}{{ hostvars[host]['second_ip'] }}/32{% if not loop.last %},{% endif %}{% endfor %}	            udp	        53
+
+# ACCEPT ssh FROM dmz TO vortex-{devops/admin/term}-01 (Administrators Terminal Server)
+ACCEPT	    dmz		                    bas               tcp         22
+
+{% endif %}
+
+########################
+# block local ip from dmz
+# DEFAULT DROP FROM dmz LAN_IP SUBNETS
+DROP		        dmz:$LAN_IP	                                fw
+
+########################
+# Dummy - ping, drop telnet, accept traceroute from dmz to fw
+Ping(ACCEPT)	    dmz		                                    fw		-	-	-		-		s:2/sec
+
+# anti ping flood
+ACCEPT		        dmz		                                    fw		                        icmp	    0,3/4,8,11
+
+# ping response
+ACCEPT		        dmz		                                    fw		                        udp	        33434:33529
+
+# for traceroute
+DROP		        dmz		                                    fw		                        tcp	        23
+# block telnet

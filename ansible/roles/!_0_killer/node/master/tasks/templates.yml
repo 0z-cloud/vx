@@ -1,0 +1,167 @@
+
+- name: Create the directories for configuration each master
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0750
+  with_dict: "{{ k8s_service_settings.directories | default({}) }}"
+  tags: [configuration,ca]
+  when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Template apiserver-audit-policy.yaml.j2 main local config bootstrap
+  template:
+    src: kubectl/apiserver-audit-policy.yaml.j2
+    dest: /opt/ca/kube/audit_policy/apiserver-audit-policy.yaml
+    mode: 0644
+  when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Templategen_token_user.sh.j2 main local config bootstrap
+  template:
+    src: kubectl/gen_token_user.sh.j2
+    dest: /opt/ca/kube/gen_token_user.sh
+    mode: 0700
+  when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Template webhook-token-auth-config.yaml.j2 main local config bootstrap
+  template:
+    src: kubectl/apiserver-audit-policy.yaml.j2
+    dest: /opt/ca/kube/webhook-token-auth-config.yaml
+    mode: 0644
+  when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Template known_users.csv.j2 main local config bootstrap
+  template:
+    src: kubectl/known_users.csv.j2
+    dest: /opt/ca/kube/known_users.csv
+    mode: 0644
+  when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Template known_users.csv.j2 main local config bootstrap secrets_encryption.yaml
+  template:
+    src: kubectl/known_users.csv.j2
+    dest: /opt/ca/kube/secrets_encryption.yaml
+    mode: 0644
+  when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Template kubeadmcfg.yaml.j2 main local config bootstrap
+  template:
+    src: kubectl/kubeadmcfg.yaml.j2
+    dest: /etc/kubernetes/kube/kubeadmcfg.yaml
+    mode: 0644
+  when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Template kubeadmcfg.yaml-node.j2 main for all nodes local config bootstrap
+  template:
+    src: kubectl/kubeadmcfg.yaml-node.j2
+    dest: /etc/kubernetes/kube/kubeadmcfg-{{ hostvars[item].ansible_nodename }}.yaml
+    mode: 0644
+  when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+  with_items: "{{ groups['kubernetes-master'] }}"
+
+- name: Template kube-dns.yml.j2 main for all nodes local config bootstrap
+  template:
+    src: kubectl/kube-dns.yml.j2
+    dest: /etc/kubernetes/kube/kube-dns-{{ hostvars[inventory_hostname].ansible_nodename }}.yaml
+    mode: 0644
+  when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Template kube-flannel.yaml.j2 main for all nodes local config bootstrap
+  template:
+    src: kubectl/kube-flannel.yaml.j2
+    dest: /etc/kubernetes/kube/kube-flannel.yaml
+    mode: 0644
+  when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Template master-config.yaml.j2 main for all nodes local config bootstrap
+  template:
+    src: kubectl/master-config.yaml.j2
+    dest: /etc/kubernetes/kube/master-config.yaml
+    mode: 0644
+  when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Template apiserver.yaml.j2 main for all nodes local config bootstrap
+  template:
+    src: kubectl/apiserver.yaml.j2
+    dest: /etc/kubernetes/kube/apiserver.yaml
+    mode: 0644
+  when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Template dashboard.yaml.j2 main for all nodes local config bootstrap
+  template:
+    src: kubectl/dashboard.yaml.j2
+    dest: /etc/kubernetes/dashboard.yaml
+    mode: 0644
+  when: inventory_hostname in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Template k8-init.yaml main for all nodes local config bootstrap
+  template:
+    src: kubectl/k8-init.yaml.j2
+    dest: /etc/kubernetes/kube/k8-init.yaml
+    mode: 0644
+  when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Template vortex-kube-master-init.yaml.j2 main for all nodes local config bootstrap
+  template:
+    src: kubectl/vortex-kube-master-init.yaml.j2
+    dest: /etc/kubernetes/kube/vortex-kube-master-init.yaml
+    mode: 0644
+  when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Get token for bootstrap
+  shell: kubeadm token generate
+  register: kubeadm_token_generate
+
+- name: Show new token for bootstrap
+  debug:
+    msg: "{{ kubeadm_token_generate.stdout | join }}"
+
+- name: Template cl_one.yml main for all nodes local config bootstrap
+  template:
+    src: kubectl/cl_one.yml
+    dest: /etc/kubernetes/kube/cl_one.yml
+    mode: 0644
+  when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Template test.v0.yaml.j2 main for all nodes local config bootstrap
+  template:
+    src: kubectl/test.v0.yaml.j2
+    dest: /etc/kubernetes/kube/test.v0.yaml
+    mode: 0644
+  when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Template rule-building-default-namespace.yml.j2main for all nodes local config bootstrap
+  template:
+    src: kubectl/rule-building-default-namespace.yml.j2
+    dest: /etc/kubernetes/kube/rule-building-default-namespace.yml
+    mode: 0644
+  when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+#### SYSCONFIG SYSTEMD SETTINGS CHANGES
+
+- name: Template 10-kubeadm.conf run daemon extension config
+  template:
+    src: systemd/10-kubeadm.conf
+    dest: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+    mode: 0644
+  when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Template kubeadm conf to drop-in directory
+  template: 
+    src: systemd/20-extra-args.conf.j2 
+    dest: /etc/systemd/system/kubelet.service.d/20-extra-args.conf
+
+- name: Replace systemd etcd config from template
+  template: 
+    src: systemd/etcd-systemd.between.service
+    dest: "/etc/systemd/system/etcd.service"
+
+- name: Template var.lib.kubectl.conf run daemon extension config
+  template:
+    src: systemd/var.lib.kubectl.conf
+    dest: /lib/systemd/system/kubelet.service
+    mode: 0644
+  when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: System Reread Configs for systemd
+  systemd:
+    daemon_reload: yes

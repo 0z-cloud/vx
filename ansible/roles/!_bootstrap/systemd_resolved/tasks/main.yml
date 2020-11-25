@@ -1,0 +1,29 @@
+- name: Debug
+  debug:
+    msg: "{{ HOST_COUNT }}"
+
+- name: Multiple backend Bind9 | Place to / /etc/systemd/resolved.conf
+  template:
+    src: resolved.conf.j2
+    dest: /etc/systemd/resolved.conf
+    mode: 0666
+  when: "{{ HOST_COUNT }} != 1"
+
+- name: One backend Bind9 | Place to / /etc/systemd/resolved.conf
+  template:
+    src: resolved.conf.one.j2
+    dest: /etc/systemd/resolved.conf
+    mode: 0666
+  when: "{{ HOST_COUNT }} == 1"
+
+- name: Raw apply systemd-resolved
+  raw: systemctl restart systemd-resolved
+
+# - name: Make netplan great again
+#   template:
+#     src: netplan.conf.j2
+#     dest: /etc/netplan/99-netcfg-cloud.yaml
+#   tags: netplan
+
+# - name: Apply new netplan configuration
+#   shell: netplan apply

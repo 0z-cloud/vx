@@ -1,0 +1,25 @@
+apt_install_packages:
+  - apache2
+  - apache2-bin
+  - apache2-data
+  - apache2-utils
+
+enable_apache2_mods:
+  - headers
+  - rewrite
+  - ssl
+
+enable_apache2_default_sites:
+  - 000-default
+  - 000-default-ssl
+
+update_apache2_default_confs:
+  - { src: 'apache2.conf.j2', dest: '/etc/apache2/apache2.conf' }
+  - { src: '000-default.conf.j2', dest: '/etc/apache2/sites-available/000-default.conf' }
+  - { src: 'default-ssl.conf.j2', dest: '/etc/apache2/sites-available/default-ssl.conf' }
+
+apache2_default_servername: "{% for host in groups['clamav-repository-mirror'] %}{% if host == inventory_hostname %}{{ hostvars[host].ansible_nodename }}{% endif %}{% endfor %}"
+
+enable_apache2_sites:
+  - { type: "http", appname: "clamav", alias_uri: "/clam", web_root: "{{ clamav_settings.directories.database }}", name: "clamav", domain: "{{ primary_parent_shared_inventory_domain }}", ssl-key: "", ssl-crt: "", ssl-port: "" }
+  - { type: "http", appname: "apt", web_root: "{{ apt_mirror_settings.directories.main }}/{{ apt_mirror_settings.website_repo_path }}", name: "apt", domain: "{{ primary_parent_shared_inventory_domain }}", ssl-key: "", ssl-crt: "", ssl-port: "" }

@@ -1,0 +1,5 @@
+---
+kibana_service_settings_defaults:
+    directories:
+        working_opt_kibana: /wrk/opt/kibana
+    env: test

@@ -1,0 +1,7 @@
+- name: Install docker step...for all hosts
+  become: true
+  hosts: "{{ HOSTS | default('all') }}"
+  roles:
+    - name: Do...awesome.docker_ubuntu
+      role: ./!_cloud/docker/docker-install
+  tags: [docker-setup]

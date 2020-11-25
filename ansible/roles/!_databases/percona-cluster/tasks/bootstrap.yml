@@ -1,0 +1,106 @@
+- name: Create bootstrap primary hostname group
+  add_host: 
+    name: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
+    hostname: "{{ hostvars[item]['ansible_hostname'] }}"
+    groups: PERCONA_CLUSTER_BOOTSTRAP
+  delegate_to: "{{ item }}"
+  with_items: "{{ ansible_play_hosts }}"
+
+- name: Debug new group
+  debug:
+    msg: "{{ hostvars[item]['ansible_hostname'] }}"
+  with_items: "{{ groups['PERCONA_CLUSTER_BOOTSTRAP'] }}"
+  when: inventory_hostname in groups['PERCONA_CLUSTER_BOOTSTRAP']
+
+- name: Create the directories
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0755
+  with_dict: "{{ percona_settings.directories | default({}) }}"
+
+- name: Create entrypoint-bootstrap.sh config file from template
+  template:
+     src: entrypoint-bootstrap.sh
+     dest: "{{ percona_settings.directories.config_path }}/entrypoint-bootstrap.sh"
+     mode: 0777
+  when: inventory_hostname in groups['PERCONA_CLUSTER_BOOTSTRAP']
+
+- name: Create my.cnf config file from template
+  template:
+     src: my.cnf.j2 
+     dest: "{{ percona_settings.directories.config_path }}/my.cnf"
+
+- name: Create hosts file from template for container
+  template:
+     src: hosts.j2 
+     dest: "{{ percona_settings.directories.config_path }}/hosts"
+
+- name: Create entrypoint.sh config file from template
+  template:
+     src: entrypoint.sh
+     dest: "{{ percona_settings.directories.config_path }}/entrypoint.sh"
+     mode: 0777
+
+# DESTROY ALL DATA WHEN DEFINED
+
+- name: Destroy all data
+  raw: rm -rf {{ percona_settings.directories.data_path }}/*
+  when: clear_cluster is defined 
+
+# PREPARE
+
+- name: re/Create a First Percona Cluster Service docker container
+  docker_container:
+      name: percona-{{ ansible_environment }}-{{ ansible_hostname }}
+      image: "percona/percona-xtradb-cluster:5.6.42"
+      hostname: "{{ ansible_hostname }}"
+      volumes:
+        - "{{ percona_settings.directories.data_path }}:/var/lib/mysql:rw"
+        - "{{ percona_settings.directories.config_path }}/hosts:/etc/hosts"
+      ports:
+        - "{{ percona_settings.public_port }}:{{ percona_settings.public_port }}"
+        - "{{ percona_settings.cluster_port }}:{{ percona_settings.cluster_port }}"
+        - "{{ percona_settings.streams_port }}:{{ percona_settings.streams_port }}"
+        - "{{ percona_settings.extrass_port }}:{{ percona_settings.extrass_port }}"
+      env:
+        MYSQL_ROOT_PASSWORD: "{{ percona_settings.root_password }}"
+        CLUSTER_NAME: "{{ percona_settings.wsrep_cluster_name }}"
+      privileged: yes
+      restart_policy: always
+      detach: True
+      recreate: yes
+      state: started
+      network_mode: host
+      user: root
+  when: inventory_hostname in groups['PERCONA_CLUSTER_BOOTSTRAP'][0]
+
+- name: re/Create a Joiners Percona Cluster Service docker container
+  docker_container:
+      name: percona-{{ ansible_environment }}-{{ ansible_hostname }}
+      image: "percona/percona-xtradb-cluster:5.6.42"
+      hostname: "{{ ansible_hostname }}"
+      volumes:
+        - "{{ percona_settings.directories.data_path }}:/var/lib/mysql:rw"
+        - "{{ percona_settings.directories.config_path }}/hosts:/etc/hosts"
+      ports:
+        - "{{ percona_settings.public_port }}:{{ percona_settings.public_port }}"
+        - "{{ percona_settings.cluster_port }}:{{ percona_settings.cluster_port }}"
+        - "{{ percona_settings.streams_port }}:{{ percona_settings.streams_port }}"
+        - "{{ percona_settings.extrass_port }}:{{ percona_settings.extrass_port }}"
+      env:
+        MYSQL_ROOT_PASSWORD: "{{ percona_settings.root_password }}"
+        CLUSTER_NAME: "{{ percona_settings.wsrep_cluster_name }}"
+        CLUSTER_JOIN: "{% for host in groups['PERCONA_CLUSTER_BOOTSTRAP'] %}{{ hostvars[host].ansible_hostname }}{% endfor %}"
+      privileged: yes
+      restart_policy: always
+      detach: True
+      recreate: yes
+      state: started
+      network_mode: host
+      user: root
+  when: inventory_hostname not in groups['PERCONA_CLUSTER_BOOTSTRAP'][0]
+
+# WIP TO NEED WITHOUT BOOTSTRAP
+- name: Change directory permissions
+  shell: docker exec percona-{{ ansible_environment }}-{{ ansible_hostname }} chown -R 1001:1001 /var/lib/mysql

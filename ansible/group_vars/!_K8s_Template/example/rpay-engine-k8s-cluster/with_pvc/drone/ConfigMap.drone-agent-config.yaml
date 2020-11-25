@@ -1,0 +1,15 @@
+apiVersion: v1
+data:
+  DRONE_LOGS_DEBUG: "true"
+  DRONE_RPC_SERVER: http://drone-server
+  DRONE_RUNNER_CAPACITY: "2"
+  DRONE_RUNNER_NAME: worker
+kind: ConfigMap
+metadata:
+  annotations:
+    field.cattle.io/creatorId: user-rxbgq
+  creationTimestamp: null
+  labels:
+    cattle.io/creator: norman
+  name: drone-agent-config
+  selfLink: /api/v1/namespaces/drone/configmaps/drone-agent-config

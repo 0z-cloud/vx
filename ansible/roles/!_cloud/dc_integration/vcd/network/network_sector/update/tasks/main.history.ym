@@ -1,0 +1,373 @@
+# - name: create GW with STATIC IP Address and Rate Limit
+#   vcd_vdc_gateway:
+#     user: "{{ anycloud_adapter_api_user }}"
+#     password: "{{ anycloud_adapter_api_password }}"
+#     host:  "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}"
+#     org_name: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+#     org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+#     verify_ssl_certs: False
+#     vdc_name: "{{ anycloud_defaults_virtual_datacenter }}"
+#     gateway_name: "module_test_3"
+#     description: "Created by Ansible module"
+#     external_networks:
+#       - "CLOUDLAB EXTERNAL NETWORK"
+#     gateway_backing_config: compact
+#     default_gateway: True
+#     extnw_for_default_gw: "CLOUDLAB EXTERNAL NETWORK"
+#     default_gateway_ip: 10.221.10.161
+#     default_gw_for_dns_relay: True
+#     ha_enabled: True
+#     create_as_advanced_gw: True
+#     dr_enabled: True
+#     configure_ip_settings: True
+#     ext_net_to_participated_subnet_with_ip_settings: {
+#         "CLOUDLAB EXTERNAL NETWORK": {
+#             "10.221.10.161/27": "10.221.10.170"
+#         }
+#     }
+#     ext_net_to_rate_limit: {
+#         "CLOUDLAB EXTERNAL NETWORK": {
+#             "100": "100"
+#         }
+#     }
+#     state: present
+
+- name: "[any.box.network][VMWare vCloud Director] re/Create a new AnyCloud Virtual Cloud Aplication Box Network resource"
+  #no_log: False
+  vcd_vapp_network:
+    vapp: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}" #
+    vdc: "{{ anycloud_defaults_virtual_datacenter }}"
+    org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}" # need to check how its real behaivor passing in differents situations
+    host: "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}" # {{ anycloud_adapter_api_url_endpoint }}
+    user: "{{ anycloud_adapter_api_user }}"
+    password: "{{ anycloud_adapter_api_password }}" # must changed to real username password (string)
+    network: "{{ anycloud_defaults_cloud_name }}"
+    network_cidr: "{{ anycloud_defaults_virtual_cloud_primary_network_virtual_communication_cidr }}"
+    primary_dns_ip: "{{ anycloud_defaults_vpc_zone_virtual_abstract.dns_servers[0] }}"
+    secondary_dns_ip: "{{ anycloud_defaults_vpc_zone_virtual_abstract.dns_servers[1] }}"
+    dns_suffix: "{{ anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_dns_suffix }}"
+    ip_ranges: "{{ anycloud_defaults_virtual_cloud_primary_network_virtual_communication_cidr_static_range }}"
+    is_guest_vx_vlan_allowed: False
+    # dr_enabled: true
+    #extnw_for_default_gw: True
+    #distributed_interface: true
+    #retain_net_info_across_deployments: true
+    state: update
+  register: any_box_network_result
+
+- name: "[any.box.network][VMWare vCloud Director]: Checking Result of Virtual Cloud Aplication Box Network Debug View"
+  debug:
+    msg: '{{ any_box_network_result }}'
+
+
+# - name: create vdc network | ROUTED
+#   vcd_vdc_network:
+#     user: "{{ anycloud_adapter_api_user }}"
+#     password:  "{{ anycloud_adapter_api_password }}" # must changed to real username password (string)
+#     host: "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}" # {{ anycloud_adapter_api_url_endpoint }}"
+#     # api_version: "{{api_version}}"
+#     # verify_ssl_certs: "{{verify_ssl_certs}}"
+#     org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}" # need to check how its real behaivor passing in differents situations
+#     org_name: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}" # need to check how its real behaivor passing in differents situations
+#     vdc_name: "{{ anycloud_defaults_virtual_datacenter }}"
+#     gateway_name: "{{gw_name}}"
+#     network_name: "my ROUTED network"
+#     description: "ROUTED network"
+#     parent_network_name: "CLOUDLAB EXTERNAL NETWORK"
+#     primary_dns_ip: 1.1.1.1
+#     network_cidr: 10.20.99.1/24
+#     secondary_dns_ip: 2.2.2.2
+#     dns_suffix: routed.com
+#     ip_range_start: 10.10.99.2
+#     ip_range_end: 10.10.99.20
+#     shared: True
+#     routed: True
+#     state: "{{state}}"
+
+#  - name: create vCD external network
+#    vcd_external_network:
+#     vc_name: vc.0
+#     port_group_names:
+#         - VM Network
+#     network_name: external-network
+#     gateway_ip: 10.176.3.253
+#     netmask: 255.255.0.0
+#     ip_ranges:
+#         - 10.176.7.68-10.176.7.69
+#     state: "present"
+ 
+
+# - name: 
+#   vcloud_vpc:
+#     vcloud_region: '{{ item.value.vcloud_region }}'
+#     state: 'present'
+#     cidr_block: '{{ item.value.cidr_block }}'
+#     anycloud_virtual_cloud_name: '{{ item.value.anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_name }}'
+#     description: '{{ item.value.anycloud_virtual_cloud_description }}'
+#     vcloud_secret_key: "{{ vcloud_secret_key }}"
+#     vcloud_access_key: "{{ vcloud_access_key }}"
+#   with_dict: "{{ vcloud_bootstrap.vpc_zones }}"
+
+# - name: "[any.box][VMWare vCloud Director]: re/Create or/& validate Network Sector, by using vcd_vapp module"
+#   vcd_vapp:
+#     user: "{{ anycloud_adapter_api_user }}"
+#     password: "{{ anycloud_adapter_api_password }}" # must changed to real username password (string)
+#     host: "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}" # {{ anycloud_adapter_api_url_endpoint }}
+#     org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_api_datacenter) }}" # need to check how its real behaivor passing in differents situations
+#     vapp_name: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}" #
+#     state: present
+#     vdc: "{{ anycloud_defaults_virtual_datacenter }}"
+#   register: anycloud_defaults_virtual_vapp_task_results
+
+
+
+
+# - name: create direct org vdc network
+#   vcd_vdc_network:
+#     org_name: Acme
+#     vdc_name: ACME_PAYG
+#     network_name: acme_internal_direct
+#     parent_network_name: external-network
+#     description: acme internal direct network
+#     shared: true
+#     direct: true
+#     state: present
+#   register: output
+
+
+
+
+    # sub_interface:
+    #     description:
+    #         - True if Network is connected to an Edge Gateway subinterface.
+    #     type: bool
+    # distributed_interface:
+    #     description:
+    #         - True if Network is connected to a distributed logical router.
+    #     type: bool
+
+
+# - name: Create vdc network | ROUTED
+#   vcd_vdc_network:
+#     api_version: 30.0
+#     default_lease_time: 5000
+#     description: "{{ anycloud_virtual_cloud_description }}"
+#     dhcp_enabled: true
+#     dhcp_ip_range_end: "{{ anycloud_defaults_virtual_edge_end_static_pool }}"
+#     dhcp_ip_range_start: "{{ anycloud_defaults_virtual_edge_start_static_pool }}"
+#     direct: true
+#     distributed_interface: true
+#     dns_suffix: "{{ public_consul_domain }}"
+#     #force: true
+#     gateway_name: "{{ anycloud_result_edge_router }}"
+#     guest_vx_vlan_allowed: false
+#     host: "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}" # {{ anycloud_adapter_api_url_endpoint }}
+#     ip_range_end: "{{ anycloud_defaults_virtual_edge_end_static_pool }}"
+#     ip_range_start: "{{ anycloud_defaults_virtual_edge_start_static_pool }}"
+#     isolated: false
+#     max_lease_time: 10000
+#     network_cidr: "{{ anycloud_adapter_virtual_cloud_primary_network_virtual_communication_cidr | default(anycloud_defaults_virtual_cloud_primary_network_virtual_communication_cidr) }}"
+#     network_name: "{{ anycloud_defaults_cloud_name }}"
+#     org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+#     org_name: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+#     parent_network_name: "{{ anycloud_result_edge_router }}"
+#     password: "{{ anycloud_adapter_api_password }}"
+#     primary_dns_ip: "{{ anycloud_defaults_vpc_zone_virtual_abstract.dns_servers[0] }}"
+#     #retain_net_info_across_deployments: True
+#     routed: true
+#     secondary_dns_ip: "{{ anycloud_defaults_vpc_zone_virtual_abstract.dns_servers[1] }}"
+#     shared: true
+#     state: present
+#     sub_interface: false
+#     user: "{{ anycloud_adapter_api_user }}"
+#     vdc_name: "{{ anycloud_defaults_virtual_datacenter }}"
+#     verify_ssl_certs: true
+#   register: result_subnet_as_network_connected_to_edge
+
+# - name: Debug result_subnet_as_network_connected_to_edge
+#   debug:
+#     msg: "{{ result_subnet_as_network_connected_to_edge }}"
+
+    # verify_ssl_certs: True
+    
+    # sub_interface: True
+    # distributed_interface: True
+    # #host:  "{{ anycloud_adapter_api_url_http_uri }}" 
+    
+    # #api_version: "{{ anycloud_adapter_api_url_version }}"
+
+    # #verify_ssl_certs: "{{ anycloud_adapter_api_url_verify_ssl }}"
+
+    # gateway_name: "{{ anycloud_virtual_cloud_name }}"
+    # network_name: "{{ anycloud_defaults_cloud_name }}"
+    
+    # parent_network_name: "{{ anycloud_result_edge_router }}"
+    
+    # dns_suffix: "{{ consul_domain_name }}"
+    # #dns_suffix: "{{ anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_dns_suffix }}" # routed.com
+
+    # dhcp_enabled: True
+    # default_lease_time: 500
+
+    # shared: True
+    # routed: True
+    # direct: False
+    # isolated: False
+    # is_guest_vx_vlan_allowed: False
+    # state: present
+
+
+
+# - name: Debug item's
+#   debug:
+#     msg: "{{ item }}"
+#   with_items:
+#     - "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}"
+#     - "{{ anycloud_adapter_api_user }}"
+#     - "{{ anycloud_adapter_api_password }}"
+#     - "{{ anycloud_defaults_virtual_organization }}"
+#     - "{{ anycloud_defaults_virtual_datacenter }}"
+
+# - name: list external networks
+#   vcd_external_network:
+#     #vc_name: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+#     host: "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}" # {{ anycloud_adapter_api_url_endpoint }}
+#     user: "{{ anycloud_adapter_api_user }}"
+#     password: "{{ anycloud_adapter_api_password }}" # must changed to real username password (string)
+#     #org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}" # need to check how its real behaivor passing in differents situations
+#     operation: list_networks
+#   register: list_networks_out
+
+# - name: Debug list_networks
+#   debug:
+#     msg: "{{ list_networks }}"
+
+# - name: create GW with STATIC IP Address and Rate Limit
+#   vcd_vdc_gateway:
+#     user: "{{ anycloud_adapter_api_user }}"
+#     password: "{{ anycloud_adapter_api_password }}"
+#     host:  "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}"
+#     org_name: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+#     org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+#     verify_ssl_certs: False
+#     vdc_name: "{{ anycloud_defaults_virtual_datacenter }}"
+#     gateway_name: "module_test_3"
+#     description: "Created by Ansible module"
+#     external_networks:
+#       - "CLOUDLAB EXTERNAL NETWORK"
+#     gateway_backing_config: compact
+#     default_gateway: True
+#     extnw_for_default_gw: "CLOUDLAB EXTERNAL NETWORK"
+#     default_gateway_ip: 10.221.10.161
+#     default_gw_for_dns_relay: True
+#     ha_enabled: True
+#     create_as_advanced_gw: True
+#     dr_enabled: True
+#     configure_ip_settings: True
+#     ext_net_to_participated_subnet_with_ip_settings: {
+#         "CLOUDLAB EXTERNAL NETWORK": {
+#             "10.221.10.161/27": "10.221.10.170"
+#         }
+#     }
+#     ext_net_to_rate_limit: {
+#         "CLOUDLAB EXTERNAL NETWORK": {
+#             "100": "100"
+#         }
+#     }
+#     state: present
+
+# - name: "[any.box.network][VMWare vCloud Director] re/Create a new AnyCloud Virtual Cloud Aplication Box Network resource"
+#   #no_log: False
+#   vcd_vapp_network:
+#     vapp: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}" #
+#     vdc: "{{ anycloud_defaults_virtual_datacenter }}"
+#     org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}" # need to check how its real behaivor passing in differents situations
+#     host: "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}" # {{ anycloud_adapter_api_url_endpoint }}
+#     user: "{{ anycloud_adapter_api_user }}"
+#     password: "{{ anycloud_adapter_api_password }}" # must changed to real username password (string)
+#     network: "{{ anycloud_defaults_cloud_name }}"
+#     network_cidr: "{{ anycloud_defaults_virtual_cloud_primary_network_virtual_communication_cidr }}"
+#     primary_dns_ip: "{{ anycloud_defaults_vpc_zone_virtual_abstract.dns_servers[0] }}"
+#     secondary_dns_ip: "{{ anycloud_defaults_vpc_zone_virtual_abstract.dns_servers[1] }}"
+#     dns_suffix: "{{ anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_dns_suffix }}"
+#     # ip_ranges: "{{ anycloud_defaults_virtual_cloud_primary_network_virtual_communication_cidr_static_range }}"
+#     ip_range_start:
+#     ip_range_end:
+#     is_guest_vx_vlan_allowed: False
+
+#     #dr_enabled: true
+#     #extnw_for_default_gw: True
+#     #distributed_interface: true
+#     #retain_net_info_across_deployments: true
+#     state: present
+#   register: any_box_network_result
+
+# - name: "[any.box.network][VMWare vCloud Director]: Checking Result of Virtual Cloud Aplication Box Network Debug View"
+#   debug:
+#     msg: '{{ any_box_network_result }}'
+
+
+# - name: create vdc network | ROUTED
+#   vcd_vdc_network:
+#     user: "{{ anycloud_adapter_api_user }}"
+#     password:  "{{ anycloud_adapter_api_password }}" # must changed to real username password (string)
+#     host: "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}" # {{ anycloud_adapter_api_url_endpoint }}"
+#     # api_version: "{{api_version}}"
+#     # verify_ssl_certs: "{{verify_ssl_certs}}"
+#     org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}" # need to check how its real behaivor passing in differents situations
+#     org_name: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}" # need to check how its real behaivor passing in differents situations
+#     vdc_name: "{{ anycloud_defaults_virtual_datacenter }}"
+#     gateway_name: "{{gw_name}}"
+#     network_name: "my ROUTED network"
+#     description: "ROUTED network"
+#     parent_network_name: "CLOUDLAB EXTERNAL NETWORK"
+#     primary_dns_ip: 1.1.1.1
+#     network_cidr: 10.20.99.1/24
+#     secondary_dns_ip: 2.2.2.2
+#     dns_suffix: routed.com
+#     ip_range_start: 10.10.99.2
+#     ip_range_end: 10.10.99.20
+#     shared: True
+#     routed: True
+#     state: "{{state}}"
+
+#  - name: create vCD external network
+#    vcd_external_network:
+#     vc_name: vc.0
+#     port_group_names:
+#         - VM Network
+#     network_name: external-network
+#     gateway_ip: 10.176.3.253
+#     netmask: 255.255.0.0
+#     ip_ranges:
+#         - 10.176.7.68-10.176.7.69
+#     state: "present"
+ 
+
+# - name: 
+#   vcloud_vpc:
+#     vcloud_region: '{{ item.value.vcloud_region }}'
+#     state: 'present'
+#     cidr_block: '{{ item.value.cidr_block }}'
+#     anycloud_virtual_cloud_name: '{{ item.value.anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_name }}'
+#     description: '{{ item.value.anycloud_virtual_cloud_description }}'
+#     vcloud_secret_key: "{{ vcloud_secret_key }}"
+#     vcloud_access_key: "{{ vcloud_access_key }}"
+#   with_dict: "{{ vcloud_bootstrap.vpc_zones }}"
+
+# - name: "[any.box][VMWare vCloud Director]: re/Create or/& validate Network Sector, by using vcd_vapp module"
+#   vcd_vapp:
+#     user: "{{ anycloud_adapter_api_user }}"
+#     password: "{{ anycloud_adapter_api_password }}" # must changed to real username password (string)
+#     host: "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}" # {{ anycloud_adapter_api_url_endpoint }}
+#     org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_api_datacenter) }}" # need to check how its real behaivor passing in differents situations
+#     vapp_name: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}" #
+#     state: present
+#     vdc: "{{ anycloud_defaults_virtual_datacenter }}"
+#   register: anycloud_defaults_virtual_vapp_task_results
+
+
+
+
+
+

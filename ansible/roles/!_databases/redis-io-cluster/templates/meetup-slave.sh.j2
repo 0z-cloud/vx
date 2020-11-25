@@ -1,0 +1,13 @@
+#!/bin/sh
+
+{% if redis_io_cluster_enabled == "true" %}
+{% for host in groups['REDIS_CLUSTER_HOSTS_FULL'] %}{% if host == inventory_hostname %}
+{% raw %}
+redis-cli -p {% endraw %}{{ redis_io_service_settings.public_port }}{% raw %} slaveof {% endraw %}{{ hostvars[host].ansible_default_ipv4.address }} {{ redis_io_service_settings.public_port }}
+
+{% endif %}{% endfor %}
+
+{% else %}
+{% raw %} 
+redis-cli -p {% endraw %}{{ redis_io_service_settings.public_port }}{% raw %} slaveof {% endraw %}{{ hostvars[groups['REDIS_CLUSTER_HOSTS_FULL'][0]].ansible_default_ipv4.address }} {{ redis_io_service_settings.public_port }}
+{% endif %}

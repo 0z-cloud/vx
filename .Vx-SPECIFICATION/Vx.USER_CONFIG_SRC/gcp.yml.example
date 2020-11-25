@@ -1,0 +1,75 @@
+#########################################################################################################################################################################################################################################
+# AnyCloud User Adapter Vault Sercters Out
+#
+# 0z-cloud is stilling stay in...       zen...
+#########################################################################################################################################################################################################################################
+# AnyCloud:                             Default Settings Configuration 
+#########################################################################################################################################################################################################################################
+# Version:                              v.1.4.4-bonasera (beta)
+# VCS Group:                            cicd
+# Product:                              service_devops_zone 
+# Repository:                           adam-vortex
+# user:                                 template 
+# current:                              integration
+# salt:                                 ci/cd/qa/dev
+# vector:                               18.10.2020.04.44
+# timeto:                               zen...io
+# Environment:                          production
+# Usage:                                anycloud
+# Infrastructure is in want target:     production
+#########################################################################################################################################################################################################################################
+# PRIMARY TEMPLATE !
+##########################################################################################################################################################################################################################################
+
+# TEMPLATE PARAMS 
+anycloud_adapter_vm_template: Ubuntu_server_20_04_64_bit_Vx_Template
+anycloud_adapter_vm_vapp_box_name: U_Server_1804_64_Vx_Template
+anycloud_template_adapter_root_folder: "/"
+anycloud_adapter_vm_access_pass: 12345
+
+ssh_connect_type_self: "default"
+ssh_connect_type_via: "ansible_ssh_common_args='-o ProxyCommand=\"ssh -W %h:%p %r@REPLACED_BY_BASTION_DMZ_MACHINE_IP\"'"
+
+##########################################################################################################################################################################################################################################
+# AnyCloud VM: Instance disk parameters
+##########################################################################################################################################################################################################################################
+
+#######################
+## GOOGLE CLOUD PLATFORM ACCESS BASE ENVIRONMENT 
+###################################################################################################################################################
+
+google_gcp_private_creds_cert_client_xtls: "https://www.googleapis.com/robot/v1/metadata/x509/506606656747-compute%40developer.gserviceaccount.com"
+google_gcp_private_creds_cert_url: "https://www.googleapis.com/oauth2/v1/certs"
+google_gcp_private_creds_token_uri: "https://oauth2.googleapis.com/token"
+google_gcp_private_creds_auth_uri: "https://accounts.google.com/o/oauth2/auth"
+google_gcp_private_creds_client_id: "ENTER YOUR KEY GCP CLIENT ID"
+google_gcp_private_creds_client_email: "ENTER YOUR GCP CLIENT EMAIL"
+google_gcp_private_creds_api_token_access_key: "-----BEGIN PRIVATE KEY-----\!!!!!!!!!!!!!!!!!!  ENTER YOUR KEY  =\n-----END PRIVATE KEY-----\n"
+google_gcp_private_key_api_token_id: "!!!!!!!! ENTER YOUR KEY GCP API TOKEN !!!!!!!!"
+ansible_product_id: "{{ ansible_product }}"
+google_cloud_account_type: "serviceaccount"
+
+anycloud_defaults_storage_profile: Silver
+anycloud_instance_system_disk_category: "cloud_ssd"
+anycloud_instance_system_disk_size: 50
+anycloud_one_instance_duplicates_count: 2
+anycloud_instance_cloud_disk_name: "cloud_disk"
+anycloud_instance_cloud_disk_category: "cloud_ssd"
+anycloud_instance_cloud_disk_description: "Description - {{ ansible_product }} host {{ ansible_environment }}"
+anycloud_instance_cloud_data_disk_size: 80
+anycloud_instance_cloud_delete_with_instance: False
+anycloud_virtual_machine_resources_middle_type: size_of_instance_profile
+# anycloud_instance_cloud_disk_tags: [{tag_key: "created_by", tag_value: "{{ ansible_product }}-cloud-{{ ansible_environment }}"}, {tag_key: "created_from", tag_value: "{{ ansible_product }}-ecs-vpc-{{ ansible_environment }}"}]
+
+### STORAGE RETURN RESULTS
+
+anycloud_vm_storage_configuration: "{{ anycloud_defaults_storage_profile }}"
+anycloud_vm_performance_configuration: "{{ anycloud_virtual_machine_resources_middle_type }}"
+
+## VORTEX DEFAULT EXAMPLE
+# anycloud_api_user_login: "aim_admin"
+# anycloud_api_access_key: "LTAI18PoV9VdqhK7!"
+# anycloud_api_secret_key: "UXQ6BBASSOBRIgVZjA7ZioDoCQrzjm"
+# anycloud_vm_access_pass: "12345"
+
+

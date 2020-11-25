@@ -1,0 +1,55 @@
+---
+
+- include_vars: "{{ansible_os_family}}.yml"
+- include_vars: quaggavars.yml
+
+- name: DEBUG | Show Quagga group_vars
+  debug: 
+    msg: "{{ item }}"
+  with_items: "{{ wu_routers.internal_vlans }}"
+
+- name: Register _location_prefix_internal_vlans
+  debug:
+    var: "{{ _location_prefix_internal_vlans }}"
+  register: internal_vlans_for_each_zone
+  
+- name: Register _location_prefix_external_vlans
+  debug:
+    var: "{{ _location_prefix_external_vlans }}"
+  register: external_vlans_for_each_zone
+
+- name: Register _location_prefix_transport_vlans
+  debug:
+    var: "{{ _location_prefix_transport_vlans }}"
+  register: transport_vlans_for_each_zone
+
+- name: DEBUG | Show Quagga group_vars
+  debug: 
+    msg: "{{ item }}"
+  with_items: "{{ internal_vlans_for_each_zone }}"
+
+- name: DEBUG | Show Quagga group_vars
+  debug: 
+    msg: "{{ item }}"
+  with_items: "{{ external_vlans_for_each_zone }}"
+
+- name: Deploy Quagga for Debian Systems
+  apt: pkg={{ quaggaserver }} state=latest
+  when: ansible_os_family == 'Debian'
+
+- name: Create config files
+  template: src={{ item.name }}.j2 dest=/etc/quagga/{{ item.name }}
+  with_items: "{{ conffiles }}"
+
+- name: Set permissions for config files
+  file: path=/etc/quagga/{{ item.name }} owner={{ item.owner }} group={{ item.group }} mode={{ item.mode }}
+  with_items: "{{ conffiles }}"
+
+- name: Enable desired routing protocols
+  template: src=daemons.j2 dest=/etc/quagga/daemons
+
+- name: Enable telnet access and the retaining of routes over restarts
+  template: src=debian.conf.j2 dest=/etc/quagga/debian.conf
+  when: ansible_os_family == 'Debian'
+  notify:
+  - Restart Quagga

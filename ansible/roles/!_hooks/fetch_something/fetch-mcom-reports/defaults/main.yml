@@ -1,0 +1,19 @@
+files_to_fetch:
+  path: /var/lib/mysql-files
+  files:
+     - xxx2.csv
+    # - xxx.csv
+    # - AKOS-05-2018.csv
+    # - SPTelekom_05-2018.csv
+    # - t2mobile2_05-2018.csv
+    # - AKOS-04-2018.csv
+    # - SPTelekom_04-2018.csv
+    # - t2mobile2_04-2018.csv
+    # - SPTelekom_2018.03.07.csv
+    # - t2mobile2_2018.03.07.csv 
+    # - output_2018.02.21.txt
+    # - output_2018.02.21_1.txt
+    # - t2mobile2.csv
+    # - SPTelekom.csv
+    # - t2mobile2_new.csv
+    # - SPTelekom_new.csv

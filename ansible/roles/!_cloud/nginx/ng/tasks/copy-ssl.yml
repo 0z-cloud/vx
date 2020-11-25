@@ -1,0 +1,17 @@
+---
+
+  - name: Ensure SSL Certificate have a directory
+    file:
+      path: "/etc/nginx/ssl/"
+      state: directory
+    tags: [certbot,debug]
+
+  - name: get stat for dhparam file
+    stat:
+      path: "{{ nginx_dhparam_path }}"
+    register: s
+
+  - name: generate dhparam file if it's not exists
+    become: true
+    shell: "openssl dhparam -out {{ nginx_dhparam_path }} 2048"
+    when: s.stat.exists == False

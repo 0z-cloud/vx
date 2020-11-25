@@ -1,0 +1,5 @@
+redis_io_cluster_enabled: "false"
+
+unification_services:
+  - {'sentry_redis_write': {'target': 'sentry-redis-cluster', 'listen_port': "{{ redis_io_service_settings.public_port }}", 'check_type': "tcp", 'script_check': "{{ inventory_hostname }}:{{ redis_io_service_settings.public_port }}" }}
+  - {'sentry_redis_read': {'target': 'sentry-redis-cluster', 'listen_port': "{{ redis_io_service_settings.slave_public_port }}", 'check_type': "tcp", 'script_check': "{{ inventory_hostname }}:{{ redis_io_service_settings.slave_public_port }}" }}

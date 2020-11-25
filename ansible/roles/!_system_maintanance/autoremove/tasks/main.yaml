@@ -1,0 +1,9 @@
+- name: Apt remove dependencies that are no longer required
+  apt:
+    name: "{{ item }}"
+    state: absent
+    autoremove: yes
+    purge: yes
+  with_items: "{{ apt_remove_packages }}"
+  tags:
+    - apt_autoremove

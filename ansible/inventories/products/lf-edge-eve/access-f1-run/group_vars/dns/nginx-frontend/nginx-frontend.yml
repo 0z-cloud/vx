@@ -1,0 +1,177 @@
+cloud_dir: "{{ CLOUD_DIRECTORY }}"
+
+bind_cloud_settings:
+  domain: "{{ consul_merge_domain_name }}"
+  public_domain: "{{ public_consul_domain }}"
+  packages:
+    - bind9
+    - bind9utils
+    - bind9-doc
+    - bind9-host
+  zone_path: "pri"
+  bind_etc: "/cloud/local/bind/etc/bind"
+  logging_path: "/var/log/named"
+  mixed_static_with_dynamic_entries:
+    - { record: "baremetal                      ", value: "IN     NS ns1-cloud.adam.local.cloud.eve.vortice.eden."                    }
+    - { record: "baremetal                      ", value: "IN     NS ns2-cloud.adam.local.cloud.eve.vortice.eden."                    }
+    # - { record: "baremetal                      ", value: "IN     NS ns3-cloud.adam.local.cloud.eve.vortice.eden."                    }
+    - { record: "develop                      ", value: "IN     NS ns1-cloud.adam.local.cloud.eve.vortice.eden."                    }
+    - { record: "develop                      ", value: "IN     NS ns2-cloud.adam.local.cloud.eve.vortice.eden."                    }
+    # - { record: "develop                      ", value: "IN     NS ns3-cloud.adam.local.cloud.eve.vortice.eden."                    }
+    - { record: "sandbox                      ", value: "IN     NS ns1-sandbox.adam.local.cloud.eve.vortice.eden."                    }
+    - { record: "sandbox                      ", value: "IN     NS ns2-sandbox.adam.local.cloud.eve.vortice.eden."                    }
+    # - { record: "sandbox                      ", value: "IN     NS ns3-sandbox.adam.local.cloud.eve.vortice.eden."                    }
+  other_environments_subdomains:
+    baremetal:
+      ########################################################################################################
+      # Zone genesis parent genesis kind. 
+      # Can be contain [child] or [parent] 
+      # type [child] - Like sub-domain.sub-domain.domain.com of main sub-domain 
+      # type [parent] - Place to same level as first placement and main root domain,
+      #       services.domain.com (production) - parent = domain.com
+      #  xoap.services.domain.com (stage) - child (child of) = services.domain.com
+      #           soap.domain.com (poc) - parent = domain.com
+      # type [parent] - Can be work and enabled, when root dns placement is are a sub-domain. 
+      # type [parent] - In other cases its provide error, be careful.
+      ########################################################################################################
+      dc_dns_domain_genesis_kind: parent 
+      # DC LOCATION INFO
+      dc_location: cloud
+      # NS SERVER PREFIX FOR LOCATION
+      dc_prefix: cloud
+      # PUBLIC CLOUD IP OF FRONTEND
+      dns_ip_list: |
+          {% set hostslist = [] %}
+          {% for host in groups['cloud-bind-frontend-dns'] %}
+          {% if hostvars[host]['public_nat_ip'] is defined and "REPLACED" not in hostvars[host]['public_nat_ip'] %}
+          {% set hostslist2 = hostslist.append(hostvars[host]['public_nat_ip']) %}
+          {% else %}
+          {% set hostslist2 = hostslist.append(hostvars[host]['ansible_default_ipv4']['address']) %}
+          {% endif %}
+          {% endfor %}
+          {{ hostslist }}
+    zina:
+      # DC LOCATION INFO
+      dc_location: cloud
+      # NS SERVER PREFIX FOR LOCATION
+      dc_prefix: cloud
+      # PUBLIC CLOUD IP OF FRONTEND
+      dns_ip_list: |
+        {% set hostslist = [] %}
+        {% for host in groups['cloud-bind-frontend-dns'] %}
+        {% if hostvars[host]['public_nat_ip'] is defined and "REPLACED" not in hostvars[host]['public_nat_ip'] %}
+        {% set hostslist2 = hostslist.append(hostvars[host]['public_nat_ip']) %}
+        {% else %}
+        {% set hostslist2 = hostslist.append(hostvars[host]['ansible_default_ipv4']['address']) %}
+        {% endif %}
+        {% endfor %}
+        {{ hostslist }}
+    develop:
+      # DC LOCATION INFO
+      dc_location: cloud
+      # NS SERVER PREFIX FOR LOCATION
+      dc_prefix: cloud
+      # PUBLIC CLOUD IP OF FRONTEND
+      dns_ip_list: |
+        {% set hostslist = [] %}
+        {% for host in groups['cloud-bind-frontend-dns'] %}
+        {% if hostvars[host]['public_nat_ip'] is defined and "REPLACED" not in hostvars[host]['public_nat_ip'] %}
+        {% set hostslist2 = hostslist.append(hostvars[host]['public_nat_ip']) %}
+        {% else %}
+        {% set hostslist2 = hostslist.append(hostvars[host]['ansible_default_ipv4']['address']) %}
+        {% endif %}
+        {% endfor %}
+        {{ hostslist }}
+    sandbox:
+      # DC LOCATION INFO
+      dc_location: cloud
+      # NS SERVER PREFIX FOR LOCATION
+      dc_prefix: cloud
+      # PUBLIC CLOUD IP OF FRONTEND
+      dns_ip_list: |
+        {% set hostslist = [] %}
+        {% for host in groups['cloud-bind-frontend-dns'] %}
+        {% if hostvars[host]['public_nat_ip'] is defined and "REPLACED" not in hostvars[host]['public_nat_ip'] %}
+        {% set hostslist2 = hostslist.append(hostvars[host]['public_nat_ip']) %}
+        {% else %}
+        {% set hostslist2 = hostslist.append(hostvars[host]['ansible_default_ipv4']['address']) %}
+        {% endif %}
+        {% endfor %}
+        {{ hostslist }}
+    # - "185.40.28.121"
+    # - "185.40.28.83"
+    # - "185.40.28.94"
+    stage:
+      # DC LOCATION INFO
+      dc_location: cloud
+      # NS SERVER PREFIX FOR LOCATION
+      dc_prefix: cloud
+      # PUBLIC CLOUD IP OF FRONTEND
+      dns_ip_list: |
+        {% set hostslist = [] %}
+        {% for host in groups['cloud-bind-frontend-dns'] %}
+        {% if hostvars[host]['public_nat_ip'] is defined and "REPLACED" not in hostvars[host]['public_nat_ip'] %}
+        {% set hostslist2 = hostslist.append(hostvars[host]['public_nat_ip']) %}
+        {% else %}
+        {% set hostslist2 = hostslist.append(hostvars[host]['ansible_default_ipv4']['address']) %}
+        {% endif %}
+        {% endfor %}
+        {{ hostslist }}
+    # - "185.40.28.121"
+    # - "185.40.28.83"
+    # - "185.40.28.94"
+    # dev:
+    #   # DC LOCATION INFO
+    #   dc_location: digitalocean
+    #   # NS SERVER PREFIX FOR LOCATION
+    #   dc_prefix: cloud
+    #   # PUBLIC CLOUD IP OF FRONTEND
+    #   dns_ip_list:
+    #     - "46.101.244.84"
+    #     - "46.101.244.87"
+    #     - "46.101.244.49"
+    # area01:
+    #   # DC LOCATION INFO
+    #   dc_location: area01
+    #   # NS SERVER PREFIX FOR LOCATION
+    #   dc_prefix: area01
+    #   # PUBLIC CLOUD IP OF FRONTEND
+    #   dns_ip_list:
+    #     - "172.16.13.18"
+    #     - "172.16.13.26"
+    #     - "172.16.13.27"
+    # area2:
+    #   # DC LOCATION INFO
+    #   dc_location: area00003
+    #   # NS SERVER PREFIX FOR LOCATION
+    #   dc_prefix: area2
+    #   # PUBLIC CLOUD IP OF FRONTEND
+    #   dns_ip_list:
+    #     - "172.16.13.18"
+    #     - "172.16.13.26"
+    #     - "172.16.13.27"
+    # area00003:
+    #   # DC LOCATION INFO
+    #   dc_location: area00003
+    #   # NS SERVER PREFIX FOR LOCATION
+    #   dc_prefix: area00003
+    #   # PUBLIC CLOUD IP OF FRONTEND
+    #   dns_ip_list:
+    #     - "172.16.13.18"
+    #     - "172.16.13.26"
+    #     - "172.16.13.27"
+
+
+core_dns_cloud_settings:
+  ports:
+    dns: 53
+    web: 9153
+  directories:
+    configuration: "/cloud/local/opt/coredns"
+  cert_cloud:
+    letsencrypt: "{{ cloud_dir }}/ca_root/letsencrypt"
+    ca_root: "{{ cloud_dir }}/ca_root"
+    deploy: "{{ cloud_dir }}/ca_root/letsencrypt/deploy"
+    dnsapi: "{{ cloud_dir }}/ca_root/letsencrypt/dnsapi"
+    cert_root: "{{ cloud_dir }}/ca_root/cert_root"
+    certificate_sync_onboard_fullpath: "/mnt/cloud-bind-frontend-dns-glusterfs-storage/"

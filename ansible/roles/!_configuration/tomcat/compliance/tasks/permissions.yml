@@ -1,0 +1,199 @@
+#### CHECK CATALINA_BASE FOR SECURITY SETTINGS : TOMCAT FOLDER MUST BE HAVE TOMCAT USER OWNER: CATALINA HOME
+
+- name: Check the ownership of {{ ansible_tomcat_settings.directories.ansible_catalina_home }}, if PCI compliance ok, we ignore that and go next
+  stat:
+    path: "{{ ansible_tomcat_settings.directories.ansible_catalina_home }}"
+  register: ansible_catalina_home_stat
+  tags: ansible_grep_server_home_ownership
+
+- name: Debug ansible_catalina_home_stat.stat.pw_name
+  debug: 
+    msg: "{{ ansible_catalina_home_stat.stat.pw_name }}"
+
+- name: Check the ownership of {{ ansible_tomcat_settings.directories.ansible_catalina_home }}, if PCI compliance ok, we ignore that and go next
+  fail:
+    msg: "Whoops! {{ ansible_tomcat_settings.directories.ansible_catalina_home }} ownership not a {{ ansible_catalina_folders_owner_user }} - conetent not PCI Compliant"
+  when: ansible_catalina_home_stat.stat.pw_name != '{{ ansible_catalina_folders_owner_user }}'
+  tags: ansible_grep_server_home_ownership
+
+#### CHECK CATALINA_BASE FOR SECURITY SETTINGS : TOMCAT FOLDER MUST BE HAVE TOMCAT USER OWNER : CATALINA BASE
+
+- name: Check the ownership of {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}, if PCI compliance ok, we ignore that and go next
+  stat:
+    path: "{{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}"
+  register: ansible_catalina_base_stat
+  tags: ansible_grep_server_base_ownership
+
+- name: Debug ansible_catalina_base_stat.stat.pw_name
+  debug: 
+    msg: "{{ ansible_catalina_base_stat.stat.pw_name }}"
+
+- name: Check the ownership of {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}, if PCI compliance ok, we ignore that and go next
+  fail:
+    msg: "Whoops! {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }} ownership not a {{ ansible_catalina_folders_owner_user }} - conetent not PCI Compliant"
+  when: ansible_catalina_base_stat.stat.pw_name != '{{ ansible_catalina_folders_owner_user }}'
+  tags: ansible_grep_server_base_ownership
+
+#### Set group rights
+
+- name: Set folder group rights for CATALINA_HOME/conf
+  raw: "chmod g-w,o-rwx {{ ansible_tomcat_settings.directories.ansible_catalina_home }}/conf"
+  
+- name: Set folder group rights for CATALINA_BASE
+  raw: "chmod g-w,o-rwx {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}"
+
+#### logs dir
+
+- name: Check the ownership of {{ ansible_tomcat_settings.directories.ansible_catalina_home }}/logs, if PCI compliance ok, we ignore that and go next
+  stat:
+    path: "{{ ansible_tomcat_settings.directories.ansible_catalina_home }}/logs"
+  register: ansible_catalina_home_stat_logs
+  tags: ansible_grep_server_home_ownership
+
+- name: Debug ansible_catalina_home_stat_logs.stat.pw_name
+  debug: 
+    msg: "{{ ansible_catalina_home_stat_logs.stat.pw_name }}"
+
+- name: Check the ownership of {{ ansible_tomcat_settings.directories.ansible_catalina_home }}/logs, if PCI compliance ok, we ignore that and go next
+  fail:
+    msg: "Whoops! {{ ansible_tomcat_settings.directories.ansible_catalina_home }}/logs ownership not a {{ ansible_catalina_folders_owner_user }} - conetent not PCI Compliant"
+  when: ansible_catalina_home_stat_logs.stat.pw_name != '{{ ansible_catalina_folders_owner_user }}'
+  tags: ansible_grep_server_home_ownership
+  
+- name: Set folder group rights for CATALINA_HOME/logs
+  raw: "chmod o-rwx {{ ansible_tomcat_settings.directories.ansible_catalina_home }}/logs"
+  
+####
+
+#### temp dir
+
+- name: Check the ownership of {{ ansible_tomcat_settings.directories.ansible_catalina_home }}/temp, if PCI compliance ok, we ignore that and go next
+  stat:
+    path: "{{ ansible_tomcat_settings.directories.ansible_catalina_home }}/temp"
+  register: ansible_catalina_home_stat_temp
+  tags: ansible_grep_server_home_ownership
+
+- name: Debug ansible_catalina_home_stat_temp.stat.pw_name
+  debug: 
+    msg: "{{ ansible_catalina_home_stat_temp.stat.pw_name }}"
+
+- name: Check the ownership of {{ ansible_tomcat_settings.directories.ansible_catalina_home }}/temp, if PCI compliance ok, we ignore that and go next
+  fail:
+    msg: "Whoops! {{ ansible_tomcat_settings.directories.ansible_catalina_home }}/temp ownership not a {{ ansible_catalina_folders_owner_user }} - conetent not PCI Compliant"
+  when: ansible_catalina_home_stat_temp.stat.pw_name != '{{ ansible_catalina_folders_owner_user }}'
+  tags: ansible_grep_server_home_ownership
+  
+- name: Set folder group rights for CATALINA_HOME/temp
+  raw: "chmod o-rwx {{ ansible_tomcat_settings.directories.ansible_catalina_home }}/temp"
+  
+####
+
+#### bin dir
+
+- name: Check the ownership of {{ ansible_tomcat_settings.directories.ansible_catalina_home }}/bin, if PCI compliance ok, we ignore that and go next
+  stat:
+    path: "{{ ansible_tomcat_settings.directories.ansible_catalina_home }}/bin"
+  register: ansible_catalina_home_stat_bin
+  tags: ansible_grep_server_home_ownership
+
+- name: Debug ansible_catalina_home_stat_bin.stat.pw_name
+  debug: 
+    msg: "{{ ansible_catalina_home_stat_bin.stat.pw_name }}"
+
+- name: Check the ownership of {{ ansible_tomcat_settings.directories.ansible_catalina_home }}/bin, if PCI compliance ok, we ignore that and go next
+  fail:
+    msg: "Whoops! {{ ansible_tomcat_settings.directories.ansible_catalina_home }}/bin ownership not a {{ ansible_catalina_folders_owner_user }} - conetent not PCI Compliant"
+  when: ansible_catalina_home_stat_bin.stat.pw_name != '{{ ansible_catalina_folders_owner_user }}'
+  tags: ansible_grep_server_home_ownership
+  
+- name: Set folder group rights for CATALINA_HOME/bin
+  raw: "chmod g-w,o-rwx {{ ansible_tomcat_settings.directories.ansible_catalina_home }}/bin"
+  
+####
+
+#### webapps dir
+
+- name: Check the ownership of {{ ansible_tomcat_settings.directories.ansible_catalina_home }}/webapps, if PCI compliance ok, we ignore that and go next
+  stat:
+    path: "{{ ansible_tomcat_settings.directories.ansible_catalina_home }}/webapps"
+  register: ansible_catalina_home_stat_webapps
+  tags: ansible_grep_server_home_ownership
+
+- name: Debug ansible_catalina_home_stat_webapps.stat.pw_name
+  debug: 
+    msg: "{{ ansible_catalina_home_stat_webapps.stat.pw_name }}"
+
+- name: Check the ownership of {{ ansible_tomcat_settings.directories.ansible_catalina_home }}/webapps, if PCI compliance ok, we ignore that and go next
+  fail:
+    msg: "Whoops! {{ ansible_tomcat_settings.directories.ansible_catalina_home }}/webapps ownership not a {{ ansible_catalina_folders_owner_user }} - conetent not PCI Compliant"
+  when: ansible_catalina_home_stat_webapps.stat.pw_name != '{{ ansible_catalina_folders_owner_user }}'
+  tags: ansible_grep_server_home_ownership
+  
+- name: Set folder group rights for CATALINA_HOME/webapps
+  raw: "chmod g-w,o-rwx {{ ansible_tomcat_settings.directories.ansible_catalina_home }}/webapps"
+  
+#### setup for catalina policy permissions
+
+- name: setup for catalina policy permissions rights
+  raw: "chmod 770 {{ ansible_tomcat_settings.directories.ansible_catalina_home }}/conf/catalina.policy"
+  
+- name: setup for catalina policy permissions user
+  raw: "chown {{ ansible_catalina_folders_owner_user }}:{{ ansible_catalina_folders_owner_user }} {{ ansible_tomcat_settings.directories.ansible_catalina_home }}/conf/catalina.policy"
+  
+
+#### setup for catalina properties permissions
+
+- name: setup for catalina properties permissions user
+  raw: "chown {{ ansible_catalina_folders_owner_user }}:{{ ansible_catalina_folders_owner_user }} {{ ansible_tomcat_settings.directories.ansible_catalina_home }}/conf/catalina.properties"
+
+- name: setup for catalina properties permissions rights
+  raw: "chmod g-w,o-rwx {{ ansible_tomcat_settings.directories.ansible_catalina_home }}/conf/catalina.properties"
+
+#### setup for catalina context permissions
+
+- name: setup for catalina context permissions user
+  raw: "chown {{ ansible_catalina_folders_owner_user }}:{{ ansible_catalina_folders_owner_user }} {{ ansible_tomcat_settings.directories.ansible_catalina_home }}/conf/context.xml"
+
+- name: setup for catalina context permissions rights
+  raw: "chmod g-w,o-rwx {{ ansible_tomcat_settings.directories.ansible_catalina_home }}/conf/context.xml"
+
+#### setup for catalina logging.properties permissions
+
+- name: setup for catalina logging.properties permissions user
+  raw: "chown {{ ansible_catalina_folders_owner_user }}:{{ ansible_catalina_folders_owner_user }} {{ ansible_tomcat_settings.directories.ansible_catalina_home }}/conf/logging.properties"
+
+- name: setup for catalina logging.properties permissions rights
+  raw: "chmod g-w,o-rwx {{ ansible_tomcat_settings.directories.ansible_catalina_home }}/conf/logging.properties"
+
+#### setup for catalina server.xml permissions
+
+- name: setup for catalina server.xml permissions user
+  raw: "chown {{ ansible_catalina_folders_owner_user }}:{{ ansible_catalina_folders_owner_user }} {{ ansible_tomcat_settings.directories.ansible_catalina_home }}/conf/server.xml"
+
+- name: setup for catalina server.xml permissions rights
+  raw: "chmod g-w,o-rwx {{ ansible_tomcat_settings.directories.ansible_catalina_home }}/conf/server.xml"
+
+#### setup for catalina tomcat-users.xml permissions
+
+- name: setup for catalina tomcat-users.xml permissions user
+  raw: "chown {{ ansible_catalina_folders_owner_user }}:{{ ansible_catalina_folders_owner_user }} {{ ansible_tomcat_settings.directories.ansible_catalina_home }}/conf/tomcat-users.xml"
+
+- name: setup for catalina tomcat-users.xml permissions rights
+  raw: "chmod g-w,o-rwx {{ ansible_tomcat_settings.directories.ansible_catalina_home }}/conf/tomcat-users.xml"
+  
+#### setup for catalina web.xml permissions
+
+- name: setup for catalina web.xml permissions user
+  raw: "chown {{ ansible_catalina_folders_owner_user }}:{{ ansible_catalina_folders_owner_user }} {{ ansible_tomcat_settings.directories.ansible_catalina_home }}/conf/web.xml"
+
+- name: setup for catalina web.xml permissions rights
+  raw: "chmod g-w,o-rwx {{ ansible_tomcat_settings.directories.ansible_catalina_home }}/conf/web.xml"
+  
+
+
+
+
+
+
+
+

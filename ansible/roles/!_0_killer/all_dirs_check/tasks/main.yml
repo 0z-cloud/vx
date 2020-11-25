@@ -1,0 +1,15 @@
+- name: CREATE AND CHECK CA DIRECTORIES | Create CA directories for configuration 
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0750
+  with_dict: "{{ ca_service_settings.directories | default({}) }}"
+  tags: [configuration,ca]
+
+- name: CREATE AND CHECK ETCD DIRECTORIES | Create Etcd directories for configuration 
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0750
+  with_dict: "{{ etcd_service_settings.directories | default({}) }}"
+  tags: [configuration,etcd]

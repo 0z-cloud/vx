@@ -1,0 +1,134 @@
+# INTERFACES
+# 
+{% for interface in docker_networks_array_interfaces.results %} 
+{{ interface.stdout_lines | join }} 
+#
+{% endfor %}
+
+# NETWORKS
+# 
+{% for docker_network in docker_networks.stdout_lines %} 
+{{ docker_network | join }}
+#
+{% endfor %}
+
+## SUBNETS
+{% for network in docker_networks_array.results %} 
+{{ network.stdout_lines | join }}
+#
+{% endfor %}
+
+# BRIDGES
+# 
+{% for bridge in bridges_interfaces.results %}
+{% for bridge_name in bridge.stdout_lines %}
+{{ bridge_name }}
+{% endfor %}
+#
+{% endfor %}
+
+
+{% if second_network_zone == "standalone" %}
+
+{% else %}
+
+{% endif %}
+
+
+{% if second_network != ip %}
+
+{% endif %}
+
+
+{% if second_network_type == "cde" %}
+
+    # WE ARE in CDE and CDE ONLY
+
+    # WE ARE a CLUSTER
+
+    # SSH from bas
+
+    # OUT public_ports to BALANCER
+
+    # IN public_ports from BALANCER
+
+    # STATIC ROUTES to DMZ CLUSTER
+
+    # {{ second_iface }}
+    # {{ hostvars[inventory_hostname]['ansible_default_ipv4']['interface'] }} 
+    # because SAME
+
+    # {{ second_network_subnet | ipaddr('network') }}
+
+    # {{ second_iface }}
+
+{% else %}
+
+    {% if second_network_type == "balancer" %}
+
+    # WE ARE in DMZ and CDE BETWEEN
+
+    # {{ second_iface }}
+    # {{ hostvars[inventory_hostname]['ansible_default_ipv4']['interface'] }} 
+
+    # SSH from bas
+
+    {% if second_network != ip %}
+
+    # VRRP BETWEEN BALANCER INTERFACE {{ second_iface }}
+
+    {% else %}
+
+    # VRRP BETWEEN BALANCER INTERFACE {{ hostvars[inventory_hostname]['ansible_default_ipv4']['interface'] }} 
+
+    {% endif %}
+
+    # GO to CDE
+
+    # GO to DMZ
+    # GO to DMZ STANDALONE
+
+    # OUT public_ports
+
+    {% else %}
+
+        # WE ARE A DMZ but WO WE are
+
+        {% if second_network_zone == "standalone" %}
+
+            # WE ARE in DMZ as STANDALONE
+
+            # OUT public_ports
+
+            # IF WE ARE a bas be A bas
+
+                # NO FROM bas
+            
+            # ELSE 
+
+                # SSH from bas
+
+            # FI
+
+        {% else %}
+
+            # WE ARE in DMZ as CLUSTER
+
+            # if WE are a CLUSTER WE can DO
+
+            # GO to BETWEEN CLUSTER
+
+            # GO to BALANCER
+
+            # GO to DMZ STANDALONE
+
+            # SSH from bas
+
+        {% endif %}
+
+
+    {% endif %}
+
+
+{% endif %}
+

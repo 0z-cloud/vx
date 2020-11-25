@@ -1,0 +1,2 @@
+INSECURE_REGISTRY="--insecure-registry=gcr.io"
+DOCKER_OPTS=""

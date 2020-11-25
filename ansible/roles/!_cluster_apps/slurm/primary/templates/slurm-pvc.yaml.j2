@@ -1,0 +1,13 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: slurm-storage-1
+  namespace: {{ slurm_namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: "{{ gluster_volume_size }}"
+  storageClassName: {{ storage_classname }}

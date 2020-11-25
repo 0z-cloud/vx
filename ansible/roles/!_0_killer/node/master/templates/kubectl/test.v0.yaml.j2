@@ -1,0 +1,83 @@
+{% raw %}apiVersion: kubeadm.k8s.io/v1beta2
+bootstrapTokens:
+- groups:
+  - system:bootstrappers:kubeadm:default-node-token
+  token: abcdef.0123456789abcdef
+  ttl: 24h0m0s
+  usages:
+  - signing
+  - authentication
+kind: InitConfiguration
+localAPIEndpoint:
+  advertiseAddress: {% endraw %}{{ hostvars[inventory_hostname]['second_ip'] }}{% raw %}
+  bindPort: {% endraw %}{{ K8S_CLUSTER_LISTEN_PORT }}{% raw %}
+nodeRegistration:
+  criSocket: /var/run/dockershim.sock
+  name: {% endraw %}{{ hostvars[inventory_hostname]['ansible_nodename'] }}{% raw %}
+  taints:
+  - effect: NoSchedule
+    key: node-role.kubernetes.io/master
+  kubeletExtraArgs:
+    node-ip: {% endraw %}{{ hostvars[inventory_hostname]['second_ip'] }}{% raw %}
+---
+{% endraw %}
+{% raw %}
+apiServer:
+    timeoutForControlPlane: 4m0s
+    advertise-address: {% endraw %}{{ hostvars[inventory_hostname]['second_ip'] }}{% raw %}
+    anonymous-auth: "false"
+    enable-admission-plugins: PodSecurityPolicy,AlwaysPullImages,DefaultStorageClass
+    audit-log-path: /var/log/k8s-audit.log
+apiVersion: kubeadm.k8s.io/v1beta2
+
+controlPlaneEndpoint: "{% endraw %}{{ LOAD_BALANCER_DNS }}:{{ K8S_CLUSTER_LISTEN_PORT }}"{% raw %}
+certificatesDir: /opt/ca/pki
+clusterName: "{% endraw %}{{ K8S_CLUSTER_NAME }}{% raw %}"
+controllerManager:
+  extraArgs:
+    cluster-signing-key-file: /opt/ca/pki/ca.key
+    bind-address: {% endraw %}{{ hostvars[inventory_hostname]['second_ip'] }}{% raw %}
+    deployment-controller-sync-period: "50s"
+dns:
+  type: CoreDNS
+etcd:
+  external:
+        endpoints:{% endraw %}{% for host in groups['kubernetes-master'] %}{% raw %}
+        - https://{% endraw %}{{ hostvars[host]['second_ip'] }}{% raw %}:{% endraw %}{{ K8S_CLUSTER_LISTEN_PORT_2379 }}{% raw %}
+{% endraw %}{% endfor %}{% raw %}
+        caFile: /opt/ca/pki/ca.pem
+        certFile: /opt/ca/pki/etcd.pem
+        keyFile: /opt/ca/pki/etcd-key.pem
+        serverCertSANs:
+        - "{% endraw %}{{ K8S_CLUSTER_ADDRESS }}{% raw %}"{% endraw %}{% for host in groups['kubernetes-master'] %}{% raw %}
+        - "{% endraw %}{{ hostvars[host]['ansible_nodename'] }}{% raw %}"
+        - "{% endraw %}{{ hostvars[host]['second_ip'] }}{% raw %}"
+        - "{% endraw %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}{% raw %}"
+        {% endraw %}{% endfor %}{% raw %}
+        peerCertSANs:
+        - "{% endraw %}{{ K8S_CLUSTER_ADDRESS }}{% raw %}"
+        {% endraw %}{% for host in groups['kubernetes-master'] %}{% raw %}
+        - "{% endraw %}{{ hostvars[host]['ansible_nodename'] }}{% raw %}"
+        - "{% endraw %}{{ hostvars[host]['second_ip'] }}{% raw %}"
+        - "{% endraw %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}{% raw %}"
+  {% endraw %}{% endfor %}{% raw %}
+        extraArgs:
+            listen-client-urls: "https://127.0.0.1:{% endraw %}{{ K8S_CLUSTER_LISTEN_PORT_2379 }}{% raw %},https://{% endraw %}{{ hostvars[inventory_hostname]['second_ip'] }}{% raw %}:{% endraw %}{{ K8S_CLUSTER_LISTEN_PORT_2379 }}{% raw %}"
+            advertise-client-urls: "https://{% endraw %}{{ hostvars[inventory_hostname]['second_ip'] }}{% raw %}:{% endraw %}{{ K8S_CLUSTER_LISTEN_PORT_2379 }}{% raw %}"
+            listen-peer-urls: "https://{% endraw %}{{ hostvars[inventory_hostname]['second_ip'] }}{% raw %}:{% endraw %}{{ K8S_CLUSTER_LISTEN_PORT_2380 }}{% raw %}"
+            initial-advertise-peer-urls: "https://{% endraw %}{{ hostvars[inventory_hostname]['second_ip'] }}{% raw %}:{% endraw %}{{ K8S_CLUSTER_LISTEN_PORT_2380 }}{% raw %}"
+            initial-cluster: "{% endraw %}{% for host in groups['kubernetes-master'] %}{{ hostvars[host].ansible_nodename }}{% raw %}=https://{% endraw %}{{ hostvars[host]['second_ip'] }}{% raw %}:{% endraw %}{{ K8S_CLUSTER_LISTEN_PORT_2380 }}{% if not loop.last %}{% raw %},{% endraw %}{% endif %}{% endfor %}{% raw %}"
+            initial-cluster-state: new
+            name: {% endraw %}{{ hostvars[inventory_hostname]['ansible_nodename'] }}{% raw %}
+{% endraw %}
+{% raw %}
+imageRepository: k8s.gcr.io
+kind: ClusterConfiguration
+kubernetesVersion: v1.18.0
+networking:
+  dnsDomain: {% endraw %}{{ public_consul_domain }}{% raw %}
+  serviceSubnet: {% endraw %}{{ hostvars[inventory_hostname]['second_network_subnet'] }}{% raw %}
+scheduler:
+  extraArgs:
+    address: "0.0.0.0"
+{% endraw %}

@@ -1,0 +1,41 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    annotations:
+      pv.kubernetes.io/bind-completed: "yes"
+      pv.kubernetes.io/bound-by-controller: "yes"
+      volume.beta.kubernetes.io/storage-provisioner: openebs.io/local
+      volume.kubernetes.io/selected-node: worker1
+    creationTimestamp: "2019-07-02T12:56:39Z"
+    finalizers:
+    - kubernetes.io/pvc-protection
+    labels:
+      app: docker-registry
+      chart: docker-registry-1.6.1
+      heritage: Tiller
+      io.cattle.field/appId: docker-registry
+      release: docker-registry
+    name: docker-registry
+    namespace: docker-registry
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    dataSource: null
+    resources:
+      requests:
+        storage: 50Gi
+    storageClassName: openebs-hostpath
+    volumeMode: Filesystem
+    volumeName: pvc-d56ce09e-9cc8-11e9-890b-b42e994820d9
+  status:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 50Gi
+    phase: Bound
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""

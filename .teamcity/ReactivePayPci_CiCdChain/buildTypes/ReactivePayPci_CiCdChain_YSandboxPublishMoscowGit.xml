@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="36be8a8f-9830-4cbe-82b2-e5c9b0908cf0" xsi:noNamespaceSchemaLocation="https://www.jetbrains.com/teamcity/schemas/2018.1/project-config.xsd">
+  <name>Y. Sandbox-Publish ^ Moscow ^ Git</name>
+  <description />
+  <settings>
+    <options>
+      <option name="allowExternalStatus" value="true" />
+      <option name="buildConfigurationType" value="DEPLOYMENT" />
+      <option name="buildNumberPattern" value="%teamcity.build.id%" />
+      <option name="maximumNumberOfBuilds" value="1" />
+      <option name="showDependenciesChanges" value="true" />
+    </options>
+    <disabled-settings>
+      <setting-ref ref="BUILD_EXT_10" />
+      <setting-ref ref="BUILD_EXT_11" />
+    </disabled-settings>
+    <parameters>
+      <param name="ANSIBLE_APPLICATION_TYPE" value="rails" />
+      <param name="ANSIBLE_BUILD_ID" value="%build.counter%" />
+      <param name="ANSIBLE_CI_PROJECT_NAME" value="wirecapital_gate" />
+      <param name="ANSIBLE_CI_PROJECT_NAMESPACE" value="wirecapital" />
+      <param name="ANSIBLE_CI_VERSION" value="1.0.%build.counter%" />
+      <param name="ANSIBLE_CLOUD_TYPE" value="bare" />
+      <param name="ANSIBLE_COMMIT_SHA" value="%system.build.vcs.number%" />
+      <param name="ANSIBLE_DEPLOY_USERNAME" value="" spec="text label='DEPLOY USERNAME' validationMode='any' display='prompt'" />
+      <param name="ANSIBLE_DEPLOY_VAULT_PASSWORD" value="" />
+      <param name="ANSIBLE_ENVIRONMENT" value="sandbox" />
+      <param name="ANSIBLE_PRODUCT_NAME" value="moscow-wire" />
+      <param name="ANSIBLE_REGISTRY_URL" value="registry.adam.local.cloud.eve.vortice.eden" />
+      <param name="ANSIBLE_REGISTRY_USERNAME" value="root" />
+      <param name="ANSIBLE_RUN_TYPE" value="true" />
+      <param name="ANSIBLE_TRIGGER_TOKEN" value="o5hqKNkto4-VPRP2xQh4" spec="text validationMode='any' display='normal'" />
+      <param name="ANSIBLE_VERSION" value="1.0.%build.counter%" />
+      <param name="A_ENV_SECURITY" value="pci" />
+      <param name="MAIN_ANSIBLE_BUILD_ID" value="1.0.%build.counter%" />
+      <param name="RunningOfferForBuild" value="" spec="checkbox label='Disable run Build suite pipeline step' uncheckedValue='false' display='prompt' checkedValue='true'" />
+      <param name="RunningOfferForPublish" value="" spec="checkbox label='Disable run Publish suite pipeline step' uncheckedValue='false' display='prompt' checkedValue='true'" />
+      <param name="RunningOnlyQA" value="" spec="checkbox label='Running only test suite' uncheckedValue='false' display='prompt' checkedValue='true'" />
+      <param name="TEST_VALUE" value="TEST_VALUE" />
+      <param name="main_build_id" value="%build.counter%" />
+    </parameters>
+    <build-runners>
+      <runner id="RUNNER_9" name="Init" type="ReactivePayPci_CiCdChain_InitPrepareCI1">
+        <parameters>
+          <param name="ANSIBLE_APPLICATION_TYPE" value="%ANSIBLE_APPLICATION_TYPE%" />
+          <param name="ANSIBLE_BUILD_ID" value="%ANSIBLE_BUILD_ID%" />
+          <param name="ANSIBLE_CI_PROJECT_NAME" value="%ANSIBLE_CI_PROJECT_NAME%" />
+          <param name="ANSIBLE_CI_PROJECT_NAMESPACE" value="%ANSIBLE_CI_PROJECT_NAMESPACE%" />
+          <param name="ANSIBLE_CLOUD_TYPE" value="%ANSIBLE_CLOUD_TYPE%" />
+          <param name="ANSIBLE_COMMIT_SHA" value="%ANSIBLE_COMMIT_SHA%" />
+          <param name="ANSIBLE_DEPLOY_USERNAME" value="%ANSIBLE_DEPLOY_USERNAME%" />
+          <param name="ANSIBLE_ENVIRONMENT" value="%ANSIBLE_ENVIRONMENT%" />
+          <param name="ANSIBLE_PRODUCT_NAME" value="%ANSIBLE_PRODUCT_NAME%" />
+          <param name="ANSIBLE_REGISTRY_URL" value="%ANSIBLE_REGISTRY_URL%" />
+          <param name="ANSIBLE_REGISTRY_USERNAME" value="%ANSIBLE_REGISTRY_USERNAME%" />
+          <param name="ANSIBLE_RUN_TYPE" value="%ANSIBLE_RUN_TYPE%" />
+          <param name="ANSIBLE_VERSION" value="%ANSIBLE_VERSION%" />
+          <param name="A_DEPLOY_PASSWORD" value="" />
+          <param name="A_ENV_SECURITY" value="%A_ENV_SECURITY%" />
+          <param name="INIT_PASS" value="zxx775d03cbe80d301b" />
+          <param name="MAIN_ANSIBLE_BUILD_ID" value="%MAIN_ANSIBLE_BUILD_ID%" />
+          <param name="RunningOfferForBuild" value="%RunningOfferForBuild%" />
+          <param name="RunningOfferForPublish" value="%RunningOfferForPublish%" />
+          <param name="RunningOnlyQA" value="%RunningOnlyQA%" />
+          <param name="message" value="zxx775d03cbe80d301b" />
+          <param name="teamcity.step.mode" value="execute_always" />
+        </parameters>
+      </runner>
+      <runner id="RUNNER_10" name="Build" type="ReactivePayPci_CiCdChain_2buildBuildAndPushDockerImages1">
+        <parameters>
+          <param name="ANSIBLE_APPLICATION_TYPE" value="%ANSIBLE_APPLICATION_TYPE%" />
+          <param name="ANSIBLE_CI_PROJECT_NAME" value="%ANSIBLE_CI_PROJECT_NAME%" />
+          <param name="ANSIBLE_CI_PROJECT_NAMESPACE" value="%ANSIBLE_CI_PROJECT_NAMESPACE%" />
+          <param name="ANSIBLE_CI_VERSION" value="%ANSIBLE_CI_VERSION%" />
+          <param name="ANSIBLE_CLOUD_TYPE" value="%ANSIBLE_CLOUD_TYPE%" />
+          <param name="ANSIBLE_COMMIT_SHA" value="%system.build.vcs.number%" />
+          <param name="ANSIBLE_DEPLOY_USERNAME" value="%ANSIBLE_DEPLOY_USERNAME%" />
+          <param name="ANSIBLE_DEPLOY_VAULT_PASSWORD" value="zxx775d03cbe80d301b" />
+          <param name="ANSIBLE_ENVIRONMENT" value="%ANSIBLE_ENVIRONMENT%" />
+          <param name="ANSIBLE_PRODUCT_NAME" value="%ANSIBLE_PRODUCT_NAME%" />
+          <param name="ANSIBLE_REGISTRY_URL" value="%ANSIBLE_REGISTRY_URL%" />
+          <param name="ANSIBLE_REGISTRY_USERNAME" value="%ANSIBLE_REGISTRY_USERNAME%" />
+          <param name="ANSIBLE_RUN_TYPE" value="%ANSIBLE_RUN_TYPE%" />
+          <param name="ANSIBLE_TRIGGER_TOKEN" value="%ANSIBLE_TRIGGER_TOKEN%" />
+          <param name="ANSIBLE_VERSION" value="%ANSIBLE_VERSION%" />
+          <param name="A_DEPLOY_PASSWORD" value="zxx775d03cbe80d301b" />
+          <param name="A_ENV_SECURITY" value="%A_ENV_SECURITY%" />
+          <param name="A_VAULT_PASSWORD" value="zxx775d03cbe80d301b" />
+          <param name="INIT_PASS" value="zxx175d32bfa837dc7e" />
+          <param name="MAIN_ANSIBLE_BUILD_ID" value="%MAIN_ANSIBLE_BUILD_ID%" />
+          <param name="RunningOfferForBuild" value="%RunningOfferForBuild%" />
+          <param name="RunningOfferForPublish" value="%RunningOfferForPublish%" />
+          <param name="RunningOnlyQA" value="%RunningOnlyQA%" />
+          <param name="dp" value="zxx175d32bfa837dc7e" />
+          <param name="message" value="zxx175d32bfa837dc7e" />
+          <param name="teamcity.step.mode" value="default" />
+        </parameters>
+      </runner>
+      <runner id="RUNNER_11" name="Deploy" type="ReactivePayPci_CiCdChain_3deployPublicationToInfrastructure1">
+        <parameters>
+          <param name="ANSIBLE_APPLICATION_TYPE" value="%ANSIBLE_APPLICATION_TYPE%" />
+          <param name="ANSIBLE_CI_PROJECT_NAME" value="%ANSIBLE_CI_PROJECT_NAME%" />
+          <param name="ANSIBLE_CI_PROJECT_NAMESPACE" value="%ANSIBLE_CI_PROJECT_NAMESPACE%" />
+          <param name="ANSIBLE_CI_VERSION" value="%ANSIBLE_CI_VERSION%" />
+          <param name="ANSIBLE_CLOUD_TYPE" value="%ANSIBLE_CLOUD_TYPE%" />
+          <param name="ANSIBLE_COMMIT_SHA" value="%ANSIBLE_COMMIT_SHA%" />
+          <param name="ANSIBLE_DEPLOY_USERNAME" value="%ANSIBLE_DEPLOY_USERNAME%" />
+          <param name="ANSIBLE_DEPLOY_VAULT_PASSWORD" value="zxx175d32bfa837dc7e" />
+          <param name="ANSIBLE_ENVIRONMENT" value="%ANSIBLE_ENVIRONMENT%" />
+          <param name="ANSIBLE_PRODUCT_NAME" value="%ANSIBLE_PRODUCT_NAME%" />
+          <param name="ANSIBLE_REGISTRY_URL" value="%ANSIBLE_REGISTRY_URL%" />
+          <param name="ANSIBLE_REGISTRY_USERNAME" value="%ANSIBLE_REGISTRY_USERNAME%" />
+          <param name="ANSIBLE_RUN_TYPE" value="%ANSIBLE_RUN_TYPE%" />
+          <param name="ANSIBLE_TRIGGER_TOKEN" value="%ANSIBLE_TRIGGER_TOKEN%" />
+          <param name="ANSIBLE_VERSION" value="%ANSIBLE_VERSION%" />
+          <param name="A_DEPLOY_PASSWORD" value="zxx175d32bfa837dc7e" />
+          <param name="A_ENV_SECURITY" value="%A_ENV_SECURITY%" />
+          <param name="A_VAULT_PASSWORD" value="zxx175d32bfa837dc7e" />
+          <param name="INIT_PASS" value="zxx175d32bfa837dc7e" />
+          <param name="MAIN_ANSIBLE_BUILD_ID" value="%env.BUILD_NUMBER%" />
+          <param name="RunningOfferForBuild" value="%RunningOfferForBuild%" />
+          <param name="RunningOfferForPublish" value="%RunningOfferForPublish%" />
+          <param name="RunningOnlyQA" value="%RunningOnlyQA%" />
+          <param name="message" value="zxx175d32bfa837dc7e" />
+          <param name="teamcity.step.mode" value="default" />
+        </parameters>
+      </runner>
+      <runner id="RUNNER_12" name="Front" type="ReactivePayPci_CiCdChain_4frontUpdateNginxFrontendDnsBackend1">
+        <parameters>
+          <param name="ANSIBLE_APPLICATION_TYPE" value="%ANSIBLE_APPLICATION_TYPE%" />
+          <param name="ANSIBLE_CI_PROJECT_NAME" value="%ANSIBLE_CI_PROJECT_NAME%" />
+          <param name="ANSIBLE_CI_PROJECT_NAMESPACE" value="%ANSIBLE_CI_PROJECT_NAMESPACE%" />
+          <param name="ANSIBLE_CI_VERSION" value="%ANSIBLE_CI_VERSION%" />
+          <param name="ANSIBLE_CLOUD_TYPE" value="%ANSIBLE_CLOUD_TYPE%" />
+          <param name="ANSIBLE_COMMIT_SHA" value="%system.build.vcs.number%" />
+          <param name="ANSIBLE_DEPLOY_USERNAME" value="%ANSIBLE_DEPLOY_USERNAME%" />
+          <param name="ANSIBLE_ENVIRONMENT" value="%ANSIBLE_ENVIRONMENT%" />
+          <param name="ANSIBLE_PRODUCT_NAME" value="%ANSIBLE_PRODUCT_NAME%" />
+          <param name="ANSIBLE_REGISTRY_URL" value="%ANSIBLE_REGISTRY_URL%" />
+          <param name="ANSIBLE_REGISTRY_USERNAME" value="%ANSIBLE_REGISTRY_USERNAME%" />
+          <param name="ANSIBLE_RUN_TYPE" value="%ANSIBLE_RUN_TYPE%" />
+          <param name="ANSIBLE_TRIGGER_TOKEN" value="%ANSIBLE_TRIGGER_TOKEN%" />
+          <param name="ANSIBLE_VERSION" value="%ANSIBLE_VERSION%" />
+          <param name="A_DEPLOY_PASSWORD" value="zxx775d03cbe80d301b" />
+          <param name="A_ENV_SECURITY" value="%A_ENV_SECURITY%" />
+          <param name="A_VAULT_PASSWORD" value="zxx775d03cbe80d301b" />
+          <param name="INIT_PASS" value="zxx175d32bfa837dc7e" />
+          <param name="MAIN_ANSIBLE_BUILD_ID" value="%MAIN_ANSIBLE_BUILD_ID%" />
+          <param name="RunningOfferForBuild" value="%RunningOfferForBuild%" />
+          <param name="RunningOfferForPublish" value="%RunningOfferForPublish%" />
+          <param name="RunningOnlyQA" value="%RunningOnlyQA%" />
+          <param name="message" value="zxx175d32bfa837dc7e" />
+          <param name="teamcity.step.mode" value="default" />
+        </parameters>
+      </runner>
+      <runner id="RUNNER_13" name="QA" type="ReactivePayPci_CiCdChain_5qaRunningTestSuiteFromPythonQA1">
+        <parameters>
+          <param name="ANSIBLE_APPLICATION_TYPE" value="%ANSIBLE_APPLICATION_TYPE%" />
+          <param name="ANSIBLE_CI_PROJECT_NAME" value="%ANSIBLE_CI_PROJECT_NAME%" />
+          <param name="ANSIBLE_CI_PROJECT_NAMESPACE" value="%ANSIBLE_CI_PROJECT_NAMESPACE%" />
+          <param name="ANSIBLE_CI_VERSION" value="%ANSIBLE_CI_VERSION%" />
+          <param name="ANSIBLE_CLOUD_TYPE" value="%ANSIBLE_CLOUD_TYPE%" />
+          <param name="ANSIBLE_COMMIT_SHA" value="%ANSIBLE_COMMIT_SHA%" />
+          <param name="ANSIBLE_DEPLOY_USERNAME" value="%ANSIBLE_DEPLOY_USERNAME%" />
+          <param name="ANSIBLE_ENVIRONMENT" value="%ANSIBLE_ENVIRONMENT%" />
+          <param name="ANSIBLE_PRODUCT_NAME" value="%ANSIBLE_PRODUCT_NAME%" />
+          <param name="ANSIBLE_REGISTRY_URL" value="%ANSIBLE_REGISTRY_URL%" />
+          <param name="ANSIBLE_REGISTRY_USERNAME" value="%ANSIBLE_REGISTRY_USERNAME%" />
+          <param name="ANSIBLE_RUN_TYPE" value="%ANSIBLE_RUN_TYPE%" />
+          <param name="ANSIBLE_TRIGGER_TOKEN" value="%ANSIBLE_TRIGGER_TOKEN%" />
+          <param name="ANSIBLE_VERSION" value="%ANSIBLE_VERSION%" />
+          <param name="A_DEPLOY_PASSWORD" value="zxx175d32bfa837dc7e" />
+          <param name="A_ENV_SECURITY" value="%A_ENV_SECURITY%" />
+          <param name="A_VAULT_PASSWORD" value="zxx175d32bfa837dc7e" />
+          <param name="INIT_PASS" value="zxx175d32bfa837dc7e" />
+          <param name="MAIN_ANSIBLE_BUILD_ID" value="%MAIN_ANSIBLE_BUILD_ID%" />
+          <param name="RunningOfferForBuild" value="%RunningOfferForBuild%" />
+          <param name="RunningOfferForPublish" value="%RunningOfferForPublish%" />
+          <param name="RunningOnlyQA" value="%RunningOnlyQA%" />
+          <param name="message" value="zxx175d32bfa837dc7e" />
+          <param name="teamcity.step.mode" value="default" />
+        </parameters>
+      </runner>
+    </build-runners>
+    <vcs-settings>
+      <vcs-entry-ref root-id="Teamcity" />
+    </vcs-settings>
+    <requirements />
+    <build-triggers />
+    <build-extensions>
+      <extension id="BUILD_EXT_10" type="commit-status-publisher">
+        <parameters>
+          <param name="gitlabApiUrl" value="https://gitlab.adam.local.cloud.eve.vortice.eden/api/v4" />
+          <param name="publisherId" value="gitlabStatusPublisher" />
+          <param name="secure:gitlabAccessToken" value="credentialsJSON:3bdec7f0-9bfb-470b-befb-cde6bcf141cb" />
+          <param name="vcsRootId" value="Teamcity" />
+        </parameters>
+      </extension>
+      <extension id="BUILD_EXT_11" type="pullRequests">
+        <parameters>
+          <param name="authenticationType" value="token" />
+          <param name="providerType" value="gitlab" />
+          <param name="secure:accessToken" value="credentialsJSON:3bdec7f0-9bfb-470b-befb-cde6bcf141cb" />
+          <param name="vcsRootId" value="Teamctity" />
+        </parameters>
+      </extension>
+    </build-extensions>
+    <cleanup />
+  </settings>
+</build-type>
+

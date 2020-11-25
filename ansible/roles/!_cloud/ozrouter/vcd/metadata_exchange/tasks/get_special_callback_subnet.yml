@@ -1,0 +1,21 @@
+# ПОВТОРНЫЙ ВЫЗОВ ДОБАВЛЕНИЯ ОБЪЕКТА SECURITY/GROUPS(ROLES), ИМЯ ОБЪЕКТА = КЛЮЧ, DESCRIPTION = ЗНАЧЕНИЕ 
+# РОЛЬ КАК ОБЪЕКТ ДЛЯ БЛОКИРОВКИ И УСТАНОВЛЕНИЯ ФАКТА НАЛИЧИЯ СЕТЕЙ ДЛЯ ПОРТА/ПОДСЕТИ - КЛЮЧ / ЗНАЧЕНИЕ
+# ВОЗВРАЩАЕТ СОСТОЯНИЕ - $(ИЗМЕНЕНО) - Catalog_Zone_Object_ports_Results.changed - да / нет -> \n
+# ЕСЛИ: changed is true ТОГДА итерируемые сети добавлены как объект k/v\ -> 
+# ЕСЛИ: changed is false ТОГДА итерируемые сети заменены на полученные объекты из k/v\ -> 
+# ПОВТОРНЫЙ ОБРАБОТЧИК СОСТОЯНИЯ: port_dispetcher.yml
+
+############################################################################################
+# ГЕНЕРИРУЕМ ПОДСЕТИ АВТОМАТИЧЕСКИ, ПРОВЕРЯЕМ СНОВА
+############################################################################################
+# - name: SPECIAL CALLBACK SUBNET | 3-WAY Ports | Include the 3-way ports for services keys renew
+#   include_tasks: 3-way-subnets.yml
+
+
+#   include_tasks: fetch_ports.yml
+
+
+# # INCLUDE SELECT RUN TYPE AND SELECT TARGET NETWORKS OBJECTS DETERMINATION
+# - name: META RERUN | Run ports Network Zones Dispetcher
+#   include_tasks: get_special_meta_main.yml
+

@@ -1,0 +1,7 @@
+- name: Running Tomcat Compliance Testing
+  hosts: "{{ HOSTS }}"
+  become: true
+  roles:
+    - name: Tomcat tests
+      role: ./!_configuration/tomcat/compliance
+  tags: [tomcat-compliance]

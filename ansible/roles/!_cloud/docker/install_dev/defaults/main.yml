@@ -1,0 +1,13 @@
+packages_list:
+    - apt-transport-https 
+    - ca-certificates 
+    - curl 
+    - software-properties-common
+    - python-pip
+    - python3-pip
+
+packages_to_remove_check:
+    - docker
+    - docker-ce
+    - docker-engine
+    - docker.io

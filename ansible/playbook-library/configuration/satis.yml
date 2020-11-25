@@ -1,0 +1,44 @@
+- name: Vova davai pisat nazvaniya tasok a to kogda lyetsya 5000tish playbook voobshe ne ochevidno chto proishodit. please. im so sad.
+  hosts: source-base-host
+  become: true
+
+  vars:
+    SATIS_DIRECTORY: /var/www/satis
+
+  tasks:
+  - name: Delete previous project
+    file:
+      path: "{{ SATIS_DIRECTORY }}"
+      state: absent
+
+  - name: Create project
+    composer:
+      command: create-project
+      arguments: composer/satis --stability=dev --keep-vcs
+      working_dir: /var/www
+
+  - name: Copy configuration
+    copy:
+      src: "files/satis.json"
+      dest: "{{ SATIS_DIRECTORY }}"
+      owner: www-data
+      group: www-data
+
+  - cron:
+     name: "Update Satis"
+     job: "php {{ SATIS_DIRECTORY }}/bin/satis build {{ SATIS_DIRECTORY }}/satis.json {{ SATIS_DIRECTORY }}/public"
+     user: www-data
+
+  - name: Change permissions
+    file:
+      path: "{{ SATIS_DIRECTORY }}"
+      state: directory
+      owner: "www-data"
+      group: "www-data"
+      mode: 0775
+      recurse: true
+
+  - name: Restart nginx
+    service:
+      name: nginx
+      state: restarted

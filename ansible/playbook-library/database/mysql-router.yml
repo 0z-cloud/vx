@@ -1,0 +1,6 @@
+- name: Install and configure mysql router 
+  hosts: "{{ HOSTS | default('vortex-mysql-router-client') }}"
+  become: true
+  roles:
+    - name: Install and configure mysql router 
+      role: ./!_databases/mysql-router/

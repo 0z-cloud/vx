@@ -1,0 +1,280 @@
+# NG DEPLOY STRATEGY
+
+deploy_strategy:
+  main:
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        parallelism: 1
+        failure_action: pause
+        delay: 10s
+      restart_policy:
+        condition: always
+        delay: 50s
+        max_attempts: 10
+        window: 120s
+      # placement:
+      #   constraints:
+      #     - node.role == worker
+  stateless:
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        parallelism: 1
+        failure_action: pause
+        delay: 10s
+      restart_policy:
+        condition: always
+        delay: 10s
+        max_attempts: 5
+        window: 120s
+  longress:
+    deploy:
+      mode: replicated
+      replicas: 2
+      update_config:
+        parallelism: 1
+        failure_action: pause
+        delay: 300s
+      restart_policy:
+        condition: always
+        delay: 90s
+        max_attempts: 6
+        window: 300s
+      # placement:
+      #   constraints:
+      #     - node.role == worker
+    # configs:
+    #   - source: common_config
+    #     target: /data/config/node_swarm_config.json
+    #   - source: consul_server_config
+    #     target: /data/config/config.json
+    # secrets:
+    #   - consul_ca_file.cer
+    #   - consul_cert_file.cer
+    #   - consul_key_file.key
+    #   - consul_common_secrets_config.json
+    #   - consul_server_secrets_config.json
+
+all_services_remap_docker_compose_generate:
+    backend:
+      image: "backend"
+      build_context: services
+      tag: "{{ version_ansible_build_id }}"
+      location: "{{ default_docker_image_environment_location }}"
+      # eden_vortice_mail_server_service_listen_port: 3001
+      ports: 
+        - "{{ backend_service_listen_port }}:{{ backend_service_listen_port }}"
+      scale: 1
+      attached_networks_main: "{{ docker_compose_netwroks.default }}"
+      deployment_strategy: high_availability
+      rollback_parallelism: 1
+      rollback_monitor: 60s
+      rollback_max_failure_ratio: ".2"
+      depends_on:
+        - "mariadb"
+      depends_on_condition:
+        postgres:
+          condition: service_healthy
+      mode: global
+      endpoint_mode: vip
+      order: start-first
+      container_type: service
+      placement: manager
+      k8s_container_type: python
+      k8s_service_protocol: HTTPS
+      k8s_service_placement: true
+
+    frontend:
+      image: "frontend"
+      build_context: services
+      tag: "{{ version_ansible_build_id }}"
+      location: "{{ default_docker_image_environment_location }}"
+      # frontend_service_listen_port: 3004
+      ports: 
+        - "{{ frontend_service_listen_port }}:{{ frontend_service_listen_port }}"
+      scale: 1
+      attached_networks_main: "{{ docker_compose_netwroks.default }}"
+      deployment_strategy: high_availability
+      rollback_parallelism: 1
+      rollback_monitor: 60s
+      rollback_max_failure_ratio: ".2"
+      # depends_on:
+      #   - "mariadb"
+      #   - "backend"
+      depends_on_condition:
+        postgres:
+          condition: service_healthy
+      mode: global
+      endpoint_mode: vip
+      order: start-first
+      container_type: service
+      placement: manager
+      k8s_container_type: python
+      k8s_service_protocol: HTTPS
+      k8s_service_placement: true
+
+    mariadb:
+      image: "mariadb"
+      build_context: dockerfiles
+      tag: "latest"
+      volumes:
+        - "{{ default_docker_database_mariadb_environment_location }}"
+        - "{{ default_docker_database_mariadb_logs_environment_location }}"
+      location: "{{ default_docker_image_environment_location }}"
+      ports: 
+        - "{{ mariadb_service_listen_port }}:{{ mariadb_service_listen_port }}"
+      scale: 1
+      attached_networks_main: "{{ docker_compose_netwroks.default }}"
+      healthcheck:
+          test: ["CMD", "mysqladmin", "ping", "--silent"]
+      # healthcheck:
+      #   test: ["CMD-SHELL", "pg_isready -U postgres"]
+      #   interval: 50s
+      #   timeout: 5s
+      #   retries: 10
+      mode: global
+      endpoint_mode: vip
+      order: start-first
+      container_type: database
+      resources:
+        limits:
+          cpus: "4"
+          memory: "2045M"
+        reservations:
+          cpus: "2"
+          memory: "2045M"
+      placement: manager
+      k8s_container_type: database
+      k8s_service_protocol: HTTPS
+      k8s_service_placement: true
+      k8s_storage_space_size: 20Gi
+
+    # mariadb:
+    #   image: "mariadb"
+    #   build_context: dockerfiles
+    #   tag: "latest"
+    #   volumes:
+    #     - "{{ default_docker_database_mariadb_environment_location }}"
+    #     - "{{ default_docker_database_mariadb_logs_environment_location }}"
+    #   location: "{{ default_docker_image_environment_location }}"
+    #   ports: 
+    #     - "{{ mariadb_service_listen_port }}:{{ mariadb_service_listen_port }}"
+    #   scale: 1
+    #   attached_networks_main: "{{ docker_compose_netwroks.default }}"
+    #   healthcheck:
+    #       test: ["CMD", "mysqladmin", "ping", "--silent"]
+    #   # healthcheck:
+    #   #   test: ["CMD-SHELL", "pg_isready -U postgres"]
+    #   #   interval: 50s
+    #   #   timeout: 5s
+    #   #   retries: 10
+    #   mode: global
+    #   endpoint_mode: vip
+    #   order: start-first
+    #   container_type: database
+    #   resources:
+    #     limits:
+    #       cpus: "4"
+    #       memory: "2045M"
+    #     reservations:
+    #       cpus: "2"
+    #       memory: "2045M"
+    #   placement: manager
+    #   k8s_container_type: database
+    #   k8s_service_protocol: HTTPS
+    #   k8s_service_placement: true
+    #   k8s_storage_space_size: 20Gi
+
+    nginx:
+      image: "nginx"
+      build_context: dockerfiles
+      tag: "latest"
+      # volumes:
+      #   - "{{ default_docker_database_nginx_environment_location }}"
+      #   - "{{ default_docker_database_nginx_config_environment_location }}"
+      # command: "nginx -g daemon off;"
+      location: "{{ default_docker_image_environment_location }}"
+      ports: 
+        - "{{ nginx_http_service_listen_port }}:{{ nginx_http_service_listen_port }}"
+        - "{{ nginx_https_service_listen_port }}:{{ nginx_https_service_listen_port }}"
+      scale: 1
+      attached_networks_main: "{{ docker_compose_netwroks.default }}"
+      deployment_strategy: high_availability
+      depends_on_condition:
+        postgres:
+          condition: service_healthy
+      mode: global
+      endpoint_mode: vip
+      order: start-first
+      no_healthcheck: true
+      container_type: service
+      placement: manager
+      k8s_container_type: webserver
+      k8s_container_node: cloud-bind-frontend-dns
+      k8s_service_protocol: HTTPS
+      k8s_service_placement: true
+
+    kibana:
+      image: "kibana"
+      tag: "{{ version_ansible_build_id }}"
+      location: "{{ default_docker_image_environment_location }}"
+      ports: "{{ kibana_service_listen_port }}:5601"
+      scale: 1
+      mode: global
+      endpoint_mode: vip
+      order: start-first
+      container_type: service
+
+    # metabase:
+    #   image: "metabase"
+    #   tag: "latest"
+    #   # volumes:
+    #   #   - "{{ default_docker_database_metabase_environment_location }}"
+    #   location: "{{ default_docker_image_environment_location }}"
+    #   ports: "{{ metabase_service_listen_port }}:3000"
+    #   scale: 1
+    #   mode: global
+    #   endpoint_mode: dnsrr
+    #   order: start-first
+    #   container_type: service
+
+    # core:
+    #   image: "core"
+    #   tag: "{{ version_ansible_build_id }}"
+    #   entrypoint: "/core/docker-compose-entrypoint.sh"
+    #   command: "rails server -b 0.0.0.0 -p 3000"
+    #   location: "{{ default_docker_image_environment_location }}"
+    #   ports: "{{ core_service_listen_port }}:3000"
+    #   scale: 2
+    #   deployment_strategy: high_availability
+    #   rollback_parallelism: 1
+    #   rollback_monitor: 60s
+    #   rollback_max_failure_ratio: ".2"
+    #   mode: global
+    #   endpoint_mode: vip
+    #   order: start-first
+    #   container_type: service
+
+
+
+special_all_services_remap_docker_compose_generate:
+
+    test:
+      image: "test"
+      tag: "{{ version_ansible_build_id }}"
+      entrypoint: "/test/docker-compose-entrypoint.sh"
+      command: "rails server -b 0.0.0.0 -p 9999"
+      location: "{{ default_docker_image_environment_location }}"
+      ports: "{{ test_service_listen_port }}:9999"
+      scale: 2
+      deployment_strategy: high_availability
+      rollback_parallelism: 1
+      rollback_monitor: 40s
+      rollback_max_failure_ratio: ".2"
+      mode: global
+      endpoint_mode: vip
+      order: start-first
+      container_type: service

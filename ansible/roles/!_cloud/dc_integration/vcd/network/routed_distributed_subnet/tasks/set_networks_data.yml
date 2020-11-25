@@ -1,0 +1,47 @@
+
+#########################################################################################################
+- name: '[!!!!DEBUG RESULT SITE-TO-SITE!!!!] DEBUG SITE-TO-SITE VI PHASE'
+  set_fact:
+      anycloud_result_vpnmesh_network_router: "{{ anycloud_result_vpnmesh_network_cut }}1/24"
+      anycloud_result_vpnmesh_network_router_without_prefix: "{{ anycloud_result_vpnmesh_network_cut }}1"
+      anycloud_result_vpnmesh_network_itself: "{{ anycloud_result_vpnmesh_network_cut }}2/24"
+      anycloud_result_vpnmesh_network_itself_without_prefix: "{{ anycloud_result_vpnmesh_network_cut }}2"
+      anycloud_result_vpnmesh_network_dhcp_start: "{{ anycloud_result_vpnmesh_network_cut }}20"
+      anycloud_result_vpnmesh_network_dhcp_end: "{{ anycloud_result_vpnmesh_network_cut }}100"
+      anycloud_result_vpnmesh_network_static_pool_start:  "{{ anycloud_result_vpnmesh_network_cut }}120"
+      anycloud_result_vpnmesh_network_static_pool_end:  "{{ anycloud_result_vpnmesh_network_cut }}180"
+
+#########################################################################################################
+- name: '[!!!!DEBUG RESULT ROUTED!!!!] DEBUG ROUTED VI PHASE'
+  set_fact:
+      anycloud_result_routed_network_router: "{{ anycloud_result_routed_network_cut }}1/24"
+      anycloud_result_routed_network_router_without_prefix: "{{ anycloud_result_routed_network_cut }}1"
+      anycloud_result_routed_network_itself: "{{ anycloud_result_routed_network_cut }}2/24"
+      anycloud_result_routed_network_itself_without_prefix: "{{ anycloud_result_routed_network_cut }}2"
+      anycloud_result_routed_network_dhcp_start: "{{ anycloud_result_routed_network_cut }}20"
+      anycloud_result_routed_network_dhcp_end: "{{ anycloud_result_routed_network_cut }}100"
+      anycloud_result_routed_network_static_pool_start:  "{{ anycloud_result_routed_network_cut }}120"
+      anycloud_result_routed_network_static_pool_end:  "{{ anycloud_result_routed_network_cut }}180"
+#########################################################################################################
+- name: '[!!!!DEBUG RESULT DIRECT!!!!] DEBUG DIRECT VI PHASE'
+  set_fact:
+      anycloud_result_direct_network_router: "{{ anycloud_result_direct_network_cut }}1/24"
+      anycloud_result_direct_network_router_without_prefix: "{{ anycloud_result_direct_network_cut }}1"
+      anycloud_result_direct_network_itself: "{{ anycloud_result_direct_network_cut }}2/24"
+      anycloud_result_direct_network_itself_without_prefix: "{{ anycloud_result_direct_network_cut }}2"
+      anycloud_result_direct_network_dhcp_start: "{{ anycloud_result_direct_network_cut }}20"
+      anycloud_result_direct_network_dhcp_end: "{{ anycloud_result_direct_network_cut }}100"
+      anycloud_result_direct_network_static_pool_start:  "{{ anycloud_result_direct_network_cut }}120"
+      anycloud_result_direct_network_static_pool_end:  "{{ anycloud_result_direct_network_cut }}180"
+#########################################################################################################
+- name: '[!!!!DEBUG RESULT ISOLATED!!!!] DEBUG ISOLATED VI PHASE'
+  set_fact:
+      anycloud_result_isolated_network_router: "{{ anycloud_result_isolated_network_cut }}1/24"
+      anycloud_result_isolated_network_router_without_prefix: "{{ anycloud_result_isolated_network_cut }}1"
+      anycloud_result_isolated_network_itself: "{{ anycloud_result_isolated_network_cut }}2/24"
+      anycloud_result_isolated_network_itself_without_prefix: "{{ anycloud_result_isolated_network_cut }}1"
+      anycloud_result_isolated_network_dhcp_start: "{{ anycloud_result_isolated_network_cut }}20"
+      anycloud_result_isolated_network_dhcp_end: "{{ anycloud_result_isolated_network_cut }}100"
+      anycloud_result_isolated_network_static_pool_start:  "{{ anycloud_result_isolated_network_cut }}120"
+      anycloud_result_isolated_network_static_pool_end:  "{{ anycloud_result_isolated_network_cut }}180"
+############

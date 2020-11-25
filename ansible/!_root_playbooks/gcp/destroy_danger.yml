@@ -1,0 +1,72 @@
+
+- name: Bootstrap infrastructure from localhost to ESXi Vcenter Appliance
+  hosts: localhost
+  #strategy: free
+  gather_facts: False
+  tasks:
+    
+    # - name: Debug dict
+    #   debug:
+    #     msg: "{{ item.value.network }} {{ item.value.ip }} {{ item.value.name }}"
+    #   with_dict: "{{ vcloud_bootstrap.servers }}"
+    
+    # - name: ONE NET | Test debug when second_ip == null
+    #   debug:
+    #     msg: "{{ item.value.ip }} {{ lookup('random_mac') }}"
+    #   when: (item.value.second_ip is defined and item.value.second_ip == '') or (item.value.second_ip is not defined) or (item.value.second_ip == 'null')
+    #   with_dict: "{{ vcloud_bootstrap.servers }}"
+    
+    # - name: MULTI NET | Test debug when second_ip != null
+    #   debug:
+    #     msg: "{{ item.value.ip }} {{ lookup('random_mac') }}"
+    #   when: item.value.second_ip is defined and item.value.second_ip != '' and item.value.second_ip != 'null'
+    #   with_dict: "{{ vcloud_bootstrap.servers }}"
+
+    # - name: STOPPING | Stopping for destroy a VM
+    #   vmware_guest:
+    #     hostname: "{{ valicloud_fqdn }}"
+    #     username: "{{ valicloud_login }}"∂
+    #     password: "{{ valicloud_pass }}"
+    #     validate_certs: no
+    #     datacenter: "{{ valicloud_dc }}"
+    #     folder: "/"
+    #     name: "{{ item.value.name }}"
+    #     state: poweredoff
+    #   with_dict: "{{ vcloud_bootstrap.servers }}"
+    #   ignore_errors: true
+    #   register: stopping_topology_deploy
+    #   async: 7200
+    #   poll: 0
+    #   delegate_to: localhost 
+
+    # - name: Wait for topology deploy to complete
+    #   async_status: jid={{ item.ansible_job_id }}
+    #   register: stopping_topology_jobs
+    #   until: stopping_topology_jobs.finished
+    #   retries: 300
+    #   with_items: "{{ stopping_topology_deploy.results }}"
+    #   delegate_to: localhost 
+    #   ignore_errors: true
+
+    # - name: DESTROYING | Destroying a VM
+    #   vmware_guest:
+    #     hostname: "{{ valicloud_fqdn }}"
+    #     username: "{{ valicloud_login }}"
+    #     password: "{{ valicloud_pass }}"
+    #     validate_certs: no
+    #     datacenter: "{{ valicloud_dc }}"
+    #     folder: "/"
+    #     name: "{{ item.value.name }}"
+    #     state: absent
+    #   with_dict: "{{ vcloud_bootstrap.servers }}"
+    #   register: destroying_topology_deploy
+    #   async: 7200
+    #   poll: 0
+
+    # - name: Wait for topology deploy to complete
+    #   async_status: jid={{ item.ansible_job_id }}
+    #   register: destroying_topology_jobs
+    #   until: destroying_topology_jobs.finished
+    #   retries: 300
+    #   with_items: "{{ destroying_topology_deploy.results }}"
+    #   ignore_errors: true

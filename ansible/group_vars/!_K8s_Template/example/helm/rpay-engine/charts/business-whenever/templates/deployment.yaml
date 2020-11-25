@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "business-when.name" . }}
+  labels:
+    app: {{ include "business-when.name" . }}
+    chart: {{ template "business-when.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ include "business-when.name" . }}
+      release: {{ .Release.Name }}
+  strategy:
+    type: RollingUpdate
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "business-when.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+      - image: "{{ .Values.global.image.repository }}{{ .Values.image.image_name }}:{{ .Values.image.tag }}"
+        command: ["sh", "-c", "bundle exec whenever --update-crontab && cron -f"]
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        name: {{ .Chart.Name }}
+        envFrom:
+          - configMapRef:
+              name: {{ include "business-when.name" . }}-env
+      imagePullSecrets:
+      - name: rpay-key-reg
+
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

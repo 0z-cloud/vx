@@ -1,0 +1,4 @@
+shutdown_application: "no"
+laravel_db_migrate: "no"
+laravel_db_seed: "no"
+laravel_link_storage: "no"

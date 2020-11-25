@@ -1,0 +1,7 @@
+- name: Run the auditd playbook
+  become: true
+  hosts: "{{ HOSTS | default('all') }}"
+  roles:
+    - name: Run audit playbook for hosts
+      role: ./!_security/audit
+  tags: [auditd-security]

@@ -1,0 +1,77 @@
+  
+  # - name: Get the SHA of the template certs
+  #   shell: "sha256sum {{ ssl_cert_bot_dir }}/cert_bot.crt | awk '{print $1}'"
+  #   when: cert_bot_sites is defined and cert_bot_sites != ""
+  #   register: template_certificate_sha_sum
+  #   tags: [certbot,debug]
+    
+  # - name: Check debug2
+  #   debug: 
+  #     msg: "{{ item }}"
+  #   register: certs_instanceresult
+  #   when: cert_bot_sites is defined and cert_bot_sites != ""
+  #   with_items: |
+  #     {% raw %}[ {% endraw %} {% for dict_item in cert_bot_sites %}
+  #        {% for key, value in dict_item.items() %}
+  #        {% raw %}"{% endraw %}{{ value }}{% raw %}" {% endraw %}
+  #        {% endfor %}{% if not loop.last %}, {% endif %}
+  #     {% endfor %}    {% raw %} ]{% endraw %}
+  #   tags: [certbot,debug2]
+
+  # - name: DEBUG | Check certificates for cert_bot_sites exists
+  #   debug:
+  #     msg: "find {{ ssl_cert_bot_dir }}/{{ item }} -maxdepth 1 -type f | xargs -I ID sha256sum ID | awk '{print $1}'"
+  #   register: certs_instanceresult
+  #   when: cert_bot_sites is defined and cert_bot_sites != ""
+  #   with_items: |
+  #     {% raw %}[ {% endraw %} {% for dict_item in cert_bot_sites %}
+  #        {% for key, value in dict_item.items() %}
+  #        {% raw %}"{% endraw %}{{ value }}{% raw %}" {% endraw %}
+  #        {% endfor %}{% if not loop.last %}, {% endif %}
+  #     {% endfor %}    {% raw %} ]{% endraw %}
+  #   tags: [certbot,debug2]
+
+
+  # - name: Check certificates for cert_bot_sites exists
+  #   shell: "find {{ ssl_cert_bot_dir }} -maxdepth 1 -type f -name '{{ item }}' | xargs -I ID sha256sum ID | awk '{print $1}'"
+  #   register: certs_instanceresult
+  #   when: cert_bot_sites is defined and cert_bot_sites != ""
+  #   with_items: |
+  #     {% raw %}[ {% endraw %} {% for dict_item in cert_bot_sites %}
+  #        {% for key, value in dict_item.items() %}
+  #        {% raw %}"{% endraw %}{{ value }}{% raw %}" {% endraw %}
+  #        {% endfor %}{% if not loop.last %}, {% endif %}
+  #     {% endfor %}    {% raw %} ]{% endraw %}
+  #   tags: [certbot,debug2]
+
+  # - name: Get Status from cert_bot certificates
+  #   set_fact: 
+  #       monster: "{{ item }}"
+  #   with_items: |
+  #     {% raw %}[{{% endraw %}
+  #     {% set navigation = template_certificate_sha_sum.stdout_lines | join %}
+  #     {% for dict_item in certs_instanceresult.results %}{% for key, value in dict_item.items() %}{% if key == 'stdout' %}{% if value is defined and value != '' and value == navigation %}{% set sha_value_navigation = value %}{% for key, value in dict_item.items() %}
+  #     {% if key == 'item' %}"{{ value }}": { "state": "temporary","sha": "{{ sha_value_navigation }}", "name": "{{ value }}" }{% if not loop.last %}, {% endif %}{% endif %}{% endfor %}
+  #     {% else %}{% if value is defined and value != '' and value != navigation %}{% set sha_value_navigation = value %}{% for key, value in dict_item.items() %}{% if key == 'item' %}"{{ value }}": { "state": "good", "sha": "{{ sha_value_navigation }}", "name": "{{ value }}"}{% if not loop.last %}, {% endif %}{% endif %}{% endfor %}
+  #     {% else %}{% for key, value in dict_item.items() %}{% if key == 'item' %}"{{ value }}": { "state": "fail", "sha": "fail", "name": "{{ value }}" }{% if not loop.last %}, {% endif %}{% endif %}{% endfor %}{% endif %}{% endif %}{% endif %}
+  #     {% endfor %}{% endfor %}{% raw %}}]{% endraw %}
+  #   when: cert_bot_sites is defined and cert_bot_sites != ""
+  #   tags: [certbot,debug2]
+
+  # - name: Get Status Monster items
+  #   debug: 
+  #       msg: "{{ monster }}"
+
+  # - name: Get Status Monster items
+  #   debug: 
+  #       msg: "{{ item }}"
+  #   with_items: |
+  #     {% raw %}[{{% endraw %}
+  #     {% set navigation = template_certificate_sha_sum.stdout_lines | join %}
+  #     {% for dict_item in certs_instanceresult.results %}{% for key, value in dict_item.items() %}{% if key == 'stdout' %}{% if value is defined and value != '' and value == navigation %}{% set sha_value_navigation = value %}{% for key, value in dict_item.items() %}
+  #     {% if key == 'item' %}"{{ value }}": { "state": "temporary","sha": "{{ sha_value_navigation }}", "name": "{{ value }}" }{% if not loop.last %}, {% endif %}{% endif %}{% endfor %}
+  #     {% else %}{% if value is defined and value != '' and value != navigation %}{% set sha_value_navigation = value %}{% for key, value in dict_item.items() %}{% if key == 'item' %}"{{ value }}": { "state": "good", "sha": "{{ sha_value_navigation }}", "name": "{{ value }}"}{% if not loop.last %}, {% endif %}{% endif %}{% endfor %}
+  #     {% else %}{% for key, value in dict_item.items() %}{% if key == 'item' %}"{{ value }}": { "state": "fail", "sha": "fail", "name": "{{ value }}" }{% if not loop.last %}, {% endif %}{% endif %}{% endfor %}{% endif %}{% endif %}{% endif %}
+  #     {% endfor %}{% endfor %}{% raw %}}]{% endraw %}
+  #   when: cert_bot_sites is defined and cert_bot_sites != ""
+  #   tags: [certbot,debug]

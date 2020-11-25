@@ -1,0 +1,6 @@
+- name: Run the hook - fluent_re_add_logs
+  become: true
+  hosts: "nginx-frontend"
+  roles:
+    - name: Run the hooks fluent_re_add_logs role
+      role: ./!_hooks/fluent_re_add_logs

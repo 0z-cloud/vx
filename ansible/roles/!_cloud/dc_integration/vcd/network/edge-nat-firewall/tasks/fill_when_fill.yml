@@ -1,0 +1,12 @@
+# - name: FILL_WHEN_FILL - Show unwanted error NAT records with dynamic variable passed - fill_to_fill
+#   debug:
+#     msg: "{{ item }}"
+#   with_items: "{{ fill_to_fill }}"
+
+# - name: FILL_WHEN_FILL - Show unwanted error NAT records with dynamic variable passed - fill_to_type
+#   debug:
+#     msg: "{{ item }}"
+#   with_items: "{{ fill_to_type }}"
+
+- name: FILL_WHEN_FILL - Check and update rule by dinamic call
+  shell: vcd gateway services nat {{ fill_to_type }} {{ anycloud_result_edge_router }} {{ fill_to_fill }}

@@ -1,0 +1,268 @@
+- name: Bootstrap infrastructure from localhost to ESXi Vcenter Appliance 
+  hosts: localhost
+  gather_facts: False
+  tasks:
+  
+    - name: ONE NET WITH DATASTORE | Clone a VM from Template and customize, when one network
+      vmware_guest:
+        #guest_id: ubuntu64Guest
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        validate_certs: no
+        datacenter: "{{ anycloud_adapter_api_datacenter }}"
+        folder: "/"
+        name: "{{ item.value.name }}"
+        template: "{{ item.value.anycloud_vm_template_name }}"
+        disk: 
+          - datastore: "{{ item.value.disk.datastore }}"
+            size_gb: "{{ item.value.disk.size_gb }}"
+            type: "{{ item.value.disk.type }}"
+        networks:
+        - name: "{{ item.value.network }}"
+          ip: "{{ item.value.ip }}"
+          netmask: 255.255.255.0
+          gateway: "{{ item.value.gw }}"
+          mac: "{{ lookup('random_mac') }}"
+          domain: "{{ anycloud_domain_result }}"
+          dns_servers: "{{ anycloud_results_vpc_zone_virtual_abstract.dns_servers }}"
+          start_connected: True
+          type: static
+        customization:
+          hostname: "{{ item.value.name }}"
+          dns_servers: "{{ anycloud_results_vpc_zone_virtual_abstract.dns_servers }}"
+          domain: "{{ anycloud_domain_result }}"
+        hardware:
+          memory_mb: "{{ item.value.memory_size_mb | default('1024') }}"
+          num_cpus: "{{ item.value.cpu_count  | default('2') }}"
+        resource_pool: "{{ item.value.ansible_resource_pool | default('non_prod') }}"
+        state: poweredon
+      when: (item.value.second_ip is defined and item.value.second_ip == '') or (item.value.second_ip is not defined) or (item.value.second_ip == 'null') or (item.value.disk is defined)
+      with_dict: "{{ cloud_bootstrap.servers }}"
+
+    - name: ONE NET | Clone a VM from Template and customize, when one network
+      vmware_guest:
+        #guest_id: ubuntu64Guest
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        validate_certs: no
+        datacenter: "{{ anycloud_adapter_api_datacenter }}"
+        folder: "/"
+        name: "{{ item.value.name }}"
+        template: "{{ item.value.anycloud_vm_template_name }}"
+        # disk: 
+        #   - datastore: "vortex-storage-135Tb"
+        #     size_gb: 812
+        #     type: "thin"
+        networks:
+        - name: "{{ item.value.network }}"
+          ip: "{{ item.value.ip }}"
+          netmask: 255.255.255.0
+          gateway: "{{ item.value.gw }}"
+          mac: "{{ lookup('random_mac') }}"
+          domain: "{{ anycloud_domain_result }}"
+          dns_servers: "{{ anycloud_results_vpc_zone_virtual_abstract.dns_servers }}"
+          start_connected: True
+          type: static
+        customization:
+          hostname: "{{ item.value.name }}"
+          dns_servers: "{{ anycloud_results_vpc_zone_virtual_abstract.dns_servers }}"
+          domain: "{{ anycloud_domain_result }}"
+        hardware:
+          memory_mb: "{{ item.value.memory_size_mb | default('1024') }}"
+          num_cpus: "{{ item.value.cpu_count  | default('2') }}"
+        resource_pool: "{{ item.value.ansible_resource_pool | default('non_prod') }}"
+        state: poweredon
+      when: (item.value.second_ip is defined and item.value.second_ip == '') or (item.value.second_ip is not defined) or (item.value.second_ip == 'null') or (item.value.disk is not defined)
+      with_dict: "{{ cloud_bootstrap.servers }}"
+
+    - name: MULTI NET | Clone a VM from Template and customize, when more then one network
+      vmware_guest:
+        #guest_id: ubuntu64Guest
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        validate_certs: no
+        datacenter: "{{ anycloud_adapter_api_datacenter }}"
+        folder: "/"
+        name: "{{ item.value.name }}"
+        template: "{{ item.value.anycloud_vm_template_name }}"
+        # disk: 
+        #   - datastore: "vortex-storage-135Tb"
+        #     size_gb: 812
+        #     type: "thin"
+        networks:
+        - name: "{{ item.value.network }}"
+          ip: "{{ item.value.ip }}"
+          netmask: 255.255.255.0
+          gateway: "{{ item.value.gw }}"
+          mac: "{{ lookup('random_mac') }}"
+          domain: "{{ anycloud_domain_result }}"
+          dns_servers: "{{ anycloud_results_vpc_zone_virtual_abstract.dns_servers }}"
+          start_connected: True
+          type: static
+        - name: "{{ item.value.second_network }}"
+          ip: "{{ item.value.second_ip }}"
+          netmask: 255.255.255.0
+          mac: "{{ lookup('random_mac') }}"
+          start_connected: True
+          type: static
+        customization:
+          hostname: "{{ item.value.name }}"
+          dns_servers: "{{ anycloud_results_vpc_zone_virtual_abstract.dns_servers }}"
+          domain: "{{ anycloud_domain_result }}"
+        hardware:
+          memory_mb: "{{ item.value.memory_size_mb | default('1024') }}"
+          num_cpus: "{{ item.value.cpu_count | default('2') }}"
+        resource_pool: "{{ item.value.ansible_resource_pool | default('non_prod') }}"
+        state: poweredon
+      when: item.value.second_ip is defined and item.value.second_ip != '' and item.value.second_ip != 'null' or (item.value.disk is not defined) 
+      with_dict: "{{ cloud_bootstrap.servers }}"
+
+    - name: Awaiting for reconfigure
+      raw: sleep 60
+
+    - name: ONE NET WITH DATASTORE |  Reconfigure a VM from Template and customize, when one network
+      vmware_guest:
+        #guest_id: ubuntu64Guest
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        validate_certs: no
+        datacenter: "{{ anycloud_adapter_api_datacenter }}"
+        folder: "/"
+        name: "{{ item.value.name }}"
+        template: "{{ item.value.anycloud_vm_template_name }}"
+        disk: 
+          - datastore: "{{ item.value.disk.datastore }}"
+            size_gb: "{{ item.value.disk.size_gb }}"
+            type: "{{ item.value.disk.type }}"
+        networks:
+        - name: "{{ item.value.network }}"
+          ip: "{{ item.value.ip }}"
+          netmask: 255.255.255.0
+          gateway: "{{ item.value.gw }}"
+          mac: "{{ lookup('random_mac') }}"
+          domain: "{{ anycloud_domain_result }}"
+          dns_servers: "{{ anycloud_results_vpc_zone_virtual_abstract.dns_servers }}"
+          start_connected: True
+          type: static
+        customization:
+          hostname: "{{ item.value.name }}"
+          dns_servers: "{{ anycloud_results_vpc_zone_virtual_abstract.dns_servers }}"
+          domain: "{{ anycloud_domain_result }}"
+        hardware:
+          memory_mb: "{{ item.value.memory_size_mb | default('1024') }}"
+          num_cpus: "{{ item.value.cpu_count  | default('2') }}"
+        resource_pool: "{{ item.value.ansible_resource_pool | default('non_prod') }}"
+        state: present
+      when: (item.value.second_ip is defined and item.value.second_ip == '') or (item.value.second_ip is not defined) or (item.value.second_ip == 'null') or (item.value.disk is defined)
+      with_dict: "{{ cloud_bootstrap.servers }}"
+
+    - name: ONE NET | Reconfigure a VM from Template and customize, when one network
+      vmware_guest:
+        #guest_id: ubuntu64Guest
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        validate_certs: no
+        datacenter: "{{ anycloud_adapter_api_datacenter }}"
+        folder: "/"
+        name: "{{ item.value.name }}"
+        template: "{{ item.value.anycloud_vm_template_name }}"
+        # disk: 
+        #   - datastore: "vortex-storage-135Tb"
+        #     size_gb: 812
+        #     type: "thin"
+        networks:
+        - name: "{{ item.value.network }}"
+          ip: "{{ item.value.ip }}"
+          netmask: 255.255.255.0
+          gateway: "{{ item.value.gw }}"
+          mac: "{{ lookup('random_mac') }}"
+          domain: "{{ anycloud_domain_result }}"
+          #dns_servers: "{{ anycloud_results_vpc_zone_virtual_abstract.dns_servers }}"
+          start_connected: True
+          type: static
+        customization:
+          hostname: "{{ item.value.name }}"
+          dns_servers: "{{ anycloud_results_vpc_zone_virtual_abstract.dns_servers }}"
+          domain: "{{ anycloud_domain_result }}"
+        hardware:
+          memory_mb: "{{ item.value.memory_size_mb | default('1024') }}"
+          num_cpus: "{{ item.value.cpu_count  | default('2') }}"
+        resource_pool: "{{ item.value.ansible_resource_pool | default('non_prod') }}"
+        state: present
+      when: (item.value.second_ip is defined and item.value.second_ip == '') or (item.value.second_ip is not defined) or (item.value.second_ip == 'null') or (item.value.disk is not defined) 
+      with_dict: "{{ cloud_bootstrap.servers }}"
+
+    - name: MULTI NET | Reconfigure a VM from Template and customize, when more then one network
+      vmware_guest:
+        #guest_id: ubuntu64Guest
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        validate_certs: no
+        datacenter: "{{ anycloud_adapter_api_datacenter }}"
+        folder: "/"
+        name: "{{ item.value.name }}"
+        template: "{{ item.value.anycloud_vm_template_name }}"
+        # disk: 
+        #   - datastore: "vortex-storage-135Tb"
+        #     size_gb: 812
+        #     type: "thin"
+        networks:
+        - name: "{{ item.value.network }}"
+          ip: "{{ item.value.ip }}"
+          netmask: 255.255.255.0
+          gateway: "{{ item.value.gw }}"
+          mac: "{{ lookup('random_mac') }}"
+          domain: "{{ anycloud_domain_result }}"
+          dns_servers: "{{ anycloud_results_vpc_zone_virtual_abstract.dns_servers }}"
+          start_connected: True
+          type: static
+        - name: "{{ item.value.second_network }}"
+          ip: "{{ item.value.second_ip }}"
+          netmask: 255.255.255.0
+          mac: "{{ lookup('random_mac') }}"
+          start_connected: True
+          type: static
+        customization:
+          hostname: "{{ item.value.name }}"
+          dns_servers: "{{ anycloud_results_vpc_zone_virtual_abstract.dns_servers }}"
+          domain: "{{ anycloud_domain_result }}"
+        hardware:
+          memory_mb: "{{ item.value.memory_size_mb | default('1024') }}"
+          num_cpus: "{{ item.value.cpu_count | default('2') }}"
+        resource_pool: "{{ item.value.ansible_resource_pool | default('non_prod') }}"
+        state: present
+      when: item.value.second_ip is defined and item.value.second_ip != '' and item.value.second_ip != 'null' or (item.value.disk is not defined) 
+      with_dict: "{{ cloud_bootstrap.servers }}"
+
+    # - name: POWER ON | POWER ON a VM
+    #   vmware_guest:
+    #     hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+    #     username: "{{ anycloud_adapter_api_user }}"
+    #     password: "{{ anycloud_adapter_api_password }}"
+    #     validate_certs: no
+    #     datacenter: "{{ anycloud_adapter_api_datacenter }}"
+    #     folder: "/"
+    #     name: "{{ item.value.name }}"
+    #     state: poweredon
+    #   with_dict: "{{ cloud_bootstrap.servers }}"
+
+    - name: Awaiting for reconfigure before restart
+      raw: sleep 60
+
+    - name: RESTARTING | RESTARTING a VM
+      vmware_guest:
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        validate_certs: no
+        datacenter: "{{ anycloud_adapter_api_datacenter }}"
+        folder: "/"
+        name: "{{ item.value.name }}"
+        state: restarted
+      with_dict: "{{ cloud_bootstrap.servers }}"

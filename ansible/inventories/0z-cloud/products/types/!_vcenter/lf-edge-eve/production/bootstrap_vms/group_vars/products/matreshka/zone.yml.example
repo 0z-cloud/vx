@@ -1,0 +1,77 @@
+#########################################################################################################################################################################################################################################
+# AnyCloud User Zone Adapter Vault Sercters Out
+#
+# 0z-cloud is stilling stay in...       zen...
+#########################################################################################################################################################################################################################################
+# AnyCloud:                             Default Settings Configuration 
+#########################################################################################################################################################################################################################################
+# Version:                              v.1.0.1-alpha-devops
+# VCS Group:                            Vx
+# Product:                              lf-edge-eve 
+# Repository:                           lf-edge-eve 
+# user:                                 westsouthnight 
+# current:                              stable
+# salt:                                 mashumoto
+# vector:                               751888
+# timeto:                               zen...
+# Environment:                          template
+# Usage:                                anycloud
+# Infrastructure is in want target:     production
+#########################################################################################################################################################################################################################################
+# PRIMARY TEMPLATE !
+##########################################################################################################################################################################################################################################
+
+##########################################################################################################################################################################################################################################
+# AnyCloud ZONE: Cloud Virtual Sector/Section/Zone Primary Security Group
+##########################################################################################################################################################################################################################################
+# {{ anycloud_region }}-{{ anycloud_zone }}-{{ ansible_datacenter }}-{{ anycloud_zone_sector_section_primary_security_group }}-{{ anycloud_zone_virtual_cloud_name }}
+##########################################################################################################################################################################################################################################
+
+# anycloud_allocate_public_ip: True
+
+# ##### ZONE of ZONES SHARED BETWEEN ZONEs vpc zone parameters
+
+# anycloud_region: worldwide
+# anycloud_zone: earth
+# anycloud_zone_sector_section_primary_security_group: "SG_{{ ansible_environment }}"
+# anycloud_zone_sector_section_primary_security_group_name: "Security_Group_{{ ansible_environment }}"
+# anycloud_zone_sector_section_primary_security_group_description: "Security Group resource environment: {{ ansible_environment }} region: {{ anycloud_landscape_region }} {{ ansible_datacenter }}"
+# anycloud_zone_virtual_cloud_primary_network_virtual_communication_device_description: "Create a new VPC resource {{ ansible_environment }} {{ ansible_datacenter }}"
+# anycloud_zone_virtual_cloud_name: "vZone_Sector_Network_Exchange_{{ ansible_product }}_zone_{{ ansible_environment }}_{{ ansible_datacenter }}"
+# anycloud_zone_adapter_cloud_name_of_network: "vZone_Sector_Network_Exchange_{{ ansible_product }}_zone_{{ ansible_environment }}_{{ ansible_datacenter }}"
+# #anycloud_zone_adapter_cloud_name_of_network: "vZone_Sector_Network_Exchange_{{ ansible_product }}_Device_{{ ansible_environment }}_{{ ansible_datacenter }}"
+
+# anycloud_zone_adapter_virtual_cloud_cidr: "172.16.0.0/12"
+# anycloud_zone_adapter_zone: earth
+# anycloud_zone_adapter_region: worldwide
+# anycloud_zone_adapter_vpc_zone_virtual_abstract_layout: all
+# anycloud_zone_adapter_virtual_cloud_primary_network_virtual_communication_device_description: "Virtual Primary on {{ anycloud_zone_adapter_region }} Cloud Network Communication Device for {{ ansible_environment }} on zone {{ anycloud_zone_adapter_zone }}"
+# anycloud_zone_adapter_virtual_cloud_primary_network_virtual_communication_device_dns_suffix: "dn"
+
+# ##### VIRTUAL
+
+# anycloud_virtual_cloud_name: "anycloud_in_{{ anycloud_region }}-{{ anycloud_zone }}-{{ ansible_datacenter }}_{{ ansible_product }}_{{ ansible_environment }}"
+# anycloud_virtual_cloud_description: "vZone_{{ anycloud_zone }}_Sector_Network_{{ anycloud_region }}_Exchgange_{{ ansible_product }}_zone_{{ ansible_environment }}"
+
+# anycloud_virtual_cloud_zone: "{{ anycloud_zone_virtual_cloud_name }}"
+
+##### ADAPTER SPECIFIC
+##########################################################################################################################################################################################################################################
+# Settings which getted from anycloud web console of your Cloud Provider account
+##########################################################################################################################################################################################################################################
+
+anycloud_adapter_virtual_cloud_application_box_sector: "{{ ansible_product }}{% raw %}-{% endraw %}{{ ansible_environment }}{% raw %}-{% endraw %}{{ ansible_datacenter }}{% raw %}-{% endraw %}{{ ansible_datacenter_location }}"
+anycloud_adapter_virtual_cloud_cidr: '172.16.0.0/24'
+anycloud_adapter_global_virtual_cloud_cidr: "192.168.0.0/16"
+anycloud_adapter_domain_fqdn: "cloud.rnp.com"
+anycloud_adapter_virtual_datacenter: lf-vx-z1e-vcd
+anycloud_adapter_virtual_organization: AIM
+anycloud_adapter_virtual_application_box_sector: vapp_{{ ansible_environment }}_{{ ansible_product }}_sector
+
+###### DEFAULTS VIRTUAL
+anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_dns_suffix: "dn"
+anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_description: "Virtual Primary Cloud Network Communication Device On Environment - {{ ansible_environment }}"
+anycloud_defaults_virtual_cloud_primary_network_virtual_communication_cidr: "192.168.103.1/24"
+anycloud_defaults_virtual_cloud_primary_network_virtual_communication_cidr_static_range: 
+ - "192.168.103.5-192.168.103.10"
+ - "192.168.103.15-192.168.103.20"

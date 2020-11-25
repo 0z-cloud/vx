@@ -1,0 +1,63 @@
+<VirtualHost 0.0.0.0:80>
+        ServerAdmin webmaster@localhost
+        ServerName {% if item.name != '' %}{{ item.name }}.{% endif %}{{ item.domain }}
+        DocumentRoot /var/www/{{ item.appname }}/current/public
+        <Location />
+                RewriteEngine on
+                RewriteCond %{HTTPS} !^on$ [NC]
+                RewriteRule . https://{% if item.name != '' %}{{ item.name }}.{% endif %}{{ item.domain }}{% if item['ssl-port'] != '' %}:{{ item['ssl-port'] }}{% endif %}%{REQUEST_URI}  [L]
+        </Location>
+</VirtualHost>
+<IfModule mod_ssl.c>
+        <VirtualHost 0.0.0.0:{{ item['ssl-port']|default('443',true) }}>
+                ServerName {% if item.name != '' %}{{ item.name }}.{% endif %}{{ item.domain }}
+                ServerAdmin webmaster@localhost
+                DocumentRoot /var/www/{{ item.appname }}/current/public
+
+                <Directory /var/www/{{ item.appname }}/current/public>
+                        AddDefaultCharset UTF8
+                        Options Includes Indexes FollowSymLinks
+                        AllowOverride All
+                        Order allow,deny
+                        allow from all
+                </Directory>
+
+                LogLevel info ssl:warn
+                ErrorLog ${APACHE_LOG_DIR}/{% if item.name != '' %}{{ item.name }}.{% endif %}{{ item.domain }}_error.log
+                CustomLog ${APACHE_LOG_DIR}/{% if item.name != '' %}{{ item.name }}.{% endif %}{{ item.domain }}_access.log combined
+
+                SSLEngine on
+{% if item['ssl-key'] != '' and item['ssl-crt'] != '' %}
+                SSLCertificateFile /etc/apache2/ssl/{{ item['ssl-crt'] }}
+                SSLCertificateKeyFile /etc/apache2/ssl/{{ item['ssl-key'] }}
+{% else %}
+                SSLCertificateFile /etc/ssl/certs/ssl-cert-snakeoil.pem
+	        SSLCertificateKeyFile /etc/ssl/private/ssl-cert-snakeoil.key
+{% endif %}
+
+                SSLCompression off
+                SSLProtocol all -SSLv3 -TLSv1 -TLSv1.1
+{% if hostvars[inventory_hostname].ansible_distribution_major_version >= '18' %}
+                SSLSessionTickets off
+{% endif %}
+                SSLCipherSuite "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256"
+                SSLHonorCipherOrder on
+                SetEnvIf User-Agent ".*MSIE.*" nokeepalive ssl-unclean-shutdown
+
+                Header always set X-XSS-Protection "1; mode=block"
+                Header always set X-Content-Type-Options: nosniff
+
+                FileEtag -Inode
+
+                <FilesMatch "\.(cgi|shtml|phtml|php)$">
+                        SSLOptions +StdEnvVars
+                </FilesMatch>
+
+                BrowserMatch "MSIE [2-6]" \
+                        nokeepalive ssl-unclean-shutdown \
+                        downgrade-1.0 force-response-1.0
+                BrowserMatch "MSIE [17-9]" ssl-unclean-shutdown
+        </VirtualHost>
+</IfModule>
+
+# vim: syntax=apache ts=4 sw=4 sts=4 sr noet

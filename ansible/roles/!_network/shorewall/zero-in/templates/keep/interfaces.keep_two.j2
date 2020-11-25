@@ -1,0 +1,210 @@
+################################################################################################################################################################################################################################################################################################################         
+#                   #   ANSIBLE MANAGED: {{ ansible_managed }}
+################################################################################################################################################################################################################################################################################################################
+# INTERFACES                                    # FILE: /etc/shorewall/interfaces                    # detect     
+################################################################################################################################################################################################################################################################################################################
+# ZONE          #                               # INTERFACE     #                                    # BROARCAST   #                                 # OPTIONS       #
+#################                               #################                                    #################                               #################
+
+## PRIMARY INTERFACES #
+{% set first_ipv4_alias = hostvars[inventory_hostname]['ansible_default_ipv4']['interface'] %}
+{% set second_ipv4_alias = hostvars[inventory_hostname]['second_iface'] %}
+{% if first_ipv4_alias != second_ipv4_alias %}
+wan                                               {{ first_ipv4_alias }}                                detect                                         tcpflags,routefilter,nosmurfs,logmartians
+net                                               {{ second_ipv4_alias }}                               detect                                         tcpflags,routefilter,nosmurfs,logmartians
+{% else %}
+wan                                               {{ hostvars[inventory_hostname]['second_iface'] }}    detect                                         tcpflags,routefilter,nosmurfs,logmartians
+{% endif %}
+
+######## DOCKER ZONES AND DEFAULT INTERFACES WITH BRIDGES
+
+{% for interface in docker_networks_array_interfaces.results %}
+    {% for bridge in bridges_interfaces.results %}
+        {% for bridge_name in bridge.stdout_lines %}
+
+########################################################################################################################################################################################################################################################################
+### DOCKER SECTION
+########################################################################################################################################################################################################################################################################
+######## DEFAULT INTERFACES GETTED
+
+######## SET interface_string from current interface by docker_networks_array_interfaces
+            {% set interface_string = interface.stdout_lines | join %}
+######## SEARCH TO SEARCH AND REPLACE interface_string from BRIDGE IN CURRENT bridge_name
+            {% set bridge_veth_ = bridge_name | replace(interface_string, "") %}
+
+########################################################################################################################################################################################################################################################################
+
+    # PSYSIC NETWORK ADAPTERS BRIDGES
+    ######## SET ANSIBLE DOCKER0 BRIDGE GW INTERFACE NAME FOR CHECKING
+    {% set docker_brg_network_interface = 'ansible_' + 'docker0' %}
+
+    ######## SET ANSIBLE DOCKER_GWBRIGE OVERLAY GW INTERFACE NAME FOR CHECKING
+    {% set docker_geov_network_interface = 'ansible_' + 'docker_gwbridge' %}
+
+    # VIRTUAL BRIGES ZONES FOR NETWORKS
+    ######## SET ZONE NAME FOR ess DOCKER_GWBRIGE OVERLAY NETWORK
+    {% set docker_geov_network_shorewall_zone = 'geov' %}
+
+    ######## SET ZONE FOR DEFAULT DOCKER BRIDGE
+    {% set docker_brg_bridge_docker_zero_main_network_shorewall_zone = 'brg' %}
+
+    ######## SET ZONE FOR VPN DOCKER NETWORK
+    {% set docker_gwbridge_vpn_network_shorewall_zone = 'vpn' %}
+
+    ######## SET ZONE FOR DMZ/CDE[loc] - loc INTERNAL SWARM DOCKER NETWORK
+    {% set docker_gwbridge_loc_network_shorewall_zone = 'loc' %}
+
+    ######## SET ZONE FOR SWARM INGGRESS DOCKER NETWORK
+    {% set docker_gwbridge_ess_network_shorewall_zone = 'ess' %}
+    ########
+
+
+##ZONE   INTERFACE       OPTIONS
+# net     enp4s0          tcpflags,nosmurfs,routefilter,logmartians,sourceroute=0
+# loc     br0             dhcp,tcpflags,nosmurfs,routefilter,logmartians
+# 
+########################################################################################################################################################################################################################################################################
+### CREATE SECURITY ZONES
+########################################################################################################################################################################################################################################################################
+### DEFAULT ZONES
+########################################################################################################################################################################################################################################################################
+# DOCKER DEFAULT BRIDGE INTERFACE PRIMARY ZONE
+{% if interface_string == 'docker0' %}
+######### docker0 zone next for bridge
+# target: brg                                                                                {{ interface_string }}                                detect                                         tcpflags,routeback=0,routefilter,bridge
+{{ docker_brg_network_shorewall_zone }}                                                      {{ interface_string }}                                detect                                         tcpflags,routeback=0,routefilter,bridge,nosmurfs,logmartians
+{% endif %}
+# DOCKER OVERLAY BRIDGE INTERFACE PRIMARY ZONE
+{% if interface_string == 'docker_gwbridge' %}
+######### docker_gwbridge zone next for bridge
+# target: geov                                                                             {{ interface_string }}                                detect                                         tcpflags,routeback=1,routefilter,bridge
+{{ docker_geov_network_shorewall_zone }}                                                   {{ interface_string }}                                detect                                         tcpflags,routeback=1,routefilter,bridge,nosmurfs,logmartians
+{% endif %}{% endfor %}{% endfor %}{% endfor %}
+########################################################################################################################################################################################################################################################################
+### DOCKER ZONES DONE
+########################################################################################################################################################################################################################################################################
+####
+########################################################################################################################################################################################################################################################################
+### DOCKER ess ZONES
+########################################################################################################################################################################################################################################################################
+{% for network_subnet in docker_networks_array.results %}
+    {% set network_subnet_joined = network_subnet.stdout_lines %}
+    {% set network_subnet_joined_cleaned = network_subnet_joined | join %}
+    {% set network_subnet_joined_kv = network_subnet_joined_cleaned | replace(': ', "=") %}
+    {% set network_subnet_name_cleaned = network_subnet_joined_kv |  regex_replace('=[^=]+$', '') %}
+    {% set network_subnet_cleaned = network_subnet_joined_kv |  regex_replace('.*=', '') %}
+
+    {% set docker_geov_network_interface = 'ansible_' + 'docker_gwbridge' %}
+    ######## SET ZONE NAME FOR ess DOCKER_GWBRIGE OVERLAY NETWORK
+    {% set docker_geov_network_shorewall_zone = 'geov' %}
+    ######## SET ANSIBLE DOCKER0 BRIDGE GW INTERFACE NAME FOR CHECKING
+    {% set docker_brg_network_interface = 'ansible_' + 'docker0' %}
+    ######## SET ZONE FOR DEFAULT DOCKER BRIDGE
+    {% set docker_brg_bridge_docker_zero_main_network_shorewall_zone = 'brg' %}
+    ######## SET ZONE FOR VPN DOCKER BRIDGE
+    {% set docker_brg_vpn_network_shorewall_zone = 'brgwvpn' %}
+    ######## SET ZONE FOR DMZ/CDE DOCKER BRIDGE
+    {% set docker_brg_vpn_network_shorewall_zone = 'brgwloc' %}
+    ########
+
+    # PSYSIC NETWORK ADAPTERS BRIDGES
+    ######## SET ANSIBLE DOCKER0 BRIDGE GW INTERFACE NAME FOR CHECKING
+    {% set docker_brg_network_interface = 'ansible_' + 'docker0' %}
+    ######## SET ANSIBLE DOCKER_GWBRIGE OVERLAY GW INTERFACE NAME FOR CHECKING
+    {% set docker_geov_network_interface = 'ansible_' + 'docker_gwbridge' %}
+    # VIRTUAL BRIGES ZONES FOR NETWORKS
+    ######## SET ZONE NAME FOR ess DOCKER_GWBRIGE OVERLAY NETWORK
+    {% set docker_geov_network_shorewall_zone = 'geov' %}
+    ######## SET ZONE FOR DEFAULT DOCKER BRIDGE
+    {% set docker_brg_bridge_docker_zero_main_network_shorewall_zone = 'brg' %}
+    ######## SET ZONE FOR VPN DOCKER NETWORK
+    {% set docker_gwbridge_vpn_network_shorewall_zone = 'vpn' %}
+    ######## SET ZONE FOR DMZ/CDE[loc] - loc INTERNAL SWARM DOCKER NETWORK
+    {% set docker_gwbridge_loc_network_shorewall_zone = 'loc' %}
+    ######## SET ZONE FOR SWARM INGGRESS DOCKER NETWORK
+    {% set docker_gwbridge_ess_network_shorewall_zone = 'ess' %}
+    ########
+    ######## SET ZONE INTERFACE NAME FOR SWARM INGGRESS DOCKER VPN NETWORK
+    {% set docker_default_ess_vpn_network_prefix = ansible_product + '-' + ansible_environment + '-vpn' + '_default' %}
+    ######## SET ZONE INTERFACE NAME FOR SWARM INGGRESS DOCKER DMZ/CDE/LOC NETWORK
+    {% set docker_default_cde_dmz_loc_ess_network_prefix = ansible_product + '-' + ansible_environment + '_default' %}
+    ########
+
+
+    {% for network_subnet in docker_networks_array.results %}
+    {% set network_subnet_joined = network_subnet.stdout_lines %}
+    {% set network_subnet_joined_cleaned = network_subnet_joined | join %}
+    {% set network_subnet_joined_kv = network_subnet_joined_cleaned | replace(': ', "=") %}
+    {% set network_subnet_name_cleaned = network_subnet_joined_kv |  regex_replace('=[^=]+$', '') %}
+    {% set network_subnet_cleaned = network_subnet_joined_kv |  regex_replace('.*=', '') %}
+
+    {% if 'docker_gwbridge' not in network_subnet_name_cleaned or 'ess' not in network_subnet_name_cleaned or 'bridge' not in network_subnet_name_cleaned %}
+        {% if network_subnet_name_cleaned != 'bridge' and 'ess' not in network_subnet_name_cleaned  %}
+            ess-{{ network_subnet_name_cleaned | replace('_default', "") | replace('_', "-") }}:ess                             bport4          # ess NETWORK
+        {% endif %}
+    {% endif %}
+{% endfor %}
+
+
+
+
+{% for interface in docker_networks_array_interfaces.results %} 
+    {% for bridge in bridges_interfaces.results %}
+        {% for bridge_name in bridge.stdout_lines %}
+
+    {% set interface_string = interface.stdout_lines | join %}
+    {% set bridge_veth = bridge_name | replace(interface_string, "") %}
+    {% set bridge_veth_name = bridge_veth | replace('_veth', "veth") %}
+    {% set interface_string = interface.stdout_lines | join %}
+    {% set bridge_veth_ = bridge_name | replace(interface_string, "") %}
+    {% set docker_brg_network_interface = 'ansible_' + 'docker0' %}
+    {% set docker_geov_network_interface = 'ansible_' + 'docker_gwbridge' %}
+    {% set docker_geov_network_shorewall_zone = 'geov' %}
+    {% set docker_brg_bridge_docker_zero_main_network_shorewall_zone = 'brg' %}
+    {% set docker_gwbridge_vpn_network_shorewall_zone = 'vpn' %}
+    {% set docker_gwbridge_loc_network_shorewall_zone = 'loc' %}
+    {% set docker_gwbridge_ess_network_shorewall_zone = 'ess' %}
+########################################################################################################################################################################################################################################################################
+### DOCKER ess ZONES
+########################################################################################################################################################################################################################################################################
+
+    {% for network_subnet in docker_networks_array.results %}
+
+    {% set network_subnet_joined = network_subnet.stdout_lines %}
+    {% set network_subnet_joined_cleaned = network_subnet_joined | join %}
+    {% set network_subnet_joined_kv = network_subnet_joined_cleaned | replace(': ', "=") %}
+    {% set network_subnet_name_cleaned = network_subnet_joined_kv |  regex_replace('=[^=]+$', '') %}
+    {% set network_subnet_cleaned = network_subnet_joined_kv |  regex_replace('.*=', '') %}
+    {% set docker_brg_network_interface = 'ansible_' + 'docker0' %}
+    {% set docker_geov_network_interface = 'ansible_' + 'docker_gwbridge' %}
+    {% set docker_geov_network_shorewall_zone = 'geov' %}
+    {% set docker_brg_bridge_docker_zero_main_network_shorewall_zone = 'brg' %}
+    {% set docker_gwbridge_vpn_network_shorewall_zone = 'vpn' %}
+    {% set docker_gwbridge_loc_network_shorewall_zone = 'loc' %}
+    {% set docker_gwbridge_ess_network_shorewall_zone = 'ess' %}
+    {% set docker_default_ess_vpn_network_prefix = ansible_product + '-' + ansible_environment + '-vpn' + '_default' %}
+    {% set docker_default_cde_dmz_loc_ess_network_prefix = ansible_product + '-' + ansible_environment + '_default' %}
+            
+            {% if 'docker0' in interface_string  %}
+{{ docker_brg_bridge_docker_zero_main_network_shorewall_zone }}                                                      {{ interface_string }}                                detect                                         tcpflags,routeback=0,routefilter,bridge,nosmurfs,logmartians
+            {% endif %}
+            {% if 'docker_gwbridge' in interface_string  %}
+{{ docker_geov_network_shorewall_zone }}                                                   {{ interface_string }}                                detect                                         tcpflags,routeback=1,routefilter,bridge,nosmurfs,logmartians
+            {% endif %}
+
+    {% if 'docker_gwbridge' not in network_subnet_name_cleaned or 'ess' not in network_subnet_name_cleaned or 'bridge' not in network_subnet_name_cleaned %}
+            {% if network_subnet_name_cleaned != 'bridge' and 'ess' not in network_subnet_name_cleaned  %}
+            {% if docker_default_ess_vpn_network_prefix in network_subnet_name_cleaned %}
+{{ docker_gwbridge_vpn_network_shorewall_zone }}                             {{ network_subnet_cleaned }}     detect        routeback,bridge              # ess VPN OVERLAY SWARM NETWORK
+            {% endif %}{% endif %}
+            {% if docker_default_cde_dmz_loc_ess_network_prefix in network_subnet_name_cleaned %}
+{{ docker_gwbridge_loc_network_shorewall_zone }}                             {{ network_subnet_cleaned }}      detect        routeback,bridge     # ess CDE/DMZ/LOC OVERLAY SWARM NETWORK
+            {% endif %}
+
+    {% endif %}
+    {% if 'ess' in network_subnet_cleaned %}          
+        {{ docker_gwbridge_ess_network_shorewall_zone }}                             {{ network_subnet_cleaned }}       detect        routeback,bridge    # ess ON DOCKER_GWBRIDGE INTERFACE FOR OVERLAY SWARM NETWORKS
+    {% endif %}
+{% endfor %}
+
+{% endfor %}{% endfor %}{% endfor %}

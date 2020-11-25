@@ -1,0 +1,36 @@
+# {% block 0z_ll_footer_vx %}# VORTEX VX ANSIBLE FILE BRIKKER CLOUD-VX (DEVELOPED BY WO INC. TECHNOLOGY GROUP WITH 'INDIGY CORPORATION' COOPERATOPM : RFC SPEC ALPHA 0.1 ) : # MULTIVERSE DOCKER STACK FILE GENERATOR
+
+{% raw %}version: '3.7'
+networks:
+  default:
+    driver: overlay
+    attachable: true
+{% endraw %}
+{% if PCI_NETWORKS_LIST is defined %}
+{% for item in PCI_NETWORKS_LIST %}{% raw %}
+  {% endraw %}{{ item.network }}{% raw %}:
+    driver: overlay
+    attachable: true
+  {% endraw %}
+{% endfor %}
+{% endif %}
+{% raw %}
+volumes:
+  postgres-data:
+    driver: local
+  business-gems:
+    driver: local
+  business-docs-gems:
+    driver: local
+  core-gems:
+    driver: local
+  settings-gems:
+    driver: local
+  guard-gems:
+    driver: local
+
+services:
+
+{% endraw %}
+
+{% raw %}{% endblock %}

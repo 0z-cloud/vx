@@ -1,0 +1,61 @@
+# GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'my-secret-pw' WITH GRANT OPTION; 
+
+
+# GRANT ALL PRIVILEGES ON *.* TO 'root'@'%';
+
+# ALTER USER 'jira'@'%' IDENTIFIED WITH mysql_native_password BY 'pass123';
+
+# GRANT ALL PRIVILEGES ON *.* TO 'jira'@'%';
+
+
+# CREATE USER 'jira'@'%' IDENTIFIED WITH mysql_native_password BY 'your_user_password';
+# GRANT ALL PRIVILEGES ON *.* TO 'jira'@'%' identified by 'your_user_password';
+
+# <VirtualHost *:80>
+#     ServerName jira.vortex.co
+#     Redirect / https://jira.vortex.com/
+# </VirtualHost>
+
+# <VirtualHost *:443>
+#     ServerName jira.vortex.co
+
+#     #DocumentRoot /var/www/testlink/current/public
+#     ErrorLog ${APACHE_LOG_DIR}/jira.vortex.co_error.log
+#     CustomLog ${APACHE_LOG_DIR}/jira.vortex.co_access.log combined
+#     RequestHeader set X-Forwarded-Proto "https" env=HTTPS
+#     ProxyPreserveHost On
+#     <Proxy *>
+#       Order deny,allow
+#       Allow from all
+#     </Proxy>
+
+#     ProxyPass / http://172.16.31.114:8099/
+#     ProxyPassReverse / http://172.16.31.114:8099/
+
+
+#     SSLEngine on
+#     SSLCompression off
+#     #SSLCipherSuite "HIGH:!aNULL:!MD5:!3DES:!CAMELLIA:!AES128"
+#     SSLHonorCipherOrder on
+#     SSLProtocol             all -SSLv2 -SSLv3
+#     SSLCipherSuite          ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:ECDHE-RSA-DES-CBC3-SHA:ECDHE-ECDSA-DES-CBC3-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA
+#     SSLHonorCipherOrder     on
+#     #SSLProtocol TLSv1.1 TLSv1.2
+#     SSLCertificateFile /etc/letsencrypt/live/vortex.com/fullchain.pem
+#     SSLCertificateKeyFile /etc/letsencrypt/live/vortex.com/privkey.pem
+#     #SSLCertificateChainFile /etc/letsencrypt/live/vortex.com/fullchain.pem
+
+#     #SSLCertificateFile /etc/ssl/certs/apple.pem
+#     #SSLCertificateKeyFile /etc/ssl/certs/apple.key
+#     #SSLCertificateChainFile /etc/ssl/certs/apple.chain
+
+# #Alias /.well-known/ /var/www/html/.well-known/
+
+# #<Directory "/var/www/html/.well-known/">
+# #    Options None
+# #    AllowOverride None
+# #    ForceType text/plain
+# #    #RedirectMatch 404 "^(?!/\.well-known/[\w-]{43}$)"
+# #</Directory>
+
+# </VirtualHost>

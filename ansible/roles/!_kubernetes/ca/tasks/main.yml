@@ -1,0 +1,92 @@
+- name: Create the directories for configuration
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0750
+  with_dict: "{{ ca_service_settings.directories | default({}) }}"
+  tags: [configuration,ca]
+  when: inventory_hostname in groups['kubernetes-master']
+
+- name: Template configs to CA master
+  template:
+    src: "{{ item }}"
+    dest: "{{ ca_service_settings.directories.config }}/{{ item }}"
+  with_items:
+    - ca-config.json
+    - ca-csr.json
+    - etcd-csr.json
+  when: inventory_hostname in groups['kubernetes-master'][0]
+
+# - name: Download cfssl Unix
+#   get_url:
+#     url: "{{ item }}"
+#     dest: "{{ ca_service_settings.directories.source }}"
+#   with_items: "{{ ca_service_settings.pkg_links }}"
+
+- name: Download cfssl Unix
+  shell: |
+      curl -o {{ ca_service_settings.directories.source }}/cfssl https://pkg.cfssl.org/R1.2/cfssl_linux-amd64
+      curl -o {{ ca_service_settings.directories.source }}/cfssljson https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64
+      chmod +x {{ ca_service_settings.directories.source }}cfssl*
+  when: inventory_hostname in groups['kubernetes-master'][0]
+
+# - name: Set execute flag to binaries
+#   shell: chmod +x {{ ca_service_settings.directories.source }}/cfssl*
+
+- name: Local copy from source
+  shell: "cp {{ ca_service_settings.directories.source }}/{{ item }} /usr/local/bin/{{ item }}"
+  with_items: "{{ ca_service_settings.app_links }}"
+  ignore_errors: true
+  when: inventory_hostname in groups['kubernetes-master'][0]
+
+- name: Local copy from source to local ca bin
+  shell: "cp {{ ca_service_settings.directories.source }}/{{ item }} {{ ca_service_settings.directories.bin }}{{ item }}"
+  with_items: "{{ ca_service_settings.app_links }}"
+  ignore_errors: true
+  when: inventory_hostname in groups['kubernetes-master'][0]
+
+- name: Run to generate CA certificates
+  shell: cfssl gencert -initca {{ ca_service_settings.directories.config }}/ca-csr.json | cfssljson -bare {{ ca_service_settings.directories.pki }}/ca
+  when: inventory_hostname in groups['kubernetes-master'][0]
+
+# cfssl gencert -initca ca-csr.json | cfssljson -bare ca
+# # cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=kubernetes etcd-csr.json | cfssljson -bare etcd
+
+- name: Run to generate ETCD certificates
+  shell: cfssl gencert -ca={{ ca_service_settings.directories.pki }}/ca.pem -ca-key={{ ca_service_settings.directories.pki }}/ca-key.pem -config={{ ca_service_settings.directories.config }}/ca-config.json -hostname='{% for host in groups['kubernetes-master'] %}{{ hostvars[host]['ansible_nodename'] }},{{ hostvars[host]['second_ip'] }},{{ hostvars[host].ansible_default_ipv4.address }}{% if not loop.last %},{% endif %}{% endfor %},{{ K8S_CLUSTER_ADDRESS }},vortex.{{ public_consul_domain }},127.0.0.1,kubernetes.default' -profile=kubernetes {{ ca_service_settings.directories.config }}/etcd-csr.json | cfssljson -bare {{ ca_service_settings.directories.pki }}/etcd
+  when: inventory_hostname in groups['kubernetes-master'][0]
+
+# - name: Run to generate All Kubernetes services certificates
+#   shell: cfssl gencert -ca={{ ca_service_settings.directories.pki }}/ca.pem -ca-key={{ ca_service_settings.directories.pki }}/ca-key.pem -config={{ ca_service_settings.directories.config }}/ca-config.json -hostname='{% for host in groups['kubernetes-master'] %}{{ hostvars[host]['ansible_nodename'] }},{{ hostvars[host]['second_ip'] }},{{ hostvars[host].ansible_default_ipv4.address }}{% if not loop.last %},{% endif %}{% endfor %},{{ K8S_CLUSTER_ADDRESS }},kubernetes.{{ public_consul_domain }},127.0.0.1,kubernetes.default' -profile=kubernetes {{ ca_service_settings.directories.config }}/ca-csr.json | cfssljson -bare {{ ca_service_settings.directories.data }}/{{ item }}
+#   with_items:
+#     - kubernetes
+#     - server
+#     - peer
+#   when: inventory_hostname in groups['kubernetes-master'][0]
+
+
+
+# - name: Shell remove
+#   shell: rm -rf {{ ca_service_settings.directories.data }}/cfssl*
+
+- name: Shell copy pem to crt
+  shell: "cp {{ ca_service_settings.directories.pki }}/{{ item }}.pem {{ ca_service_settings.directories.pki }}/{{ item }}.crt"
+  with_items:
+    - etcd
+    - ca
+  when: inventory_hostname in groups['kubernetes-master'][0]
+
+- name: Shell copy keys pem to key
+  shell: "cp {{ ca_service_settings.directories.pki }}/{{ item }}-key.pem {{ ca_service_settings.directories.pki }}/{{ item }}.key"
+  with_items:
+    - etcd
+    - ca
+  when: inventory_hostname in groups['kubernetes-master'][0]
+
+- name: Copy certificates from first master
+  synchronize:
+    src: "/opt/ca/"
+    dest: "/opt/ca/"
+  delegate_to: "{{ groups['kubernetes-master'][0] }}"
+  tags: certificates_copy
+  when: inventory_hostname not in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']

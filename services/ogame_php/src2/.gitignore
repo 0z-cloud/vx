@@ -1,0 +1,25 @@
+# Ignore data, log & temp directories
+action_logs/
+cache/
+tmp/
+
+# Ignore installation-related files
+install/lock
+
+# Ignore PHP-related files & directories
+vendor/
+
+# Ignore app's instance configuration
+config/**
+!config/.gitkeep
+
+# Custom files that should not be comitted into the base code
+language/**/rules.definitions.custom.lang
+
+# Files temporarily removed from further tracking
+# (based on https://stackoverflow.com/a/11366713/951007)
+config.php
+includes/constants.php
+
+# Ignore JavaScript / Node.js -related files & directories
+node_modules/

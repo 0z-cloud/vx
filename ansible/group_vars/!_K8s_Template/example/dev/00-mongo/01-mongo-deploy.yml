@@ -1,0 +1,72 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: mongo
+  namespace: dev
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      containers:
+        - name: mongo
+          image: mongo:4.1.8-xenial
+          imagePullPolicy: "IfNotPresent"
+          ports:
+          - containerPort: 27017
+            name: mongo
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo
+  labels:
+    app: mongo
+  namespace: dev
+spec:
+  ports:
+  - port: 27017
+    targetPort: 27017
+  selector:
+    app: mongo
+  
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: mongo-express
+  namespace: dev
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mongo-express
+    spec:
+      containers:
+        - name: mongo-express
+          image: mongo-express:0.49.0
+          imagePullPolicy: "IfNotPresent"
+          ports:
+          - containerPort: 8081
+            name: mongo-express
+          envFrom:
+            - configMapRef:
+                name: mongo-express-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-express
+  labels:
+    app: mongo-express
+  namespace: dev
+spec:
+  ports:
+  - port: 8081
+    targetPort: 8081
+  selector:
+    app: mongo-express

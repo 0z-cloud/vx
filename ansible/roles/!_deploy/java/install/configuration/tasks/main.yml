@@ -1,0 +1,26 @@
+- name: Starting java PCI Compliance Role
+  debug:
+    msg: "starting..."
+
+- name: Inject defaults for java_settings with java_settings_defaults
+  set_fact:
+    java_settings: "{{ java_settings_defaults | combine(java_settings) }}"
+  tags: [always]
+
+- name: Debug dict java_settings
+  debug:
+    msg: "{{ java_settings }}"
+
+- name: Create the directories
+  file:
+    path: "{{ item.value }}"
+    state: directory
+  with_dict: "{{ java_settings.directories | default({}) }}"
+
+- name: Go to check/install packages
+  include: install.yml
+
+- name: Setup java.security configuration without weak ciphers
+  template: 
+    src: java.security.j2
+    dest: "{{ java_settings.configs.java_security }}"

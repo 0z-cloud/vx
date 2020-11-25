@@ -1,0 +1,79 @@
+- name: RENEW KEYS | Generate new ssh-keys
+  openssh_keypair:
+    path: /root/.ssh/id_rsa
+    force: True
+    comment: "{{ inventory_hostname }}"
+  register: new_keys
+  when: full_clean is defined
+
+- name: FETCH | Merge all results from remote localhost
+  set_fact:
+    dict_new_keys: |
+      {
+      {% for s in groups['all'] | map('extract',hostvars,'new_keys') %}
+      "{{ s.comment }}":"{{ s.public_key }}" {% if not loop.last %},{% endif %}
+      {% endfor %}
+      }
+  delegate_to: "{{ item }}"
+  delegate_facts: true
+  with_items:
+    - "{{ groups['all'] }}"
+
+- name: PERMANENT CLEAN | Remove all old fingerprints
+  shell: ssh-keygen -f "/root/.ssh/known_hosts" -R "{{ hostvars[item.key]['ansible_default_ipv4']['address'] }}"
+  with_dict: "{{ dict_new_keys }}"
+  ignore_errors: true
+
+- name: CLEAN EXPIRED | Remove old fingerprints by name
+  shell: "ssh-keygen -R {{ item.key }}"
+  with_dict: "{{ dict_new_keys }}"
+  ignore_errors: true
+
+- name: CLEAN EXPIRED | Remove old fingerprints by dig request
+  shell: "ssh-keygen -R $(dig +short {{ item.key }})"
+  with_dict: "{{ dict_new_keys }}"
+  ignore_errors: true
+
+- name: CLEAN EXPIRED | Remove old fingerprints by ip
+  shell: "ssh-keygen -R {% set node_address = hostvars[item.key]['ansible_default_ipv4']['address'] %}{{ node_address }}"
+  with_dict: "{{ dict_new_keys }}"
+  ignore_errors: true
+
+# - name: DEBUG | Dict with keys
+#   debug:
+#     msg: "{{ dict_new_keys }}"
+
+- name: REGISTER | Set result merge array with known_hosts on whole group
+  debug:
+    msg: "{% set node_address = hostvars[item.key]['ansible_default_ipv4']['address'] %}{{ item.key }},{{ node_address }} {{ item.value }}"
+  with_dict: "{{ dict_new_keys }}"
+  register: dict_new_keys_list_with_ip
+
+- name: REGISTER | Set result merge array with authorized_keys on whole group
+  debug:
+    msg: "{{ item.value }}"
+  with_dict: "{{ dict_new_keys }}"
+  register: dict_new_keys_list_without_ip
+
+# - name: DEBUG | dict_new_keys_list_with_ip
+#   debug:
+#     msg: "{{ item.msg }}"
+#   with_items: "{{ dict_new_keys_list_with_ip.results }}"
+
+- name: FILL | Adding the results known_hosts file public_keys_list to authorized_keys
+  lineinfile:
+    dest: /root/.ssh/known_hosts
+    create: yes
+    state: present
+    line: "{{ item.msg }}"
+  with_items: "{{ dict_new_keys_list_with_ip.results }}"
+  when: full_clean is defined
+
+- name: FILL | Adding the result authorized file public_keys_list to authorized_keys
+  lineinfile:
+    dest: /root/.ssh/authorized_keys
+    create: yes
+    state: present
+    line: "{{ item.msg }}"
+  with_items: "{{ dict_new_keys_list_without_ip.results }}"
+  when: full_clean is defined

@@ -1,0 +1,139 @@
+- name: Register monitor_config_magic_var="database_settings_files.java_main_applications"
+  debug:
+    var: "{{ monitor_config_magic_var }}"
+  register: getted_list
+  when: monitor_config_magic_false is not defined
+  
+- name: DEBUG | getted_list by monitor_config_magic_var
+  debug:
+    msg: "{{ getted_list[monitor_config_magic_var] }}"
+  when: monitor_config_magic_false is not defined
+
+# - name: Register monitor_config_magic_var_old
+#   debug:
+#     var: "{{ monitor_config_magic_var_old }}"
+#   register: getted_list_old
+#   when: monitor_config_magic_false is not defined
+
+# - name: DEBUG | getted_list_old by monitor_config_magic_var_old
+#   debug:
+#     msg: "{{ getted_list_old[monitor_config_magic_var_old] }}"
+#   when: monitor_config_magic_false is not defined
+
+- name: Raw | Get the result except User ID
+  raw: cat /etc/passwd | grep {{ watchdog_password_files_except_user }} | awk -F ":" '{print $3}'
+  register: except_watchdog_password_files_user_id
+  when: monitor_config_magic_false is not defined
+
+- name: Raw | Get the result except Group ID
+  raw: cat /etc/passwd | grep {{ watchdog_password_files_except_group }} | awk -F ":" '{print $4}'
+  register: except_watchdog_password_files_group_id
+  when: monitor_config_magic_false is not defined
+
+- name: Debug | Getted UserID and GroupID
+  debug:
+     msg: "User ID: {{ except_watchdog_password_files_user_id.stdout_lines }} Group ID: {{ except_watchdog_password_files_group_id.stdout_lines }}"
+  when: monitor_config_magic_false is not defined and debug_playbook_stdout is defined
+  
+- name: Debug | with dict
+  debug:
+     msg: "ITEM: {% if java_watch_dog is defined %}-w {{ java_system_main_settings_array.java_webapps_default_directory }}{{ item }}/{{ java_system_main_settings_array.meta_inf_context }} -p rwxa{% endif %}{% if apache_watch_dog is defined %}-w /srv/web/{{ item }}/public_html/protected/config/main.php -p rwxa{% endif %}{% if apache_laravel_watch_dog is defined %}-w /var/www/{{ item }}/current/.env -p rwxa{% endif %}"
+  with_items: "{{ getted_list[monitor_config_magic_var] }}"
+  when: monitor_config_magic_false is not defined and debug_playbook_stdout is defined
+
+# - name: REMOVING | lines to audit.rules if defined remove_audit_lines for tomcat-servers
+#   lineinfile:
+#     path: /etc/audit/audit.rules
+#     regexp: '^(.*){% if java_watch_dog is defined %}{{ item }}{% endif %}(.*)$'
+#     line: '{% if java_watch_dog is defined %}-w {{ java_system_main_settings_array.java_webapps_default_directory }}{{ item }}/{{ java_system_main_settings_array.meta_inf_context }} -p rwxa{% endif %}'
+#     state: absent
+#     backup: yes
+#   with_items: "{{ getted_list_old[monitor_config_magic_var_old] }}"
+#   when: monitor_config_magic_false is not defined and remove_audit_lines is defined and inventory_hostname in groups['tomcat-servers']
+
+# - name: Adding lines to audit.rules
+#   lineinfile:
+#     path: /etc/audit/rules.d/11.rules
+#     insertbefore: '^-a exclude,always -F msgtype=CWD'
+#     line: '{% if java_watch_dog is defined %}-w {{ java_system_main_settings_array.java_webapps_default_directory }}{{ item }}/{{ java_system_main_settings_array.meta_inf_context }} -p rwxa{% endif %}{% if apache_watch_dog is defined %}-w /srv/web/{{ item }}/public_html/protected/config/main.php -p rwxa{% endif %}{% if apache_laravel_watch_dog is defined %}-w /var/www/{{ item }}/current/.env -p rwxa{% endif %}'
+#   with_items: "{{ getted_list[monitor_config_magic_var] }}"
+#   when: monitor_config_magic_false is not defined and remove_audit_lines is not defined
+
+- name: Configuring 11.rules 18.04
+  template:
+    src: 11.rules
+    dest: /etc/audit/rules.d/11.rules
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_version == '18.04'
+
+- name: Configuring rules 18.04
+  template:
+    src: audit.rules
+    dest: /etc/audit/audit.rules
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_version == '18.04'
+
+- name: Configuring 11.rules 14.04
+  template:
+    src: 11.rules
+    dest: /etc/audit/audit.rules
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_version == '14.04'
+
+# - name: Get list of java core applications
+
+# - name: Adding lines to audit.rules
+#   lineinfile:
+#     path: /etc/audit/audit.rules
+#     insertbefore: '^-a exclude,always -F msgtype=CWD'
+#     line: '{% if java_watch_dog is defined %}-w {{ java_system_main_settings_array.java_webapps_core_directory }}{{ item }}/{{ java_system_main_settings_array.meta_inf_context }} -p rwxa{% endif %}{% if apache_watch_dog is defined %}-w /srv/web/{{ item }}/public_html/protected/config/main.php -p rwxa{% endif %}{% if apache_laravel_watch_dog is defined %}-w /var/www/{{ item }}/current/.env -p rwxa{% endif %}'
+#   with_items: "{{ getted_list[monitor_config_magic_var] }}"
+#   when: monitor_config_magic_false is not defined and remove_audit_lines is not defined
+
+- name: Generate template watchdog scanner script from template
+  template:
+    src: db_watchdog.sh.j2
+    dest: /wrk/scripts/db_watchdog.sh
+    mode: 0775
+  when: monitor_config_magic_false is not defined
+
+- name: Removing run from cron 1 min job
+  cron:
+    name: "watchdog db scanner"
+    minute: "*/1"
+    hour: "*"
+    weekday: "*"
+    job: "/wrk/scripts/db_watchdog.sh"
+    state: absent
+    user: root
+  when: monitor_config_magic_false is not defined
+
+- name: Adding run to cron
+  cron:
+    name: "watchdog db scanner"
+    minute: "*/2"
+    hour: "*"
+    weekday: "*"
+    job: "/wrk/scripts/db_watchdog.sh >/dev/null 2>&1"
+    disabled: no
+    state: present
+    user: root
+  when: monitor_config_magic_false is not defined
+
+- name: Removing run from cron
+  cron:
+    name: "watchdog db scanner"
+    minute: "*/1"
+    hour: "*"
+    weekday: "*"
+    job: "/wrk/scripts/db_watchdog.sh"
+    state: absent
+    user: root
+  when: monitor_config_magic_false is defined
+
+- name: Service audit restart
+  service:
+    name: auditd
+    state: restarted
+
+- name: Service cron restart
+  service:
+    name: cron
+    state: restarted

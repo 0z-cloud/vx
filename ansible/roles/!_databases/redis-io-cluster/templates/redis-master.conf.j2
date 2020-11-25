@@ -1,0 +1,13 @@
+port {{ redis_io_service_settings.public_port }}
+{% if redis_io_cluster_enabled == "true" %}
+cluster-enabled yes
+{% else %}
+cluster-enabled no
+{% endif %}
+cluster-config-file /config/nodes-master.conf
+cluster-node-timeout 5000
+cluster-slave-validity-factor 0
+cluster-migration-barrier 0
+cluster-require-full-coverage yes
+save ""
+dir /opt/redis/

@@ -1,0 +1,44 @@
+redis_io_service_settings:
+  directories:
+    main_path: "/opt/{{ HOSTS }}"
+    data_path: "/opt/{{ HOSTS }}/{{ ansible_environment }}/data"
+    config_path: "/opt/{{ HOSTS }}/{{ ansible_environment }}"
+    scripts_path: "/opt/{{ HOSTS }}/{{ ansible_environment }}/scripts"
+    master_path: "/opt/{{ HOSTS }}/{{ ansible_environment }}/master"
+    master_path_data: "/opt/{{ HOSTS }}/{{ ansible_environment }}/master/data"
+    master_path_config: "/opt/{{ HOSTS }}/{{ ansible_environment }}/master/config"
+    slave_path: "/opt/{{ HOSTS }}/{{ ansible_environment }}/slave"
+    slave_path_data: "/opt/{{ HOSTS }}/{{ ansible_environment }}/slave/data"
+    slave_path_config: "/opt/{{ HOSTS }}/{{ ansible_environment }}/slave/config"
+  public_port: "{{ redis_public_port }}"
+  slave_public_port: "{{ redis_slave_public_port }}"
+  user: "{{ redis_username }}"
+  password: "{{ redis_passowrd }}"
+
+generated_redis_io_service_cluster_map: |
+  {% if redis_io_cluster_enabled == 'true' %}
+  {% raw %}[ {% endraw %}
+               {% for host in groups['REDIS_CLUSTER_BOOTSTRAP'] %} {% raw %}{ {% endraw %}
+               'host': "{{ hostvars[host]['ansible_default_ipv4']['address'] | safe }}",
+               'port': "{{ redis_io_service_settings.public_port }}",
+               'slaves': [
+                  {
+                   'host': "{{ hostvars[host]['ansible_default_ipv4']['address'] | safe }}",
+                   'port': "{{ redis_io_service_settings.slave_public_port }}"
+                  }
+               ]{% raw %}
+               }{% endraw %}{% if not loop.last %},{% endif %}{% endfor %}{% raw %}]{% endraw %}
+  {% else %}
+  {% raw %}[ {% endraw %}
+      {% raw %}{ {% endraw %}
+               {% for host in groups['REDIS_CLUSTER_BOOTSTRAP'] %}{% if host in groups['REDIS_CLUSTER_BOOTSTRAP'][0] %}
+               'host': "{{ hostvars[host]['ansible_default_ipv4']['address'] | safe }}",
+               'port': "{{ redis_io_service_settings.public_port }}",{% endif %}{% endfor %}
+               'slaves': [
+                   {% for host in groups['REDIS_CLUSTER_BOOTSTRAP'] %}{% if host not in groups['REDIS_CLUSTER_BOOTSTRAP'][0] %}{
+                    'host': "{{ hostvars[host]['ansible_default_ipv4']['address'] | safe }}",
+                    'port': "{{ redis_io_service_settings.slave_public_port }}"
+                   }{% if not loop.last %},{% endif %}{% endif %}{% endfor %}
+               ]{% raw %}
+               }{% endraw %}{% if not loop.last %},{% endif %}{% raw %}]{% endraw %}
+  {% endif %}

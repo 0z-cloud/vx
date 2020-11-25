@@ -1,0 +1,22 @@
+- name: Generate inventory replace_0z
+  hosts: localhost
+  tasks:
+
+      - name: Load groupvars/product global shared settings
+        include_vars: group_vars/products/{{ ansible_product }}/{{ item }}.yml
+        with_items:
+          - alicloud
+          - main
+
+      - name: Load groupvars/product global shared settings
+        include_vars: group_vars/products/{{ ansible_product }}/{{ ansible_environment }}/{{ item }}.yml
+        with_items:
+          - attached
+          - main
+
+- name: Starting replacing the 0z values
+  hosts: localhost
+  roles:
+
+      - name: Include role Generate 0z Replace
+        role: ./!_cloud/dc_integration/alicloud/generate_0z

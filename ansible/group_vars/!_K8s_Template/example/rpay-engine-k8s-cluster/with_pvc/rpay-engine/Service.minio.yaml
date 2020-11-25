@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    field.cattle.io/targetWorkloadIds: '["deployment:rpay-engine:minio"]'
+    workload.cattle.io/targetWorkloadIdNoop: "true"
+    workload.cattle.io/workloadPortBased: "true"
+  creationTimestamp: null
+  labels:
+    cattle.io/creator: norman
+  name: minio
+  ownerReferences:
+  - apiVersion: apps/v1beta2
+    controller: true
+    kind: deployment
+    name: minio
+    uid: 7180bd44-a028-11e9-890b-b42e994820d9
+  selfLink: /api/v1/namespaces/rpay-engine/services/minio
+spec:
+  ports:
+  - name: 9001tcp90003-minio
+    port: 9000
+    protocol: TCP
+    targetPort: 9000
+  selector:
+    workload.user.cattle.io/workloadselector: deployment-rpay-engine-minio
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}

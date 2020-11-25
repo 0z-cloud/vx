@@ -1,0 +1,33 @@
+- name: Starting Tomcat configuration sub-role
+  debug:
+    msg: "Starting..."
+
+- name: Inject defaults for ansible_tomcat_settings 
+  set_fact:
+    ansible_tomcat_settings: "{{ ansible_tomcat_settings_defaults | combine(ansible_tomcat_settings) }}"
+  tags: [always]
+
+- name: Debug
+  debug: msg="{{ ansible_tomcat_settings }}"
+
+- name: Go to check/install tomcat packages...
+  include: install.yml
+
+- name: Create the directories
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0755
+    owner: "{{ ansible_catalina_folders_owner_user }}"
+    group: "{{ ansible_catalina_folders_owner_user }}"
+    force: true
+  with_dict: "{{ ansible_tomcat_settings.directories | default({}) }}"
+
+- name: Go remove default configuration and create symlink to local webapps directory, if that defined
+  include: create_symlink_for_webapps.yml
+  when: tomcat_properties.webapps_symlinked == true
+
+- name: Setup for tomcat configuration
+  include: tomcat_generate_configuration.yml
+  tags: debug
+

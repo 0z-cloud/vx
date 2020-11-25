@@ -1,0 +1,42 @@
+
+# - name: Create source ip app for deploy services to private IP from Pod network
+#   shell: kubectl create deployment source-ip-app --image=k8s.gcr.io/echoserver:1.4
+
+- name: Copy certificates from first master after cluster init phase 2
+  synchronize:
+    src: "/etc/kubernetes/kube"
+    dest: "/etc/kubernetes/"
+  delegate_to: "{{ groups['kubernetes-master'][0] }}"
+  tags: certificates_copy
+  with_items: |
+    {% set hostslist = [] %}
+    {% for host in groups['kubernetes-master'] %}
+    {% if host not in groups['kubernetes-master'][0] %}
+    {% set hostslist2 = hostslist.append(hostvars[host]['ansible_nodename']) %}
+    {% endif %}
+    {% endfor %}
+    {{ hostslist }}
+  when: inventory_hostname not in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Remove etcd pki from kube pki
+  shell: rm -rf {{ k8s_service_settings.directories.kube }}/etcd
+  when: inventory_hostname not in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+  ignore_errors: true
+
+# - name: Remove apiserver.* from kube pki
+#   shell: rm {{ k8s_service_settings.directories.kube }}/apiserver.*
+#   when: inventory_hostname not in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+#   ignore_errors: true
+
+- name: Copy local pki dir to kubernetes pki dir
+  shell: cp -R /{{ k8s_service_settings.directories.kube }}/* /etc/kubernetes/pki/
+  when: inventory_hostname not in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+  ignore_errors: true
+
+# - name: Apply kubeadm init --config kubeadm-config.yaml on other masters
+#   shell: kubeadm init --config /etc/kubernetes/kubeadm-config.yaml
+#   when: inventory_hostname not in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+
+# - name: CNI | Setup base cni kube-flannel.yaml on 1st masters
+#   shell: kubectl apply -f /etc/kubernetes/kube-flannel.yaml
+#   when: inventory_hostname in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']

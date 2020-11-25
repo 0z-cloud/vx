@@ -1,0 +1,178 @@
+version: '3.7'
+
+networks:
+  default:
+    driver: overlay
+    attachable: true
+{% for item in PCI_NETWORKS_LIST %}
+  {{ item.network }}:
+    driver: overlay
+    attachable: true
+{% endfor %}
+
+
+volumes:
+  postgres-data:
+    driver: local
+  business-gems:
+    driver: local
+  business-docs-gems:
+    driver: local
+  core-gems:
+    driver: local
+  settings-gems:
+    driver: local
+  guard-gems:
+    driver: local
+
+services:
+{% for key,value in all_services_remap_docker_compose_generate.items() %}{% for app,data in all_services_settings_map.items()%}{% if key == app %}
+{% if 'service' not in value['container_type'] %}
+  {{ key }}:
+      image: {{ ANSIBLE_REGISTRY_URL }}/{{ ansible_git_project_path }}/{{ value['image'] }}:{{ lookup('vars', 'passed_ci_docker_tag_' + app) }}
+{% if value['command'] is defined %}
+      command: {% raw %}"{% endraw %}{{ value['command'] }}{% raw %}"
+{% endraw %}
+{% endif %}
+{% if value['volumes'] is defined %}
+      volumes: 
+{% for volume in value['volumes'] %}
+        - {{ volume | join }}
+{% endfor %}
+{% endif %}
+{% if value['environment'] is defined %}
+      environment:
+{% for de in value['environment'] %}
+        {{ de | join }}
+{% endfor %}
+{% endif %}
+{% if value['depends_on'] is defined %}
+      depends_on: 
+{% for depend in value['depends_on'] %}
+        - {{ depend | join }}
+{% endfor %}
+{% endif %}
+{% if value['no_healthcheck'] is defined %}
+      healthcheck:
+        disable: true
+{% endif %}
+{% if value['ports'] is defined %}
+      ports: 
+        - {{ value['ports'] }}
+{% endif %}
+{% if value['entrypoint'] is defined %}
+      entrypoint: {{ value['entrypoint'] }}
+{% endif %}
+{% if data is defined %}
+      environment: 
+        SERVICE_VERSION: {{ lookup('vars', 'passed_ci_docker_tag_' + app) }}
+{% for d in data %}
+        {{ d | join }}
+{% endfor %}
+{% endif %}
+      logging:
+        driver: syslog
+        options:
+          tag: "docker_{{ ansible_environment }}-{{ key }}"
+{% if value['scale'] is defined %}
+      deploy:
+        mode: replicated
+        replicas: {{ value['scale'] }}
+        placement:
+          constraints:
+            - node.role == manager
+        restart_policy:
+          condition: on-failure
+          delay: 120s
+          window: 120s
+        update_config:
+          parallelism: 1
+{% if value['resources'] is defined %}
+        resources:
+          limits:
+            cpus: '{{ value['resources'].limits.cpus }}'
+            memory: '{{ value['resources'].limits.memory }}'
+          reservations:
+            cpus: '{{ value['resources'].limits.cpus }}'
+            memory: '{{ value['resources'].limits.memory }}'
+{% endif %}
+{% endif %}{% endif %}{% endif %}{% endfor %}
+
+{% endfor %}
+{% if special_all_services_remap_docker_compose_generate is defined %}{% if special_all_services_settings_map is defined %}
+{% for key,value in special_all_services_remap_docker_compose_generate.items() %}{% for app,data in special_all_services_settings_map.items()%}{% if key == app %}
+{% if 'service' not in value['container_type'] %}
+  {{ key }}:
+      image: {{ ANSIBLE_REGISTRY_URL }}/{{ ansible_git_project_path }}/{{ value['image'] }}:{{ lookup('vars', 'passed_ci_docker_tag_' + app) }}
+{% if value['command'] is defined %}
+      command: {% raw %}"{% endraw %}{{ value['command'] }}{% raw %}"
+{% endraw %}
+{% endif %}
+{% if value['volumes'] is defined %}
+      volumes: 
+{% for volume in value['volumes'] %}
+        - {{ volume | join }}
+{% endfor %}
+{% endif %}
+{% if value['environment'] is defined %}
+      environment:
+{% for de in value['environment'] %}
+        {{ de | join }}
+{% endfor %}
+{% endif %}
+{% if value['depends_on'] is defined %}
+      depends_on: 
+{% for depend in value['depends_on'] %}
+        - {{ depend | join }}
+{% endfor %}
+{% endif %}
+{% if value['no_healthcheck'] is defined %}
+      healthcheck:
+        disable: true
+{% endif %}
+{% if value['ports'] is defined %}
+      ports: 
+        - {{ value['ports'] }}
+{% endif %}
+{% if value['entrypoint'] is defined %}
+      entrypoint: {{ value['entrypoint'] }}
+{% endif %}
+{% if data is defined %}
+      environment: 
+        SERVICE_VERSION: {{ lookup('vars', 'passed_ci_docker_tag_' + app) }}
+{% for d in data %}
+        {{ d | join }}
+{% endfor %}
+{% endif %}
+      logging:
+        driver: syslog
+        options:
+          tag: "docker_{{ ansible_environment }}-{{ key }}"
+{% if value['scale'] is defined %}
+      deploy:
+        mode: replicated
+        replicas: {{ value['scale'] }}
+        update_config:
+          parallelism: 1
+          delay: 120s
+        restart_policy:
+          condition: on-failure
+          delay: 120s
+          window: 120s
+        placement:
+          constraints:
+            - node.role == manager
+{% if value['resources'] is defined %}
+        resources:
+          limits:
+            cpus: '{{ value['resources'].limits.cpus }}'
+            memory: '{{ value['resources'].limits.memory }}'
+          reservations:
+            cpus: '{{ value['resources'].limits.cpus }}'
+            memory: '{{ value['resources'].limits.memory }}'
+{% endif %}
+
+{% endif %}{% endif %}{% endif %}{% endfor %}
+
+{% endfor %}
+{% endif %}{% endif %}

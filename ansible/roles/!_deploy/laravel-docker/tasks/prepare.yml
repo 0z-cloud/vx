@@ -1,0 +1,36 @@
+- include_vars:
+    name: laravel_application
+    file: "{{ inventory_dir }}/group_vars/!_Applications_Core/laravel/{{ application_name }}.yml"
+
+- name: remove old docker python extensions
+  pip:
+    name: ['docker', 'docker-py']
+    state: absent
+
+- name: install docker python extension
+  pip:
+    name: docker
+    state: forcereinstall
+
+- name: install consul python extension
+  pip:
+    name: python-consul
+
+- name: add gitlab to hosts
+  lineinfile:
+    dest: /etc/hosts
+    line: "{{ GITLAB_IP | default('172.16.31.110') }}   gitlab.vortex.ru"
+
+- name: login to docker registry
+  docker_login:
+    registry: gitlab.vortex.ru:4567
+    username: "{{ docker_registry_username }}"
+    password: "{{ docker_registry_password }}"
+    reauthorize: yes
+
+- name: pull application image
+  docker_image:
+    name: "{{ laravel_application.docker_image }}:{{ laravel_application.docker_image_tag }}"
+    pull: yes
+    force: yes
+

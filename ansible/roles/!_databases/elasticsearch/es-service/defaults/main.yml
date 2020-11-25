@@ -1,0 +1,20 @@
+elasticsearch_settings_defaults:
+    elasticsearch_path_conf: '/etc/elasticsearch'
+    elasticsearch_path_data: '/var/lib/elasticsearch'
+    elasticsearch_path_pid: '/var/lib/elasticsearch'
+    elasticsearch_path_logs: '/var/log/elasticsearch'
+    elasticsearch_path_work: '/tmp/elasticsearch'
+    elasticsearch_path_home: '/usr/share/elasticsearch'
+    elasticsearch_cluster_name: 'elasticsearch'
+    elasticsearch_node_name: ''
+    elasticsearch_node_port: '9300'
+    elasticsearch_http_port: '9200'
+   
+es_swarm_defaults:
+    containers_prefix: overlay-storage
+    docker_es_image: 'es-service'
+    docker_elasticsearch_name: 'es-service-parralels-2'
+    overlay_network:
+        network_subnet: 10.2.1.0/16
+    directories:
+        working_etc_directory: /opt/es-conf/es-cluster-overlay-storage/etc

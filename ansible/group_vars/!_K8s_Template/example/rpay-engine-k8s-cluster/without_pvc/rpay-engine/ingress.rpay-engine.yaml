@@ -1,0 +1,284 @@
+apiVersion: v1
+items:
+- apiVersion: extensions/v1beta1
+  kind: Ingress
+  metadata:
+    annotations:
+      certmanager.k8s.io/cluster-issuer: letsencrypt-prod
+      field.cattle.io/ingressState: '{"YnVzaW5lc3MvcnBheS1lbmdpbmUvYnVzaW5lc3MuZGV2LnJvY2tldGhvLm1lLy8vNDAwMA==":"","bGV0c2VuY3J5cHQtYnVzaW5lc3M=":"rpay-engine:letsencrypt-business"}'
+      field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":443,"protocol":"HTTPS","serviceName":"rpay-engine:business","ingressName":"rpay-engine:business","hostname":"business.dev.rocketho.me","path":"/","allNodes":true}]'
+      ingress.kubernetes.io/force-ssl-redirect: "true"
+      kubernetes.io/ingress.class: nginx
+      kubernetes.io/tls-acme: "true"
+      nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+      nginx.ingress.kubernetes.io/cors-allow-methods: PUT, GET, POST, OPTIONS
+      nginx.ingress.kubernetes.io/cors-allow-origin: https://admin.example.com
+      nginx.ingress.kubernetes.io/enable-cors: "true"
+    creationTimestamp: "2019-06-28T12:33:07Z"
+    generation: 3
+    labels:
+      app: business
+      io.cattle.field/appId: rpay-engine
+    name: business
+    namespace: rpay-engine
+  spec:
+    rules:
+    - host: business.dev.rocketho.me
+      http:
+        paths:
+        - backend:
+            serviceName: business
+            servicePort: 4000
+          path: /
+    tls:
+    - hosts:
+      - business.dev.rocketho.me
+      secretName: letsencrypt-business
+- apiVersion: extensions/v1beta1
+  kind: Ingress
+  metadata:
+    annotations:
+      certmanager.k8s.io/cluster-issuer: letsencrypt-prod
+      field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":443,"protocol":"HTTPS","serviceName":"rpay-engine:business-docs","ingressName":"rpay-engine:business-docs","hostname":"business-docs.dev.rocketho.me","path":"/","allNodes":true}]'
+      ingress.kubernetes.io/force-ssl-redirect: "true"
+      kubernetes.io/ingress.class: nginx
+      kubernetes.io/tls-acme: "true"
+    creationTimestamp: "2019-06-28T12:33:07Z"
+    generation: 1
+    labels:
+      app: business-docs
+      io.cattle.field/appId: rpay-engine
+    name: business-docs
+    namespace: rpay-engine
+  spec:
+    rules:
+    - host: business-docs.dev.rocketho.me
+      http:
+        paths:
+        - backend:
+            serviceName: business-docs
+            servicePort: 80
+          path: /
+    tls:
+    - hosts:
+      - business-docs.dev.rocketho.me
+      secretName: letsencrypt-business-docs
+- apiVersion: extensions/v1beta1
+  kind: Ingress
+  metadata:
+    annotations:
+      certmanager.k8s.io/cluster-issuer: letsencrypt-prod
+      field.cattle.io/ingressState: '{"Y29yZS9ycGF5LWVuZ2luZS9jb3JlLmRldi5yb2NrZXRoby5tZS8vLzMwMDA=":"","bGV0c2VuY3J5cHQtY29yZQ==":"rpay-engine:letsencrypt-core"}'
+      field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":443,"protocol":"HTTPS","serviceName":"rpay-engine:core","ingressName":"rpay-engine:core","hostname":"core.dev.rocketho.me","path":"/","allNodes":true}]'
+      ingress.kubernetes.io/force-ssl-redirect: "true"
+      kubernetes.io/ingress.class: nginx
+      kubernetes.io/tls-acme: "true"
+    creationTimestamp: "2019-06-28T12:33:07Z"
+    generation: 5
+    labels:
+      app: core
+      io.cattle.field/appId: rpay-engine
+    name: core
+    namespace: rpay-engine
+  spec:
+    rules:
+    - host: core.dev.rocketho.me
+      http:
+        paths:
+        - backend:
+            serviceName: core
+            servicePort: 3000
+          path: /
+    tls:
+    - hosts:
+      - core.dev.rocketho.me
+      secretName: letsencrypt-core
+- apiVersion: extensions/v1beta1
+  kind: Ingress
+  metadata:
+    annotations:
+      certmanager.k8s.io/cluster-issuer: letsencrypt-prod
+      field.cattle.io/ingressState: '{"ZGVtby9ycGF5LWVuZ2luZS9kZW1vLmRldi5yb2NrZXRoby5tZS8vLzgwMDA=":"","bGV0c2VuY3J5cHQtZGVtbw==":"rpay-engine:letsencrypt-demo"}'
+      field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":443,"protocol":"HTTPS","serviceName":"rpay-engine:demo","ingressName":"rpay-engine:demo","hostname":"demo.dev.rocketho.me","path":"/","allNodes":true}]'
+      ingress.kubernetes.io/force-ssl-redirect: "true"
+      kubernetes.io/ingress.class: nginx
+      kubernetes.io/tls-acme: "true"
+    creationTimestamp: "2019-06-28T12:33:07Z"
+    generation: 4
+    labels:
+      app: demo
+      io.cattle.field/appId: rpay-engine
+    name: demo
+    namespace: rpay-engine
+  spec:
+    rules:
+    - host: demo.dev.rocketho.me
+      http:
+        paths:
+        - backend:
+            serviceName: demo
+            servicePort: 8000
+          path: /
+    tls:
+    - hosts:
+      - demo.dev.rocketho.me
+      secretName: letsencrypt-demo
+- apiVersion: extensions/v1beta1
+  kind: Ingress
+  metadata:
+    annotations:
+      certmanager.k8s.io/cluster-issuer: letsencrypt-prod
+      field.cattle.io/creatorId: user-rxbgq
+      field.cattle.io/ingressState: '{"ZmxleHktZ3VhcmQvcnBheS1lbmdpbmUvZmxleHktZ3VhcmQuZGV2LnJvY2tldGhvLm1lLy8vNTAwMA==":""}'
+      field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":443,"protocol":"HTTPS","serviceName":"rpay-engine:flexy-guard","ingressName":"rpay-engine:flexy-guard","hostname":"flexy-guard.dev.rocketho.me","path":"/","allNodes":true}]'
+      ingress.kubernetes.io/force-ssl-redirect: "true"
+      kubernetes.io/ingress.class: nginx
+      kubernetes.io/tls-acme: "true"
+    creationTimestamp: "2019-07-03T23:31:11Z"
+    generation: 2
+    labels:
+      app: core
+      cattle.io/creator: norman
+      io.cattle.field/appId: rpay-engine
+    name: flexy-guard
+    namespace: rpay-engine
+  spec:
+    rules:
+    - host: flexy-guard.dev.rocketho.me
+      http:
+        paths:
+        - backend:
+            serviceName: flexy-guard
+            servicePort: 5000
+          path: /
+    tls:
+    - hosts:
+      - flexy-guard.dev.rocketho.me
+      secretName: flexy-guard-dev-rocketho-me
+- apiVersion: extensions/v1beta1
+  kind: Ingress
+  metadata:
+    annotations:
+      certmanager.k8s.io/cluster-issuer: letsencrypt-prod
+      field.cattle.io/creatorId: user-rxbgq
+      field.cattle.io/ingressState: '{"ZmxleHktZ3VhcmQtYWRtaW4tZGV2LXJvY2tldGhvLW1l":"rpay-engine:flexy-guard-admin-dev-rocketho-me","ZmxleHktZ3VhcmQtYWRtaW4vcnBheS1lbmdpbmUvZmxleHktZ3VhcmQtYWRtaW4uZGV2LnJvY2tldGhvLm1lLy8vNTAwMA==":""}'
+      field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":443,"protocol":"HTTPS","serviceName":"rpay-engine:f-guard-admin","ingressName":"rpay-engine:flexy-guard-admin","hostname":"flexy-guard-admin.dev.rocketho.me","path":"/","allNodes":true}]'
+      ingress.kubernetes.io/force-ssl-redirect: "true"
+      kubernetes.io/ingress.class: nginx
+      kubernetes.io/tls-acme: "true"
+      nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    creationTimestamp: "2019-07-03T11:50:22Z"
+    generation: 2
+    labels:
+      app: core
+      cattle.io/creator: norman
+      io.cattle.field/appId: rpay-engine
+    name: flexy-guard-admin
+    namespace: rpay-engine
+  spec:
+    rules:
+    - host: flexy-guard-admin.dev.rocketho.me
+      http:
+        paths:
+        - backend:
+            serviceName: f-guard-admin
+            servicePort: 5000
+          path: /
+    tls:
+    - hosts:
+      - flexy-guard-admin.dev.rocketho.me
+      secretName: flexy-guard-admin-dev-rocketho-me
+- apiVersion: extensions/v1beta1
+  kind: Ingress
+  metadata:
+    annotations:
+      certmanager.k8s.io/cluster-issuer: letsencrypt-prod
+      field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":443,"protocol":"HTTPS","serviceName":"rpay-engine:metabase","ingressName":"rpay-engine:metabase","hostname":"metabase.dev.rocketho.me","path":"/","allNodes":true}]'
+      ingress.kubernetes.io/force-ssl-redirect: "true"
+      kubernetes.io/ingress.class: nginx
+      kubernetes.io/tls-acme: "true"
+    creationTimestamp: "2019-06-28T12:33:07Z"
+    generation: 1
+    labels:
+      app: metabase
+      io.cattle.field/appId: rpay-engine
+    name: metabase
+    namespace: rpay-engine
+  spec:
+    rules:
+    - host: metabase.dev.rocketho.me
+      http:
+        paths:
+        - backend:
+            serviceName: metabase
+            servicePort: 3000
+          path: /
+    tls:
+    - hosts:
+      - metabase.dev.rocketho.me
+      secretName: letsencrypt-metabase
+- apiVersion: extensions/v1beta1
+  kind: Ingress
+  metadata:
+    annotations:
+      certmanager.k8s.io/cluster-issuer: letsencrypt-prod
+      field.cattle.io/creatorId: user-rxbgq
+      field.cattle.io/ingressState: '{"c2V0dGluZ3MvcnBheS1lbmdpbmUvc2V0dGluZ3MuZGV2LnJvY2tldGhvLm1lLy8vNjAwMQ==":""}'
+      field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":443,"protocol":"HTTPS","serviceName":"rpay-engine:settings","ingressName":"rpay-engine:settings","hostname":"settings.dev.rocketho.me","path":"/","allNodes":true}]'
+      ingress.kubernetes.io/force-ssl-redirect: "true"
+      kubernetes.io/ingress.class: nginx
+      kubernetes.io/tls-acme: "true"
+    creationTimestamp: "2019-06-28T16:36:39Z"
+    generation: 2
+    labels:
+      app: business
+      cattle.io/creator: norman
+      io.cattle.field/appId: rpay-engine
+    name: settings
+    namespace: rpay-engine
+  spec:
+    rules:
+    - host: settings.dev.rocketho.me
+      http:
+        paths:
+        - backend:
+            serviceName: settings
+            servicePort: 6001
+          path: /
+    tls:
+    - hosts:
+      - settings.dev.rocketho.me
+      secretName: letsencrypt-settings
+- apiVersion: extensions/v1beta1
+  kind: Ingress
+  metadata:
+    annotations:
+      certmanager.k8s.io/cluster-issuer: letsencrypt-prod
+      field.cattle.io/creatorId: user-rxbgq
+      field.cattle.io/ingressState: '{"d2FsbGV0L3JwYXktZW5naW5lL3dhbGxldC5kZXYucm9ja2V0aG8ubWUvLy84ODAw":"deployment:rpay-engine:wallet","d2FsbGV0LWRldi1yb2NrZXRoby1tZQ==":"rpay-engine:wallet-dev-rocketho-me"}'
+      field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":443,"protocol":"HTTPS","serviceName":"rpay-engine:ingress-cc8d32ff010cd1dfbdf3430a79b4f242","ingressName":"rpay-engine:wallet","hostname":"wallet.dev.rocketho.me","path":"/","allNodes":true}]'
+      kubernetes.io/ingress.class: nginx
+      kubernetes.io/tls-acme: '"true"'
+    creationTimestamp: "2019-07-06T21:38:11Z"
+    generation: 3
+    labels:
+      cattle.io/creator: norman
+    name: wallet
+    namespace: rpay-engine
+  spec:
+    rules:
+    - host: wallet.dev.rocketho.me
+      http:
+        paths:
+        - backend:
+            serviceName: ingress-cc8d32ff010cd1dfbdf3430a79b4f242
+            servicePort: 8800
+          path: /
+    tls:
+    - hosts:
+      - wallet.dev.rocketho.me
+      secretName: wallet-dev-rocketho-me
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""

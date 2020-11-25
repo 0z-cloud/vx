@@ -1,0 +1,6 @@
+- name: Deploy mysql-proxy to some hosts
+  hosts: "{{ HOSTS }}"
+  become: true
+  roles:
+    - name: Run mysql-proxy role
+      role: ./!_databases/mysql-proxy

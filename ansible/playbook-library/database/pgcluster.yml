@@ -1,0 +1,31 @@
+- name: Fact gathering
+  hosts: "all"
+  tasks: []
+  tags: [get-facts, always]
+
+# - name: Install and configure postgres-pgmanager-cluster
+#   hosts: "{{ HOSTS | default('postgres-pgmanager-cluster') }}"
+#   become: true
+#   vars_files:
+#     - "{{ inventory_dir }}/group_vars/!_Databases/postgres/{{ HOSTS | default('postgres-pgmanager-cluster') }}/{{ HOSTS | default('postgres-pgmanager-cluster') }}.yml"
+#   roles:
+#     - name: Install and configure postgres cluster
+#       role: ./!_databases/pgcluster/manager
+
+# - name: Install and configure postgres-pgpool-cluster
+#   hosts: "{{ HOSTS | default('postgres-pgpool-cluster') }}"
+#   become: true
+#   vars_files:
+#     - "{{ inventory_dir }}/group_vars/!_Databases/postgres/{{ HOSTS | default('postgres-pgpool-cluster') }}/{{ HOSTS | default('postgres-pgpool-cluster') }}.yml"
+#   roles:
+#     - name: Install and configure postgres cluster
+#       role: ./!_databases/pgcluster/pgpool
+
+- name: Install and configure postgres-pgcontrol-cluster
+  hosts: "{{ HOSTS | default('postgres-pgcontrol-cluster') }}"
+  become: true
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/!_Databases/postgres/{{ HOSTS | default('postgres-pgcontrol-cluster') }}/{{ HOSTS | default('postgres-pgcontrol-cluster') }}.yml"
+  roles:
+    - name: Install and configure postgres cluster
+      role: ./!_databases/pgcluster/postgres

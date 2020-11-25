@@ -1,0 +1,16 @@
+{% block 0z_ll_check_vx %}{% endraw %}{{ key }}{% raw %}:{% endraw %}{% if ansible_vx_build_localhost is defined %}{% raw %}
+      build: {% endraw %}{{ value['image'] }}{% raw %}:latest{% endraw %}{% if value['environment'] is defined %}{% raw %}
+        args:{% endraw %}{% for de in value['environment'] %}{% raw %}
+          {% endraw %}{{ de | join }}{% raw %}
+{% endraw %}{% endfor %}
+{% endif %}{% raw %}
+      image: {% endraw %}{{ value['image'] }}{% raw %}:latest 
+{% endraw %}{% else %}{% raw %}
+      build: {% endraw %}{{ ANSIBLE_REGISTRY_URL | default("") }}{% raw %}/{% endraw %}{{ ansible_git_project_path | default("") }}{% raw %}/{% endraw %}{{ value['image'] }}{% raw %}:{% endraw %}{{ lookup('vars', 'passed_ci_docker_tag_' + app) | default("") }}{% raw %}
+{% endraw %}{% if value['environment'] is defined %}{% raw %}
+        args:{% endraw %}{% for de in value['environment'] %}{% raw %}
+          {% endraw %}{{ de | join }}{% raw %}
+{% endraw %}{% endfor %}
+{% endif %}{% raw %}
+      image: {% endraw %}{{ ANSIBLE_REGISTRY_URL | default("") }}{% raw %}/{% endraw %}{{ ansible_git_project_path | default("") }}{% raw %}/{% endraw %}{{ value['image'] }}{% raw %}:{% endraw %}{{ lookup('vars', 'passed_ci_docker_tag_' + app) | default("") }}{% raw %}
+{% endraw %}{% endblock %}

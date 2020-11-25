@@ -1,0 +1,7 @@
+files_to_fetch_apache2:
+  path: /etc/apache2/
+  name: apache2
+
+files_to_fetch_secureweb:
+  path: /srv/
+  name: srv

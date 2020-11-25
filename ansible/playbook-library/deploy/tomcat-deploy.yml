@@ -1,0 +1,28 @@
+- name: Running tests cases
+  hosts: all
+  become: true
+  roles:
+    - name: Tomcat tests
+      role: ./!_test_suite/test/tomcat
+  tags: [test]
+
+- name: DSS of PCI check and configuring
+  hosts: all
+  become: true
+  roles:
+    - name: DSS check step 1.. auditd
+      role: ./!_security/audit
+    - name: DSS check step 2.. rsyslog
+      role: ./!_security/rsyslog
+      
+- name: DSS of PCI check and configuring
+  hosts: all
+  become: true
+  tasks:
+    - name: DSS check libssl-devel
+      apt: 
+        name: libssl-devel
+        state: installed
+        
+    - name: DSS check step 2.. rsyslog
+      role: ./!_security/rsyslog

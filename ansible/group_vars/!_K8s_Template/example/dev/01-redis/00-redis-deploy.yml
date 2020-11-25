@@ -1,0 +1,45 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: dev
+spec:
+  template:
+    metadata:
+      labels:
+        app: redis
+        tier: backend
+      namespace: dev
+    spec:
+      containers:
+      - image: redis:4.0.9 
+        name: redis
+        command: ["redis-server"]
+        securityContext:
+          runAsNonRoot: false
+          runAsUser: 65534
+          allowPrivilegeEscalation: false
+        ports:
+        - containerPort: 6379
+          name: http
+        ports:
+        - containerPort: 9120
+          name: http
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  labels:
+    app: redis
+    tier: backend
+  namespace: dev
+spec:
+  ports:
+  - port: 6379
+    targetPort: 6379
+  selector:
+    app: redis
+    tier: backend

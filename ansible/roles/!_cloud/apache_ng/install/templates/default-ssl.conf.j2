@@ -1,0 +1,22 @@
+<IfModule mod_ssl.c>
+	<VirtualHost _default_:443>
+		ServerName "{{ apache2_default_servername }}"
+		ServerAdmin webmaster@localhost
+		DocumentRoot /var/www/html
+
+		ErrorLog ${APACHE_LOG_DIR}/error.log
+		CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+		SSLEngine on
+		SSLCertificateFile /etc/ssl/certs/ssl-cert-snakeoil.pem
+		SSLCertificateKeyFile /etc/ssl/private/ssl-cert-snakeoil.key
+
+		<Directory /var/www/html>
+			Options FollowSymLinks
+			AllowOverride None
+			Require all denied
+		</Directory>
+	</VirtualHost>
+</IfModule>
+
+# vim: syntax=apache ts=4 sw=4 sts=4 sr noet

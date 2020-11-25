@@ -1,0 +1,9 @@
+- name: Run the Database Configs Log Watchdog role
+  become: true
+  hosts: "{{ HOSTS | default('vortex-database-watchdog') }}"
+  roles:
+    - name: Run the Database Configs Log
+      role: ./!_security/scripts/watchdog/database_configs
+  tags: 
+    - watchdog
+   

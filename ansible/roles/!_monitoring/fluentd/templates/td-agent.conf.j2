@@ -1,0 +1,28 @@
+{% for source in fluentd_sources %}
+<source>
+    @type   {{ source.type }}
+{% for param in source.params %}
+    {{ param.keys()[0] }}   {{ param.values()[0] }}
+{% endfor %}
+</source>
+
+{% endfor %}
+
+{% for match in fluentd_matches %}
+<match {{ match.pattern }}>
+    @type {{ match.type }}
+
+{% for store in match.stores %}
+    <store>
+        @type {{ store.type }}
+{% if store.params is defined %}
+{% for key,value in store.params.items() %}
+        {{ key }} {{ value }}
+{% endfor %}
+{% endif %}
+    </store>
+{% endfor %}
+
+</match>
+{% endfor %}
+

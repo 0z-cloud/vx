@@ -1,0 +1,128 @@
+- name: Start TomCat PCI Compliance Testing
+  debug:
+    msg: "starting..."
+  
+- name: Inject defaults for ansible_tomcat_settings 
+  set_fact:
+    ansible_tomcat_settings: "{{ ansible_tomcat_settings_defaults | combine(ansible_tomcat_settings) }}"
+  tags: [always]
+
+#### CREATING FOLDERS
+
+- name: Checking example folders and configs - in {{ tomcat_properties.directories.CATALINA_HOME }}
+  file: 
+    path: "{{ tomcat_properties.directories.CATALINA_HOME }}/{{ item }}"
+    state: absent
+  with_items: 
+    - "{{ ansible_catalina_example_folders }}"
+    - "{{ ansible_catalina_example_configs }}"
+
+- name: Checking example folders and configs - in {{ tomcat_properties.directories.CATALINA_BASE }}
+  file: 
+    path: "{{ tomcat_properties.directories.CATALINA_BASE }}/{{ item }}"
+    state: absent
+  with_items: 
+    - "{{ ansible_catalina_example_folders }}"
+    - "{{ ansible_catalina_example_configs }}"
+
+#### CHECK SERVER INFO TESTS in ROOT APPLICATION
+
+- name: Start checking server info PCI tests, go to run -
+  include: server_info.yml
+  
+#### CHECK CONNECTORS in ROOT APPLICATION
+
+- name: Start checking connectors settings PCI tests, go to run -
+  include: connectors.yml
+
+#### CHECK ERROR PAGES in ROOT APPLICATION
+
+- name: Start checking error pages tests, go to run -
+  include: error_pages.yml
+  
+#### CHECK SERVER SETTINGS
+  
+- name: Start checking server settings PCI tests, go to run -
+  include: server_settings.yml
+
+#### CHECK SERVER PERMISSIONS
+  
+- name: Start checking server permissions PCI tests, go to run -
+  include: permissions.yml
+
+#### CHECK AUDIT IN SERVER.XML
+  
+- name: Start checking server.xml audit PCI tests, go to run -
+  include: server_xml.yml
+  
+#### CHECK LOCKOUT REALM
+
+- name: Start checking server.xml for lockout realm, go to run - 
+  include: lockout_check.yml
+  
+#### SECTION checking clientAuth="true"
+
+- name: SECTION checking clientAuth="true" not applicable
+  debug: 
+    msg: "We use only trusted connections to tomcat applications only in internal network, part not applicable" 
+
+#### SECTION checking SSLEnabled="true" 
+
+- name: SECTION checking SSLEnabled="true" not applicable
+  debug: 
+    msg: "We use only trusted connections to tomcat applications only in internal network, part not applicable" 
+    
+#### SECTION checking scheme="https" 
+
+- name: SECTION checking scheme="https" not applicable
+  debug: 
+    msg: "We use only trusted connections to tomcat applications only in internal network, part not applicable" 
+    
+#### SECTION checking secure="true"
+
+- name: SECTION checking secure="true" not applicable
+  debug: 
+    msg: "We use only trusted connections to tomcat applications only in internal network, part not applicable" 
+
+#### SECTION checking sslProtocol="TLS"
+
+- name: SECTION checking sslProtocol="TLS" not applicable
+  debug: 
+    msg: "We use only trusted connections to tomcat applications only in internal network, part not applicable" 
+
+#### SECTION checking logging.properties
+
+- name: SECTION checking logging.properties not applicable
+  debug: 
+    msg: "We use not used logging.properties in tomcat applications, part not applicable" 
+
+
+#### SECTION checking Ensure className is set correctly in context.xml 
+
+- name: SECTION Ensure className is set correctly in context.xml not applicable
+  debug: 
+    msg: "We use not used logging.properties in tomcat applications, part not applicable" 
+    
+#### SECTION checking context.xml log location is set correctly in context.xml 
+
+- name: SECTION context.xml log location is set correctly in context.xml not applicable
+  debug: 
+    msg: "We use not used logging.properties in tomcat applications, part not applicable" 
+    
+#### SECTION checking context.xml pattern is set correctly in context.xml 
+
+- name: SECTION context.xml pattern is set correctly in context.xml not applicable
+  debug: 
+    msg: "We use not used logging.properties in tomcat applications, part not applicable" 
+    
+    
+#### # grep directory logging.properties # ls –ld <log_location>
+
+- name: grep directory logging.properties and check rights
+  include: checking_logging_properties.yml
+  
+
+#### SECTION CHECK PACKAGE ACCESS
+
+- name: check package access in catalina.properties
+  include: catalina_properties.yml

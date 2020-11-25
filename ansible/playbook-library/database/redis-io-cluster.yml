@@ -1,0 +1,31 @@
+
+
+- name: Pre tasks for Redis Docker Playbook step...
+  become: true
+  hosts: "{{ HOSTS }}"
+  tasks:
+    - name: Log into DockerHub
+      docker_login:
+        username: vortex
+        password: asd819hr1br12br18qQ
+        email: support@vortex.com
+  tags: [redis-io-cluster]
+
+
+- name: Redis Docker Playbook step...
+  become: true
+  hosts: "{{ HOSTS }}"
+  vars_files:
+    - "group_vars/!_Cache_Services/redis/main.yml"
+    - "{{ inventory_dir }}/group_vars/!_Cache_Services/redis/{{ HOSTS }}/{{ HOSTS }}.yml"
+  roles:
+
+    - name: Setup Redis Service
+      role: ./!_databases/redis-io-cluster
+      tags: redis-io-cluster
+
+    - include_role: Publish service to Service Discovery Cluster
+      name: ./!_cloud/consul/magic-join
+      tags: magic-join
+
+  tags: [redis-io-cluster, magic-join]

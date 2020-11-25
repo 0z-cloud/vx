@@ -1,0 +1,22 @@
+
+- name: DEBUG | current_ossec_server_clients_count
+  debug: 
+    msg: "current_ossec_server_clients_count: {{ current_ossec_server_clients_count }}"
+  when: ossec_managed_server is defined
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['vortex-ossec-server'] }}"
+
+- name: DEBUG | current_host_presents_on_ossec_server
+  debug: 
+    msg: "current_host_presents_on_ossec_server: {{ current_host_presents_on_ossec_server }}"
+  when: ossec_managed_server is undefined
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['vortex-ossec-server'] }}"
+
+- name: DEBUG | current_ossec_server_client_present
+  debug: 
+    msg: "current_ossec_server_client_present: {{ current_ossec_server_client_present.results }} {{ current_ossec_server_client_present.results.rc }}"
+  when: ossec_managed_server is undefined
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['vortex-ossec-server'] }}"
+

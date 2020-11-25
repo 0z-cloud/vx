@@ -1,0 +1,46 @@
+
+# - name: Call the gcp_resourcemanager_project - Creates a GCP Project
+#   google.cloud.gcp_resourcemanager_project:
+#     name: My Sample Project
+#     id: alextest-{{ 10000000000 | random }}
+#     auth_kind: serviceaccount
+#     service_account_file: "/tmp/auth.pem"
+#     parent:
+#       type: organization
+#       id: 636173955921
+#     state: present
+
+# gcp_bigquery_dataset - Creates a GCP Dataset
+# gcp_bigquery_dataset_facts - Gather facts for GCP Dataset
+# gcp_bigquery_table - Creates a GCP Table
+# gcp_bigquery_table_facts - Gather facts for GCP Table
+# gcp_cloudbuild_trigger - Creates a GCP Trigger
+# gcp_cloudbuild_trigger_facts - Gather facts for GCP Trigger
+# gcp_compute_interconnect_attachment - Creates a GCP InterconnectAttachment
+# gcp_compute_interconnect_attachment_facts - Gather facts for GCP InterconnectAttachment
+# gcp_compute_region_disk - Creates a GCP RegionDisk
+# gcp_compute_region_disk_facts - Gather facts for GCP RegionDisk
+# gcp_container_cluster_facts - Gather facts for GCP Cluster
+# gcp_container_node_pool_facts - Gather facts for GCP NodePool
+# gcp_dns_managed_zone_facts - Gather facts for GCP ManagedZone
+# gcp_dns_resource_record_set_facts - Gather facts for GCP ResourceRecordSet
+# gcp_iam_role - Creates a GCP Role
+# gcp_iam_role_facts - Gather facts for GCP Role
+# gcp_iam_service_account - Creates a GCP ServiceAccount
+# gcp_iam_service_account_facts - Gather facts for GCP ServiceAccount
+# gcp_iam_service_account_key - Creates a GCP ServiceAccountKey
+# gcp_pubsub_subscription_facts - Gather facts for GCP Subscription
+# gcp_pubsub_topic_facts - Gather facts for GCP Topic
+# gcp_redis_instance - Creates a GCP Instance
+# gcp_redis_instance_facts - Gather facts for GCP Instance
+# gcp_resourcemanager_project - Creates a GCP Project
+# gcp_resourcemanager_project_facts - Gather facts for GCP Project
+# gcp_sourcerepo_repository - Creates a GCP Repository
+# gcp_sourcerepo_repository_facts - Gather facts for GCP Repository
+# gcp_spanner_database_facts - Gather facts for GCP Database
+# gcp_spanner_instance_facts - Gather facts for GCP Instance
+# gcp_sql_database_facts - Gather facts for GCP Database
+# gcp_sql_instance_facts - Gather facts for GCP Instance
+# gcp_sql_user_facts - Gather facts for GCP User
+# gcp_storage_object - Creates a GCP Object
+# get_certificate - Get a certificate from a host:port

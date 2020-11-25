@@ -1,0 +1,172 @@
+# - name: Load group_vars/product global shared settings
+#   include_vars: group_vars/products/{{ ansible_product }}/{{ item }}.yml
+#   with_items:
+#     - vcd
+#     - main
+#     - zone
+#     - sg_data
+
+# - name: Load group_vars/product global shared settings
+#   include_vars: group_vars/products/{{ ansible_product }}/{{ ansible_environment }}/{{ item }}.yml
+#   with_items:
+#     - attached
+#     - main
+
+# - name: Show current context variables and facts. For [DEBUG] mode you must to be enable it, if you want debug.
+#   no_log: True
+#   debug:
+#     msg: "{{ item }}"
+#   with_items: 
+#     - "================================================================================"
+#     - "[D] Ansible Environment: {{ ansible_environment }}"
+#     - "[I] AnyCloud Zone: {{ anycloud_zone }}"
+#     - "[I] AnyCloud Region: {{ anycloud_region }}"
+#     - "[I] AnyCloud Virtual Cloud Zone: {{ anycloud_virtual_cloud_zone }}"
+#     - "[I] AnyCloud Virtual Cloud Name: {{ anycloud_virtual_cloud_name }}"
+#     - "[E] AnyCloud Virtual Cloud Defaults CIDR: {{ anycloud_defaults_virtual_cloud_cidr }}"
+#     - "================================================================================"
+#     - "[D] Organization Name (org_name) from defaults: {{ anycloud_defaults_virtual_organization }}"
+#     - "[D] Virtual Datacenter Organization (vdc_org_name) from defaults: {{ anycloud_defaults_virtual_organization }}"
+#     - "[D] Virtual Datacenter (vdc_name) from defaults: {{ anycloud_defaults_virtual_datacenter }}"
+#     - "================================================================================"
+#     - "[A] Organization Name (org_name) from adapter: {{ anycloud_adapter_virtual_organization }}"
+#     - "[A] Virtual Datacenter Organization (vdc_org_name) from adapter: {{ anycloud_adapter_virtual_organization }}"
+#     - "[D] Virtual Datacenter (vdc_name) from adapter: {{ anycloud_adapter_virtual_datacenter }}"
+#     - "================================================================================"
+#     - "[A] anycloud_adapter_api_password from adapter: {{ anycloud_adapter_api_password }}"
+#     - "[A] anycloud_adapter_api_user from adapter: {{ anycloud_adapter_api_user }}"
+#     - "[A] anycloud_adapter_api_url_endpoint from adapter: {{ anycloud_adapter_api_url_endpoint }}"
+#     - "================================================================================"
+#   when: debug_playbook_stdout is defined 
+
+- name: Get vCloud Director Resources by Organization and Virtual Cloud Datacenter
+  no_log: False
+  vcd_get_resources_by_org:
+    vdc: "{{ anycloud_defaults_virtual_datacenter }}"
+    org_name: "{{ anycloud_defaults_virtual_organization }}"
+    org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}" # need to check how its real behaivor passing in differents situations
+    vdc_org_name: "{{ anycloud_defaults_virtual_organization }}"
+    host: "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}" # {{ anycloud_adapter_api_url_endpoint }}
+    verify_ssl_certs: true
+    user: "{{ anycloud_adapter_api_user }}"
+    password: "{{ anycloud_adapter_api_password }}"
+    operation: read_and_return
+    api_version: 31.0
+  register: output
+
+- name: "[any.box.network][VMWare vCloud Director]: Checking Result of AnyCloud Virtual Cloud Aplication Organization resource Debug View"
+  set_fact:
+    output_edge_prepared_list: "{{ output['edge-gw'] }}"
+
+- name: Set Fact About Getted EDGE Router
+  set_fact: 
+    anycloud_result_edge_router: "{{ item.value }}"
+  with_dict: "{{ output['edge-gw'] }}"
+
+
+
+- name: SHOW output
+  debug: 
+    msg: "{{ output }}"
+  # with_items: "{{ output['edge-gw'] }}"
+
+
+# - name: Get EDGE INFO from vCloud Director Resources by Organization and Virtual Cloud Datacenter
+#   no_log: False
+#   vcd_link_net_edge:
+#     edge_name: "{{ anycloud_result_edge_router }}"
+#     vdc: "{{ anycloud_defaults_virtual_organization }}"
+#     org_name: "{{ anycloud_defaults_virtual_organization }}"
+#     org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}" # need to check how its real behaivor passing in differents situations
+#     vdc_org_name: "{{ anycloud_defaults_virtual_organization }}"
+#     vdc_name: "{{ anycloud_defaults_virtual_organization }}"
+#     host: "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}" # {{ anycloud_adapter_api_url_endpoint }}
+#     verify_ssl_certs: true
+#     user: "{{ anycloud_adapter_api_user }}"
+#     password: "{{ anycloud_adapter_api_password }}"
+#     operation: read
+#     api_version: 31.0
+#   register: output
+- name: Get EDGE Info
+  vcd_get_edge_ip:
+    edge_input_to_get: "{{ anycloud_result_edge_router }}"
+    # user: "{{ anycloud_adapter_api_user }}"
+    # password: "{{ anycloud_adapter_api_password }}"
+    # host: "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}"
+    # org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+    # org_name: "{{ anycloud_defaults_virtual_organization }}"
+    # api_version: 31.0
+    # verify_ssl_certs: true
+    # vdc: "{{ anycloud_defaults_virtual_organization }}"
+    # vdc_name: "{{ anycloud_defaults_virtual_organization }}"
+    # #vdc_org_name: "{{ anycloud_defaults_virtual_organization }}"
+    # #description: "{{ ansible_datacenter }}"
+    # #edge_name: "{{ anycloud_result_edge_router }}"
+    # operation: read_and_return
+    vdc: "{{ anycloud_defaults_virtual_datacenter }}"
+    org_name: "{{ anycloud_defaults_virtual_organization }}"
+    org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}" # need to check how its real behaivor passing in differents situations
+    vdc_org_name: "{{ anycloud_defaults_virtual_organization }}"
+    host: "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}" # {{ anycloud_adapter_api_url_endpoint }}
+    verify_ssl_certs: true
+    user: "{{ anycloud_adapter_api_user }}"
+    password: "{{ anycloud_adapter_api_password }}"
+    operation: read_and_return
+    api_version: '32.0'
+    
+  register: output_final
+# - name: Debug anycloud_result_edge_router
+#   debug: 
+#     msg: "{{ anycloud_result_edge_router }}"
+#   when: debug_playbook_stdout is defined 
+- name: SHOW Fact About Getted EDGE Router
+  debug: 
+    msg: "{{ item }}"
+  with_dict: "{{ output_final }}"
+
+- name: "[any.box.org][VMWare vCloud Director] read a AnyCloud Virtual Cloud Aplication Organization resource"
+  no_log: False
+  vcd_org:
+    org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}" # need to check how its real behaivor passing in differents situations
+    org_name: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+    operation: "read" # st be one of: read, add_rights, remove_rights, list_rights, list_roles, got: list_vdcs"}
+    host: "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}" # {{ anycloud_adapter_api_url_endpoint }}
+    user: "{{ anycloud_adapter_api_user }}"
+    password: "{{ anycloud_adapter_api_password }}" # must changed to real username password (string)
+  register: any_box_org_result
+
+# - name: "[any.box.network][VMWare vCloud Director]: Checking Result of AnyCloud Virtual Cloud Aplication Organization resource Debug View"
+#   debug:
+#     msg: '{{ any_box_org_result.msg }}'
+#   when: debug_playbook_stdout is defined 
+
+- name: "[any.box.org][VMWare vCloud Director] read a AnyCloud Virtual Cloud Aplication Organization resource"
+  no_log: False
+  vcd_org:
+    org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}" # need to check how its real behaivor passing in differents situations
+    org_name: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+    operation: "list_rights" # st be one of: read, add_rights, remove_rights, list_rights, list_roles, got: list_vdcs"}
+    host: "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}" # {{ anycloud_adapter_api_url_endpoint }}
+    user: "{{ anycloud_adapter_api_user }}"
+    password: "{{ anycloud_adapter_api_password }}" # must changed to real username password (string)
+  register: any_box_org_result
+
+# - name: "[any.box.network][VMWare vCloud Director]: Checking Result of AnyCloud Virtual Cloud Aplication Organization resource Debug View"
+#   debug:
+#     msg: '{{ any_box_org_result.msg }}'
+#   when: debug_playbook_stdout is defined 
+
+- name: "[any.box.org.vcd][VMWare vCloud Director] read a AnyCloud Virtual Cloud Aplication Organization Virtual Data Center resource"
+  no_log: False
+  vcd_org_vdc:
+    org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}" # need to check how its real behaivor passing in differents situations
+    operation: "list_vdcs"
+    host: "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}" # {{ anycloud_adapter_api_url_endpoint }}
+    user: "{{ anycloud_adapter_api_user }}"
+    password: "{{ anycloud_adapter_api_password }}" # must changed to real username password (string)
+  register: any_box_org_result_list
+
+# - name: "[any.box.network][VMWare vCloud Director]: Checking Result of Virtual Cloud Aplication Organization Virtual Data Center Debug View"
+#   debug:
+#     msg: '{{ any_box_org_result_list.msg }}'
+#   when: debug_playbook_stdout is defined 

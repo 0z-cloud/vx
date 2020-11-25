@@ -1,0 +1,109 @@
+#!/bin/bash
+
+set -e
+
+# FLAG="u p"
+# COUNT=3
+
+# if [[ $FLAG  && $COUNT -gt '1' ]] ; then 
+#     echo 'Flag up, count bigger than 1'
+# else 
+#     echo 'Nope'
+# fi
+
+###############################################################
+#........SOA.RECORD.FUNCTION...................................
+###############################################################
+
+function soa_record_add() {
+    parent_key=$1
+    echo 'Parent key: $parent_key'
+    {% for key, value in powerdns_postgresql_settings.database_array.items() %}
+    function add_soa_recod_for_domain_{{ value }}() {
+        soa_parent_key=$1
+        echo 'soa_parent_key: $soa_parent_key'
+        {% set test_var = "{{ 'powerdns_main_%d' % value }}" %}
+        {% if key == test_var %}
+            echo 'Something wrong'
+        {% else %}
+            psql -v ON_ERROR_STOP=1 --username "{{ powerdns_postgresql_settings.user }}" -qtA <<-EOSQL
+            \c {{ key }};
+            INSERT INTO public.records (domain_id, name, type, content, ttl, prio, disabled, auth) VALUES('1', '{{ merge_consul_domain }}', 'SOA', '{{ value }}.{{ merge_consul_domain }} hostmaster.{{ merge_consul_domain }} {{ current_run_timestamp.stdout }} 10800 3600 604800 300', '300', '0', 'f', 't');
+EOSQL
+        #######################
+        echo 'Completed adding SOA NS to DB {{ merge_consul_domain }} on servernode {{ value }}'
+        #######################
+        #return $@
+    {% endif %}
+    }
+    add_soa_recod_for_domain_{{ value }}
+    {% endfor %}
+}
+
+###############################################################
+#..........FOR.EACH.DATABASE.CHECK.SOA.&.ADD.A-RECORDS.........
+###############################################################
+
+{% for database_name in powerdns_postgresql_settings.database %}
+#### database_name {{ database_name }}
+
+function return_domain_id_{{ database_name }}() {
+    psql -v ON_ERROR_STOP=1 --username "{{ powerdns_postgresql_settings.user }}" -qtA <<-EOSQL 
+    \c {{ database_name }};  
+    SELECT domain_id FROM public.records WHERE '{{ merge_consul_domain }}' ~ name;
+EOSQL
+   #return $@
+}
+
+function perform_a_records_set_{{ database_name }}() {
+    #######################
+    echo 'Start User Check and Set {{ database_name }} domain_id'
+    #######################
+    local VALUE
+    VALUE=$(return_domain_id_{{ database_name }})
+    if [[ ! $VALUE ]] ; then
+        soa_record_add "{{ database_name }}";
+        perform_a_records_set_{{ database_name }};
+    else
+    #
+    ####################### .woinc.space
+    echo 'LOCAL VALUE: $VALUE'
+    #######################
+    {% for key, value in powerdns_postgresql_settings.primary_array.items() %}
+    #######################
+    echo 'Start add to each database each server {{ database_name }} domain_id'
+    #######################
+    function add_a_records_set_{{ key }}_{{ database_name }}() {
+        #######################
+        echo 'Add to DB NS SUPERSERVER {{ key }}.{{ merge_consul_domain }}'
+        #######################
+        psql -v ON_ERROR_STOP=1 --username "{{ powerdns_postgresql_settings.user }}" -qtA <<-EOSQL 
+        \c {{ database_name }};
+        INSERT INTO public.records (domain_id, name, type, content, ttl, prio, disabled, auth) VALUES ($VALUE, '@', 'NS', '{{ key }}', '300', '0', 'f', 't');
+        INSERT INTO public.records (domain_id, name, type, content, ttl, prio, disabled, auth) VALUES ($VALUE, '{{ key }}', 'A', '{{ value }}', '300', '0', 'f', 't');
+        INSERT INTO public.records (domain_id, name, type, content, ttl, prio, disabled, auth) VALUES ($VALUE, 'cloud-{{ key }}.cloud', 'A', '{{ value }}', '300', '0', 'f', 't');
+        INSERT INTO public.records (domain_id, name, type, content, ttl, prio, disabled, auth) VALUES ($VALUE, '@', 'A', '{{ value }}', '300', '0', 'f', 't');
+        INSERT INTO public.records (domain_id, name, type, content, ttl, prio, disabled, auth) VALUES ($VALUE, 'www', 'A', '{{ value }}', '300', '0', 'f', 't');
+        INSERT INTO public.records (domain_id, name, type, content, ttl, prio, disabled, auth) VALUES ($VALUE, '{{ cosnul_private_prefix }}', 'A', '{{ value }}', '300', '0', 'f', 't');
+        INSERT INTO public.records (domain_id, name, type, content, ttl, prio, disabled, auth) VALUES ($VALUE, 'ns.cloud', 'A', '{{ value }}', '300', '0', 'f', 't');
+        INSERT INTO public.records (domain_id, name, type, content, ttl, prio, disabled, auth) VALUES ($VALUE, '{{ consul_teamcity_prefix }}', 'A', '{{ value }}', '300', '0', 'f', 't');
+        INSERT INTO public.records (domain_id, name, type, content, ttl, prio, disabled, auth) VALUES ($VALUE, '{{ consul_powerdns_prefix }}', 'A', '{{ value }}', '300', '0', 'f', 't');
+EOSQL
+        #######################
+        echo 'Completed adding SUPERSERVER NS to DB {{ key }}.{{ merge_consul_domain }}'
+        #######################
+        #return $@
+    }
+    add_a_records_set_{{ key }}_{{ database_name }};
+    {% endfor %}
+    #######################
+    echo 'VALUE {{ database_name }}: $VALUE'
+    #######################
+    echo 'Completed for DB {{ database_name }}'
+    #######################
+    fi
+}
+##### START {{ database_name }} SECTION
+perform_a_records_set_{{ database_name }};
+##### END {{ database_name }} SECTION
+{% endfor %}

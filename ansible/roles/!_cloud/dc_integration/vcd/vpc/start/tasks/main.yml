@@ -1,0 +1,193 @@
+- name: 'UNO! [oZvRouter Warm-up...] | re/UP Routers in vApp'
+  vcd_vapp_vm:
+    target_vm_name: "{{ item.value.name }}"
+    target_vapp: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+    target_vdc: "{{ anycloud_adapter_virtual_datacenter }}"
+    operation: "poweron"
+  # retries: 3
+  # delay: 3
+  #register: result
+  retries: 3
+  delay: 10
+  until: start_routers_instances_result is not failed
+  register: start_routers_instances_result
+  with_dict: 
+    - "{{ cloud_bootstrap.oz_routers }}"
+
+    # - "{{ cloud_bootstrap.servers }}"
+
+# - name: RAW sleep 5
+#   shell: sleep 5
+
+# - name: LIST RESULTS
+#   wait_invocation: 
+#     wait_invocation_one: "{{ item.value }}"
+#   with_dict: "{{ response_awaiter_router_ip.results }}"
+#   # when: item.changed|bool == true
+#   when: "'vm_ip_address' in item.key" 
+
+# vm_name=dict(type='str', required=True),
+# vapp=dict(type='str', required=True),
+# vdc=dict(type='str', required=True),
+# nic_id=dict(type='int', required=True),
+# nic_ids=dict(type='list', required=False),
+# ip_address=dict(type='str', required=False, default=None),
+# verification=dict(choices=METATYPE_STATES, required=False)
+
+- name: '[eth0] Await IP on Primary NIC vRouter to Routed Primary Network in vCloud vApp Zone'
+  vcd_vapp_vm_nic_read:
+    #org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+    #user: "{{ anycloud_adapter_api_user }}"
+    #password: "{{ anycloud_adapter_api_password }}"
+    #host: "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}"
+    vm_name: "{{ item['value']['name'] }}"
+    vapp: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+    vdc: "{{ anycloud_adapter_virtual_datacenter }}"
+    network: "{{ anycloud_result_routed_network_name }}"
+    ip_allocation_mode: "DHCP"
+    is_connected: True
+    #verify_ssl_certs: True
+    #api_version: '31.0'
+    nic_id: "0"
+    is_primary: 0
+    nic_ids: 
+      - "0"
+      - "1"
+    adapter_type: "E1000"
+    state: "present"
+    verification: "meta"
+    operation: "validate"
+  with_dict: "{{ cloud_bootstrap.oz_routers }}"
+  register: response_awaiter_router_ip
+  until: response_awaiter_router_ip | json_query('[vm_ip_address]') is defined and 'Zero' not in response_awaiter_router_ip | json_query('[vm_ip_address]')
+  retries: 7
+  delay: 7
+
+- name: '[eth1] Await IP on Secondary NIC vRouter to Direct Secondary Network in vCloud vApp Zone'
+  vcd_vapp_vm_nic_read:
+    org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+    user: "{{ anycloud_adapter_api_user }}"
+    password: "{{ anycloud_adapter_api_password }}"
+    host: "{{ anycloud_adapter_api_url_endpoint | default(anycloud_defaults_api_url_endpoint) }}"
+    vm_name: "{{ item['value']['name'] }}"
+    vapp: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+    vdc: "{{ anycloud_adapter_virtual_datacenter }}"
+    network: "{{ anycloud_result_direct_network_name }}"
+    ip_allocation_mode: "DHCP"
+    is_connected: True
+    #verify_ssl_certs: True
+    #api_version: '31.0'
+    nic_id: "1"
+    is_primary: 0
+    nic_ids: 
+      - "0"
+      - "1"
+    adapter_type: "E1000"
+    state: "present"
+    verification: "meta"
+    operation: "validate"
+  with_dict: "{{ cloud_bootstrap.oz_routers }}"
+  register: response_awaiter_router_ip
+  until: response_awaiter_router_ip | json_query('[vm_ip_address]') is defined and 'Zero' not in response_awaiter_router_ip | json_query('[vm_ip_address]')
+  retries: 7
+  delay: 7
+  # ignore_errors: true
+
+# - name: invocation CHECK RESULTS EXISTS
+#   debug: 
+#     msg: "{{ response_awaiter_router_ip['results'] | json_query('[*].invocation') }}"
+
+# - name: CHECK RESULTS EXISTS
+#   debug: 
+#     msg: "{{ response_awaiter_router_ip['results'] | json_query('[*].vm_ip_address') }}"
+
+# - name: LIST RESULTS
+#   debug: 
+#     msg: "{{ item.value }}"
+#   with_dict: "{{ response_awaiter_router_ip.results }}"
+#   when: "'vm_ip_address' in item.key" 
+
+
+# - name: DEBUG LIST RESULTS
+#   debug: 
+#     msg: "{{ item }}"
+#   with_dict: "{{ response_awaiter_router_ip.items() }}"
+#   when: item.changed|bool == true
+
+
+# - name: DEBUG SET ONLINEFACT
+#   debug: 
+#     msg: "{{ item }}"
+#   with_items: "{{ response_awaiter_router_ip.values() | ipaddr }}"
+
+# - name: DEBUG SET ONLINEFACT
+#   debug: 
+#     msg: "{{ item.value }}"
+#   register: response_awaiter_router_until
+#   when: "'ip_address' in item.key and 'ip_address_mode' not in item.key"
+#   with_dict: |
+#         {% set result_nics_array_data = [] %}
+#         {% for item in response_awaiter_router_ip.results %}
+#         {{ result_nics_array_data | combine(item.z_read_nics_all) }}
+#         {% endfor %}
+  # - set_fact:
+  #     dict: "{{ dict | combine( { item: some_value } ) }}"
+
+# - name: DEBUG 1
+#   debug: 
+#     msg: "{{ item }}"
+#   register: response_awaiter_router_until
+#   with_items: |
+#         {% set ip_address_of_primary_nic_vpn_router = [] %}
+#         {% for item in response_awaiter_router_ip.results %}
+#         {% set ip_address_of_primary_nic_vpn_router2 = ip_address_of_primary_nic_vpn_router.append(item) %}
+#         {% endfor %}
+#         {{ ip_address_of_primary_nic_vpn_router }}
+
+# - name: Collect facts about adapter internal information - MAC & IP & Index
+#   set_fact:
+#     result_nics_array_data: "{{ item.z_read_nics_all }}"
+#   with_items: "{{ response_awaiter_router_ip.results }}"
+
+# - name: DEBUG Venti Tre
+#   debug: 
+#     msg: "{{ item }}"
+#   with_items: "{{ result_nics_array_data }}"
+# #   #register: response_awaiter_router_until
+
+# - name: DEBUG Venti Tre
+#   debug: 
+#     msg: "{{ item }}"
+#   with_items: |
+#     {% for dict_item in response_awaiter_router_ip.results %}{% for key,value in dict_item %} 
+#     {% if 'index' in key and key == "0" %}{{ item.ip_address }}{% endif %}{% endfor %}{% endif %}{% endfor %}
+#   register: response_awaiter_router_until
+
+# - name: DEBUG 2
+#   debug: 
+#     msg: "{{ item }}"
+#   with_items: |
+#     {% for dict_item in response_awaiter_router_ip.results %}{% if 'z_read_nics_all' in dict_item %}{% for item in dict_item.items() %} 
+#     {% if item.index is defined and item.index == "0" %}{{ item.ip_address }}{% endif %}{% endfor %}{% endif %}{% endfor %}
+#   register: response_awaiter_router_until
+
+# - name: DEBUG
+#   debug: 
+#     msg: "{{ item }}"
+#   with_items: "{{ response_awaiter_router_until }}"
+
+- name: 'UNO! [oZvRouter Warm-up...] | re/UP Instances in vApp'
+  vcd_vapp_vm:
+    target_vm_name: "{{ item.value.name }}"
+    target_vapp: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+    target_vdc: "{{ anycloud_adapter_virtual_datacenter }}"
+    operation: "poweron"
+  retries: 3
+  delay: 3
+  register: start_all_instances_result
+  with_dict: 
+    - "{{ cloud_bootstrap.servers }}"
+
+- name: "[any.box][VMWare vCloud Director]: vApp Checking Result Debug View"
+  debug:
+    msg: '{{ start_all_instances_result }}'

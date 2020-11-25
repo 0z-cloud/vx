@@ -1,0 +1,5 @@
+- name: Change line in file
+  lineinfile:
+    path: /var/ossec/etc/ossec.conf
+    regexp: '^    <smtp_server>'
+    line: '    <smtp_server>10.10.0.50</smtp_server>'

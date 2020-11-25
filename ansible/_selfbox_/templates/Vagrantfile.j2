@@ -1,0 +1,109 @@
+# All Vagrant configuration is done below. The "2" in Vagrant.configure
+# configures the configuration version (we support older styles for
+# backwards compatibility). Please don't change it unless you know what
+# you're doing.
+Vagrant.configure(2) do |config|
+
+{% for server in dict(cloud_bootstrap.servers) %}
+
+    config.vm.define "{{ server }}-{{ ansible_environment }}" do |node|
+      $ip = "{{ server.ip }}"
+      node.vm.box = "ubuntu/trusty64"
+      node.vm.network "private_network", ip: $ip
+      node.vm.provision "shell",
+        inline: "echo hello from node #{i}"
+    end
+{% endfor %}
+
+  config.vm.define "vortex-control-vx-{{ ansible_environment }}", primary: true do |control|
+    control.vm.box = "ubuntu/trusty64"
+    control.vm.network "private_network", ip: "{{ server.ip }}"
+    control.vm.provision "shell", binary: true, privileged: true, path: "scripts/requirements/reqirements.sh"
+    
+    
+    control.vm.provision "ansible" do |ansible|
+{% for server in dict(cloud_bootstrap.servers) %}
+        config.vm.define "{{ server }}-{{ ansible_environment }}" do |node|
+          $ip = "{{ server.ip }}"
+          node.ssh.host = $ip
+          node.vm.provision "shell",
+              inline: "echo hello from node #{i}"
+          end
+{% endfor %}
+      ansible.playbook = "empty.yml"
+      ansible.limit = 'all'
+      ansible.groups = {
+        "keyserver-zone" => [
+          "vortex-test-1-#{ENV['USER']} ", 
+          "vortex-test-2-#{ENV['USER']}"
+        ],
+        "web-servers" => [
+          "vortex-test-1-#{ENV['USER']}", 
+          "vortex-test-2-#{ENV['USER']}"
+        ],
+        "tomcat-servers" => [
+          "vortex-test-1-#{ENV['USER']}", 
+          "vortex-test-2-#{ENV['USER']}"
+          ],
+        "bastion-host" => [
+          "vortex-control-#{ENV['USER']}"
+          ],
+        "firewall-host" => [
+          "vortex-control-#{ENV['USER']}"
+          ],
+        "vortex-pansearch-hosts" => [
+          "vortex-test-1-#{ENV['USER']}", 
+          "vortex-test-2-#{ENV['USER']}"
+          ],
+        "keepalived-servers" => [
+          "vortex-test-2-#{ENV['USER']}",
+          "vortex-test-1-#{ENV['USER']}"
+          ],
+        "secureweb-servers" => [
+          "vortex-test-1-#{ENV['USER']}", 
+          "vortex-test-2-#{ENV['USER']}"
+        ],
+        "adminweb-servers" => [
+          "vortex-test-1-#{ENV['USER']}", 
+          "vortex-test-2-#{ENV['USER']}"
+        ],
+        "gateway-servers" => [
+          "vortex-test-1-#{ENV['USER']}", 
+          "vortex-test-2-#{ENV['USER']}"
+        ],
+        "clientweb-servers" => [
+          "vortex-test-1-#{ENV['USER']}", 
+          "vortex-test-2-#{ENV['USER']}"
+        ],
+        "percona-servers" =>  [
+          "vortex-test-1-#{ENV['USER']}",
+          "vortex-test-2-#{ENV['USER']}"
+        ],
+        "dns-servers" => [
+          "vortex-control-#{ENV['USER']}"
+        ],
+        "repo-servers" => [
+          "vortex-control-#{ENV['USER']}"
+        ],
+        "rsyslog-servers" => [
+          "vortex-control-#{ENV['USER']}"
+        ],
+        "vortex-after-bastion" => [
+          "vortex-control-#{ENV['USER']}"
+        ],
+
+        "all" => [
+          "vortex-test-2-#{ENV['USER']}",
+          "vortex-test-1-#{ENV['USER']}",
+          "vortex-control-#{ENV['USER']}"
+        ],
+
+        "vagrant" => [
+          "vortex-test-2-#{ENV['USER']}",
+          "vortex-test-1-#{ENV['USER']}",
+          "vortex-control-#{ENV['USER']}"
+        ]
+      }
+    end
+  end
+end

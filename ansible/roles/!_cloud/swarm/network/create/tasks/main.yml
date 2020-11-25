@@ -1,0 +1,2 @@
+- name: Create networks
+  shell: "docker network create --driver overlay --subnet={{ swarm_masters.overlay_network.network_subnet }} --gateway={{ swarm_masters.overlay_network.gateway }} --opt com.docker.network.mtu=1200 {{ swarm_masters.overlay_network.network_name }}"

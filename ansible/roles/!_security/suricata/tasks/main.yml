@@ -1,0 +1,9 @@
+- name: Create Suricata directories
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0755
+    # owner: "{{ consul_defaults.consul_security.linux_username }}"
+    # group: "{{ consul_defaults.consul_security.linux_username }}"
+  with_dict: "{{ suricata_defaults.directories | default({}) }}"
+

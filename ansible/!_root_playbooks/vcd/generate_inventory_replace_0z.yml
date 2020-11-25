@@ -1,0 +1,27 @@
+- name: Generate inventory replace_0z vCLoud Director
+  hosts: localhost
+  tasks:
+
+      - name: Load group_vars/product global shared settings
+        include_vars: group_vars/products/{{ ansible_product }}/{{ item }}.yml
+        with_items:
+          - vcd
+          - main
+
+      - name: Load group_vars/product global shared settings
+        include_vars: group_vars/products/{{ ansible_product }}/{{ ansible_environment }}/{{ item }}.yml
+        with_items:
+          - attached
+          - main
+
+      - name: Load group_vars/anycloud global shared settings
+        include_vars: group_vars/!_anyCloud/{{ item }}.yml
+        with_items:
+          - anyCloud
+
+- name: Starting replacing the 0z values
+  hosts: localhost
+  roles:
+
+      - name: Include role Generate 0z Replace
+        role: ./!_cloud/dc_integration/vcd/generate_0z

@@ -1,0 +1,21 @@
+- name: Consul magic JOIN VPN step... Unix work...
+  become: true
+  hosts: "{{ HOSTS }}"
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/{{ HOSTS }}/{{ HOSTS }}.yml"
+  roles:
+    - name: 
+
+
+
+- name: Consul magic JOIN VPN step... Unix work...
+  become: true
+  hosts: "{{ HOSTS }}"
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/{{ HOSTS }}/{{ HOSTS }}.yml"
+  roles:
+    - name: 
+
+    - name: Consul VPN Join magic do...
+      role: ./!_cloud/consul/magic-join
+  tags: [consul-dns-join]

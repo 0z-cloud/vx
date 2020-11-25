@@ -1,0 +1,37 @@
+//
+// Do any local configuration here
+//
+
+// Consider adding the 1918 zones here, if they are not used in your
+// organization
+//include "/etc/bind/zones.rfc1918";
+
+zone "{{ cloud_service_consul_cloud_fqdn }}" {
+        type forward;
+        forwarders {
+                {% for host in groups['master-bind-master-backend']%}
+                {{ hostvars[host]['ansible_default_ipv4']['address'] }} port 53;
+                {% endfor %}
+                };
+        };
+
+zone "{{ internal_service_consul_cloud_fqdn }}" {
+        type forward;
+        forwarders {
+                {% for host in groups['master-bind-master-backend']%}
+                {{ hostvars[host]['ansible_default_ipv4']['address'] }} port 53;
+                {% endfor %}
+                };
+        };
+
+zone "{{ public_consul_domain }}" {
+        type forward;
+        forwarders {
+                {% for host in groups['master-bind-master-backend']%}
+                {{ hostvars[host]['ansible_default_ipv4']['address'] }} port 53;
+                {% endfor %}
+                };
+        };
+
+// to do. WIP
+//	allow-transfer { trusted-servers; };

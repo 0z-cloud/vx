@@ -1,0 +1,57 @@
+- name: Create alertmanager dir
+  file: "path=/opt/alertmanager state=directory mode=0755"
+
+- name: Create alertmanager dir
+  file: "path=/opt/alertmanager/templates state=directory mode=0755"
+
+- name: Create alertmanager config
+  template: 
+    src: alertmanager.yml.j2
+    dest: /opt/alertmanager/config.yml
+
+- name: Create alertmanager templates 
+  template:
+      src: default.tmpl
+      dest: /opt/alertmanager/templates/default.tmpl
+
+- name: Install alertmanager
+  docker_container:
+    name: "alertmanager-{{ inventory_hostname }}"
+    image: prom/alertmanager
+    hostname: "{{ ansible_global_alertmanager_site_name }}"
+    volumes:
+        - "/opt/alertmanager/config.yml:/etc/alertmanager/config.yml"
+        - "/opt/alertmanager/templates/:/etc/alertmanager/templates/"
+    ports:
+      - "{{ alert_manager_service_listen_port }}:{{ alert_manager_service_listen_port }}"
+    # purge_networks: yes
+    # networks:
+    #   - name: "{{ swarm_masters.overlay_network.network_name }}"
+    #     ipv4_address: "{{ alertmanager_overlay_network_ip }}"
+    privileged: yes
+    state: started
+    restart_policy: unless-stopped
+    recreate: yes
+    env:
+      SMTP_AUTH_USERNAME: "{{ alert_manager_notify_from }}"
+      SMTP_AUTH_PASSWORD: "{{ alert_manager_notify_pass }}"
+  when: swarm_disabled_inventory is not defined
+
+- name: Install alertmanager without swarm
+  docker_container:
+    name: "alertmanager-{{ inventory_hostname }}"
+    image: prom/alertmanager
+    hostname: "{{ ansible_global_alertmanager_site_name }}"
+    volumes:
+        - "/opt/alertmanager/config.yml:/etc/alertmanager/config.yml"
+        - "/opt/alertmanager/templates/:/etc/alertmanager/templates/"
+    ports:
+      - "{{ alert_manager_service_listen_port }}:{{ alert_manager_service_listen_port }}"
+    privileged: yes
+    state: started
+    restart_policy: unless-stopped
+    recreate: yes
+    env:
+      SMTP_AUTH_USERNAME: "{{ alert_manager_notify_from }}"
+      SMTP_AUTH_PASSWORD: "{{ alert_manager_notify_pass }}"
+  when: swarm_disabled_inventory is defined

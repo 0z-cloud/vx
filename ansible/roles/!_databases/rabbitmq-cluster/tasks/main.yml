@@ -1,0 +1,8 @@
+---
+# - include: apt.yml
+- include: install.yml
+- include: config.yml
+- include: service.yml
+- include: management.yml
+- include: cluster.yml
+  when: rabbitmq_cluster

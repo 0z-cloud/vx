@@ -1,0 +1,25 @@
+#!/bin/bash
+
+{# 
+{{ update_array_data }}
+{{ update_array_data.results }}
+#}
+
+####
+
+{% for dict_item in update_array_data.results %}
+{# {{ dict_item }} #}
+servicename={{ dict_item.item.key }}
+config_array=(
+{{ dict_item.stdout }}
+)
+
+for VARIABLE in ${config_array[@]}
+do
+	echo $VARIABLE
+done
+
+helm upgrade --install ${servicename} --wait --values {{ all_services_location_map.directories.k8s_storage_helm }}/${servicename}/values.yaml {{ all_services_location_map.directories.k8s_storage_helm }}/${servicename} --namespace {{ ansible_environment }}
+helm upgrade --install ${servicename} --wait {{ all_services_location_map.directories.k8s_storage_helm }}/${servicename} --namespace {{ ansible_environment }}
+
+{% endfor %}

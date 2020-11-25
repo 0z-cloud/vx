@@ -1,0 +1,7 @@
+- name: Running Java Configuration Playbook
+  hosts: "{{ HOSTS }}"
+  become: yes 
+  roles:
+    - name: Java setup configuration
+      role: ./!_deploy/java/install/configuration
+  tags: [java-configuration]

@@ -1,0 +1,204 @@
+# ##############################################################################################################
+# ### 1 RULE
+# ##############################################################################################################
+
+- name: FW RULE 1 - READ ID of SNAT FIREWALL RULE
+  shell: vcd gateway services firewall list {{ anycloud_result_edge_router }} | grep {{ anycloud_defaults_virtual_cloud_application_box_sector }}_Routed_to_Internet | awk '{print $1}'
+  register: read_snat_firewall_rule_id
+
+- name: FW RULE 1 - set_fact item dict stdout_lines SHOW ID of SNAT FIREWALL RULE by item dict
+  set_fact:
+    fillme: "fillme"
+
+# - name: Debug all read_snat_firewall_rule_id
+#   debug:
+#     msg: "{{ read_snat_firewall_rule_id }}"
+
+- name: SHOW WHEN STDOUT SNAT RULE ID NOT NULL
+  set_fact:
+    fact_read_snat_firewall_rule_id: "{{ read_snat_firewall_rule_id.stdout | join }}"
+  when: read_snat_firewall_rule_id.stdout != ""
+
+- name: SHOW WHEN STDOUT SNAT RULE ID NULL
+  set_fact:
+    fact_read_snat_firewall_rule_id: "fillme"
+  when: read_snat_firewall_rule_id.stdout == ""
+
+# - name: FW RULE 1 - set_fact item dict stdout_lines SHOW ID of SNAT FIREWALL RULE by item dict
+#   set_fact:
+#     fact_read_snat_firewall_rule_id: "{{ item | join | default(fillme) }}"
+#   with_items: "{{ read_snat_firewall_rule_id }}"
+#   when: "'results' in item"
+
+# - name: FW RULE 1 - fact_read_snat_firewall_rule_id DEFINED NOFILL
+#   debug:
+#     msg: "fact_read_snat_firewall_rule_id is DEFINED"
+#   when: "'fillme' not in fact_read_snat_firewall_rule_id"
+
+# - name: FW RULE 1 - fact_read_snat_firewall_rule_id DEFINED FILLME
+#   debug:
+#     msg: "NOT DEFINED fact_read_snat_firewall_rule_id"
+#   when: "'fillme' in fact_read_snat_firewall_rule_id"
+
+- name: FW RULE 1 - Check and update FIREWALL SNAT rule for Routed network access to internet via public_ips_from_edge[0]
+  shell: vcd gateway services firewall create {{ anycloud_result_edge_router }} --name "{{ anycloud_defaults_virtual_cloud_application_box_sector }}_Routed_to_Internet" --action accept --enabled --type User
+  #with_items: "{{ oz_router_subnet_anycloud_vpn_port_nat_rule_present.skipped }}"
+  #when: item is true
+  when: "'fillme' in fact_read_snat_firewall_rule_id"
+
+- name: FW RULE 1 - Get ID of SNAT FIREWALL RULE
+  shell: vcd gateway services firewall list {{ anycloud_result_edge_router }} | grep {{ anycloud_defaults_virtual_cloud_application_box_sector }}_Routed_to_Internet | awk '{print $1}'
+  register: snat_firewall_rule_id
+  #with_items: "{{ oz_router_subnet_anycloud_vpn_port_nat_rule_present.skipped }}"
+  #when: item is true
+  #when: "'fillme' in fact_read_snat_firewall_rule_id"
+
+# - name: FW RULE 1 DEBUG snat_firewall_rule_id whole
+#   debug:
+#     msg: "{{ snat_firewall_rule_id }}"
+
+# - name: FW RULE 1 - SHOW ID of SNAT FIREWALL RULE by item dict
+#   debug:
+#     msg: "{{ item['value'] }}"
+#   with_dict: "{{ snat_firewall_rule_id.results }}"
+#   when: "'stdout_lines' in item['key'] and 'fillme' in fact_read_snat_firewall_rule_id"
+
+# - name: FW RULE 1 - set_fact item dict stdout_lines SHOW ID of SNAT FIREWALL RULE by item dict
+#   set_fact:
+#     fact_snat_firewall_rule_id: "{{ item['value'] }}"
+#   with_dict: "{{ snat_firewall_rule_id.results }}"
+#   when: "'stdout_lines' in item['key'] and 'fillme' in fact_read_snat_firewall_rule_id"
+
+- name: FW RULE 1 SHOW WHEN STDOUT SNAT RULE ID NOT NULL
+  set_fact:
+    fact_read_snat_firewall_rule_id: "{{ snat_firewall_rule_id.stdout | join }}"
+  when: snat_firewall_rule_id.stdout != ""
+
+- name: FW RULE 1 SHOW WHEN STDOUT SNAT RULE ID NULL
+  set_fact:
+    fact_read_snat_firewall_rule_id: "fillme"
+  when: snat_firewall_rule_id.stdout == ""
+
+- name: FW RULE 1 - Clean Rule First Source
+  shell: vcd gateway services firewall list-source {{ anycloud_result_edge_router }} {{ fact_read_snat_firewall_rule_id }} | awk '{print $2}' | tail -n +4 | sed '/^$/d' | xargs -I ID vcd gateway services firewall delete-source {{ anycloud_result_edge_router }} {{ fact_read_snat_firewall_rule_id }} ID
+  when: snat_firewall_rule_id.stdout != ""
+
+- name: FW RULE 1 - Clean Rule Second Destination
+  shell: vcd gateway services firewall list-destination {{ anycloud_result_edge_router }} {{ fact_read_snat_firewall_rule_id }} | awk '{print $2}' | tail -n +4 | sed '/^$/d' | xargs -I ID vcd gateway services firewall delete-destination {{ anycloud_result_edge_router }} {{ fact_read_snat_firewall_rule_id }} ID
+  when: snat_firewall_rule_id.stdout != ""
+
+- name: FW RULE 1 - Update FIREWALL SNAT rule for Routed network access to internet via public_ips_from_edge[0]
+  shell: vcd gateway services firewall update {{ anycloud_result_edge_router }} {{ fact_read_snat_firewall_rule_id }} --name "{{ anycloud_defaults_virtual_cloud_application_box_sector }}_Routed_to_Internet" --service any any any --source {{ anycloud_result_routed_network_cut }}0\/24:ip
+  #with_items: "{{ oz_router_subnet_anycloud_vpn_port_nat_rule_present.skipped }}"
+  when: snat_firewall_rule_id.stdout != ""
+
+# ##############################################################################################################
+# ### 2 RULE
+# ##############################################################################################################
+
+- name: FW RULE 2 - READ ID of FIREWALL DNAT VPN RULE
+  shell: vcd gateway services firewall list {{ anycloud_result_edge_router }} | grep {{ anycloud_defaults_virtual_cloud_application_box_sector }}_To_VPN_from_Internet | awk '{print $1}'
+  register: read_dnat_firewall_rule_id
+
+- name: FW RULE 2 - set_fact item dict stdout_lines SHOW ID of DNAT FIREWALL RULE by item dict
+  set_fact:
+    fillme: "fillme"
+
+# - name: FW RULE 2 Debug all read_dnat_firewall_rule_id
+#   debug:
+#     msg: "{{ read_dnat_firewall_rule_id }}"
+
+- name: FW RULE 2 SHOW WHEN STDOUT DNAT RULE ID NOT NULL
+  set_fact:
+    fact_read_dnat_firewall_rule_id: "{{ read_dnat_firewall_rule_id.stdout | join }}"
+  when: read_dnat_firewall_rule_id.stdout != ""
+
+- name: FW RULE 2 SHOW WHEN STDOUT FIREWALL DNAT VPN RULE ID NULL
+  set_fact:
+    fact_read_dnat_firewall_rule_id: "fillme"
+  when: read_dnat_firewall_rule_id.stdout == ""
+
+# - name: FW RULE 1 - set_fact item dict stdout_lines SHOW ID of SNAT FIREWALL RULE by item dict
+#   set_fact:
+#     fact_read_snat_firewall_rule_id: "{{ item | join | default(fillme) }}"
+#   with_items: "{{ read_snat_firewall_rule_id }}"
+#   when: "'results' in item"
+
+# - name: FW RULE 2 - fact_read_dnat_firewall_rule_id DEFINED NOFILL
+#   debug:
+#     msg: "fact_read_dnat_firewall_rule_id is DEFINED"
+#   when: "'fillme' not in fact_read_dnat_firewall_rule_id"
+
+# - name: FW RULE 2 - fact_read_dnat_firewall_rule_id DEFINED FILLME
+#   debug:
+#     msg: "NOT DEFINED fact_read_dnat_firewall_rule_id"
+#   when: "'fillme' in fact_read_dnat_firewall_rule_id"
+
+
+- name: FW RULE 2 - Check and update FIREWALL DNAT rule for Routed network access to internet via public_ips_from_edge[0]
+  shell: vcd gateway services firewall create {{ anycloud_result_edge_router }} --name "{{ anycloud_defaults_virtual_cloud_application_box_sector }}_To_VPN_from_Internet" --action accept --enabled --type User
+  #with_items: "{{ oz_router_subnet_anycloud_vpn_port_nat_rule_present.skipped }}"
+  #when: item is true
+  when: "'fillme' in fact_read_dnat_firewall_rule_id"
+
+- name: FW RULE 2 - Get ID of DNAT VPN FIREWALL RULE
+  shell: vcd gateway services firewall list {{ anycloud_result_edge_router }} | grep {{ anycloud_defaults_virtual_cloud_application_box_sector }}_To_VPN_from_Internet | awk '{print $1}'
+  register: dnat_firewall_rule_id
+  #with_items: "{{ oz_router_subnet_anycloud_vpn_port_nat_rule_present.skipped }}"
+  #when: item is true
+  #when: "'fillme' in fact_read_snat_firewall_rule_id"
+
+# - name: FW RULE 2 DEBUG dnat_firewall_rule_id whole
+#   debug:
+#     msg: "{{ dnat_firewall_rule_id }}"
+
+- name: FW RULE 2 SHOW WHEN STDOUT DNAT VPN RULE ID NOT NULL
+  set_fact:
+    fact_read_dnat_firewall_rule_id: "{{ dnat_firewall_rule_id.stdout | join }}"
+  when: dnat_firewall_rule_id.stdout != ""
+
+- name: FW RULE 2 SHOW WHEN STDOUT DNAT VPN RULE ID NULL
+  set_fact:
+    fact_read_dnat_firewall_rule_id: "fillme"
+  when: dnat_firewall_rule_id.stdout == ""
+
+- name: FW RULE 2 - Clean Rule First Source
+  shell: vcd gateway services firewall list-source {{ anycloud_result_edge_router }} {{ fact_read_dnat_firewall_rule_id }} | awk '{print $2}' | tail -n +4 | sed '/^$/d' | xargs -I ID vcd gateway services firewall delete-source {{ anycloud_result_edge_router }} {{ fact_read_dnat_firewall_rule_id }} ID
+  when: dnat_firewall_rule_id.stdout != ""
+
+- name: FW RULE 2 - Clean Rule Second Destination
+  shell: vcd gateway services firewall list-destination {{ anycloud_result_edge_router }} {{ fact_read_dnat_firewall_rule_id }} | awk '{print $2}' | tail -n +4 | sed '/^$/d' | xargs -I ID vcd gateway services firewall delete-destination {{ anycloud_result_edge_router }} {{ fact_read_dnat_firewall_rule_id }} ID
+  when: dnat_firewall_rule_id.stdout != ""
+
+- name: FW RULE 2 - Update FIREWALL DNAt VPN rule for Routed network access to internet via public_ips_from_edge[0]
+  shell: vcd gateway services firewall update {{ anycloud_result_edge_router }} {{ fact_read_dnat_firewall_rule_id }} --name "{{ anycloud_defaults_virtual_cloud_application_box_sector }}_To_VPN_from_Internet" --service tcp {{ oz_router_subnet_anycloud_vpn_port }} {{ oz_router_subnet_anycloud_vpn_port }} --destination {{ anycloud_result_routed_network_cut }}2:ip
+  #with_items: "{{ oz_router_subnet_anycloud_vpn_port_nat_rule_present.skipped }}"
+  when: dnat_firewall_rule_id.stdout != ""
+
+# - name: FW RULE 2 - Check and update FIREWALL DNAT VPN rule for Routed network access to internet via public_ips_from_edge[0]
+#   shell: vcd gateway services firewall create {{ anycloud_result_edge_router }} --name "{{ anycloud_defaults_virtual_cloud_application_box_sector }}_To_VPN_from_Internet" --action accept --enabled --type User
+#   with_items: "{{ oz_router_subnet_anycloud_vpn_port_nat_rule_present.skipped }}"
+#   when: item is true
+
+# - name: FW RULE 2 - Get ID of DNAT VPN FIREWALL RULE
+#   shell: vcd gateway services firewall list {{ anycloud_result_edge_router }} | grep {{ anycloud_defaults_virtual_cloud_application_box_sector }}_To_VPN_from_Internet | awk '{print $1}'
+#   register: vpn_firewall_rule_id
+#   with_items: "{{ oz_router_subnet_anycloud_vpn_port_nat_rule_present.skipped  }}"
+#   when: item is true
+
+# - name: FW RULE 2 - SHOW ID of SNAT FIREWALL RULE by item dict
+#   debug:
+#     msg: "{{ item['value'] }}"
+#   with_dict: "{{ vpn_firewall_rule_id.results }}"
+#   when: "'stdout_lines' in item['key']"
+
+# - name: FW RULE 2 - set_fact VPN FIREWALL RULE ID
+#   set_fact:
+#     fact_vpn_firewall_rule_id: "{{ item['value'] }}"
+#   with_dict: "{{ vpn_firewall_rule_id.results }}"
+#   when: "'stdout_lines' in item['key']"
+
+# - name: Update FIREWALL DNAT VPN rule for Routed network access to internet via public_ips_from_edge[0]
+#   shell: vcd gateway services firewall update {{ anycloud_result_edge_router }} {{ fact_vpn_firewall_rule_id | join }} --name "{{ anycloud_defaults_virtual_cloud_application_box_sector }}_To_VPN_from_Internet" --service tcp {{ oz_router_subnet_anycloud_vpn_port }} {{ oz_router_subnet_anycloud_vpn_port }} --destination {{ anycloud_result_routed_network_cut }}2:ip
+#   with_items: "{{ oz_router_subnet_anycloud_vpn_port_nat_rule_present.skipped }}"
+#   when: item is true

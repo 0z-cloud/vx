@@ -1,0 +1,13 @@
+- name: Show current directory
+  shell: ls -la ./
+  register: show_current
+
+- name: Debug show
+  debug:
+    msg: "{{ show_current }}"
+
+- name: Template the Python QA environment specific settings
+  template:
+    src: inventory_tests.yml.j2
+    dest: ../../../PythonQA/env.sh
+    mode: 0777

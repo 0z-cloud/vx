@@ -1,0 +1,43 @@
+logging_kibana_defaults:
+  directories:
+    main: /opt/logging/kibana/{{ ansible_environment }}
+    configs: /opt/logging/kibana/{{ ansible_environment }}/configs
+    data: /opt/logging/kibana/{{ ansible_environment }}/data
+  system_security:
+    linux:
+      user_group: kibana
+
+# ELASTICSEARCH_URL: "http://logging-elasticsearch-cluster.{{ public_consul_domain }}:{{ logging_elasticsearch_cluster_listen_port }}"
+# ELASTIC_CONTAINER: "false"
+# ELASTICSEARCH_URL: "http://{% for host in groups['elastic-elasticsearch'] %}{{ hostvars[host]['second_ip'] | safe }}{% endfor %}:{{ elastic_elasticsearch_listen_port }}"
+# KIBANA_INDEX: ""
+# XPACK_SECURITY_ENABLED: ""
+# ELASTICSEARCH_USERNAME: ""
+# ELASTICSEARCH_PASSWORD: ""
+# ELASTICSEARCH_KIBANA_IP: ""
+# ENV PATTERN: ""
+# CHECKS_PATTERN: ""
+# CHECKS_TEMPLATE: ""
+# CHECKS_API: ""
+# CHECKS_SETUP: ""
+# EXTENSIONS_PCI: ""
+# EXTENSIONS_GDPR: ""
+# EXTENSIONS_AUDIT: ""
+# EXTENSIONS_OSCAP: ""
+# EXTENSIONS_CISCAT: ""
+# EXTENSIONS_AWS: ""
+# EXTENSIONS_VIRUSTOTAL: ""
+# EXTENSIONS_OSQUERY: ""
+# APP_TIMEOUT: ""
+# ELASTIC_SHARDS: ""
+# ELASTIC_REPLICAS: ""
+# ELASTIC_VERSION_SHARDS: ""
+# ELASTIC_VERSION_REPLICAS: ""
+# IP_SELECTOR: ""
+# IP_IGNORE: ""
+# XPACK_RBAC_ENABLED: ""
+# ELASTIC_MONITORING_ENABLED: ""
+# ELASTIC_MONITORING_FREQUENCY: ""
+# ELASTIC_MONITORING_SHARDS: ""
+# ELASTIC_MONITORING_REPLICAS: ""
+# ADMIN_PRIVILEGES: ""

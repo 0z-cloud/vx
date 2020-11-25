@@ -1,0 +1,174 @@
+[client]
+port            = 3306
+socket          = /var/run/mysqld/mysqld.sock
+default-character-set=utf8
+
+# Here is entries for some specific programs
+# The following values assume you have at least 32M ram
+
+# This was formally known as [safe_mysqld]. Both versions are currently parsed.
+[mysqld_safe]
+socket          = /var/run/mysqld/mysqld.sock
+nice            = 0
+
+[sst]
+transferfmt=nc
+streamfmt=tar
+
+[mysqld]
+#
+# galera settings
+#
+
+
+
+wsrep_cluster_address           =gcomm://
+
+
+
+#10.2.0.10
+#,10.2.0.30
+
+wsrep_node_address              = 127.0.0.1:4567
+
+#10.2.0.40:4567
+#wsrep_provider                  =none
+wsrep_slave_threads             =64
+wsrep_cluster_name              =vortex
+wsrep_node_name                 =vortex-percona-01
+wsrep_sst_method                =xtrabackup-v2
+wsrep_sst_auth                  =xtrabackup:xtrabackup
+log-warnings = 5
+character-set-server            =utf8
+collation-server                =utf8_unicode_ci
+
+wsrep_provider_options="socket.checksum=1"
+log_bin_use_v1_row_events=1
+avoid_temporal_upgrade=ON   # Available in 5.6.24 and up
+gtid_mode=0
+binlog_checksum=NONE
+#read_only=ON
+wsrep_provider=none
+#
+# * Basic Settings
+#
+user            = mysql
+pid-file        = /var/run/mysqld/mysqld.pid
+socket          = /var/run/mysqld/mysqld.sock
+port            = 3306
+basedir         = /usr
+datadir         = /var/lib/mysql
+tmpdir          = /tmp
+lc-messages-dir = /usr/share/mysql
+skip-external-locking
+#
+# Instead of skip-networking the default is now to listen only on
+# localhost which is more compatible and is not less secure.
+bind-address            = 10.10.0.151
+#
+# * Fine Tuning
+#
+key_buffer              = 512M
+sort_buffer             = 64M
+max_allowed_packet      = 8M
+thread_stack            = 256K
+thread_cache_size       = 64
+
+tmp_table_size          = 128M
+max_heap_table_size     = 32K
+# This replaces the startup script and checks MyISAM tables if needed
+# the first time they are touched
+myisam-recover         = BACKUP
+max_connections        = 5000
+max_connect_errors     = 200
+#table_cache            = 256
+thread_concurrency     = 16
+#
+# * Query Cache Configuration
+#
+query_cache_limit       = 128M
+query_cache_size        = 0
+#
+# * Logging and Replication
+#
+# Both location gets rotated by the cronjob.
+# Be aware that this log type is a performance killer.
+# As of 5.1 you can enable the log at runtime!
+#general_log_file        = /var/log/mysql/mysql.log
+#general_log             = 1
+#
+# Error log - should be very few entries.
+#
+log_error = /var/log/mysql/error.log
+#
+# Here you can see queries with especially long duration
+#log_slow_queries        = /var/log/mysql/mysql-slow.log
+long_query_time = 1
+log-queries-not-using-indexes
+#
+# The following can be used as easy to replay backup logs or for replication.
+# note: if you are setting up a replication slave, see README.Debian about
+#       other settings you may need to change.
+server-id               = 1
+log_bin                 = /var/lib/mysql/mysql-bin.log
+log_slave_updates
+binlog_format           = ROW
+expire_logs_days        = 2
+max_binlog_size         = 100M
+replicate-do-db         = vortex
+binlog_do_db            = vortex
+replicate-do-db         = replication
+binlog_do_db            = replication
+replicate-do-db         = posterm
+binlog_do_db            = posterm
+replicate-do-db         = easily
+binlog_do_db            = easily
+binlog_ignore_db        = mysql
+#binlog_do_db           = include_database_name
+#binlog_ignore_db       = include_database_name
+#
+# * InnoDB
+#
+# InnoDB is enabled by default with a 10MB datafile in /var/lib/mysql/.
+# Read the manual for more InnoDB related options. There are many!
+innodb_log_buffer_size=4M
+innodb_buffer_pool_size=42G
+innodb_log_file_size=256M
+innodb_log_buffer_size=4M
+innodb_flush_log_at_trx_commit=0
+innodb_thread_concurrency=8
+innodb_flush_method=O_DIRECT
+innodb_file_per_table=1
+innodb_locks_unsafe_for_binlog=1
+innodb_autoinc_lock_mode=2
+
+#
+# * Security Features
+#
+# Read the manual, too, if you want chroot!
+# chroot = /var/lib/mysql/
+#
+# For generating SSL certificates I recommend the OpenSSL GUI "tinyca".
+#
+# ssl-ca=/etc/mysql/cacert.pem
+# ssl-cert=/etc/mysql/server-cert.pem
+# ssl-key=/etc/mysql/server-key.pem
+
+[mysqldump]
+quick
+quote-names
+max_allowed_packet      = 16M
+
+[mysql]
+#no-auto-rehash # faster start of mysql but no tab completition
+syslog
+
+[isamchk]
+key_buffer              = 16M
+
+#
+# * IMPORTANT: Additional settings that can override those from this file!
+#   The files must end with '.cnf', otherwise they'll be ignored.
+#
+!includedir /etc/mysql/conf.d/
+

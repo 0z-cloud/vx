@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<meta-runner name="PrepareCI">
+  <description>PrepareCI</description>
+  <settings>
+    <parameters>
+      <param name="ANSIBLE_APPLICATION_TYPE" value="" />
+      <param name="ANSIBLE_BUILD_ID" value="" />
+      <param name="ANSIBLE_CI_PROJECT_NAME" value="" />
+      <param name="ANSIBLE_CI_PROJECT_NAMESPACE" value="" />
+      <param name="ANSIBLE_CLOUD_TYPE" value="" />
+      <param name="ANSIBLE_CLUSTER_TYPE" value="" />
+      <param name="ANSIBLE_COMMIT_SHA" value="" />
+      <param name="ANSIBLE_DEPLOY_USERNAME" value="" />
+      <param name="ANSIBLE_ENVIRONMENT" value="" />
+      <param name="ANSIBLE_PRODUCT_NAME" value="" />
+      <param name="ANSIBLE_REGISTRY_URL" value="" />
+      <param name="ANSIBLE_REGISTRY_USERNAME" value="" />
+      <param name="ANSIBLE_RUN_TYPE" value="" />
+      <param name="ANSIBLE_VERSION" value="" />
+      <param name="A_DEPLOY_PASSWORD" value="" spec="text display='normal'" />
+      <param name="A_ENV_SECURITY" value="" />
+      <param name="A_VAULT_PASSWORD" value="" spec="text validationMode='any' display='hidden'" />
+      <param name="INIT_PASS" value="credentialsJSON:b2bc6c27-ec64-413a-b27c-8a32e5628dd9" spec="password display='normal'" />
+      <param name="MAIN_ANSIBLE_BUILD_ID" value="" />
+      <param name="RunningOfferForBuild" value="" />
+      <param name="RunningOfferForPublish" value="" />
+      <param name="RunningOnlyQA" value="" />
+      <param name="message" value="credentialsJSON:b2bc6c27-ec64-413a-b27c-8a32e5628dd9" spec="password description='message' label='message' display='normal'" />
+    </parameters>
+    <build-runners>
+      <runner name="Prepare CI" type="simpleRunner">
+        <parameters>
+          <param name="script.content"><![CDATA[
+
+            runpath=`pwd`
+            ansible_dir="${runpath}/ansible"
+            root_dir="$runpath"
+            main_dir="$root_dir"
+            build_tmp_dir="${runpath}/ci_build_runtime_dir_place"
+            export root_dir="$root_dir"
+            export runpath="$runpath"
+            export ansible_dir="$ansible_dir"
+            export main_dir="$main_dir"
+
+            echo "METARUNNER: BuildAndPush.xml"
+            echo "runpath: $runpath"
+            echo "ansible_dir: $ansible_dir"
+                    
+            echo "start";
+            echo "ANSIBLE_COMMIT_SHA: %ANSIBLE_COMMIT_SHA%";
+            echo "ANSIBLE_DEPLOY_USERNAME: %ANSIBLE_DEPLOY_USERNAME%";
+            echo "ANSIBLE_APPLICATION_TYPE: %ANSIBLE_APPLICATION_TYPE%";
+            echo "ANSIBLE_BUILD_ID: %ANSIBLE_BUILD_ID%";
+            echo "ANSIBLE_CI_PROJECT_NAME: %ANSIBLE_CI_PROJECT_NAME%";
+            echo "ANSIBLE_CI_PROJECT_NAMESPACE: %ANSIBLE_CI_PROJECT_NAMESPACE%";
+            echo "ANSIBLE_CLOUD_TYPE: %ANSIBLE_CLOUD_TYPE%";
+            echo "ANSIBLE_CLUSTER_TYPE: %ANSIBLE_CLUSTER_TYPE%";
+
+            echo "ANSIBLE_ENVIRONMENT: %ANSIBLE_ENVIRONMENT%";
+            echo "ANSIBLE_PRODUCT_NAME: %ANSIBLE_PRODUCT_NAME%";
+            echo "ANSIBLE_REGISTRY_URL: %ANSIBLE_REGISTRY_URL%";
+            echo "ANSIBLE_REGISTRY_USERNAME: %ANSIBLE_REGISTRY_USERNAME%";
+            echo "ANSIBLE_RUN_TYPE: %ANSIBLE_RUN_TYPE%";
+            echo "ANSIBLE_VERSION: %ANSIBLE_VERSION%";
+            echo "A_ENV_SECURITY: %A_ENV_SECURITY%";
+            echo "MAIN_ANSIBLE_BUILD_ID: %MAIN_ANSIBLE_BUILD_ID%";
+            echo "RunningOfferForBuild: %RunningOfferForBuild%";
+            echo "RunningOnlyQA: %RunningOnlyQA%";
+            echo "done show params"
+
+            echo "show encrypted values";
+            echo "message: %message%";
+            echo "A_VAULT_PASSWORD: %A_VAULT_PASSWORD%";
+            echo "A_DEPLOY_PASSWORD: %A_DEPLOY_PASSWORD%";
+            echo "done encrypted show params"
+
+            RUNNING_ONLY_QA="%RunningOnlyQA%";
+
+            echo "RUNNING_ONLY_QA is $RUNNING_ONLY_QA";
+
+            if [[ "$RUNNING_ONLY_QA" == "true" ]]; then
+
+                echo "RUNNING_ONLY_QA is true";
+            else
+                echo "RUNNING_ONLY_QA is false";
+            fi
+
+            ls -la "${running_path}/"
+            
+            if [ ! -d "$build_tmp_dir" ]; then
+                echo "Creating build_tmp_dir"
+                mkdir -p "$build_tmp_dir"
+
+            else
+                echo "Removing temp before start"
+                rm -rf "$build_tmp_dir"
+                echo "Creating build_tmp_dir"
+                mkdir -p "$build_tmp_dir"
+            fi
+
+            echo "BEFORE: Show contents of build_tmp_dir"
+            ls -la "$build_tmp_dir"
+
+            echo "%message%" > "$build_tmp_dir"/message.yml
+            echo "%secure:teamcity.password.message%" > "$build_tmp_dir"/super_message.yml
+            echo "%secure:teamcity.password.NG_DEPLOY_PASSWORD%" > "$build_tmp_dir"/NG_DEPLOY_PASSWORD.yml
+            echo "%NG_DEPLOY_PASSWORD%" > "$build_tmp_dir"/pass.yml
+            echo "%secure:password.A_DEPLOY_PASSWORD%" > "$build_tmp_dir"/secure_pass.yml
+
+            echo "ANSIBLE_COMMIT_SHA_SHORT=$ANSIBLE_COMMIT_SHA_SHORT" >> "$build_tmp_dir"/ci_vault.sh
+            echo "ANSIBLE_APPLICATION_TYPE=%ANSIBLE_APPLICATION_TYPE%" >> "$build_tmp_dir"/ci_vault.sh
+            echo "ANSIBLE_CI_PROJECT_NAME=%ANSIBLE_CI_PROJECT_NAME%" >> "$build_tmp_dir"/ci_vault.sh
+            echo "ANSIBLE_CI_PROJECT_NAMESPACE=%ANSIBLE_CI_PROJECT_NAMESPACE%" >> "$build_tmp_dir"/ci_vault.sh
+            echo "ANSIBLE_CLOUD_TYPE=%ANSIBLE_CLOUD_TYPE%" >> "$build_tmp_dir"/ci_vault.sh
+            echo "ANSIBLE_CLUSTER_TYPE=%ANSIBLE_CLUSTER_TYPE%" >> "$build_tmp_dir"/ci_vault.sh
+
+            echo "ANSIBLE_DEPLOY_USERNAME=%ANSIBLE_DEPLOY_USERNAME%" >> "$build_tmp_dir"/ci_vault.sh
+            echo "ANSIBLE_ENVIRONMENT=%ANSIBLE_ENVIRONMENT%" >> "$build_tmp_dir"/ci_vault.sh
+            echo "ANSIBLE_PRODUCT_NAME=%ANSIBLE_PRODUCT_NAME%" >> "$build_tmp_dir"/ci_vault.sh
+
+            echo "ANSIBLE_REGISTRY_URL=%ANSIBLE_REGISTRY_URL%" >> "$build_tmp_dir"/ci_vault.sh
+            echo "ANSIBLE_REGISTRY_USERNAME=%ANSIBLE_REGISTRY_USERNAME%" >> "$build_tmp_dir"/ci_vault.sh
+            echo "ANSIBLE_RUN_TYPE=%ANSIBLE_RUN_TYPE%" >> "$build_tmp_dir"/ci_vault.sh
+            echo "ANSIBLE_TRIGGER_TOKEN=%ANSIBLE_TRIGGER_TOKEN%" >> "$build_tmp_dir"/ci_vault.sh 
+            echo "ANSIBLE_CI_VERSION=$ANSIBLE_CI_VERSION" >> "$build_tmp_dir"/ci_vault.sh
+            echo "A_ENV_SECURITY=%A_ENV_SECURITY%" >> "$build_tmp_dir"/ci_vault.sh
+            chmod +x "$build_tmp_dir"/ci_vault.sh
+            echo "RESULT: Show contents of runpath"
+            ls -la "${runpath}/"
+            echo "RESULT: Show build_tmp_dir of runpath"
+            ls -la "${build_tmp_dir}/"
+            echo "RESULT: Show ansible dir contents of runpath"
+            ls -la "${ansible_dir}/"
+
+            echo "done"
+
+
+        ]]></param>
+          <param name="teamcity.step.mode" value="default" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
+    </build-runners>
+    <requirements />
+  </settings>
+</meta-runner>
+

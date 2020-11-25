@@ -1,0 +1,115 @@
+# For information on the settings in this file, type "man shorewall-rules"
+######################################################################################################################################################################################################
+#ACTION		    SOURCE		                            DEST		                            PROTO	        DEST	SOURCE		ORIGINAL	RATE		USER/	MARK	CONNLIMIT	TIME	HEADERS		SWITCH		HELPER
+#							                                PORT	                            PORT(S)		        DEST		LIMIT		GROUP
+
+# WEB DEPLOY NOTIFICATIONS
+ACCEPT		    web		                                wan:185.243.244.219	                    tcp             81
+
+# WEB SERVERS to GIT zone
+ACCEPT		    web		                                git		                                tcp	            443
+ACCEPT          web                                     git                                     icmp
+
+# vortex-REPO-01
+ACCEPT		    web		                                else:10.16.131.110		                tcp	            80,443,4369
+
+# NTP
+ACCEPT		    web		                                fw		                                udp	            ntp
+
+# DNS
+ACCEPT		    web		                                else:10.16.131.51	                    udp,tcp	        53
+
+# WEB Zone Servers to send emails via relay host
+ACCEPT          web                                     else:10.16.131.51			            tcp             25
+
+# TOMCAT TO TOMCAT VIP VIA KEEPALIVED
+ACCEPT		    web:10.16.211.34,10.16.211.35	            web:10.16.211.30			                tcp	            8080
+
+# MYSQL
+
+# NEED TO CHANGE FROM SUBNET TO SPECIFIC HOSTS IN SQL vlan 10.16.120.0/24
+
+ACCEPT		    web:10.16.211.200	                        sql:10.16.120.13                         tcp	            3306
+ACCEPT		    web:10.16.211.200	                        sql:10.16.120.113                        tcp	            3306
+ACCEPT		    web:10.16.211.200	                        sql:10.16.120.213                        tcp	            3306
+
+ACCEPT		    web:10.16.211.201	                        sql:10.16.120.13                         tcp	            3306
+ACCEPT		    web:10.16.211.201	                        sql:10.16.120.113                        tcp	            3306
+ACCEPT		    web:10.16.211.201	                        sql:10.16.120.213                        tcp	            3306
+
+ACCEPT		    web:10.16.211.202	                        sql:10.16.120.13                         tcp	            3306
+ACCEPT		    web:10.16.211.202	                        sql:10.16.120.113                        tcp	            3306
+ACCEPT		    web:10.16.211.202	                        sql:10.16.120.213                        tcp	            3306
+
+
+ACCEPT		    web:10.16.211.171	                        sql:10.16.120.13                         tcp	            3306
+ACCEPT		    web:10.16.211.171	                        sql:10.16.120.113                        tcp	            3306
+ACCEPT		    web:10.16.211.171	                        sql:10.16.120.213                        tcp	            3306
+
+ACCEPT		    web:10.16.211.161	                        sql:10.16.120.13                         tcp	            3306
+ACCEPT		    web:10.16.211.161	                        sql:10.16.120.113                        tcp	            3306
+ACCEPT		    web:10.16.211.161	                        sql:10.16.120.213                        tcp	            3306
+
+# 24-04-2018
+#example-webservice to creditpilot
+ACCEPT          web:10.16.211.171                         wan:89.223.18.24                        tcp             8080
+ACCEPT          web:10.16.211.161                         wan:89.223.18.24                        tcp             8080
+
+ACCEPT		    web:10.16.211.200,10.16.211.201	            wan		                                tcp	            80,443
+ACCEPT		    web:10.16.211.200,10.16.211.201	            wan:31.129.51.18                        tcp	            8090
+ACCEPT		    web:10.16.211.200,10.16.211.201	            wan:212.45.30.224                       tcp	            8090
+ACCEPT		    web:10.16.211.200,10.16.211.201	            wan:31.129.51.18                        tcp	            8091
+ACCEPT		    web:10.16.211.200,10.16.211.201	            wan:212.45.30.224                       tcp	            8091
+
+ACCEPT		    web:10.16.211.202	                        wan		                                tcp	            80,443
+ACCEPT		    web:10.16.211.202	                        wan:91.213.104.10                       tcp	            2776
+ACCEPT		    web:10.16.211.202	                        wan:91.213.104.66                       tcp	            2776
+ACCEPT		    web:10.16.211.202	                        wan:194.67.29.100                       tcp	            9443
+ACCEPT		    web:10.16.211.202	                        wan:195.238.239.160                     tcp	            9443
+
+# bin.avquiropay.com access to mail.vortex.com TASK https://redmine.creditpilot.ru/issues/15553
+ACCEPT		    web:10.16.211.171                         wan:89.223.18.33                        tcp             993
+ACCEPT		    web:10.16.211.161                         wan:89.223.18.33                        tcp             993
+
+# TELE2
+ACCEPT		    web:10.16.211.161	                        wan:194.176.96.24                       tcp             1443
+
+# CURRENT TOMCATS
+ACCEPT          web:10.16.211.34                          wan                                     tcp             80,443,8444,1443,448,8181,3443,8443,19679,8080,8082,7070,9443,5443,12003,2443,4443,8111,5087,25,587,8089,3700,2776,143,993,7072,7071
+ACCEPT          web:10.16.211.35                          wan                                     tcp             80,443,8444,1443,448,8181,3443,8443,19679,8080,8082,7070,9443,5443,12003,2443,4443,8111,5087,25,587,8089,3700,2776,143,993,7072,7071
+
+# KEEEPALIVE OUT
+ACCEPT		    web:10.16.211.19	                        wan		                                tcp	-	        443
+ACCEPT		    web:10.16.211.21	                        wan		                                tcp	-	        443
+ACCEPT		    web:10.16.211.23	                        wan		                                tcp	-	        443
+
+# REESTR MOBICOM
+ACCEPT          web:10.16.211.171                         wan:178.20.234.166                      tcp	            22
+#
+
+# KEEEPALIVE OUT
+ACCEPT		    web:10.16.211.200	                        wan		                                tcp	-	        443
+
+# BRS PROCESSING TO BRS BANK OUT
+ACCEPT		    web:10.16.211.101	                        wan:194.67.29.100                       tcp	            9443
+
+# ftp.tele2.ru
+ACCEPT		    web:10.16.211.171	                        wan:194.176.96.24                       tcp	            1443
+
+# ftp.tele2.ru	
+ACCEPT		    web:10.16.211.171	                        wan:194.176.96.118                      tcp	            990,5000:5500
+
+# ftp.tele2.ru
+ACCEPT          web:10.16.211.161                         wan:194.176.96.24                       tcp             1443    
+
+# ftp.tele2.ru
+ACCEPT          web:10.16.211.161                         wan:194.176.96.118                      tcp             990,5000:5500 
+
+# ipsec Bank of Moscow for DSZN Project
+ACCEPT          web:10.16.211.34                          wan:172.100.100.7,172.100.100.5
+ACCEPT          web:10.16.211.35                          wan:172.100.100.7,172.100.100.5
+
+# TASK https://redmine.creditpilot.ru/issues/15426
+# GIT ACCESS
+ACCEPT		    web:10.16.211.171	                        wan:172.16.31.110
+ACCEPT          web:10.16.211.161                         wan:172.16.31.110

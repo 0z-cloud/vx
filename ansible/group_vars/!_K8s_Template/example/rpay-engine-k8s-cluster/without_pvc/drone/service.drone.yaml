@@ -1,0 +1,77 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      field.cattle.io/targetWorkloadIds: '["deployment:drone:drone-agent"]'
+      workload.cattle.io/targetWorkloadIdNoop: "true"
+      workload.cattle.io/workloadPortBased: "true"
+    creationTimestamp: "2019-07-02T09:48:13Z"
+    labels:
+      cattle.io/creator: norman
+    name: drone-agent
+    namespace: drone
+  spec:
+    clusterIP: None
+    ports:
+    - name: default
+      port: 42
+      protocol: TCP
+      targetPort: 42
+    selector:
+      workload.user.cattle.io/workloadselector: deployment-drone-drone-agent
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      field.cattle.io/targetWorkloadIds: '["deployment:drone:drone-server"]'
+      workload.cattle.io/targetWorkloadIdNoop: "true"
+      workload.cattle.io/workloadPortBased: "true"
+    creationTimestamp: "2019-07-01T17:06:25Z"
+    labels:
+      cattle.io/creator: norman
+    name: drone-server
+    namespace: drone
+  spec:
+    clusterIP: None
+    ports:
+    - name: default
+      port: 42
+      protocol: TCP
+      targetPort: 42
+    selector:
+      workload.user.cattle.io/workloadselector: deployment-drone-drone-server
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      field.cattle.io/targetWorkloadIds: '["deployment:drone:drone-server"]'
+    creationTimestamp: "2019-07-01T16:30:17Z"
+    labels:
+      cattle.io/creator: norman
+    name: ingress-158817a0e5d138e3d3e6f2f880a2609b
+    namespace: drone
+  spec:
+    ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 80
+    selector:
+      workloadID_ingress-158817a0e5d138e3d3e6f2f880a2609b: "true"
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""

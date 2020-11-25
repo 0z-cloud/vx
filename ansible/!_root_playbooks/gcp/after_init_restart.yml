@@ -1,0 +1,23 @@
+
+- name: Restart after bootstrap infrastructure from localhost to gcp Infranstructure
+  hosts: localhost
+  tasks:
+
+      - name: Load groupvars/product global shared settings
+        include_vars: group_vars/products/{{ ansible_product }}/{{ item }}.yml
+        with_items:
+          - gcp
+          - main
+
+      - name: Load groupvars/product global shared settings
+        include_vars: group_vars/products/{{ ansible_product }}/{{ ansible_environment }}/{{ item }}.yml
+        with_items:
+          - attached
+          - main
+
+- name: Calling restarting ECS instances role
+  hosts: localhost
+  roles:
+
+      - name: After init bootstrap restart role pay
+        role: ./!_cloud/dc_integration/gcp/restart

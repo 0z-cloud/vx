@@ -1,0 +1,16 @@
+redis_io_service_settings_defaults:
+    directories:
+       main_path: "/opt/redis-io-cluster"
+       data_path: "/opt/redis-io-cluster/{{ ansible_environment }}/data"
+       config_path: "/opt/redis-io-cluster/{{ ansible_environment }}"
+       scripts_path: "/opt/redis-io-cluster/{{ ansible_environment }}/scripts"
+       master_path: "/opt/redis-io-cluster/{{ ansible_environment }}/master"
+       master_path_data: "/opt/redis-io-cluster/{{ ansible_environment }}/master/data"
+       master_path_config: "/opt/redis-io-cluster/{{ ansible_environment }}/master/config"
+       slave_path: "/opt/redis-io-cluster/{{ ansible_environment }}/slave"
+       slave_path_data: "/opt/redis-io-cluster/{{ ansible_environment }}/slave/data"
+       slave_path_config: "/opt/redis-io-cluster/{{ ansible_environment }}/slave/config"
+    public_port: 6379
+    slave_public_port: 6380
+    user: redis
+    password: redis

@@ -1,0 +1,27 @@
+
+dn: cn=mygroup, ou=groups, dc=yourorg, dc=com
+objectclass: top
+objectclass: posixGroup
+cn: mygroup
+gidnumber: 100
+memberuid: giuseppe
+memberuid: anotheruser
+
+# Rostislav Grigoryev
+dn: uid=vortex,ou=People,dc=vortex,dc=co
+objectClass: top
+objectClass: account
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: Rostislav Grigoryev
+uid: vortex
+uidNumber: 16859
+gidNumber: 1000
+# mail: vortex@vortex.co
+homeDirectory: /home/vortex
+loginShell: /bin/bash
+gecos: adam
+userPassword: {{ default_password.stdout }}
+shadowLastChange: 0
+shadowMax: 0
+shadowWarning: 0

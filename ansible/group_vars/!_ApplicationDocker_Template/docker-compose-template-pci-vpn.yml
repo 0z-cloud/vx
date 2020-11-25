@@ -1,0 +1,75 @@
+# NG DEPLOY STRATEGY
+
+deploy_strategy:
+  main:
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        parallelism: 1
+        failure_action: pause
+        delay: 10s
+      restart_policy:
+        condition: always
+        delay: 50s
+        max_attempts: 10
+        window: 120s
+      # placement:
+      #   constraints:
+      #     - node.role == worker
+  stateless:
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        parallelism: 1
+        failure_action: pause
+        delay: 10s
+      restart_policy:
+        condition: always
+        delay: 10s
+        max_attempts: 5
+        window: 120s
+  longress:
+    deploy:
+      mode: replicated
+      replicas: 2
+      update_config:
+        parallelism: 1
+        failure_action: pause
+        delay: 300s
+      restart_policy:
+        condition: always
+        delay: 90s
+        max_attempts: 6
+        window: 300s
+
+all_access_services_remap_docker_compose_generate:
+
+    mongo:
+      image: "mongo"
+      tag: "latest"
+      location: "{{ default_docker_image_environment_location }}"
+      volumes:
+        - "{{ default_docker_database_pritunl_mongo_environment_location }}"
+      scale: 1
+      mode: global
+      endpoint_mode: vip
+      order: start-first
+      container_type: database
+
+    pritunl:
+      image: "pritunl"
+      tag: "{{ version_ansible_build_id }}"
+      location: "{{ default_docker_image_environment_location }}"
+      ports: 
+        - "{{ pritunl_vpn_service_listen_port }}:{{ pritunl_vpn_service_listen_port }}"
+        - "{{ pritunl_web_https_service_listen_port }}:{{ pritunl_web_https_service_internal_listen_port }}"
+        - "{{ pritunl_web_http_service_listen_port }}:{{ pritunl_web_http_service_internal_listen_port }}"
+      # volumes:
+      #   - "{{ default_docker_database_pritunl_environment_service_location }}"
+      scale: 1
+      mode: global
+      endpoint_mode: vip
+      order: start-first
+      container_type: service

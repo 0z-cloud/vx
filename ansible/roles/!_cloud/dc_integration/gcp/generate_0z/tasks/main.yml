@@ -1,0 +1,79 @@
+# - name: build list of admin user names
+#   set_fact: 
+#     admin_list: |
+#       {% for item in cloud_bootstrap.servers | dict2items %}
+#       {{ item }},
+#       {% endfor %}
+
+
+# - debug: 
+#     msg: "{{ cloud_bootstrap.servers.keys() }}"
+
+- name: Check an ECS instance VMs on Group alive and current
+  ali_instance:
+    security_groups: "{{ createsgeresult.group.group_id }}"
+    # alicloud_region = {{ anycloud_landscape_region }}
+    alicloud_region: "{{ anycloud_landscape_region }}"
+    image: '{{ item.value.anycloud_vm_template_name }}'
+    type: '{{ item.value.anycloud_vm_performance_configuration }}'
+    instance_name: '{{ item.value.name }}'
+    description: '{{ item.value.name }}'
+    host_name: '{{ item.value.name }}'
+    password: '{{ anycloud_vm_access_pass }}'
+    count: '{{ item.value.duplicates_count }}'
+    # internet_charge_type = {{ anycloud_internet_charge_type }}
+    internet_charge_type: "PayByTraffic" 
+    # instance_charge_type = {{ anycloud_instance_charge_type }}
+    instance_charge_type: "PostPaid"
+    allocate_public_ip: '{{ anycloud_allocate_public_ip }}'
+    max_bandwidth_in: 10
+    max_bandwidth_out: 10
+    vswitch_id: '{{ anycloud_communication_device_id }}'
+    alicloud_secret_key: "{{ anycloud_api_secret_key }}"
+    alicloud_access_key: "{{ anycloud_api_access_key }}"
+  register: create_instance_result
+  with_dict: "{{ cloud_bootstrap.servers }}"
+
+- name: Debug create instance results
+  debug: 
+    var: create_instance_result
+
+- name: Debug create instance results keys
+  debug: 
+    msg: "{{ key }}"
+  with_dict: create_instance_result.results
+
+- name: Get all VMs on Group
+  ali_instance_facts:
+    instance_names: 
+          - "{{ item.value.name }}"
+    alicloud_secret_key: "{{ anycloud_api_secret_key }}"
+    alicloud_access_key: "{{ anycloud_api_access_key }}"
+    # alicloud_region = {{ anycloud_landscape_region }}
+    alicloud_region: "{{ anycloud_landscape_region }}"
+  register: instances_by_ids_{{ item.value.name }}
+  with_dict: "{{ cloud_bootstrap.servers }}"
+
+- name: Debug facts
+  debug: 
+    msg: "{{ instances_by_ids_{{ item.value.name }} }}"
+  with_dict: "{{ cloud_bootstrap.servers }}"
+
+- name: Debug facts
+  debug: 
+    msg: |
+      "{% for dict_item in instances_by_ids_{{ item.value.name }} %}{% for k,v in dict_item.items() %}{% if k == 'instances' %}
+      {{ v | safe }}
+      {% endif %}{% endfor %}
+      {% endfor %}"
+  with_dict: "{{ cloud_bootstrap.servers }}"
+
+- name: Debug facts
+  debug: 
+    msg: |
+      "{% for dict_item in instances_by_ids.results %}{% for key,value in dict_item.items() %}{% if key == 'instances' %}
+      {% if value.network_interfaces %}
+            {{ value | safe }}
+      {% endif %}
+      {% endif %}{% endfor %}
+      {% endfor %}"

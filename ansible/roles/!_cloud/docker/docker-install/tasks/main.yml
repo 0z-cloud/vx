@@ -1,0 +1,76 @@
+- name: Remove old software packages
+  apt:
+    name: "{{ item }}"
+    state: absent
+  with_items:
+    - docker 
+    - docker-engine 
+    - docker.io
+
+- name: Remove old docker
+  raw: apt remove -y -qq docker docker-engine docker.io
+
+- name: Install software packages
+  apt:
+    name: "{{ item }}"
+    state: present
+    #update_cache: yes
+  with_items:
+    - apt-transport-https 
+    - ca-certificates 
+    - curl 
+    - software-properties-common
+
+- name: Raw install - add key
+  raw: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+
+- name: Add docker project repository
+  apt_repository:
+    repo: "deb https://apt.dockerproject.org/repo ubuntu-`lsb_release -c -s` main"
+    state: present
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_version == '16.04'
+
+- name: Add docker-ce download bin repository
+  apt_repository:
+    repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu `lsb_release -c -s` main"
+    state: present
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_version == '16.04'
+
+- name: Raw install - apt get update
+  raw: apt-get update -y -qq
+
+- name: Raw install - install docker engine ce
+  raw: apt-get install -y docker-engine docker-compose
+
+- name: Pip install docker
+  pip:
+    name: docker
+    state: present
+    extra_args: --ignore-installed
+
+- name: Set DOCKER_OPTS to Docker Daemon systemd.u16.j2 (Ubuntu 16)
+  template:
+      src: systemd.u16.j2
+      dest: /lib/systemd/system/docker.service
+
+- name: Services daemon-reload (Ubuntu 16)
+  raw: systemctl daemon-reload
+
+- name: Service Docker restart (Ubuntu 16)
+  raw: systemctl restart docker
+
+- name: GET DOCKER PS
+  raw: docker ps
+  register: docker_output
+  
+- name: DEBUG | Show docker ps
+  debug: 
+    msg: "{{ docker_output.stdout_lines }}"
+    
+- name: GET DOCKER VERSION
+  raw: docker -v
+  register: docker_installed_version
+  
+- name: DEBUG | show docker -v
+  debug: 
+    msg: "{{ docker_installed_version.stdout_lines }}"

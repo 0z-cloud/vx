@@ -1,0 +1,58 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    annotations:
+      control-plane.alpha.kubernetes.io/leader: '{"holderIdentity":"nginx-ingress-controller-tl69t","leaseDurationSeconds":30,"acquireTime":"2019-07-05T13:35:23Z","renewTime":"2019-07-09T10:07:45Z","leaderTransitions":6}'
+    creationTimestamp: "2019-06-26T20:30:48Z"
+    name: ingress-controller-leader-nginx
+    namespace: ingress-nginx
+- apiVersion: v1
+  data:
+    proxy-body-size: "0"
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: '{"apiVersion":"v1","data":null,"kind":"ConfigMap","metadata":{"annotations":{},"labels":{"app":"ingress-nginx"},"name":"nginx-configuration","namespace":"ingress-nginx"}}'
+    creationTimestamp: "2019-06-26T20:30:32Z"
+    labels:
+      app: ingress-nginx
+    name: nginx-configuration
+    namespace: ingress-nginx
+- apiVersion: v1
+  data:
+    bind-address: 95.217.53.7
+  kind: ConfigMap
+  metadata:
+    annotations:
+      field.cattle.io/creatorId: user-rxbgq
+      kubectl.kubernetes.io/last-applied-configuration: '{"apiVersion":"v1","data":null,"kind":"ConfigMap","metadata":{"annotations":{},"labels":{"app":"ingress-nginx"},"name":"nginx-configuration","namespace":"ingress-nginx"}}'
+    creationTimestamp: "2019-06-27T17:45:05Z"
+    labels:
+      app: ingress-nginx
+      cattle.io/creator: norman
+    name: nginx-configuration2
+    namespace: ingress-nginx
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"ConfigMap","metadata":{"annotations":{},"name":"tcp-services","namespace":"ingress-nginx"}}
+    creationTimestamp: "2019-06-26T20:30:32Z"
+    name: tcp-services
+    namespace: ingress-nginx
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"ConfigMap","metadata":{"annotations":{},"name":"udp-services","namespace":"ingress-nginx"}}
+    creationTimestamp: "2019-06-26T20:30:32Z"
+    name: udp-services
+    namespace: ingress-nginx
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""

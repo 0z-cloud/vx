@@ -1,0 +1,7 @@
+name: track deploy in sentry
+  uri:
+    url: "{{ sentry_release_webhook }}"
+    method: POST
+    body_format: json
+    body: '{"version"}: "{{ docker_image_tag }}"}'
+  when: sentry_release_webhook is defined

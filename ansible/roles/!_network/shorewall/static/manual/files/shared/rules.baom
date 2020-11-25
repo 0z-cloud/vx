@@ -1,0 +1,7 @@
+# For information on the settings in this file, type "man shorewall-rules"
+#################################################################################################################################################################################$
+#ACTION         SOURCE                  DEST                                            PROTO   DEST    SOURCE          ORIGINAL        RATE            USER/   MARK    CONNLIMIT$
+#                                                                                               PORT    PORT(S)         DEST            LIMIT           GROUP
+
+ACCEPT	web:10.16.211.34				baom:172.100.100.7,172.100.100.5 						tcp	8111
+ACCEPT	web:10.16.211.35				baom:172.100.100.7,172.100.100.5 						tcp	8111

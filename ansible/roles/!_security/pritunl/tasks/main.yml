@@ -1,0 +1,15 @@
+- name: Create Pritunl VPN service container
+  docker_container:
+    name: "pritunl-{{ inventory_hostname }}-{{ ansible_environment }}"
+    image: jippi/pritunl
+    ports:
+      - "{{ pritunl_vpn_service_listen_port }}:{{ pritunl_vpn_service_listen_port }}"
+      - "{{ pritunl_web_service_listen_port }}:443"
+    networks:
+      - name: "{{ ansible_product }}-{{ ansible_environment }}_default"
+    env:
+      PRITUNL_MONGODB_URI: "mongodb://mongo:27017/pritunl"
+    privileged: yes
+    state: started
+    restart_policy: unless-stopped
+    recreate: yes

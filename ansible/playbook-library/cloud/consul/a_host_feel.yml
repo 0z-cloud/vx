@@ -1,0 +1,6 @@
+- name: Hosts feel
+  become: true
+  hosts: all
+  roles:
+    - name: Set hosts file
+      role: ./!_cloud/consul/a_host_file

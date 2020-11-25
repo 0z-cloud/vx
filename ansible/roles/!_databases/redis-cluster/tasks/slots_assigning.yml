@@ -1,0 +1,17 @@
+- name: copy assigner
+  template:
+    src: slot_assigner.sh
+    dest: /tmp/slot_assigner.sh
+    mode: 0755
+
+- name: get arguments for assigning
+  master_list:
+    map: "{{ redis_cluster_map }}"
+  register: unparsed_master_list
+
+- name: setting master_list
+  set_fact:
+    masters: "{{ unparsed_master_list.masters }}"
+
+- name: assign slots
+  shell: "/tmp/slot_assigner.sh {{ masters }}"

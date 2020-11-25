@@ -1,0 +1,7 @@
+- name: Changing postfix configs postfix-message-size-limit on tomcat
+  hosts: "{{ HOSTS }}"
+  become: yes 
+  roles:
+    - name: Tomcat setup configuration
+      role: ./!_configuration/postfix-message-size-limit
+  tags: [postfix-message-size-limit]

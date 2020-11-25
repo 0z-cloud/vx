@@ -1,0 +1,23 @@
+{% for dict_item in CALICO_NETWORKS_ARRAY %}
+apiVersion: projectcalico.org/v3
+kind: IPPool
+metadata:
+  name: {{ dict_item.name }}
+spec:
+{% if dict_item.CALICO_POOL_CIDR is defined %}
+  cidr: {{ dict_item.CALICO_POOL_CIDR }}
+{% endif %}
+{% if dict_item.ipipMode is defined %}
+  ipipMode: {{ dict_item.ipipMode }}
+{% endif %}
+{% if dict_item.natOutgoing is defined %}
+  natOutgoing: {{ dict_item.natOutgoing }}
+{% endif %}
+{% if dict_item.disabled is defined %}
+  disabled: {{ dict_item.disabled }}
+{% endif %}
+{% if dict_item.nodeSelector is defined %}
+  nodeSelector: {{ dict_item.nodeSelector }}
+{% endif %}
+---
+{% endfor %}

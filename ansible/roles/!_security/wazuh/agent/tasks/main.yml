@@ -1,0 +1,90 @@
+#- name: Install Wazuh Agent
+#  docker_container:
+#    name: "wazuh-agent-{{ ansible_environment }}-{{ inventory_hostname }}"
+#    image: "{{ ansible_global_gitlab_registry_site_name }}/{{ ansible_git_project_path }}/wazuh-agent:{{ default_docker_image_environment_tag }}"
+#    hostname: "{{ ansible_hostname }}"
+#    command: "WAZUH_MANAGER_IP={{ wazuh_manager_host }} {{WAZUH_MANAGER_PORT={{ wazuh_manager_agent_listen_port }} apt-get install -y wazuh-agent"
+#    #privileged: yes
+#    state: started
+#    restart_policy: unless-stopped
+#    recreate: yes
+
+- name: Inject defaults
+  set_fact:
+    wazuh_agent: "{{ wazuh_agent_defaults | combine(wazuh_agent) }}"
+  tags: [always]
+
+- name: Creating Wazuh Agent Groups
+  group:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - admin
+    - "{{ wazuh_agent.system_security.linux.user_group }}"
+
+- name: Create Wazuh Agent User
+  user: 
+    name: "{{ wazuh_agent.system_security.linux.user_group }}"
+    shell: /bin/bash
+    groups: "admin,sudo,root,{{ wazuh_agent.system_security.linux.user_group }}"
+    append: yes
+
+- name: Create the directories
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0755
+    owner: "{{ wazuh_agent.system_security.linux.user_group }}"
+    group: "{{ wazuh_agent.system_security.linux.user_group }}"
+  with_dict: "{{ wazuh_agent.directories | default({}) }}"
+
+- name: Import repository key "wazuh"
+  apt_key: 
+    url: https://packages.wazuh.com/key/GPG-KEY-WAZUH 
+    state: present
+
+- name: Add apt repository
+  apt_repository: 
+    repo: deb https://packages.wazuh.com/3.x/apt/ stable main
+    state: present 
+
+- name: Ensure group "ossec" exists
+  group:
+    name: ossec
+    state: present
+
+- name: Add the user "ossec" with a primary group of "ossec"
+  user:
+    name: ossec
+    group: ossec
+    home: /var/ossec
+    state: present
+
+- name: Update repositories cache and install "wazuh-agent" package
+  apt:
+    name: wazuh-agent
+    state: present
+    update_cache: yes
+
+- name: Create "ossec.conf" config from template
+  template: 
+    src: ossec.conf.j2
+    dest: /var/ossec/etc/ossec.conf
+    owner: ossec
+    group: ossec
+    mode: '0640'
+
+- name: Create authd password file from template
+  template: 
+    src: authd.pass.j2
+    dest: /var/ossec/etc/authd.pass
+  tags: generate
+
+- name: Authorize the agent key from manager
+  shell: "/var/ossec/bin/agent-auth -m {% for host in groups['wazuh-manager'] %}{{ hostvars[host].second_ip }}{% endfor %} -p {{ wazuh_manager_agent_listen_port }}"
+
+- name: Start service "wazuh-agent" and ensure it is enabled
+  systemd:
+    name: wazuh-agent
+    state: started
+    enabled: yes

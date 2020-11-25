@@ -1,0 +1,6 @@
+- name: Install supervisor
+  apt:
+    name: supervisor
+    state: present
+  tags:
+    - install_supervisor

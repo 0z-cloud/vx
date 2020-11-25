@@ -1,0 +1,63 @@
+# ВЫЗОВ ДОБАВЛЕНИЯ ОБЪЕКТА SECURITY/GROUPS(ROLES), ИМЯ ОБЪЕКТА = КЛЮЧ, DESCRIPTION = ЗНАЧЕНИЕ 
+# РОЛЬ КАК ОБЪЕКТ ДЛЯ БЛОКИРОВКИ И УСТАНОВЛЕНИЯ ФАКТА НАЛИЧИЯ СЕТЕЙ ДЛЯ ПРОДУКТА/ЗОНЫ - КЛЮЧ / ЗНАЧЕНИЕ
+# ВОЗВРАЩАЕТ СОСТОЯНИЕ - $(ИЗМЕНЕНО) - Catalog_Zone_Object_Subnets_Results.changed - да / нет -> \n
+# ЕСЛИ: changed is true ТОГДА итерируемые сети добавлены как объект k/v\ -> 
+# ЕСЛИ: changed is false ТОГДА итерируемые сети заменены на полученные объекты из k/v\ -> 
+# ОБРАБОТЧИК СОСТОЯНИЯ: subnet_dispetcher.yml
+
+# # GENERATED: from adapter || see info at point > {1} 
+# # WHEN IS DEFINED - USES AS IN TOP PREFERRER FOR GET TO PLAY FROM DICTS
+# - name: Set Facts about oZvRouter Zones
+#   set_fact:
+#       oz_anycloud_zone_extra_subnets_adapters_vpn_ozrouter_subnets: "{{ anycloud_zone_extra_subnets_adapters_networks | combine(anycloud_zone_extra_subnets_adapters_vpn_ozrouter_subnets_vpn) }}"
+#       # LOADED: from metadata || see info at point > {1} 
+#       oz_anycloud_zone_extra_subnets_metadata_vpn_ozrouter_subnets: "{{ anycloud_zone_extra_subnets_metadata_storage_networks | combine(anycloud_zone_extra_subnets_metadata_vpn_ozrouter_subnets_vpn) }}"
+
+- name: '[KO][PRESENT CHECK FIRST][LOOK IT] Important! Check objects with subnets already presents as Special Groups in vCloud Instance with a message'
+  vcd_roles:
+    user: "{{ anycloud_adapter_api_user }}"
+    password: "{{ anycloud_adapter_api_password }}"
+    host: "{{ anycloud_adapter_api_url_endpoint }}"
+    org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+    api_version: 30.0
+    verify_ssl_certs: "{{ anycloud_adapter_api_url_verify_ssl }}"
+    role_name: "{{ anycloud_zone_extra_subnets_adapters_networks[item]['name'] }}"
+    role_description: "Subnet: {{ anycloud_zone_extra_subnets_adapters_networks[item]['subnet'] }}"
+    state: "present"
+  with_items: "{{ anycloud_zone_extra_subnets_adapters_networks.keys() | list }}"
+  #when: anycloud_zone_extra_subnets_metadata_vpn_ozrouter_subnets_vpn is not defined
+  register: Catalog_Zone_Object_Subnets_Results 
+
+# - name: '[OZ][PRESENT CHECK FIRST][LOOK IT] Important! Check objects with subnets already presents as Special Groups in vCloud Instance with a message'
+#   vcd_roles:
+#     user: "{{ anycloud_adapter_api_user }}"
+#     password: "{{ anycloud_adapter_api_password }}"
+#     host: "{{ anycloud_adapter_api_url_endpoint }}"
+#     org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+#     api_version: 30.0
+#     verify_ssl_certs: "{{ anycloud_adapter_api_url_verify_ssl }}"
+#     role_name: "{{ anycloud_zone_extra_subnets_metadata_vpn_ozrouter_subnets_vpn[item]['name'] }}"
+#     role_description: "Subnet: {{ anycloud_zone_extra_subnets_metadata_vpn_ozrouter_subnets_vpn[item]['subnet'] }}"
+#     state: "present"
+#   with_items: "{{ anycloud_zone_extra_subnets_metadata_vpn_ozrouter_subnets_vpn.keys() | list }}"
+#   when: anycloud_zone_extra_subnets_metadata_vpn_ozrouter_subnets_vpn is defined
+#   register: Catalog_Zone_Object_Subnets_Results 
+
+# - name: Catalog_Zone_Object_Subnets_Results | Show look it result object
+#   # no_log: True
+#   debug:
+#     msg: "{{ Catalog_Zone_Object_Subnets_Results }}"
+#   when: debug_log is defined
+#   #when: debug_playbook_stdout is defined
+
+# - name: PRESENT SPECIAL DEBUG |  Special Groups returned list
+#   # no_log: True
+#   debug:
+#     msg: "{{ item }}"
+#   with_dict: "{{ Catalog_Zone_Object_Subnets_Results.results }}"
+#   when: debug_log is defined
+#   #when: debug_playbook_stdout is defined
+
+# INCLUDE SELECT RUN TYPE AND SELECT TARGET NETWORKS OBJECTS DETERMINATION
+- name: META | Run Subnets Network Zones Dispetcher
+  include_tasks: subnet_dispetcher.yml

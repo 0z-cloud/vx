@@ -1,0 +1,30 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    certmanager.k8s.io/cluster-issuer: letsencrypt-prod
+    field.cattle.io/creatorId: user-rxbgq
+    field.cattle.io/ingressState: '{"ZHJvbmUtaW5ncmVzcy9kcm9uZS9kcm9uZS5yb2NrZXRoby5tZS8vLzgw":"deployment:drone:drone-server"}'
+    field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":443,"protocol":"HTTPS","serviceName":"drone:ingress-158817a0e5d138e3d3e6f2f880a2609b","ingressName":"drone:drone-ingress","hostname":"drone.rocketho.me","path":"/","allNodes":true}]'
+    kubernetes.io/tls-acme: '"true"'
+  creationTimestamp: null
+  generation: 1
+  labels:
+    cattle.io/creator: norman
+  name: drone-ingress
+  selfLink: /apis/extensions/v1beta1/namespaces/drone/ingresses/drone-ingress
+spec:
+  rules:
+  - host: drone.rocketho.me
+    http:
+      paths:
+      - backend:
+          serviceName: ingress-158817a0e5d138e3d3e6f2f880a2609b
+          servicePort: 80
+        path: /
+  tls:
+  - hosts:
+    - drone.rocketho.me
+    secretName: drone-rocketho-me-crt
+status:
+  loadBalancer: {}

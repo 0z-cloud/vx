@@ -1,0 +1,32 @@
+apiVersion: v1
+data:
+  APP_AWS_ACCESS_KEY_ID: Jhs617UAGfg1A15
+  APP_AWS_DIRECTORY: wallet-local
+  APP_AWS_ENDPOINT: http://minio:9000
+  APP_AWS_HOST: minio
+  APP_AWS_SECRET_ACCESS_KEY: nZBj1h7O9ahAGf1hFA51fasAs1f
+  APP_BTCPAY_HOST: http://btcgateway.local-btcgateway
+  APP_BTCPAY_SECRET: ""
+  APP_BUSINESS_HOST_URL: http://business:4000
+  APP_CORE_HOST_URL: http://core:3000
+  APP_CORE_TOKEN: wallet-app
+  APP_DB_HOST_ENV: postgres
+  APP_DB_NAME_ENV: reactivepay_wallet_production
+  APP_DB_USERNAME_ENV: postgres
+  APP_HOST_URL: http://wallet:7000
+  APP_IPINFO_URL: http://geoip.prod-geoip
+  APP_LOG_SOURCE: local-wallet
+  APP_SECRET_KEY_BASE: a0ac2801aa7fbabc3637c20a5f7493aa81821beca45142a296cb301cf1fb19396404b4440f48d2d4dc33e24726be942e69df240bc0f3a094cd0dee71991a1574
+  APP_SHOW_ERRORS: "true"
+  APP_URL_PROTOCOL: http
+  RAILS_ENV: production
+  RAILS_LOG_TO_STDOUT: "true"
+kind: ConfigMap
+metadata:
+  annotations:
+    field.cattle.io/creatorId: user-rxbgq
+  creationTimestamp: null
+  labels:
+    cattle.io/creator: norman
+  name: wallet-env
+  selfLink: /api/v1/namespaces/rpay-engine/configmaps/wallet-env

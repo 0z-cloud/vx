@@ -1,0 +1,38 @@
+# REMOVE KUBE & DOCKER - RESET ALL
+
+## STOP SERVICES
+
+- name: STOP SERVICES | Stop all services
+  systemd:
+    name: "{{ item }}"
+    state: stopped
+  with_items:
+    # - docker
+    - kubelet
+    - etcd
+  ignore_errors: true
+
+## REMOVE APT PACKAGES
+
+- name: APT REMOVE | Include apt remove tasks
+  include_tasks: remove_apt_packages.yml
+
+##
+
+- name: REMOVE ALL CONFIGS | Exec list of shell scripts
+  shell: "rm -rf {{ item }}"
+  with_items: "{{ affected_configs_and_dirs_to_remove }}"
+
+- name: REMOVE CA DIRS | Clear ca directories
+  shell: rm -rf {{ item.value }}
+  with_dict: "{{ ca_service_settings.directories | default({}) }}"
+
+- name: REMOVE KUBE DIRS | Clear kube directories
+  shell: rm -rf {{ item.value }}
+  with_dict: "{{ k8s_service_settings.directories | default({}) }}"
+  ignore_errors: true
+
+- name: REMOVE ETCD DIRS | Clear etcd directories
+  shell: rm -rf {{ item.value }}
+  with_dict: "{{ etcd_service_settings.directories | default({}) }}"
+  when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']

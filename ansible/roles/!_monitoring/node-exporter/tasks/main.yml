@@ -1,0 +1,58 @@
+# - name: Raw remove container permanently
+#   raw: docker rm -f nodex-{{ ansible_environment }}-{{ inventory_hostname }}
+#   ignore_errors: true 
+  
+# - name: Raw remove old image 
+#   raw: docker rmi -f prom/node-exporter
+#   ignore_errors: true 
+  
+- name: Install node_exporter Service With Swarm
+  docker_container:
+    name: "nodex-{{ ansible_environment }}-{{ inventory_hostname }}"
+    image: prom/node-exporter
+    hostname: "{{ ansible_hostname }}"
+    #command: --collector.procfs /host/proc --collector.sysfs /host/sys --collector.filesystem.ignored-mount-points "^/(sys|proc|dev|host|etc)($|/)"
+    #command: --path.procfs /host/proc \ --path.sysfs /host/sys \ --collector.filesystem.ignored-mount-points "^(/rootfs|/host|)/(sys|proc|dev|host|etc)($$|/)" \ --collector.filesystem.ignored-fs-types "^(sys|proc|auto|cgroup|devpts|ns|au|fuse\.lxc|mqueue)(fs|)$$"
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.ignored-mount-points="^(/rootfs|/host|)/(sys|proc|dev|host|etc)($$|/)"'
+      - '--collector.filesystem.ignored-fs-types="^(sys|proc|auto|cgroup|devpts|ns|au|fuse\.lxc|mqueue)(fs|)$$"'
+    # purge_networks: yes
+    # networks:
+    #   - name: "{{ swarm_masters.overlay_network.network_name }}"
+    #     ipv4_address: "{{ nodex_overlay_network_ip }}"
+    ports:
+      - "{{ node_exporter_service_listen_port }}:9100"
+    volumes:
+      - "/proc:/host/proc:ro"
+      - "/sys:/host/sys:ro"
+      - "/:/rootfs:ro" 
+    privileged: yes
+    state: started
+    restart_policy: unless-stopped
+    recreate: yes
+  when: swarm_disabled_inventory is not defined
+
+- name: Install node_exporter Service Without Swarm 
+  docker_container:
+    name: "nodex-{{ ansible_environment }}-{{ inventory_hostname }}"
+    image: prom/node-exporter
+    hostname: "{{ ansible_hostname }}"
+    #command: --collector.procfs /host/proc --collector.sysfs /host/sys --collector.filesystem.ignored-mount-points "^/(sys|proc|dev|host|etc)($|/)"
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.ignored-mount-points="^(/rootfs|/host|)/(sys|proc|dev|host|etc)($$|/)"'
+      - '--collector.filesystem.ignored-fs-types="^(sys|proc|auto|cgroup|devpts|ns|au|fuse\.lxc|mqueue)(fs|)$$"'    
+    volumes:
+      - "/proc:/host/proc:ro"
+      - "/sys:/host/sys:ro"
+      - "/:/rootfs:ro"
+    ports:
+      - "{{ node_exporter_service_listen_port }}:9100"
+    privileged: yes
+    state: started
+    restart_policy: unless-stopped
+    recreate: yes
+  when: swarm_disabled_inventory is defined

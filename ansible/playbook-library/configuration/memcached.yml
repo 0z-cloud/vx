@@ -1,0 +1,8 @@
+- name: Install memcached on some hosts
+  hosts: "{{ HOSTS }}"
+  become: true
+
+  tasks:
+    - apt:
+        name: memcached
+        update_cache: yes

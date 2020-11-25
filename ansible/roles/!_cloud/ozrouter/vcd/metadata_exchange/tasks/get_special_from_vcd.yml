@@ -1,0 +1,134 @@
+############################################################################################
+# ПОЛУЧЕНИЕ ТЕКУЩИХ СЕТЕЙ ИЗ vCloud Director
+############################################################################################
+
+- name: VCD-CLI | GET Current VDC Networks list with names full
+  shell: vcd -j network list | jq -r 'keys[] as $k | "\($k), \(.[$k]| .name)"' | awk '{print $2}'
+  register: all_fetched_vdc_networks_list
+
+############################################################################################
+# ПОЛУЧЕНИЕ СПИСКА ПОДСЕТЕЙ ИЗ vCloud Director
+############################################################################################
+
+- name: VCD-CLI | Get Current VDC Subnets list full
+  shell: vcd search orgNetwork | awk '{print $4}' | grep -v 'false' | tail -n +3 | uniq | grep -ve '[aA-zz]' | xargs -I ID bash -c 'str="ID"; echo ${str%.*}.0'
+  register: all_fetched_vdc_subnets_list
+
+# - name: VCD-CLI | SUBNETS fetched results about
+#   debug:
+#     msg: "{{ item }}"
+#   with_items: "{{ all_fetched_vdc_subnets_list.stdout_lines }}"
+#   when: debug_log is defined
+
+# - name: VCD-CLI | NETWORKS Debug fetched results 
+#   debug:
+#     msg: "{{ item }}"
+#   with_items: "{{ all_fetched_vdc_networks_list.stdout_lines }}"
+#   when: debug_log is defined
+
+############################################################################################
+# VCD CLI GET SUBNETS AND PORTS FROM META ROLE OBJECT
+############################################################################################
+
+- name: VCD CLI GET SUBNETS BY ROLES | Get List of all current networks
+  shell: vcd role list | grep Subnet | awk '{print $2}'
+  register: used_subnets_in_vdc_list
+
+- name:  VCD CLI GET PORTS BY ROLES | Get List of all current ports
+  shell: vcd role list | grep port | awk '{print $2}'
+  register: used_ports_in_vdc_list
+
+############################################################################################
+# REPO VALUES
+############################################################################################
+
+# - name: Show current in REPO excluded networks
+#   debug: 
+#     msg: "{{ item }}"
+#   with_items: "{{ subnets_excluded_and_must_to_be_check }}"
+#   when: debug_log is defined
+
+# - name: Show current in REPO excluded ports
+#   debug: 
+#     msg: "{{ item }}"
+#   with_items: "{{ ports_excluded_and_must_to_be_check }}"
+#   when: debug_log is defined
+
+############################################################################################
+# USED PORTS/NETWORKS BY vCloud Director
+############################################################################################
+
+# - name: Show used_ports_in_vdc_list in repo excluded ports
+#   debug: 
+#     msg: "{{ item }}"
+#   with_items: "{{ used_ports_in_vdc_list.stdout_lines }}"
+#   when: debug_log is defined
+
+# - name: Show used_subnets_in_vdc_list in repo excluded ports
+#   debug: 
+#     msg: "{{ item }}"
+#   with_items: "{{ used_subnets_in_vdc_list.stdout_lines }}"
+#   when: debug_log is defined
+
+############################################################################################
+# ПОЛУЧЕНИЕ КОНЕЧНЫХ СПИСКОВ ИСПОЛЬЗУЕМЫХ РЕСУРСОВ
+############################################################################################
+
+# NETWORKS SUBNETS
+- name: Register restricted subnets cidr
+  set_fact:
+    restricted_subnets_list: []
+
+# NETWORKS LIST
+- name: Register restricted subnets cidr
+  set_fact:
+    restricted_networks_list: []
+
+- name: Register restricted subnets IP from object
+  set_fact:
+    restricted_subnets_list: "{{ restricted_subnets_list + [ item | join ] }}"
+  with_items: 
+    - "{{ used_subnets_in_vdc_list.stdout_lines }}"
+    - "{{ subnets_excluded_and_must_to_be_check }}"
+    - "{{ all_fetched_vdc_subnets_list.stdout_lines }}"
+
+### PORTS
+- name: Register restricted ports
+  set_fact:
+    restricted_ports_list: []
+
+- name: Register restricted ports merge
+  set_fact:
+    restricted_ports_list: "{{ restricted_ports_list + [ item | join ] }}"
+  with_items: 
+    - "{{ used_ports_in_vdc_list.stdout_lines }}"
+    - "{{ ports_excluded_and_must_to_be_check }}"
+
+############################################################################################
+# ПРОСМОТР СОВМЕЩЕННОГО СПИСКА
+############################################################################################
+
+# - name: ПРОСМОТР СОВМЕЩЕННОГО СПИСКА ПОРТОВ | Show restricted_ports_list in repo excluded ports
+#   debug: 
+#     msg: "{{ item }}"
+#   with_items: "{{ restricted_ports_list }}"
+#   when: debug_log is defined
+
+# - name: ПРОСМОТР СОВМЕЩЕННОГО СПИСКА ИМЕН СЕТЕЙ | Show restricted_networks_list in repo excluded ports
+#   debug: 
+#     msg: "{{ item }}"
+#   with_items: "{{ restricted_networks_list }}"
+#   when: debug_log is defined
+
+# - name: ПРОСМОТР СОВМЕЩЕННОГО СПИСКА ПОДСЕТЕЙ | Show restricted_networks_list in repo excluded ports
+#   debug: 
+#     msg: "{{ item }}"
+#   with_items: "{{ restricted_subnets_list }}"
+#   when: debug_log is defined
+
+# - name: UPDATE LIST SUBNETS | Register restricted subnets IP from object
+#   set_fact:
+#     restricted_networks_list: "{{ restricted_networks_list + [ item | join ] }}"
+#   with_items: 
+#     - "{{ all_fetched_vdc_networks_list.stdout_lines }}"
+

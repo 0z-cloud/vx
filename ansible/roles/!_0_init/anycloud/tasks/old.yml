@@ -1,0 +1,72 @@
+
+
+# - name: Load directly template to var
+#   include_vars: "{{ lookup('template', 'inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml') }}"
+#   remote_src: true
+# # inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml
+
+
+
+# - name: Template 0z-cloud configuration state to all nodes
+#   template:
+#     src: inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml
+#     dest: /tmp/cloud_info.yml
+
+# - name: Debug play hosts
+#   debug: 
+#     msg: "{{ item }} {{ inventory_hostname }}"
+#   with_items: "{{ ansible_play_hosts_all }}"
+#   when: item == inventory_hostname
+
+# - name: Load directly template to var
+#   set_fact: 
+#     zero_result: "{{ lookup('file', '/tmp/cloud_info.yml') }}"
+#   # remote_src: true
+  # delegate_to: "{{ item }}"
+  # with_items: "{{ ansible_play_hosts_all }}"
+  # when: item == inventory_hostname
+
+# - name: Raw load the yaml
+#   raw: cat /tmp/cloud_info.yml
+#   register: variablnotename
+
+
+# - debug: msg="{{ variablnotename.stdout.replace('\\"',':').split('\n') }}"
+
+#   - debug: msg="{{ details.stdout_lines | quote }}"
+
+
+#   {{ lookup('template', './some_template.j2') }}
+
+# - name: Render raw yaml step 1
+#   debug:
+#       msg: "{{ variablnotename.stdout | replace('\",', '') | from_yaml }}"
+#   register: cleaned_stdout
+
+# - name: Render raw yaml step 1
+#   setfact:
+#     populate: "{{ variablnotename.stdout | replace('\",', '') | to_nice_yaml }}"
+#   register: cleaned_stdout
+
+
+# - name: Render raw yaml step 2
+#   set_fact:
+#       dsdict: "{{ cleaned_stdout | from_yaml }}"
+
+# - name: Render raw yaml step 3
+#   set_fact:
+#     supervalue: "{{ lookup('vars', 'dsdict') }}"
+
+# - name: Result 0z-cloud getting the cloud configuration for iterate
+#   set_fact:
+#     oz_inventory_servers_array: "{{ lookup('dict', supervalue.msg, wantlist=True) }}"
+
+# - name: Show Result 0z-cloud getting the cloud configuration for iterate
+#   debug:
+#     msg: "{{ oz_inventory_servers_array }}"
+
+# - name: Make netplan great again
+#   template:
+#     src: netplan.conf.j2
+#     dest: /etc/netplan/99-netcfg-cloud.yaml
+#   tags: netplan

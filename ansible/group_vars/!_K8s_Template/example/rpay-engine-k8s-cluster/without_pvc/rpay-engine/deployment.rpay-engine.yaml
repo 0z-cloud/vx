@@ -1,0 +1,1693 @@
+apiVersion: v1
+items:
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+      field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":443,"protocol":"HTTPS","serviceName":"rpay-engine:business","ingressName":"rpay-engine:business","hostname":"business.dev.rocketho.me","path":"/","allNodes":true}]'
+    creationTimestamp: "2019-06-28T14:22:36Z"
+    generation: 17
+    labels:
+      app: business
+      chart: business-0.1.0
+      heritage: Tiller
+      io.cattle.field/appId: rpay-engine
+      release: rpay-engine
+    name: business
+    namespace: rpay-engine
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: business
+        release: rpay-engine
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          cattle.io/timestamp: "1562354557"
+          field.cattle.io/ports: '[[{"containerPort":4000,"dnsName":"business-","name":"business","protocol":"TCP","sourcePort":0}]]'
+        creationTimestamp: null
+        labels:
+          app: business
+          release: rpay-engine
+      spec:
+        containers:
+        - command:
+          - sh
+          - -c
+          - rails server -b 0.0.0.0 -p 4000
+          envFrom:
+          - configMapRef:
+              name: business-env
+              optional: false
+          image: registry.rocketho.me/business:latest
+          imagePullPolicy: Always
+          name: business
+          ports:
+          - containerPort: 4000
+            name: business
+            protocol: TCP
+          resources: {}
+          securityContext:
+            capabilities: {}
+            procMount: Default
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: rokethome
+        - name: rokethome
+        - name: rokethome
+        - name: rokethome
+        initContainers:
+        - command:
+          - sh
+          - -c
+          - bundle exec rake db:create
+          envFrom:
+          - configMapRef:
+              name: business-env
+              optional: false
+          image: registry.rocketho.me/business:latest
+          imagePullPolicy: IfNotPresent
+          name: migration-1
+          resources: {}
+          securityContext:
+            procMount: Default
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        - command:
+          - sh
+          - -c
+          - bundle exec rake db:migrate
+          envFrom:
+          - configMapRef:
+              name: business-env
+              optional: false
+          image: registry.rocketho.me/business:latest
+          imagePullPolicy: IfNotPresent
+          name: migration-2
+          resources: {}
+          securityContext:
+            procMount: Default
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        - command:
+          - sh
+          - -c
+          - bundle exec rake db:seed
+          envFrom:
+          - configMapRef:
+              name: business-env
+              optional: false
+          image: registry.rocketho.me/business:latest
+          imagePullPolicy: IfNotPresent
+          name: migration-3
+          resources: {}
+          securityContext:
+            procMount: Default
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+    creationTimestamp: "2019-07-02T18:47:14Z"
+    generation: 11
+    labels:
+      app: business-def
+      chart: business-def-0.1.0
+      heritage: Tiller
+      io.cattle.field/appId: rpay-engine
+      release: rpay-engine
+    name: business-def
+    namespace: rpay-engine
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: business-def
+        release: rpay-engine
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          cattle.io/timestamp: "1562354558"
+        creationTimestamp: null
+        labels:
+          app: business-def
+          release: rpay-engine
+      spec:
+        containers:
+        - command:
+          - sh
+          - -c
+          - while true ; do cd /business && RAILS_ENV=production bundle exec rake
+            gateway_payments:approve_waiting_default_payments; sleep 15; done
+          envFrom:
+          - configMapRef:
+              name: business-def-env
+              optional: false
+          image: registry.rocketho.me/business:latest
+          imagePullPolicy: Always
+          name: business-def
+          resources: {}
+          securityContext:
+            capabilities: {}
+            procMount: Default
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: rokethome
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+      field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":443,"protocol":"HTTPS","serviceName":"rpay-engine:business-docs","ingressName":"rpay-engine:business-docs","hostname":"business-docs.dev.rocketho.me","path":"/","allNodes":true}]'
+    creationTimestamp: "2019-06-28T12:33:07Z"
+    generation: 11
+    labels:
+      app: business-docs
+      chart: business-docs-0.1.0
+      heritage: Tiller
+      io.cattle.field/appId: rpay-engine
+      release: rpay-engine
+    name: business-docs
+    namespace: rpay-engine
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: business-docs
+        release: rpay-engine
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          cattle.io/timestamp: "1562354559"
+          field.cattle.io/ports: '[[{"containerPort":80,"dnsName":"business-docs-","name":"business-docs","protocol":"TCP","sourcePort":0}]]'
+        creationTimestamp: null
+        labels:
+          app: business-docs
+          release: rpay-engine
+      spec:
+        containers:
+        - envFrom:
+          - configMapRef:
+              name: business-docs-env
+              optional: false
+          image: registry.rocketho.me/business:latest
+          imagePullPolicy: Always
+          name: business-docs
+          ports:
+          - containerPort: 80
+            name: business-docs
+            protocol: TCP
+          resources: {}
+          securityContext:
+            capabilities: {}
+            procMount: Default
+          stdin: true
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          tty: true
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: rokethome
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+    creationTimestamp: "2019-06-28T12:33:07Z"
+    generation: 8
+    labels:
+      app: business-side
+      chart: business-side-0.1.0
+      heritage: Tiller
+      io.cattle.field/appId: rpay-engine
+      release: rpay-engine
+    name: business-side
+    namespace: rpay-engine
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: business-side
+        release: rpay-engine
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          cattle.io/timestamp: "2019-07-03T15:56:04Z"
+        creationTimestamp: null
+        labels:
+          app: business-side
+          release: rpay-engine
+      spec:
+        containers:
+        - command:
+          - sh
+          - -c
+          - bundle exec sidekiq
+          envFrom:
+          - configMapRef:
+              name: business-side-env
+              optional: false
+          image: registry.rocketho.me/business:latest
+          imagePullPolicy: Always
+          name: business-side
+          resources: {}
+          securityContext:
+            capabilities: {}
+            procMount: Default
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: rokethome
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+    creationTimestamp: "2019-06-28T12:33:07Z"
+    generation: 8
+    labels:
+      app: business-when
+      chart: business-when-0.1.0
+      heritage: Tiller
+      io.cattle.field/appId: rpay-engine
+      release: rpay-engine
+    name: business-when
+    namespace: rpay-engine
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: business-when
+        release: rpay-engine
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          cattle.io/timestamp: "1562354559"
+        creationTimestamp: null
+        labels:
+          app: business-when
+          release: rpay-engine
+      spec:
+        containers:
+        - command:
+          - sh
+          - -c
+          - bundle exec whenever --update-crontab && cron -f
+          envFrom:
+          - configMapRef:
+              name: business-when-env
+              optional: false
+          image: registry.rocketho.me/business:latest
+          imagePullPolicy: Always
+          name: business-when
+          resources: {}
+          securityContext:
+            capabilities: {}
+            procMount: Default
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: rokethome
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+    creationTimestamp: "2019-06-28T12:33:07Z"
+    generation: 7
+    labels:
+      app: card-storage
+      chart: card-storage-0.1.0
+      heritage: Tiller
+      io.cattle.field/appId: rpay-engine
+      release: rpay-engine
+    name: card-storage
+    namespace: rpay-engine
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: card-storage
+        release: rpay-engine
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          cattle.io/timestamp: "1562354556"
+          field.cattle.io/ports: '[[{"containerPort":3200,"dnsName":"card-storage-","name":"card-storage","protocol":"TCP","sourcePort":0}]]'
+        creationTimestamp: null
+        labels:
+          app: card-storage
+          release: rpay-engine
+      spec:
+        containers:
+        - command:
+          - sh
+          - -c
+          - rails server -b 0.0.0.0 -p 3200
+          envFrom:
+          - configMapRef:
+              name: card-storage-env
+              optional: false
+          image: registry.rocketho.me/card-storage:latest
+          imagePullPolicy: Always
+          name: card-storage
+          ports:
+          - containerPort: 3200
+            name: card-storage
+            protocol: TCP
+          resources: {}
+          securityContext:
+            capabilities: {}
+            procMount: Default
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: rokethome
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+      field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":443,"protocol":"HTTPS","serviceName":"rpay-engine:core","ingressName":"rpay-engine:core","hostname":"core.dev.rocketho.me","path":"/","allNodes":true}]'
+    creationTimestamp: "2019-06-28T12:33:07Z"
+    generation: 60
+    labels:
+      app: core
+      chart: core-0.1.0
+      heritage: Tiller
+      io.cattle.field/appId: rpay-engine
+      release: rpay-engine
+    name: core
+    namespace: rpay-engine
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: core
+        release: rpay-engine
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          cattle.io/timestamp: "1562354687"
+          field.cattle.io/ports: '[[{"containerPort":3000,"dnsName":"core-","name":"core","protocol":"TCP","sourcePort":0}]]'
+        creationTimestamp: null
+        labels:
+          app: core
+          release: rpay-engine
+      spec:
+        containers:
+        - command:
+          - rails
+          - server
+          - -b
+          - 0.0.0.0
+          - -p
+          - "3000"
+          envFrom:
+          - configMapRef:
+              name: core-env
+              optional: false
+          image: registry.rocketho.me/core:latest
+          imagePullPolicy: Always
+          name: core
+          ports:
+          - containerPort: 3000
+            name: core
+            protocol: TCP
+          resources: {}
+          securityContext:
+            capabilities: {}
+            procMount: Default
+          stdin: true
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          tty: true
+        dnsConfig: {}
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: rokethome
+        - name: rokethome
+        - name: rokethome
+        - name: rokethome
+        initContainers:
+        - command:
+          - bundle
+          - exec
+          - rake
+          - db:create
+          envFrom:
+          - configMapRef:
+              name: core-env
+              optional: false
+          image: registry.rocketho.me/core:latest
+          imagePullPolicy: Always
+          name: "1"
+          resources: {}
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            procMount: Default
+            readOnlyRootFilesystem: false
+            runAsNonRoot: false
+          stdin: true
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          tty: true
+        - command:
+          - bundle
+          - exec
+          - rake
+          - db:migrate
+          envFrom:
+          - configMapRef:
+              name: core-env
+              optional: false
+          image: registry.rocketho.me/core:latest
+          imagePullPolicy: Always
+          name: "2"
+          resources: {}
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            procMount: Default
+            readOnlyRootFilesystem: false
+            runAsNonRoot: false
+          stdin: true
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          tty: true
+        - command:
+          - bundle
+          - exec
+          - rake
+          - db:seed
+          envFrom:
+          - configMapRef:
+              name: core-env
+              optional: false
+          image: registry.rocketho.me/core:latest
+          imagePullPolicy: Always
+          name: "3"
+          resources: {}
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            procMount: Default
+            readOnlyRootFilesystem: false
+            runAsNonRoot: false
+          stdin: true
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          tty: true
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+      field.cattle.io/creatorId: user-rxbgq
+      field.cattle.io/publicEndpoints: "null"
+    creationTimestamp: "2019-07-03T20:36:54Z"
+    generation: 9
+    labels:
+      cattle.io/creator: norman
+      workload.user.cattle.io/workloadselector: deployment-rpay-engine-core-old
+    name: core-old
+    namespace: rpay-engine
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        workload.user.cattle.io/workloadselector: deployment-rpay-engine-core-old
+    strategy:
+      rollingUpdate:
+        maxSurge: 1
+        maxUnavailable: 0
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          cattle.io/timestamp: "2019-07-03T20:54:31Z"
+          field.cattle.io/ports: '[[{"containerPort":3000,"dnsName":"core-old","kind":"ClusterIP","name":"3000tcp2","protocol":"TCP"}]]'
+        creationTimestamp: null
+        labels:
+          workload.user.cattle.io/workloadselector: deployment-rpay-engine-core-old
+      spec:
+        containers:
+        - envFrom:
+          - configMapRef:
+              name: core-env
+              optional: false
+          image: rg.fr-par.scw.cloud/devpay/core:dev-2
+          imagePullPolicy: Always
+          name: core-old
+          ports:
+          - containerPort: 3000
+            name: 3000tcp2
+            protocol: TCP
+          resources: {}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {}
+            privileged: false
+            procMount: Default
+            readOnlyRootFilesystem: false
+            runAsNonRoot: false
+          stdin: true
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          tty: true
+        dnsConfig: {}
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: rpay-key-reg
+        initContainers:
+        - command:
+          - bundle
+          - exec
+          - rake
+          - db:migrate
+          envFrom:
+          - configMapRef:
+              name: core-env
+              optional: false
+          image: rg.fr-par.scw.cloud/devpay/core:dev-2
+          imagePullPolicy: Always
+          name: "2"
+          resources: {}
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            procMount: Default
+            readOnlyRootFilesystem: false
+            runAsNonRoot: false
+          stdin: true
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          tty: true
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+    creationTimestamp: "2019-06-28T12:33:07Z"
+    generation: 14
+    labels:
+      app: core-sidekiq
+      chart: core-sidekiq-0.1.0
+      heritage: Tiller
+      io.cattle.field/appId: rpay-engine
+      release: rpay-engine
+    name: core-sidekiq
+    namespace: rpay-engine
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: core-sidekiq
+        release: rpay-engine
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          cattle.io/timestamp: "2019-07-03T17:08:39Z"
+        creationTimestamp: null
+        labels:
+          app: core-sidekiq
+          release: rpay-engine
+      spec:
+        containers:
+        - command:
+          - sh
+          - -c
+          - bundle exec sidekiq
+          envFrom:
+          - configMapRef:
+              name: core-sidekiq-env
+              optional: false
+          image: registry.rocketho.me/core:latest
+          imagePullPolicy: Always
+          name: core-sidekiq
+          resources: {}
+          securityContext:
+            capabilities: {}
+            procMount: Default
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: rokethome
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+      field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":443,"protocol":"HTTPS","serviceName":"rpay-engine:demo","ingressName":"rpay-engine:demo","hostname":"demo.dev.rocketho.me","path":"/","allNodes":true}]'
+    creationTimestamp: "2019-07-02T18:35:19Z"
+    generation: 11
+    labels:
+      app: demo
+      chart: demo-0.1.0
+      heritage: Tiller
+      io.cattle.field/appId: rpay-engine
+      release: rpay-engine
+    name: demo
+    namespace: rpay-engine
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: demo
+        release: rpay-engine
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          cattle.io/timestamp: "1562354375"
+          field.cattle.io/ports: '[[{"containerPort":8000,"dnsName":"demo-","name":"demo","protocol":"TCP","sourcePort":0}]]'
+        creationTimestamp: null
+        labels:
+          app: demo
+          release: rpay-engine
+      spec:
+        containers:
+        - command:
+          - sh
+          - -c
+          - python manage.py runserver 0.0.0.0:8000
+          envFrom:
+          - configMapRef:
+              name: demo-env
+              optional: false
+          image: registry.rocketho.me/demo:latest
+          imagePullPolicy: Always
+          livenessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /demo
+              port: 8000
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: demo
+          ports:
+          - containerPort: 8000
+            name: demo
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /demo
+              port: 8000
+              scheme: HTTP
+            periodSeconds: 15
+            successThreshold: 1
+            timeoutSeconds: 5
+          resources: {}
+          securityContext:
+            procMount: Default
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: rokethome
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+      field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":443,"protocol":"HTTPS","serviceName":"rpay-engine:f-guard-admin","ingressName":"rpay-engine:flexy-guard-admin","hostname":"flexy-guard-admin.dev.rocketho.me","path":"/","allNodes":true}]'
+    creationTimestamp: "2019-06-28T12:33:07Z"
+    generation: 25
+    labels:
+      app: f-guard-admin
+      chart: f-guard-admin-0.1.0
+      heritage: Tiller
+      io.cattle.field/appId: rpay-engine
+      release: rpay-engine
+    name: f-guard-admin
+    namespace: rpay-engine
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: f-guard-admin
+        release: rpay-engine
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          cattle.io/timestamp: "2019-07-06T19:40:17Z"
+        creationTimestamp: null
+        labels:
+          app: f-guard-admin
+          release: rpay-engine
+      spec:
+        containers:
+        - command:
+          - sh
+          - -c
+          - python3 app.py
+          envFrom:
+          - configMapRef:
+              name: f-guard-admin-env
+              optional: false
+          image: registry.rocketho.me/flexy-guard-admin:latest
+          imagePullPolicy: Always
+          name: f-guard-admin
+          resources: {}
+          securityContext:
+            capabilities: {}
+            procMount: Default
+          stdin: true
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          tty: true
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: rokethome
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+      field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":443,"protocol":"HTTPS","serviceName":"rpay-engine:flexy-guard","ingressName":"rpay-engine:flexy-guard","hostname":"flexy-guard.dev.rocketho.me","path":"/","allNodes":true}]'
+    creationTimestamp: "2019-06-28T12:33:07Z"
+    generation: 27
+    labels:
+      app: flexy-guard
+      chart: flexy-guard-0.1.0
+      heritage: Tiller
+      io.cattle.field/appId: rpay-engine
+      release: rpay-engine
+    name: flexy-guard
+    namespace: rpay-engine
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: flexy-guard
+        release: rpay-engine
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          cattle.io/timestamp: "2019-07-03T11:43:45Z"
+          field.cattle.io/ports: '[[{"containerPort":5000,"dnsName":"flexy-guard-","name":"flexy-guard","protocol":"TCP","sourcePort":0}]]'
+        creationTimestamp: null
+        labels:
+          app: flexy-guard
+          release: rpay-engine
+      spec:
+        containers:
+        - command:
+          - sh
+          - -c
+          - python3 app.py
+          envFrom:
+          - configMapRef:
+              name: flexy-guard-env
+              optional: false
+          image: registry.rocketho.me/flexy-guard
+          imagePullPolicy: Always
+          name: flexy-guard
+          ports:
+          - containerPort: 5000
+            name: flexy-guard
+            protocol: TCP
+          resources: {}
+          securityContext:
+            capabilities: {}
+            procMount: Default
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: rokethome
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+      field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":443,"protocol":"HTTPS","serviceName":"rpay-engine:metabase","ingressName":"rpay-engine:metabase","hostname":"metabase.dev.rocketho.me","path":"/","allNodes":true}]'
+    creationTimestamp: "2019-06-28T12:33:07Z"
+    generation: 4
+    labels:
+      app: metabase
+      chart: metabase-0.1.0
+      heritage: Tiller
+      io.cattle.field/appId: rpay-engine
+      release: rpay-engine
+    name: metabase
+    namespace: rpay-engine
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: metabase
+        release: rpay-engine
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          cattle.io/timestamp: "2019-07-03T13:36:07Z"
+          field.cattle.io/ports: '[[{"containerPort":3000,"dnsName":"metabase-","name":"metabase","protocol":"TCP","sourcePort":0}]]'
+        creationTimestamp: null
+        labels:
+          app: metabase
+          release: rpay-engine
+      spec:
+        containers:
+        - envFrom:
+          - configMapRef:
+              name: metabase-env
+              optional: false
+          image: metabase/metabase:v0.30.4
+          imagePullPolicy: Always
+          name: metabase
+          ports:
+          - containerPort: 3000
+            name: metabase
+            protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: rpay-key-reg
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+    creationTimestamp: "2019-06-28T12:33:07Z"
+    generation: 4
+    labels:
+      app: metabase-setup
+      chart: metabase-setup-0.1.0
+      heritage: Tiller
+      io.cattle.field/appId: rpay-engine
+      release: rpay-engine
+    name: metabase-setup
+    namespace: rpay-engine
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: metabase-setup
+        release: rpay-engine
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          cattle.io/timestamp: "2019-07-03T17:06:02Z"
+          field.cattle.io/ports: '[[{"containerPort":5060,"dnsName":"metabase-setup-","name":"metabase-setup","protocol":"TCP","sourcePort":0}]]'
+        creationTimestamp: null
+        labels:
+          app: metabase-setup
+          release: rpay-engine
+      spec:
+        containers:
+        - command:
+          - sh
+          - -c
+          - python3 health_check.py && python3 -m pytest metabase.py; python3 ping.py
+          envFrom:
+          - configMapRef:
+              name: metabase-setup-env
+              optional: false
+          image: registry.rocketho.me/metabase-setup:latest
+          imagePullPolicy: Always
+          name: metabase-setup
+          ports:
+          - containerPort: 5060
+            name: metabase-setup
+            protocol: TCP
+          resources: {}
+          securityContext:
+            capabilities: {}
+            procMount: Default
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: rokethome
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+      field.cattle.io/creatorId: user-rxbgq
+      field.cattle.io/publicEndpoints: '[{"nodeName":"c-4rvhr:m-01925b7892e2","addresses":["95.217.53.7"],"port":9000,"protocol":"TCP","podName":"rpay-engine:minio-7c96f797bf-97jnn","allNodes":false}]'
+    creationTimestamp: "2019-07-06T19:58:37Z"
+    generation: 8
+    labels:
+      cattle.io/creator: norman
+      workload.user.cattle.io/workloadselector: deployment-rpay-engine-minio
+    name: minio
+    namespace: rpay-engine
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        workload.user.cattle.io/workloadselector: deployment-rpay-engine-minio
+    strategy:
+      rollingUpdate:
+        maxSurge: 1
+        maxUnavailable: 0
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          cattle.io/timestamp: "2019-07-06T20:42:19Z"
+          field.cattle.io/ports: '[[{"containerPort":9000,"dnsName":"minio-hostport","hostPort":9000,"kind":"HostPort","name":"9001tcp90003","protocol":"TCP","sourcePort":9000}]]'
+        creationTimestamp: null
+        labels:
+          workload.user.cattle.io/workloadselector: deployment-rpay-engine-minio
+      spec:
+        containers:
+        - command:
+          - minio
+          - server
+          - /export
+          envFrom:
+          - configMapRef:
+              name: minio-env
+              optional: false
+          image: minio/minio:RELEASE.2019-06-04T01-15-58Z
+          imagePullPolicy: Always
+          name: minio
+          ports:
+          - containerPort: 9000
+            hostPort: 9000
+            name: 9001tcp90003
+            protocol: TCP
+          resources: {}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {}
+            privileged: false
+            procMount: Default
+            readOnlyRootFilesystem: false
+            runAsNonRoot: false
+          stdin: true
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          tty: true
+          volumeMounts:
+          - mountPath: /export
+            name: minio-data
+          - mountPath: /root/.minio
+            name: minio-config
+        dnsConfig: {}
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: minio-data
+          persistentVolumeClaim:
+            claimName: minio-data
+        - name: minio-config
+          persistentVolumeClaim:
+            claimName: minio-config
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+      field.cattle.io/creatorId: user-rxbgq
+      field.cattle.io/publicEndpoints: '[{"nodeName":"c-4rvhr:m-ebad64149cc7","addresses":["95.217.56.101"],"port":8081,"protocol":"TCP","podName":"rpay-engine:mongo-express-755f7f94cd-9v7z2","allNodes":false}]'
+    creationTimestamp: "2019-07-03T11:57:06Z"
+    generation: 25
+    labels:
+      cattle.io/creator: norman
+      workload.user.cattle.io/workloadselector: deployment-rpay-engine-mongo-express
+    name: mongo-express
+    namespace: rpay-engine
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        workload.user.cattle.io/workloadselector: deployment-rpay-engine-mongo-express
+    strategy:
+      rollingUpdate:
+        maxSurge: 1
+        maxUnavailable: 0
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          cattle.io/timestamp: "2019-07-06T18:43:58Z"
+          field.cattle.io/ports: '[[{"containerPort":8081,"dnsName":"mongo-express-hostport","hostPort":8081,"kind":"HostPort","name":"8081tcp80810","protocol":"TCP","sourcePort":8081}]]'
+        creationTimestamp: null
+        labels:
+          workload.user.cattle.io/workloadselector: deployment-rpay-engine-mongo-express
+      spec:
+        containers:
+        - env:
+          - name: ME_CONFIG_MONGODB_SERVER
+            value: mongo
+          image: mongo-express:0.49.0
+          imagePullPolicy: Always
+          name: mongo-express
+          ports:
+          - containerPort: 8081
+            hostPort: 8081
+            name: 8081tcp80810
+            protocol: TCP
+          resources: {}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {}
+            privileged: false
+            procMount: Default
+            readOnlyRootFilesystem: false
+            runAsNonRoot: false
+          stdin: true
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          tty: true
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+    creationTimestamp: "2019-07-06T18:18:14Z"
+    generation: 5
+    labels:
+      app: mongodb
+      chart: mongodb-5.0.0
+      heritage: Tiller
+      io.cattle.field/appId: mongo
+      release: mongo
+    name: mongo-mongodb
+    namespace: rpay-engine
+  spec:
+    progressDeadlineSeconds: 2147483647
+    replicas: 1
+    revisionHistoryLimit: 2147483647
+    selector:
+      matchLabels:
+        app: mongodb
+        release: mongo
+    strategy:
+      rollingUpdate:
+        maxSurge: 1
+        maxUnavailable: 1
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          cattle.io/timestamp: "2019-07-06T18:41:29Z"
+          field.cattle.io/ports: '[[{"containerPort":27017,"dnsName":"mongo-mongodb","kind":"ClusterIP","name":"mongodb","protocol":"TCP"}]]'
+        creationTimestamp: null
+        labels:
+          app: mongodb
+          chart: mongodb-5.0.0
+          release: mongo
+      spec:
+        containers:
+        - env:
+          - name: MONGODB_DATABASE
+            value: database
+          - name: MONGODB_ENABLE_IPV6
+            value: "yes"
+          - name: MONGODB_EXTRA_FLAGS
+          - name: MONGODB_USERNAME
+            value: admin
+          image: bitnami/mongodb:4.0.3
+          imagePullPolicy: Always
+          livenessProbe:
+            exec:
+              command:
+              - mongo
+              - --eval
+              - db.adminCommand('ping')
+            failureThreshold: 6
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: mongo-mongodb
+          ports:
+          - containerPort: 27017
+            name: mongodb
+            protocol: TCP
+          readinessProbe:
+            exec:
+              command:
+              - mongo
+              - --eval
+              - db.adminCommand('ping')
+            failureThreshold: 6
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          resources: {}
+          securityContext:
+            capabilities: {}
+            procMount: Default
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /bitnami/mongodb
+            name: data
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext:
+          fsGroup: 1001
+          runAsUser: 1001
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: mongo-mongodb
+    creationTimestamp: "2019-07-03T12:57:43Z"
+    generation: 17
+    labels:
+      cattle.io/creator: norman
+      workload.user.cattle.io/workloadselector: deployment-rpay-engine-postgres
+    name: postgres
+    namespace: rpay-engine
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        workload.user.cattle.io/workloadselector: deployment-rpay-engine-postgres
+    strategy:
+      rollingUpdate:
+        maxSurge: 1
+        maxUnavailable: 0
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          cattle.io/timestamp: "2019-07-03T13:34:59Z"
+          workload.cattle.io/state: '{"d29ya2VyMQ==":"c-4rvhr:m-ebad64149cc7","d29ya2VyMg==":"c-4rvhr:m-01925b7892e2"}'
+        creationTimestamp: null
+        labels:
+          workload.user.cattle.io/workloadselector: deployment-rpay-engine-postgres
+      spec:
+        containers:
+        - env:
+          - name: POSTGRES_PASSWORD
+          - name: POSTGRES_USER
+            value: postgres
+          image: postgres
+          imagePullPolicy: Always
+          name: postgres
+          resources: {}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {}
+            privileged: false
+            procMount: Default
+            readOnlyRootFilesystem: false
+            runAsNonRoot: false
+          stdin: true
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          tty: true
+          volumeMounts:
+          - mountPath: /var/lib/postgresql/data
+            name: pg-data
+        dnsConfig: {}
+        dnsPolicy: ClusterFirst
+        nodeName: worker1
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: pg-data
+          persistentVolumeClaim:
+            claimName: pg-data
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+    creationTimestamp: "2019-06-28T12:33:07Z"
+    generation: 8
+    labels:
+      app: rate
+      chart: rate-0.1.0
+      heritage: Tiller
+      io.cattle.field/appId: rpay-engine
+      release: rpay-engine
+    name: rate
+    namespace: rpay-engine
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: rate
+        release: rpay-engine
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          cattle.io/timestamp: "1562354375"
+          field.cattle.io/ports: '[[{"containerPort":4040,"dnsName":"rate-","name":"rate","protocol":"TCP","sourcePort":0}]]'
+        creationTimestamp: null
+        labels:
+          app: rate
+          release: rpay-engine
+      spec:
+        containers:
+        - command:
+          - sh
+          - -c
+          - python3 app.py
+          envFrom:
+          - configMapRef:
+              name: rate-env
+              optional: false
+          image: registry.rocketho.me/rate:latest
+          imagePullPolicy: Always
+          name: rate
+          ports:
+          - containerPort: 4040
+            name: rate
+            protocol: TCP
+          resources: {}
+          securityContext:
+            capabilities: {}
+            procMount: Default
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: rokethome
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+      field.cattle.io/creatorId: user-rxbgq
+    creationTimestamp: "2019-06-28T14:49:05Z"
+    generation: 2
+    labels:
+      cattle.io/creator: norman
+      workload.user.cattle.io/workloadselector: deployment-rpay-engine-redis
+    name: redis
+    namespace: rpay-engine
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        workload.user.cattle.io/workloadselector: deployment-rpay-engine-redis
+    strategy:
+      rollingUpdate:
+        maxSurge: 1
+        maxUnavailable: 0
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          cattle.io/timestamp: "2019-06-28T14:50:19Z"
+        creationTimestamp: null
+        labels:
+          workload.user.cattle.io/workloadselector: deployment-rpay-engine-redis
+      spec:
+        containers:
+        - image: redis
+          imagePullPolicy: Always
+          name: redis
+          resources: {}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {}
+            privileged: false
+            procMount: Default
+            readOnlyRootFilesystem: false
+            runAsNonRoot: false
+          stdin: true
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          tty: true
+          volumeMounts:
+          - mountPath: /data
+            name: redis-data
+        dnsConfig: {}
+        dnsPolicy: ClusterFirst
+        hostname: redis
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: redis-data
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+      field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":443,"protocol":"HTTPS","serviceName":"rpay-engine:settings","ingressName":"rpay-engine:settings","hostname":"settings.dev.rocketho.me","path":"/","allNodes":true}]'
+    creationTimestamp: "2019-06-28T12:33:07Z"
+    generation: 21
+    labels:
+      app: settings
+      chart: settings-0.1.0
+      heritage: Tiller
+      io.cattle.field/appId: rpay-engine
+      release: rpay-engine
+    name: settings
+    namespace: rpay-engine
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: settings
+        release: rpay-engine
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          cattle.io/timestamp: "1562354556"
+          date: date +'%s'
+          field.cattle.io/ports: '[[{"containerPort":6001,"dnsName":"settings-","name":"settings","protocol":"TCP","sourcePort":0}]]'
+        creationTimestamp: null
+        labels:
+          app: settings
+          release: rpay-engine
+      spec:
+        containers:
+        - command:
+          - sh
+          - -c
+          - rails server -b 0.0.0.0 -p 6001
+          envFrom:
+          - configMapRef:
+              name: settings-env
+              optional: false
+          image: registry.rocketho.me/settings:latest
+          imagePullPolicy: Always
+          name: settings
+          ports:
+          - containerPort: 6001
+            name: settings
+            protocol: TCP
+          resources: {}
+          securityContext:
+            capabilities: {}
+            procMount: Default
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: rokethome
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+      field.cattle.io/creatorId: user-rxbgq
+    creationTimestamp: "2019-06-28T14:13:59Z"
+    generation: 11
+    labels:
+      cattle.io/creator: norman
+      workload.user.cattle.io/workloadselector: deployment-rpay-engine-test
+    name: test
+    namespace: rpay-engine
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        workload.user.cattle.io/workloadselector: deployment-rpay-engine-test
+    strategy:
+      rollingUpdate:
+        maxSurge: 1
+        maxUnavailable: 0
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          cattle.io/timestamp: "2019-07-06T18:20:05Z"
+        creationTimestamp: null
+        labels:
+          workload.user.cattle.io/workloadselector: deployment-rpay-engine-test
+      spec:
+        containers:
+        - image: ubuntu
+          imagePullPolicy: Always
+          name: test
+          resources: {}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {}
+            privileged: false
+            procMount: Default
+            readOnlyRootFilesystem: false
+            runAsNonRoot: false
+          stdin: true
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          tty: true
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    annotations:
+      field.cattle.io/creatorId: user-rxbgq
+      field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":443,"protocol":"HTTPS","serviceName":"rpay-engine:ingress-cc8d32ff010cd1dfbdf3430a79b4f242","ingressName":"rpay-engine:wallet","hostname":"wallet.dev.rocketho.me","path":"/","allNodes":true}]'
+    creationTimestamp: "2019-07-03T12:02:12Z"
+    generation: 14
+    labels:
+      cattle.io/creator: norman
+      workload.user.cattle.io/workloadselector: deployment-rpay-engine-wallet
+    name: wallet
+    namespace: rpay-engine
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        workload.user.cattle.io/workloadselector: deployment-rpay-engine-wallet
+    strategy:
+      rollingUpdate:
+        maxSurge: 1
+        maxUnavailable: 0
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          cattle.io/timestamp: "2019-07-06T22:09:24Z"
+        creationTimestamp: null
+        labels:
+          workload.user.cattle.io/workloadselector: deployment-rpay-engine-wallet
+      spec:
+        containers:
+        - command:
+          - sh
+          - -c
+          - rails server -b 0.0.0.0 -p 8800
+          envFrom:
+          - configMapRef:
+              name: wallet-env
+          image: registry.rocketho.me/wallet:latest
+          imagePullPolicy: Always
+          name: wallet
+          resources: {}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {}
+            privileged: false
+            procMount: Default
+            readOnlyRootFilesystem: false
+            runAsNonRoot: false
+          stdin: true
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          tty: true
+        dnsPolicy: ClusterFirst
+        imagePullSecrets:
+        - name: rokethome
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""

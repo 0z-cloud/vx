@@ -1,0 +1,13 @@
+- name: Install iptables-persistent
+  apt:
+    name: iptables-persistent
+    state: present
+  tags:
+    - install_iptables_persistent
+
+- name: Fix iptables-persistent for ipv6 (disable save rules for ipv6)
+  file:
+    path: /usr/share/netfilter-persistent/plugins.d/25-ip6tables
+    mode: 0644
+  tags:
+    - install_iptables_persistent

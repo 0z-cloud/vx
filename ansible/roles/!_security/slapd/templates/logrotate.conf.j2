@@ -1,0 +1,9 @@
+{{ slapd_log_dir }}/*.log {
+	daily
+	missingok
+	rotate 7
+	create
+	compress
+	delaycompress
+	notifempty
+}

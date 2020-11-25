@@ -1,0 +1,3 @@
+# GLUSTERFS REPO BY CODENAME
+deb [arch=amd64] https://ppa.launchpad.net/gluster/glusterfs-7/ubuntu {{ ansible_lsb.codename }} main 
+deb-src [arch=amd64] [trusted=yes] https://ppa.launchpad.net/gluster/glusterfs-7/ubuntu {{ ansible_lsb.codename }} main

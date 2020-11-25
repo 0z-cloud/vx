@@ -1,0 +1,78 @@
+# For information on the settings in this file, type "man shorewall-rules"
+######################################################################################################################################################################################################
+#ACTION		    SOURCE		    DEST		            PROTO	    DEST	SOURCE		ORIGINAL	RATE		USER/	MARK	CONNLIMIT	TIME	HEADERS		SWITCH		HELPER
+#							        PORT	            PORT(S)		    DEST		LIMIT		GROUP
+
+# PING
+ACCEPT		esx:10.16.128.252		fw:10.16.128.1	    icmp
+ACCEPT		esx:10.16.128.253		fw:10.16.128.1	    icmp
+ACCEPT		esx:10.16.128.254		fw:10.16.128.1	    icmp
+ACCEPT		esx:10.16.128.30		fw:10.16.128.1	    icmp
+ACCEPT		esx:10.16.128.40		fw:10.16.128.1	    icmp
+ACCEPT		esx:10.16.128.50		fw:10.16.128.1	    icmp
+ACCEPT		esx:10.16.128.60		fw:10.16.128.1	    icmp
+ACCEPT		esx:10.16.128.70		fw:10.16.128.1	    icmp
+ACCEPT		esx:10.16.128.80		fw:10.16.128.1	    icmp
+ACCEPT		esx:10.16.128.90		fw:10.16.128.1	    icmp
+
+# NTP
+ACCEPT		esx:10.16.128.252		fw:10.16.128.1	    udp,tcp	        123
+ACCEPT		esx:10.16.128.253		fw:10.16.128.1	    udp,tcp	        123
+ACCEPT		esx:10.16.128.254		fw:10.16.128.1	    udp,tcp	        123
+ACCEPT		esx:10.16.128.30		fw:10.16.128.1	    udp,tcp	        123
+ACCEPT		esx:10.16.128.40		fw:10.16.128.1	    udp,tcp	        123
+ACCEPT		esx:10.16.128.50		fw:10.16.128.1	    udp,tcp	        123
+ACCEPT		esx:10.16.128.60		fw:10.16.128.1	    udp,tcp	        123
+ACCEPT		esx:10.16.128.70		fw:10.16.128.1	    udp,tcp	        123
+ACCEPT		esx:10.16.128.80		fw:10.16.128.1	    udp,tcp	        123
+ACCEPT		esx:10.16.128.90		fw:10.16.128.1	    udp,tcp	        123
+
+# ACCEPT esx hosts TO sent events to syslog
+# SYSLOG
+ACCEPT		esx:10.16.128.252		fw:10.16.128.1	    udp,tcp	        514
+ACCEPT		esx:10.16.128.253		fw:10.16.128.1	    udp,tcp	        514
+ACCEPT		esx:10.16.128.254		fw:10.16.128.1	    udp,tcp	        514
+ACCEPT		esx:10.16.128.30		fw:10.16.128.1	    udp,tcp	        514
+ACCEPT		esx:10.16.128.40		fw:10.16.128.1	    udp,tcp	        514
+ACCEPT		esx:10.16.128.50		fw:10.16.128.1	    udp,tcp	        514
+ACCEPT		esx:10.16.128.60		fw:10.16.128.1	    udp,tcp	        514
+ACCEPT		esx:10.16.128.70		fw:10.16.128.1	    udp,tcp	        514
+ACCEPT		esx:10.16.128.80		fw:10.16.128.1	    udp,tcp	        514
+ACCEPT		esx:10.16.128.90		fw:10.16.128.1	    udp,tcp	        514
+
+#! OSSIM SECTION
+# ACCEPT ossim to get updates from world
+# ossim (data.alienvault.com)
+ACCEPT		esx:10.16.128.252		wan:52.28.229.156		tcp	        80
+
+# ossim (messages.alienvault.com)
+ACCEPT		esx:10.16.128.252	    wan:144.76.236.116		tcp	        443
+
+# accept ossim to ping all VMs
+ACCEPT		esx:10.16.128.252		all					    icmp
+
+# accept ossim to send mail through vortex-dns-01
+ACCEPT	    esx:10.16.128.252		else:10.16.131.51        tcp         25
+
+# deny ossim to world
+DROP		esx:10.16.128.252	    wan
+
+# accept ossim to internal networks to perform full internal scanning
+ACCEPT		esx:10.16.128.252	    all
+
+# accept vSphere hosts to DNS
+ACCEPT		esx:10.16.128.252		else:10.16.131.51	    udp	        53
+ACCEPT		esx:10.16.128.253		else:10.16.131.51	    udp	        53
+ACCEPT		esx:10.16.128.254		else:10.16.131.51	    udp	        53
+ACCEPT		esx:10.16.128.30		else:10.16.131.51	    udp	        53
+ACCEPT		esx:10.16.128.40		else:10.16.131.51	    udp	        53
+ACCEPT		esx:10.16.128.50		else:10.16.131.51	    udp	        53
+ACCEPT		esx:10.16.128.60		else:10.16.131.51	    udp	        53
+ACCEPT		esx:10.16.128.70		else:10.16.131.51	    udp	        53
+ACCEPT		esx:10.16.128.80		else:10.16.131.51	    udp	        53
+ACCEPT		esx:10.16.128.90		else:10.16.131.51	    udp	        53
+
+# accept vCSA to get updates from world
+# vapp-updates.vmware.com
+ACCEPT		esx:10.16.128.254     wan		                tcp	        80,443
+ACCEPT		esx:10.16.128.253     wan		                tcp	        80,443

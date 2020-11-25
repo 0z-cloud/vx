@@ -1,0 +1,126 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+{% raw %}metadata:
+  annotations:{% endraw %}{% if item.value['k8s_container_type'] == 'ruby' %}{% set applications_server_ips = [] %}{% for host in groups['cloud-bind-frontend-dns'] %}{% if hostvars[host]['public_nat_ip'] != 'REPLACED' %}{{ applications_server_ips.append( hostvars[host]['public_nat_ip'] ) | default("", True) }}{% else %}{{ applications_server_ips.append( hostvars[host]['ansible_default_ipv4']['address'] ) | default("", True) }}{% endif %}{% endfor %}{% raw %}
+    {% endraw %}{% raw %}field.cattle.io/publicEndpoints: '[{"addresses":[{% endraw %}{% for service_public_webserver_ip in applications_server_ips %}{% raw %}"{% endraw %}{{ service_public_webserver_ip }}{% raw %}"{% endraw %}{% if not loop.last %},{% endif %}{% endfor %}{% raw %}],"port":{% endraw %}{{ nginx_https_service_listen_port }}{% raw %},"protocol":"{% endraw %}{{ item.value['k8s_service_protocol'] }}{% raw %}","serviceName":"{% endraw %}{{ ansible_product }}{% raw %}-{% endraw %}{{ ansible_environment }}{% raw %}:{% endraw %}{{ item.key }}{% raw %}","ingressName":"{% endraw %}{{ ansible_product }}{% raw %}-{% endraw %}{{ ansible_environment }}{% raw %}:{% endraw %}{{ item.key }}{% raw %}","hostname":"{% endraw %}{{ item.key }}{% raw %}.{% endraw %}{{ public_consul_domain }}{% raw %}","path":"/","allNodes":{% endraw %}{{ item.value['k8s_service_placement'] }}{% raw %}}]'{% endraw %}
+{% else %}{% if item.value['k8s_container_type'] == 'webserver' %}{% set webserver_ips = [] %}{% for host in groups['cloud-bind-frontend-dns'] %}{% if hostvars[host]['public_nat_ip'] != 'REPLACED' %}{{ webserver_ips.append( hostvars[host]['public_nat_ip'] ) | default("", True) }}{% else %}{{ webserver_ips.append( hostvars[host]['ansible_default_ipv4']['address'] ) | default("", True) }}{% endif %}{% endfor %}{% raw %}
+    {% endraw %}{% raw %}field.cattle.io/publicEndpoints: '[{"addresses":[{% endraw %}{% for public_webserver_ip in webserver_ips %}{% raw %}"{% endraw %}{{ public_webserver_ip }}{% raw %}"{% endraw %}{% if not loop.last %},{% endif %}{% endfor %}{% raw %}],"port":{% endraw %}{{ nginx_https_service_listen_port }}{% raw %},"protocol":"{% endraw %}{{ item.value['k8s_service_protocol'] }}{% raw %}","serviceName":"{% endraw %}{{ ansible_product }}{% raw %}-{% endraw %}{{ ansible_environment }}{% raw %}:{% endraw %}{{ item.key }}{% raw %}","ingressName":"{% endraw %}{{ ansible_product }}{% raw %}-{% endraw %}{{ ansible_environment }}{% raw %}:{% endraw %}{{ item.key }}{% raw %}","hostname":"{% endraw %}{{ item.key }}{% raw %}.{% endraw %}{{ public_consul_domain }}{% raw %}","path":"/","allNodes":{% endraw %}{{ item.value['k8s_service_placement'] }}{% raw %}}]'
+    {% endraw %}{% raw %}kubernetes.io/ingress.class: nginx{% endraw %}{% else %}{% if item.value['k8s_container_type'] == 'database' %}{% raw %}
+    field.cattle.io/creatorId: user-rxbgq{% endraw %}{% else %}{% if item.value['k8s_container_type'] == 'service' %}{% set services_servers_ips = [] %}{% for host in groups['cloud-bind-frontend-dns'] %}{{ services_servers_ips.append( hostvars[host]['second_ip'] ) | default("", True) }}{% endfor %}
+    {% raw %}field.cattle.io/publicEndpoints: '[{"addresses":[{% endraw %}{% for services_node_ip in services_servers_ips %}{% raw %}"{% endraw %}{{ services_node_ip }}{% raw %}"{% endraw %}{% if not loop.last %},{% endif %}{% endfor %}{% raw %}],"port":{% endraw %}{{ nginx_https_service_listen_port }}{% raw %},"protocol":"{% endraw %}{{ item.value['k8s_service_protocol'] }}{% raw %}","serviceName":"{% endraw %}{{ ansible_product }}{% raw %}-{% endraw %}{{ ansible_environment }}{% raw %}:{% endraw %}{{ item.key }}{% raw %}","ingressName":"{% endraw %}{{ ansible_product }}{% raw %}-{% endraw %}{{ ansible_environment }}{% raw %}:{% endraw %}{{ item.key }}{% raw %}","hostname":"{% endraw %}{{ item.key }}{% raw %}.{% endraw %}{{ public_consul_domain }}{% raw %}","path":"/","allNodes":{% endraw %}{{ item.value['k8s_service_placement'] }}{% raw %}}]'{% endraw %}
+{% else %}{% if item.value['k8s_container_type'] == 'security' %}{% set security_services_servers_ips = [] %}{% for host in groups['cloud-bind-frontend-dns'] %}{{ security_services_servers_ips.append( hostvars[host]['second_ip'] ) | default("", True) }}{% endfor %}
+    {% raw %}field.cattle.io/publicEndpoints: '[{"addresses":[{% endraw %}{% for security_services_node_ip in security_services_servers_ips %}{% raw %}"{% endraw %}{{ security_services_node_ip }}{% raw %}"{% endraw %}{% if not loop.last %},{% endif %}{% endfor %}{% raw %}],"port":{% endraw %}{{ nginx_https_service_listen_port }}{% raw %},"protocol":"{% endraw %}{{ item.value['k8s_service_protocol'] }}{% raw %}","serviceName":"{% endraw %}{{ ansible_product }}{% raw %}-{% endraw %}{{ ansible_environment }}{% raw %}:{% endraw %}{{ item.key }}{% raw %}","ingressName":"{% endraw %}{{ ansible_product }}{% raw %}-{% endraw %}{{ ansible_environment }}{% raw %}:{% endraw %}{{ item.key }}{% raw %}","hostname":"{% endraw %}{{ item.key }}{% raw %}.{% endraw %}{{ public_consul_domain }}{% raw %}","path":"/","allNodes":{% endraw %}{{ item.value['k8s_service_placement'] }}{% raw %}}]'{% endraw %}
+{% else %}{% if item.value['k8s_container_type'] == 'storage' %}{% set storage_server_ips = [] %}{% for host in groups['cloud-bind-frontend-dns'] %}{% if hostvars[host]['public_nat_ip'] != 'REPLACED' %}{{ storage_server_ips.append( hostvars[host]['public_nat_ip'] ) | default("", True) }}{% else %}{{ storage_server_ips.append( hostvars[host]['ansible_default_ipv4']['address'] ) | default("", True) }}{% endif %}{% endfor %}
+    {% raw %}field.cattle.io/publicEndpoints: '[{"addresses":[{% endraw %}{% for storage_public_webserver_ip in storage_server_ips %}{% raw %}"{% endraw %}{{ storage_public_webserver_ip }}{% raw %}"{% endraw %}{% if not loop.last %},{% endif %}{% endfor %}{% raw %}],"port":{% endraw %}{{ nginx_https_service_listen_port }}{% raw %},"protocol":"{% endraw %}{{ item.value['k8s_service_protocol'] }}{% raw %}","serviceName":"{% endraw %}{{ ansible_product }}{% raw %}-{% endraw %}{{ ansible_environment }}{% raw %}:{% endraw %}{{ item.key }}{% raw %}","ingressName":"{% endraw %}{{ ansible_product }}{% raw %}-{% endraw %}{{ ansible_environment }}{% raw %}:{% endraw %}{{ item.key }}{% raw %}","hostname":"{% endraw %}{{ item.key }}{% raw %}.{% endraw %}{{ public_consul_domain }}{% raw %}","path":"/","allNodes":{% endraw %}{{ item.value['k8s_service_placement'] }}{% raw %}}]'{% endraw %}{% else %}{% endif %}{% endif %}{% endif %}{% endif %}{% endif %}{% endif %}{% raw %}
+    {% endraw %}creationTimestamp: null
+    deployment.kubernetes.io/revision: "14"
+  generation: 1
+  labels:
+    app: "{{ item.key }}"
+    chart: "{{ item.key }}-{{ lookup('vars', 'passed_ci_docker_tag_' + item.key) }}"
+    heritage: Tiller
+    io.cattle.field/appId: "{{ ansible_product }}-{{ ansible_environment }}"
+    release: "{{ ansible_product }}-{{ ansible_environment }}"
+  name: "{{ item.key }}"
+  selfLink: /apis/extensions/v1beta1/namespaces/{{ ansible_product }}-{{ ansible_environment }}/deployments/{{ item.key }}
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: "{{ item.key }}"
+      release: "{{ ansible_product }}-{{ ansible_environment }}"
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        cattle.io/timestamp: "1562354557"{% raw %}
+        date: date +'%s'{% endraw %}{% if item.value['ports'] is defined %}{% set ports_array = [] %}{% for portnum in item.value['ports'] %}{% set portlist = portnum.split(':') %}{{ ports_array.append(portlist) }}{% endfor %}{% raw %}
+        field.cattle.io/ports: '[[{% endraw %}{% for port_item in ports_array %}{"containerPort":{{ port_item[0] }},"dnsName":"{{ item.key }}-","name":"{{ item.key }}","protocol":"TCP","sourcePort":0}{% if not loop.last %},{% endif %}{% endfor %}{% raw %}]]'{% endraw %}{% endif %}{% raw %}
+      {% endraw %}creationTimestamp: null
+      labels:
+        app: "{{ item.key }}"
+        release: "{{ ansible_product }}-{{ ansible_environment }}"
+    {% raw %}spec:
+      containers:{% endraw %}{% if item.value['environment'] is defined %}{% raw %}
+      - env:{% endraw %}{% for de in item.value['environment'] %}{% set envsplit = de.split(':') %}
+        - name: "{{ envsplit[0] }}"
+          value: "{{ envsplit[1] }}"{% endfor %}{% endif %}{% if item.value['command'] is defined %}{% raw %}
+      {% endraw %}{% raw %}- command:
+        - sh
+        - -c
+        - "{% endraw %}{{ item.value['command'] }}{% raw %}"{% endraw %}{% endif %}{% if item.value['environment'] is not defined %}{% raw %}
+        {% endraw %}envFrom:
+        - configMapRef:
+            name: "{{ item.key }}"{% raw %}
+            optional: false{% endraw %}{% endif %}{% raw %}
+        {% endraw %}image: "{{ ANSIBLE_REGISTRY_URL }}/{{ ansible_git_project_path }}/{{ item.value['image'] }}:{{ lookup('vars', 'passed_ci_docker_tag_' + item.key) }}"
+        imagePullPolicy: Always
+        name: "{{ item.key }}"{% if item.value['ports'] is defined %}{% raw %}
+        {% endraw %}{% raw %}ports:{% endraw %}{% for portmap in item.value['ports'] %}{% set portlist = portmap.split(':') %}{% raw %}
+        {% endraw %}- containerPort: "{{ portlist[1] }}"
+          name: "{{ item.key }}_{{ portlist[1] }}"{% raw %}
+          protocol: TCP{% endraw %}
+{% endfor %}{% endif %}{% raw %}
+        {% endraw %}resources: {}{% raw %}
+        securityContext:{% endraw %}{% if item.value['k8s_container_type'] == 'database' %}{% raw %}
+          allowPrivilegeEscalation: false
+          capabilities: {}
+          privileged: false
+          procMount: Default
+          readOnlyRootFilesystem: false
+          runAsNonRoot: false{% endraw %}{% else %}{% raw %}
+          {% endraw %}capabilities: {}{% raw %}
+          procMount: Default{% endraw %}
+{% endif %}{% if item.value['k8s_container_type'] == 'database' %}{% raw %}
+        tty: true
+        stdin: true{% endraw %}
+{% else %}{% raw %}
+        {% endraw %}tty: {% raw %}true
+        {% endraw %}stdin: {% raw %}true{% endraw %}{% endif %}{% if item.value['volumes'] is defined %}{% raw %}
+        {% endraw %}{% raw %}volumeMounts:{% endraw %}{% for volume in item.value['volumes'] %}{% set mount_volume_path = volume.split(':') %}{% raw %}
+        {% endraw %}- mountPath: "{{ mount_volume_path[0] }}"
+          name: "{{ item.key }}-{{ loop.index }}"{% endfor %}{% endif %}{% raw %}
+        {% endraw %}terminationMessagePath: {% raw %}/dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      dnsConfig: {}
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30{% endraw %}
+{% if item.value['volumes'] is defined %}{% raw %}
+      volumes: {% endraw %}{% for volume in item.value['volumes'] %}{% raw %}
+      - name: "{% endraw %}{{ item.key }}{% raw %}-{% endraw %}{{ loop.index }}{% raw %}"
+        persistentVolumeClaim:
+          claimName: "{% endraw %}{{ item.key }}{% raw %}-{% endraw %}{{ loop.index }}{% raw %}"{% endraw %}{% endfor %}{% endif %}{% raw %}
+      imagePullSecrets:
+      {% endraw %}- {% raw %}name: rokethome{% endraw %}{% if item.value['k8s_container_type'] == 'ruby' %}{% for servicename,data in primary_databases_for_services.items() %}{% if servicename == item.key %}{% raw %}
+      {% endraw %}{% raw %}initContainers:{% endraw %}{% for run_command in data.run_commands %}{% raw %}
+      {% endraw %}- {% raw %}command:
+        - sh
+        - -c
+        - "{% endraw %}{{ run_command | join }}{% raw %}"
+        {% endraw %}envFrom:
+        - configMapRef:
+            name: "{{ item.key }}"
+            optional: false
+        image: "{{ ANSIBLE_REGISTRY_URL }}/{{ ansible_git_project_path }}/{{ item.value['image'] }}:{{ lookup('vars', 'passed_ci_docker_tag_' + item.key) }}"
+        imagePullPolicy: IfNotPresent
+        name: "migration-{{ loop.index }}"{% raw %}
+        resources: {}
+        securityContext:
+          procMount: Default
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File{% endraw %}
+{% endfor %}{% endif %}{% endfor %}{% endif %}{% raw %}
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+status: {}{% endraw %}

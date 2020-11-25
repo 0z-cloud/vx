@@ -1,0 +1,84 @@
+
+# - name: Inject defaults
+#   set_fact:
+#     rabbitmq_settings: "{{ rabbitmq_settings_defaults | combine(rabbitmq_settings) }}"
+
+- name: Create the directories
+  file:
+    path: "{{ rabbitmq_settings.data_path }}"
+    state: directory
+    owner: root
+    mode: 0755
+
+- name: Create config file from template
+  template:
+     src: rabbitmq.config.j2 
+     dest: "{{ rabbitmq_settings.config_path }}/rabbitmq.config"
+
+- name: Create hosts file from template for container
+  template:
+     src: hosts.j2 
+     dest: "{{ rabbitmq_settings.config_path }}/hosts"
+
+- name: Copy enabled_plugins
+  copy:
+      src: "files/enabled_plugins"
+      dest: "{{ rabbitmq_settings.config_path }}/enabled_plugins"
+
+- name: re/Create a Rabbit MQ Service docker container
+  docker_container:
+      name: rabbitmq-{{ ansible_environment }}-{{ ansible_hostname }}
+      image: "rabbitmq"
+      hostname: "{{ ansible_hostname }}"
+      volumes:
+        - "{{ rabbitmq_settings.config_path }}/rabbitmq.config:/etc/rabbitmq/rabbitmq.config"
+        - "{{ rabbitmq_settings.data_path }}:/var/lib/rabbitmq"
+        - "{{ rabbitmq_settings.config_path }}/hosts:/etc/hosts"
+      ports:
+        - "{{ rabbitmq_settings.cluster_port }}:{{ rabbitmq_settings.cluster_port }}"
+        - "{{ rabbitmq_settings.public_port }}:5672"
+        - "{{ rabbitmq_settings.extended_port }}:15672"
+        - 35672:35672
+        - 25672:25672
+      privileged: yes
+      env:
+        RABBITMQ_ERLANG_COOKIE: "{{ rabbitmq_settings.cookie }}"
+        RABBITMQ_NODENAME: "rabbit@{{ ansible_hostname }}"
+      restart_policy: always
+      detach: True
+      #docker_host: tcp://0.0.0.0:2375
+      recreate: yes
+      state: started
+
+# - name: Disconnect container from Bridge Network
+#   shell: "docker -H :2375 network disconnect bridge rabbitmq-{{ ansible_environment }}-{{ ansible_hostname }}"
+
+# - name: Connect container to Swarm Network
+#   shell: "docker -H :2375 network connect --ip {{ rabbitmq_overlay_network_ip }} {{ swarm_masters.overlay_network.network_name }} rabbitmq-{{ ansible_environment }}-{{ ansible_hostname }}"
+
+# - name: Wait container
+#   shell: sleep 10
+
+# - name: Restart Containers
+#   shell: docker restart rabbitmq-{{ ansible_environment }}-{{ ansible_hostname }}
+
+- name: Wait container
+  shell: sleep 15
+
+- name: Enable plugin rabbitmq_management_visualiser
+  shell: docker exec rabbitmq-{{ ansible_environment }}-{{ ansible_hostname }} rabbitmq-plugins enable rabbitmq_management
+
+- name: Stop joiners to cluster
+  shell: docker exec rabbitmq-{{ ansible_environment }}-{{ ansible_hostname }} rabbitmqctl stop_app
+  when: inventory_hostname != play_hosts[0]
+  tags: cluster
+
+- name: Join to cluster
+  shell: docker exec rabbitmq-{{ ansible_environment }}-{{ ansible_hostname }} rabbitmqctl -q join_cluster rabbit@{{ hostvars[play_hosts[0]]['ansible_hostname'] }}
+  when: inventory_hostname != play_hosts[0]
+  tags: cluster, join
+
+- name: Start joiners to cluster back
+  shell: docker exec rabbitmq-{{ ansible_environment }}-{{ ansible_hostname }} rabbitmqctl start_app
+  when: inventory_hostname != play_hosts[0]
+  tags: cluster

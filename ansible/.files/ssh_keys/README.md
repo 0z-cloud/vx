@@ -1,0 +1,1 @@
+# Shared storage for public ssh keys

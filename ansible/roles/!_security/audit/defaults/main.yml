@@ -1,0 +1,6 @@
+auditd_settings_defaults:
+     packages:
+       - auditd
+       - libaudit-common
+       - libaudit1
+

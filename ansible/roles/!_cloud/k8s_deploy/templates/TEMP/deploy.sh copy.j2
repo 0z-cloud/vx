@@ -1,0 +1,16 @@
+#!/bin/bash
+
+
+type_of_run=$1
+
+{% for item in lookup('vars', item.stdout_lines[0] | regex_replace("^.*?[\s.]", "") | regex_replace("([\s.])yaml", "") + '_list_to_update') %}
+{% set servicename = lookup('vars', item.stdout_lines[0] | regex_replace("^.*?[\s.]", "") | regex_replace("([\s.])yaml", "") + '_list_to_update') %}
+helm upgrade --install {{ servicename }} --wait --values {{ all_services_location_map.directories.k8s_storage_helm }}/{{ servicename }}/{{ item }} --namespace {{ ansible_environment }}
+#helm upgrade --install preinstall --wait --values {{ all_services_location_map.directories.k8s_storage_helm }}/{{ item.stdout_lines[0] | regex_replace("^.*?[\s.]", "") | regex_replace("([\s.])yaml", "") }}/{{ item }}
+{% endfor %}
+
+{% set servicename = item.stdout_lines[0] | regex_replace("^.*?[\s.]", "") | regex_replace("([\s.])yaml", "") %}
+{% set updatelist = lookup('vars', item.stdout_lines[0] | regex_replace("^.*?[\s.]", "") | regex_replace("([\s.])yaml", "") + '_list_to_update') %}
+
+{{ servicename }}
+{{ updatelist }}

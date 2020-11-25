@@ -1,0 +1,24 @@
+- name: Service ossec stop
+  service:
+    name: ossec
+    state: stopped
+
+- name: Removing all old data in ossec var rids
+  raw: rm -rf /var/ossec/queue/rids/*
+
+- name: Get status from service
+  raw: /etc/init.d/ossec status
+  register: ossec_status
+
+- name: Get status from folder
+  raw: ls -la /var/ossec/queue/rids/
+  register: folder_status
+  
+- name: Debug values folder_status
+  debug:
+    msg: "{{ folder_status }}"
+
+- name: Debug values ossec_status
+  debug:
+    msg: "{{ ossec_status }}"
+    

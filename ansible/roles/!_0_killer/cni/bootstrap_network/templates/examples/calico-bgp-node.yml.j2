@@ -1,0 +1,20 @@
+apiVersion: projectcalico.org/v3
+kind: Node
+metadata:
+  annotations:
+    projectcalico.org/kube-labels: '{"beta.kubernetes.io/arch":"amd64","beta.kubernetes.io/os":"linux","kubernetes.io/arch":"amd64","kubernetes.io/hostname":"vortex-node-05-production","kubernetes.io/os":"linux","node-role.kubernetes.io/master":""}'
+  creationTimestamp: null
+  labels:
+    beta.kubernetes.io/arch: amd64
+    beta.kubernetes.io/os: linux
+    kubernetes.io/arch: amd64
+    kubernetes.io/hostname: {{ inventory_hostname }}
+    kubernetes.io/os: linux
+    node-role.kubernetes.io/master: ""
+  name: {{ inventory_hostname }}
+spec:
+  bgp:
+    ipv4IPIPTunnelAddr: 10.224.100.128
+  orchRefs:
+  - nodeName: {{ inventory_hostname }}
+    orchestrator: k8s

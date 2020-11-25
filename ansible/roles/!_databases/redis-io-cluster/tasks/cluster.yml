@@ -1,0 +1,42 @@
+
+- name: Start Cluster master configuration
+  debug: 
+    msg: "Start Cluster master configuration"
+
+- name: Create Master meetup-master.sh.j2 file from template
+  template:
+    src: meetup-master.sh.j2
+    dest: "{{ redis_io_service_settings.directories.master_path_config }}/meetup-master.sh"
+    mode: 777
+  when: redis_io_cluster_enabled == "true"
+
+- name: Adding Cluster Masters Node's
+  raw: "docker exec redis-{{ ansible_environment }}-{{ ansible_hostname }}-master /config/meetup-master.sh"
+
+- name: Adding Cluster Slave Node's
+  raw: "docker exec redis-{{ ansible_environment }}-{{ ansible_hostname }}-slave /config/meetup-slave.sh"
+
+- name: get arguments for assigning
+  master_list:
+    map: "{{ generated_redis_io_service_cluster_map }}"
+  register: unparsed_master_list
+  tags: [assigner]
+
+- name: setting master_list
+  set_fact:
+    masters: "{{ unparsed_master_list.masters }}"
+  tags: [assigner]
+
+- name: Debug Masters
+  debug: var="masters"
+
+- name: Copy assigner
+  template:
+    src: slot_assigner.sh.j2
+    dest: "{{ redis_io_service_settings.directories.master_path_config }}/slot_assigner.sh"
+    mode: 777
+  tags: [assigner]
+
+# - name: Slot assign Cluster Masters Node's
+#   raw: "docker exec redis-{{ ansible_environment }}-{{ ansible_hostname }}-master /config/slot_assigner.sh {{ masters }}"
+#   tags: [assigner]

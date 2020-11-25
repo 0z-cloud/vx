@@ -1,0 +1,14 @@
+migrate
+Flask-SQLAlchemy
+sqlalchemy-migrate
+pyotp
+qrcode
+dnspython
+psycopg2
+python-ldap
+djangorestframework
+django-filter
+django-crispy-forms
+django-guardian
+Django
+django-filter

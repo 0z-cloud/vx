@@ -1,0 +1,14 @@
+---
+
+- name: AppArmor | Check whether slapd configuration exists
+  stat: path="{{ slapd_apparmor_dir }}/{{slapd_apparmor_name }}"
+  register: slapd_apparmor
+
+- name: AppArmor | Create override for slapd
+  when: slapd_apparmor.stat.exists
+  template: src=templates/apparmor.j2 dest="{{ slapd_apparmor_dir }}/local/{{ slapd_apparmor_name }}" owner=root group=root mode=0644
+  register: slapd_apparmor_override
+
+- name: AppArmor | Parse override for slapd
+  when: slapd_apparmor_override.changed
+  command: "apparmor_parser -r {{ slapd_apparmor_dir }}/{{ slapd_apparmor_name }}"

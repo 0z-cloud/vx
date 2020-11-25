@@ -1,0 +1,49 @@
+- name: Create Slave config file from template
+  template:
+     src: redis-slave.conf.j2 
+     dest: "{{ redis_io_service_settings.directories.slave_path_config }}/redis-slave.conf"
+     mode: 0777
+
+- name: Create nodes-slave.conf
+  file:
+     path: "{{ redis_io_service_settings.directories.slave_path_config }}/nodes-slave.conf"
+     state: touch
+     owner: 999
+     group: 999
+     mode: 0777
+
+- name: Create Slave meetup-slave.sh.j2 file from template
+  template:
+     src: meetup-slave.sh.j2
+     dest: "{{ redis_io_service_settings.directories.slave_path_config }}/meetup-slave.sh"
+     mode: 755
+  tags: [generate-template-slave]
+
+- name: Give full rights to main directories
+  raw: "chmod -R 777 {{ redis_io_service_settings.directories.main_path }}"
+
+- name: re/Create a Redis Slave Service docker container
+  docker_container:
+      name: redis-{{ ansible_environment }}-{{ ansible_hostname }}-slave
+      image: "redis:5.0.3"
+      hostname: "{{ ansible_hostname }}"
+      command: /config/redis-slave.conf
+      volumes:
+        - "{{ redis_io_service_settings.directories.slave_path_config }}:/config"
+        - "{{ redis_io_service_settings.directories.slave_path_data }}:/opt/redis"
+      privileged: yes
+      restart_policy: always
+      ports:
+        - "{{ redis_io_service_settings.slave_public_port }}:{{ redis_io_service_settings.public_port }}"
+      detach: True
+      recreate: yes 
+      state: started
+
+# - name: Disconnect container from Bridge Network
+#   shell: "docker network disconnect bridge redis-{{ ansible_environment }}-{{ ansible_hostname }}-slave"
+
+# - name: Connect Slave container to Swarm Network
+#   shell: "docker network connect --ip {{ redis_slave_overlay_network_ip }} {{ swarm_masters.overlay_network.network_name }} redis-{{ ansible_environment }}-{{ ansible_hostname }}-slave"
+
+# - name: Restart Slave Containers
+#   shell: docker restart redis-{{ ansible_environment }}-{{ ansible_hostname }}-slave

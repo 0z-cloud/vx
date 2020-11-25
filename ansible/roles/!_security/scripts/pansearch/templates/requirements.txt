@@ -1,0 +1,4 @@
+pip install luhn
+pip install plumbum
+pip install mailer
+pip install hashlib

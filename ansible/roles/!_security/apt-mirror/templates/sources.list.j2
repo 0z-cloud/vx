@@ -1,0 +1,42 @@
+# {{ ansible_managed }}
+##################################
+
+# MAIN RELEASE
+# {{ ansible_lsb.codename }} mirroring
+
+deb http://apt.{{ primary_parent_shared_inventory_domain }}/ubuntu/ {{ ansible_lsb.codename }} main
+deb-src http://apt.{{ primary_parent_shared_inventory_domain }}/ubuntu/ {{ ansible_lsb.codename }} main
+
+deb http://apt.{{ primary_parent_shared_inventory_domain }}/ubuntu/ {{ ansible_lsb.codename }}-updates main
+deb-src http://apt.{{ primary_parent_shared_inventory_domain }}/ubuntu/ {{ ansible_lsb.codename }}-updates main
+
+deb http://apt.{{ primary_parent_shared_inventory_domain }}/ubuntu/ {{ ansible_lsb.codename }} universe
+deb-src http://apt.{{ primary_parent_shared_inventory_domain }}/ubuntu/ {{ ansible_lsb.codename }} universe
+deb http://apt.{{ primary_parent_shared_inventory_domain }}/ubuntu/ {{ ansible_lsb.codename }}-updates universe
+deb-src http://apt.{{ primary_parent_shared_inventory_domain }}/ubuntu/ {{ ansible_lsb.codename }}-updates universe
+
+deb http://apt.{{ primary_parent_shared_inventory_domain }}/ubuntu {{ ansible_lsb.codename }}-security main
+deb-src http://apt.{{ primary_parent_shared_inventory_domain }}/ubuntu {{ ansible_lsb.codename }}-security main
+deb http://apt.{{ primary_parent_shared_inventory_domain }}/ubuntu {{ ansible_lsb.codename }}-security universe
+deb-src http://apt.{{ primary_parent_shared_inventory_domain }}/ubuntu {{ ansible_lsb.codename }}-security universe
+
+
+# EXTENDED RELEASES ADD
+# bionic mirroring
+
+# deb http://apt.{{ primary_parent_shared_inventory_domain }}/ubuntu/ bionic main
+# deb-src http://apt.{{ primary_parent_shared_inventory_domain }}/ubuntu/ bionic main
+
+# deb http://apt.{{ primary_parent_shared_inventory_domain }}/ubuntu/ bionic-updates main
+# deb-src http://apt.{{ primary_parent_shared_inventory_domain }}/ubuntu/ bionic-updates main
+
+# deb http://apt.{{ primary_parent_shared_inventory_domain }}/ubuntu/ bionic universe
+# deb-src http://apt.{{ primary_parent_shared_inventory_domain }}/ubuntu/ bionic universe
+# deb http://apt.{{ primary_parent_shared_inventory_domain }}/ubuntu/ bionic-updates universe
+# deb-src http://apt.{{ primary_parent_shared_inventory_domain }}/ubuntu/ bionic-updates universe
+
+# deb http://apt.{{ primary_parent_shared_inventory_domain }}/ubuntu bionic-security main
+# deb-src http://apt.{{ primary_parent_shared_inventory_domain }}/ubuntu bionic-security main
+# deb http://apt.{{ primary_parent_shared_inventory_domain }}/ubuntu bionic-security universe
+# deb-src http://apt.{{ primary_parent_shared_inventory_domain }}/ubuntu bionic-security universe
+

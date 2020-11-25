@@ -1,0 +1,475 @@
+
+
+
+
+    - name: Stage 0
+      debug:
+        msg: | 
+              {% for dict_item in item.items() %}
+              {{ dict_item }}
+              {% endfor %}
+      with_dict: "{{ create_instance_result.results }}"
+      when: "('ansible_loop_var' not in item.key and 'failed' not in item.key and 'changed' not in item.key)"
+      # when: "('instance' in item.values()) or ('item' in item.values()) or ('invocation' in item.values())"
+
+    - debug
+        msg: "{{ rules|
+                  dict2items|
+                  json_query('[*].value')|
+                  map('dict2items')|list|flatten
+                  }}"
+
+    - name: Stage 1
+      debug:
+        msg: | 
+          "
+          {% for dict_item in create_instance_result}
+
+          {% if 'instance' in item.key %}
+          {{ item.value.hw_eth1 }}
+          {{ item.value.hw_eth0 }}
+          {% endif %}
+          "
+      with_dict: "{{ create_instance_result.results }}"
+      when: "('instance' in item.key) or ('item' in item.key) or ('invocation' in item.key)"
+
+      # {{ dict(item.instance.keys() | zip(item.item.values() | map('combine', item.instance) | zip(item.instance.values()) | map('combine') | map('combine'))) }}
+
+    # - name: Create Match Hostname Object
+    #   set_fact:
+    #     instance_name_from_invocation_merge: "{{ dict(item.item.keys()) | zip(item.item.values()) | map('combine', item.instance.values()) }}"
+    #   with_items: "{{ create_instance_result.results }}"
+    - name: DEBBBBGGGGBBBBUUUUGGGG
+      debug:
+        msg:  "{{ dict(item.item.keys() | zip(item.item.values() | map('combine', item.instance) | zip(item.instance.) | map('list') | map('combine'))) }}"
+      with_items: "{{ create_instance_result.results }}"
+
+    - name: Show the Jedi Knife
+      debug: 
+        msg: "{{ instance_name_from_invocation_merge }}"
+
+    - name: DEBBBB! КЛЮЧ / ЗНАЧЕНИЕ !GGGGBBBBUUUUGGGG
+      debug:
+        msg: | 
+          {% raw %}"
+            {% endaw %}{% for date in item.item.keys() %}{% raw %}
+              
+            КЛЮЧ:  {% endraw %}{{ k }}{% raw %}
+            ЗНАЧЕНИЕ:  {% endraw %}{{ v }}{% raw %}
+
+          "{% endraw %}
+      with_items: "{{ create_instance_result.results }}"
+
+
+    - set_fact:
+        rules_grouped: "{{ rules_grouped|
+                          default({})|
+                          combine({item.0: item.1|json_query('[].value')|flatten})
+                          }}"
+      loop: "{{ rules|
+                dict2items|
+                json_query('[*].value')|
+                map('dict2items')|list|flatten|
+                groupby('key')
+                }}"
+
+    - name: DEBBBBGGGGBBBBUUUUGGGG
+      debug:
+        msg: | 
+
+          {{ dict(item.item.keys() | zip(item.item.values() | map('combine', item.instance.keys()) | zip(item.instance.values()) | map('list') | map('combine'))) }}
+      with_items: "{{ create_instance_result.results }}"
+
+#     - name: IWI Show server create_instance_result 
+#       set_fact: 
+#         anycloud_blank_array_invocation_results: "{{ anycloud_blank_array_invocation_results | default([]) + [ { 'vm_item_hostname': item.item.hostname, 'vm_instance_object': item.invocation } ] }}"
+#       with_items: "{{ create_instance_result.results }}"
+# #       set_fact:
+# #         anyclaud_api_results: "{{ anyclaud_api_results + ([ item | join ]) }}"
+# #       with_items: deploy_vms.results
+
+
+
+
+    - name: RAW SLEEP 1
+      raw: sleep 5
+
+    - name: I Show server create_instance_result 
+      debug: 
+        msg: "{{ anycloud_blank_array_invocation_results  }}"
+
+    - name: RAW SLEEP 1
+      raw: sleep 51
+
+    - name: II Show server create_instance_result 
+      debug: 
+        msg: "{{ item.instance }}"
+      with_items: "{{ create_instance_result.results }}"
+
+    # - name: test
+    #   set_fact:
+    #     _test: "{{ [{'foo':1}, {'bar':2}] | map('combine', {'baz':3}) | list }}"
+
+    # - name: II Create a blank array object for instance results
+    #   set_fact: 
+    #     anycloud_blank_array_instance_results: ()
+    #     anycloud_blank_array_invocation_results: ()
+    #     anycloud_blank_array_item_results: ()
+    #     anycloud_blank_array_eth0_results: []
+    #     anycloud_blank_array_eth1_results: []
+    
+#     - name: II Show server create_instance_result 
+#       set_fact: 
+#         anycloud_blank_array_eth1_results: "{{ anycloud_blank_array_eth1_results + item.instance.hw_eth1  }}"
+
+#         anycloud_blank_array_eth0_results: "{{ anycloud_blank_array_eth0_results + item.instance.hw_eth0 }}"
+#         #anycloud_blank_array_instance_results: "{{ anycloud_blank_array_instance_results + item.instance.hw_eth0 }}"
+
+#         anycloud_blank_array_invocation_results: "{{ anycloud_blank_array_invocation_results + item.invocation.module_args.ansible_resource_pool }}"
+#         anycloud_blank_array_item_results: "{{ anycloud_blank_array_item_results + item.item }}"
+
+#       with_items: "{{ create_instance_result.results }}"
+# #       set_fact:
+# #         anyclaud_api_results: "{{ anyclaud_api_results + ([ item | join ]) }}"
+# #       with_items: deploy_vms.results
+
+    - name: eth1--- Show anycloud_blank_array_eth1_results
+      set_fact: 
+        msg: "{{ item }}"
+      with_items: "{{ anycloud_blank_array_eth1_results }}"
+
+    - name: eth0--- Show anycloud_blank_array_eth0_results
+      set_fact: 
+        msg: "{{ item }}"
+      with_items: "{{ anycloud_blank_array_eth0_results }}"
+
+
+    - name: III--- Show anycloud_blank_array_instance_results
+      set_fact: 
+        msg: "{{ item }}"
+      with_items: "{{ anycloud_blank_array_instance_results }}"
+
+    - name: III--- Show anycloud_blank_array_invocation_results
+      set_fact: 
+        msg: "{{ item }}"
+      with_items: "{{ anycloud_blank_array_invocation_results }}"
+
+    - name: III--- Show anycloud_blank_array_item_results
+      set_fact: 
+        msg: "{{ item }}"
+      with_items: "{{ anycloud_blank_array_item_results }}"
+
+    # register: instances_by_ids_{{ item.value.name }}
+    #   with_dict: "{{ cloud_bootstrap.servers }}"
+
+    - name: III Show server create_instance_result 
+      set_fact: 
+        msg: "{{ item.instance }}"
+      with_items: "{{ create_instance_result.results }}"
+
+    - name: X RAW SLEEP 2
+      raw: sleep 5
+
+    - name: IV Show server create_instance_result 
+      debug: 
+        msg: "{{ create_instance_result | from_json  }}"
+
+    # - name: create_instance_result
+
+
+    # - name: Show server create_instance_result 
+    #   debug: 
+    #     msg: "{{ create_instance_result | from_json  }}"
+
+#     - name: Debug dataset deploy_vms
+#       debug:
+#         msg: "{{ deploy_vms }}"
+
+#     - name: RAW SLEEP
+#       raw: sleep 20
+
+#     - name: Create anyclaud_api_results from deploy_vms blank object array
+#       set_fact:
+#         anyclaud_api_results: []
+
+#     # - name: Fill the data to array dataset anyclaud_api_results
+#     #   set_fact:
+#     #     anyclaud_api_results: "{{ deploy_vms.results }}"
+
+#     - name: Create the ESXi list of hosts based on empty variable for fill 
+#       set_fact:
+#         anyclaud_api_results: "{{ anyclaud_api_results + ([ item | join ]) }}"
+#       with_items: deploy_vms.results
+
+    # - name: Debug create instance results keys
+    #   debug: 
+    #     msg: "{{ key['instance'] }}"
+    #   with_dict: create_instance_result.results
+
+#     - name: Debug dataset deploy_vms
+#       debug:
+#         msg: "{{ anyclaud_api_results }}"
+
+#     - name: Debug dataset deploy_vms
+#       debug:
+#         msg: "{{ item }}"
+#       with_dict: anyclaud_api_results
+
+    - name: Extract monit variables
+      set_fact:
+        monit_status: "{{ create_instance_result.results | regex_replace('\\s\\s([a-z]+\\s[a-z]*)\\s+', '\\1: ') | regex_replace('\\s:', ':') | regex_replace('([a-z])\\s([a-z])', '\\1_\\2') | to_nice_yaml }}"
+      # - debug: msg="{{ monit_status_raw.stdout | regex_replace('\s\s([a-z]+\s[a-z]*)\s+', '\\1: ') | regex_replace('\s:', ':') | regex_replace('([a-z])\s([a-z])', '\\1_\\2')  | from_yaml }}"
+
+    - name: Show server monit_status 
+      debug: 
+        msg: "{{ monit_status | from_json  }}"
+
+    - name: Show item monit_status 
+      debug: 
+        msg: "{{ item }}"
+      with_items: monit_status
+
+
+
+
+    - name: Show debug create_instance_result
+      debug: 
+        msg: "{{ create_instance_result.results | from_json }}"
+
+    - name: Show debug item create_instance_result
+      debug: 
+        msg: "{{ item }}"
+      # when: "'REPLACED' not in item.value.network"
+      # with_dict: "{{ cloud_bootstrap.servers }}"
+      with_items: |
+        "{% for dict_item in create_instance_result.results %}{% for k,v in dict_item.items() %}{% if k == 'instance' %}{{ v }}{% endif %}{% endfor %}{% endfor %}"
+      when: destroy_instances is not defined
+
+
+    # - name: Set fact to zero (need will been a touched inplace)
+    #   debug:
+    #     msg: "instances_dict_result_set: {{ item.instance }}"
+    #   with_dict: "{{ create_instance_result.results | dict2list }}"
+
+    # - name: Set fact to zero (need will been a touched inplace)
+    #   set_fact:
+    #     instances_dict_result_set: ""
+    #   with_dict: "{{ cloud_bootstrap.servers }}"
+
+
+    - name: Set fact to zero (need will been a touched inplace)
+      set_fact:
+        newlist: []
+
+    - name: Set fact newlist item from create_instance_result.results
+      set_fact:
+        newlist: "{{ item }}"
+      with_items: |
+        "{% for dict_item in create_instance_result.results %}{% for k,v in dict_item.items() %}{% if k == 'instance' %}{{ v }}{% endif %}{% endfor %}{% endfor %}"
+      when: destroy_instances is not defined
+
+    - name: set_fact newlist
+      set_fact:
+        new_pre: "{{ newlist | replace('\"[', '') | replace(']\"', '') | replace('\\u', '') }}"
+      when: destroy_instances is not defined
+
+    - name: Debug new_pre 
+      debug:
+        msg: "{{ new_pre | replace('\\u', '') }}"
+      when: destroy_instances is not defined
+
+    - name: set_fact new_p
+      set_fact:
+        new_p: "{{ new_pre | replace('\\u', '') }}"
+      when: destroy_instances is not defined
+
+    - name: Debug new_p 
+      set_fact:
+        new_pp: "{{ new_p | replace('][', ', ') }}"
+      when: destroy_instances is not defined
+
+    - name: Debug new_pp 
+      debug:
+        msg: "{{ new_pp }}"
+      when: destroy_instances is not defined
+
+    - name: Set authorized ssh key, extracting just that data from 'users'
+      debug:
+        msg: "{{ item.host_name }} {{ item.public_ip_address }} {{ item.private_ip_address }}"
+      with_items:
+          - "{{ new_pp }}"
+      when: destroy_instances is not defined
+
+    - name: Copy 0z inventory to work ignored copy for generate the local inventory
+      copy:
+        src: "inventories/0z-cloud/products/types/!_vsphere/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+        dest: "inventories/0z-cloud/products/types/!_vsphere/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/.vsphere.cloud.run.yml"
+      when: destroy_instances is not defined
+
+    - name: Line public_ip_address in file change for dynamic inventory
+      lineinfile:
+        path: inventories/0z-cloud/products/types/!_vsphere/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/.vsphere.cloud.run.yml
+        regexp: '^(.*\ip: "{{ item.host_name }}_public_ip_address_REPLACED")'
+        line: '        ip: "{{ item.public_ip_address }}"'
+      with_items: 
+          - "{{ new_pp }}"
+      when: destroy_instances is not defined
+
+    - name: Line private_ip_address in file change for dynamic inventory
+      lineinfile:
+        path: inventories/0z-cloud/products/types/!_vsphere/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/.vsphere.cloud.run.yml
+        regexp: '^(.*\_ip: "{{ item.host_name }}_private_ip_address_REPLACED")'
+        line: '            second_ip: "{{ item.private_ip_address }}"'
+      with_items: 
+          - "{{ new_pp }}"
+      when: destroy_instances is not defined
+
+    # - name: ONE NET | Clone a VM from Template and customize, when one network
+    #   vmware_guest:
+    #     hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+    #     username: "{{ anycloud_adapter_api_user }}"
+    #     password: "{{ anycloud_adapter_api_password }}"
+    #     validate_certs: no
+    #     datacenter: "{{ anycloud_adapter_api_datacenter }}"
+    #     folder: "/"
+    #     name: "{{ item.value.name }}"
+    #     template: "{{ item.value.anycloud_vm_template_name }}"
+    #     # disk:
+    #     #   - datastore: "vortex-iscsi-15.45Tb"
+    #     #     size_gb: 812
+    #     #     type: "thin"
+    #     network:
+    #       - name: '{{ item.value.network }}'
+    #         ip: '{{ item.value.ip }}'
+    #         netmask: '{{ item.value.network_subnet }}'
+    #         gateway: '{{ item.value.gw }}'
+    #         mac: "{{ lookup('random_mac') }}"
+    #         type: static
+    #         start_connected: True
+    #     # networks:
+    #     #   - name: '{{ item.value.network }}'
+    #     #     ip: '{{ item.value.ip }}'
+    #     #     netmask: '{{ item.value.network_subnet }}'
+    #     #     gateway: '{{ item.value.gw }}'
+    #     #     mac: "{{ lookup('random_mac') }}"
+    #     #     type: static
+    #     #     start_connected: True
+    #       # - name: "{{ item.value.network }}"
+    #       #   ip:
+    #       #     - "{{ item.value.ip }}"
+    #       #   netmask: "{{ item.value.network_subnet }}"
+    #       #   gateway: "{{ item.value.gw }}"
+    #       #   mac: "{{ lookup('random_mac') }}"
+    #       #   # domain: "{{ anycloud_domain_result }}"
+    #       #   # dns_servers: "{% if item.value.initial_only_dns_servers is defined %}{{ item.value.initial_only_dns_servers }}{% else %}{{ anycloud_results_vpc_zone_virtual_abstract.dns_servers }}{% endif %}"
+    #       #   start_connected: True
+    #       #   type: static
+    #         # ipv6: "2201:430:28f:2032::100"
+    #         # gatewayv6: "2201:430:28f:2032::1"
+    #         # typev6: static
+    #     customization:
+    #       hostname: "{{ item.value.name }}"
+    #       dns_servers: "{% if item.value.initial_only_dns_servers is defined %}{{ item.value.initial_only_dns_servers }}{% else %}{{ anycloud_results_vpc_zone_virtual_abstract.dns_servers }}{% endif %}"
+    #       domain: "{{ anycloud_domain_result }}"
+    #     hardware:
+    #       memory_mb: "{{ item.value.memory_size_mb | default('1024') }}"
+    #       num_cpus: "{{ item.value.cpu_count | default('2') }}"
+    #     resource_pool: "{{ item.value.ansible_resource_pool | default('non_prod') }}"
+    #     state: present
+    #   when: (item.value.second_ip is defined and item.value.second_ip == '') or (item.value.second_ip is not defined) or (item.value.second_ip == 'null')
+    #   with_dict: "{{ cloud_bootstrap.servers }}"
+
+    # - name: ONE NET | Clone a VM from Template and customize, when one network
+    #   vmware_guest:
+    #     hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+    #     username: "{{ anycloud_adapter_api_user }}"
+    #     password: "{{ anycloud_adapter_api_password }}"
+    #     validate_certs: no
+    #     datacenter: "{{ anycloud_adapter_api_datacenter }}"
+    #     folder: "/"
+    #     name: "{{ item.value.name }}"
+    #     template: "{{ item.value.anycloud_vm_template_name }}"
+    #     # disk:
+    #     #   - datastore: "vortex-iscsi-15.45Tb"
+    #     #     size_gb: 812
+    #     #     type: "thin"
+    #     networks:
+    #       - name: '{{ item.value.network }}'
+    #         ip: '{{ item.value.ip }}'
+    #         netmask: '{{ item.value.network_subnet }}'
+    #         gateway: '{{ item.value.gw }}'
+    #         mac: "{{ lookup('random_mac') }}"
+    #         type: static
+    #         start_connected: True
+    #       # - name: "{{ item.value.network }}"
+    #       #   ip:
+    #       #     - "{{ item.value.ip }}"
+    #       #   netmask: "{{ item.value.network_subnet }}"
+    #       #   gateway: "{{ item.value.gw }}"
+    #       #   mac: "{{ lookup('random_mac') }}"
+    #       #   # domain: "{{ anycloud_domain_result }}"
+    #       #   # dns_servers: "{% if item.value.initial_only_dns_servers is defined %}{{ item.value.initial_only_dns_servers }}{% else %}{{ anycloud_results_vpc_zone_virtual_abstract.dns_servers }}{% endif %}"
+    #       #   start_connected: True
+    #       #   type: static
+    #         # ipv6: "2201:430:28f:2032::100"
+    #         # gatewayv6: "2201:430:28f:2032::1"
+    #         # typev6: static
+    #     customization:
+    #       hostname: "{{ item.value.name }}"
+    #       dns_servers: "{% if item.value.initial_only_dns_servers is defined %}{{ item.value.initial_only_dns_servers }}{% else %}{{ anycloud_results_vpc_zone_virtual_abstract.dns_servers }}{% endif %}"
+    #       domain: "{{ anycloud_domain_result }}"
+    #     hardware:
+    #       memory_mb: "{{ item.value.memory_size_mb | default('1024') }}"
+    #       num_cpus: "{{ item.value.cpu_count | default('2') }}"
+    #     resource_pool: "{{ item.value.ansible_resource_pool | default('non_prod') }}"
+    #     state: present
+    #   when: (item.value.second_ip is defined and item.value.second_ip == '') or (item.value.second_ip is not defined) or (item.value.second_ip == 'null')
+    #   with_dict: "{{ cloud_bootstrap.servers }}"
+
+    # - name: Wait for system Initial bastion hosts to become and reachable
+    #   wait_for_connection:
+    #     timeout: 1200
+    #   when: item.value.initial_bastion_host is defined
+    #   with_dict: "{{ cloud_bootstrap.servers | dict2items }}"
+    # # - name: Create a virtual machine on given ESXi hostname
+    # #   community.vmware.vmware_guest:
+    # #     hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+    # #     username: "{{ anycloud_adapter_api_user }}"
+    # #     password: "{{ anycloud_adapter_api_password }}"
+    # #     validate_certs: no
+    # #     folder: "/"
+    # #     # This is hostname of particular ESXi server on which user wants VM to be deployed
+    # #     #esxi_hostname: "{{ esxi_hostname }}"
+    # #     datacenter: "{{ anycloud_adapter_api_datacenter }}"
+    # #     # cluster: cluster
+    # #     resource_pool: "{{ item.value.ansible_resource_pool | default('non_prod') }}"
+    # #     name: "{{ item.value.name }}"
+    # #     template: "{{ item.value.anycloud_vm_template_name }}"
+    # #     disk:
+    # #       - size_gb: 60
+    # #         type: thin
+    # #         datastore: datastore1
+    # #     hardware:
+    # #       memory_mb: 512
+    # #       num_cpus: 4
+    # #       scsi: paravirtual
+    # #     networks:
+    # #       - name: "{{ item.value.network }}"
+    # #         mac: "{{ lookup('generate_mac') }}"
+    # #         ip: "{{ item.value.ip }}"
+    # #         netmask: "{{ item.value.network_subnet }}"
+    # #         device_type: vmxnet3
+    # #     wait_for_ip_address: yes
+    # #     wait_for_ip_address_timeout: 600
+    # #     # customization:
+    # #     #       autologon: yes
+    # #     #       dns_servers:
+    # #     #       - 192.168.1.1
+    # #     #       - 192.168.1.2
+    # #     #       domain: vx.vortex
+    # #     #       password: 12345
+    # #     # runonce:
+    # #     # - powershell.exe -ExecutionPolicy Unrestricted -File C:\Windows\Temp\ConfigureRemotingForAnsible.ps1 -ForceNewSSLCert -EnableCredSSP
+    # #   delegate_to: localhost
+    # #   register: deploy_vm
+    # #   with_dict: "{{ cloud_bootstrap.servers }}"

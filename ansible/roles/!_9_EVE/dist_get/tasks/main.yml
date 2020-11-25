@@ -1,0 +1,9 @@
+
+# 
+- name: Gathering the EDEN Binary to TC Agent
+  include_tasks: 'eden.yml'
+  when: "'eden' in group_names"
+
+- name: Gathering the EVE Binary to TC Agent
+  include_tasks: 'eve.yml'
+  when: "'eve' in group_names"

@@ -1,0 +1,6 @@
+---
+- name: restart tac_plus
+  service: name=tac_plus state=restarted
+
+- name: restart iptables
+  service: name=iptables state=restarted

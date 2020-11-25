@@ -1,0 +1,16 @@
+- name: Enable Apache2 necessary modules
+  apache2_module:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ enable_apache2_mods }}"
+  register: enable_apache2_mods_result
+  tags:
+    - enable_apache2_mods
+
+- name: Service apache2 restarted
+  service:
+    name: apache2
+    state: restarted
+  tags:
+    - enable_apache2_mods
+    - disable_apache2_mods

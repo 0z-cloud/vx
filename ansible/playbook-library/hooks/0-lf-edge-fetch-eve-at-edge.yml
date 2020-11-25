@@ -1,0 +1,8 @@
+- name: Run the fetch-eden-binary role 
+  become: true
+  hosts: "{{ HOSTS }}"
+  roles:
+    - name: Run the fetch-eden-binary role
+      role: ./!_hooks/fetch_something/fetch-eden-binary 
+  tags: 
+    - fetch-eden-binary 

@@ -1,0 +1,8 @@
+{
+  "check": {
+    "id": "check-ssh",
+    "name": "check-ssh",
+    "script": "/opt/consul/check.db/check_ssh -t 10 -p 22 $(/sbin/ifconfig {{  hostvars[inventory_hostname][ansible_default_ipv4][interface]}} | grep 'inet addr' | awk -F: '{print $2}' | awk '{print $1}')",
+    "interval": "1m"
+  }
+}

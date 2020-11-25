@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: business-docs
+    chart: business-docs-0.1.0
+    heritage: Tiller
+    io.cattle.field/appId: rpay-engine
+    release: rpay-engine
+  name: business-docs
+  selfLink: /api/v1/namespaces/rpay-engine/services/business-docs
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: business-docs
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}

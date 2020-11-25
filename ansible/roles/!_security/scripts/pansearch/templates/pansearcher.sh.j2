@@ -1,0 +1,1429 @@
+{% raw %}#!/bin/bash
+START_TIME=`date +%Y-%m-%d`
+EXEC_TIMESTAMP=`date +%s`
+
+# PERFOMANCE SETTINGS
+
+MASK_FINDED_RESULTS="NO" # YES OR NO
+{% endraw %}
+SCANNING_ONLY_GZ="{{ PANSEARCH_SCANNING_ONLY_GZ }}" # YES OR NO
+{% raw %}
+###
+UNZIP_BEFORE="0" 
+# HELP - [0 OR 1] /// 1: UNGZ+GREP+GZ /// 0: ZGREP+IF[ MASK_FINDED_RESULTS -eq YES ]; then UNGZ mask() GZ FI (FAST SEARCH)
+# UNZIP_BEFORE = 0
+###
+
+# PERFOMANCE SETTINGS END
+
+SEND_EMAIL_WITH_RESULTS="YES" # YES OR NO
+WRITE_PAN_TO_LOG="NO" # YES OR NO
+WRITE_CVV_TO_LOG="YES" # YES OR NO
+
+CURRENT_HOSTNAME=`hostname`
+WORKING_DIR="/wrk/pansearch"
+
+OVERALL_BEFORE_STATUS_LOCK="${WORKING_DIR}/pansearch.lock"
+
+LOG_FILE="${WORKING_DIR}/pansearch_scanning.log"
+TIMESTAMP_FILE="${WORKING_DIR}/pansearch_timestamp.conf"
+FILES_TO_CURRENT_SCAN="${WORKING_DIR}/pansearch_files_to_scan.db"
+PANSEARCH_FILES_LIST="${WORKING_DIR}/pansearch.db"
+
+LOG_FILE_GZ="${WORKING_DIR}/pansearch_scanning.log.gz"
+TIMESTAMP_FILE_GZ="${WORKING_DIR}/pansearch_timestamp.conf.gz"
+FILES_TO_CURRENT_SCAN_GZ="${WORKING_DIR}/pansearch_files_to_scan.db.gz"
+PANSEARCH_FILES_LIST_GZ="${WORKING_DIR}/pansearch.db.gz"
+
+HTML_MESSAGE_BODY="${WORKING_DIR}/mail_data.txt"
+
+MAILING_USER="pansearch-scanner@vortex.com"
+MAILING_HOSTNAME_URI="smtp://10.16.131.51:25"
+#MAILING_PASSWORD=""
+MAILING_DESTINATION="pci-devops@vortex.com"
+#MAILING_CREDS="${MAILING_USER}:${MAILING_PASSWORD}"
+
+function pan_validation  # <numeric-string>
+{
+    if luhn_validate "$1"; then
+        #comment: "$1 looks like a valid PAN"
+        echo "YES"
+    else
+        #comment: "$1 is not look like a valid PAN"
+        echo "NO"
+    fi
+}
+ 
+function luhn_validate  # <numeric-string>
+{
+    num=$1
+    shift 1
+ 
+    len=${#num}
+    is_odd=1
+    sum=0
+    for((t = len - 1; t >= 0; --t)) {
+        digit=${num:$t:1}
+ 
+        if [[ $is_odd -eq 1 ]]; then
+            sum=$(( sum + $digit ))
+        else
+            sum=$(( $sum + ( $digit != 9 ? ( ( 2 * $digit ) % 9 ) : 9 ) ))
+        fi
+ 
+        is_odd=$(( ! $is_odd ))
+    }
+    # NOTE: Returning Exit Status of 0 on Success
+    return $(( 0 != ( $sum % 10 ) ))
+}
+
+logit()
+{
+    echo "[${USER}][`date`] - ${*}" >> ${LOG_FILE}
+}
+
+### FIRST CLEAN LOG
+
+if [ ! -f "$LOG_FILE" ]; then
+  echo "FILE: no $LOG_FILE exists"
+  logit "FILE: no $LOG_FILE exists"
+else
+  rm $LOG_FILE
+  echo "FILE: Recreated $LOG_FILE"
+  logit "FILE: Recreated $LOG_FILE"
+fi
+
+### START CHECK FOR WORKING DIRECTORY IS PRESENT
+
+if [ ! -d "$WORKING_DIR" ]; then
+  mkdir ${WORKING_DIR}
+fi
+
+###
+
+echo "START: scanning script"
+logit "START: scanning script"
+
+### STARTING CLEAN GZ FILES
+
+if [ ! -f "$LOG_FILE_GZ" ]; then
+  echo "FILE: no $LOG_FILE_GZ exists"
+  logit "FILE: no $LOG_FILE_GZ exists"
+else
+  echo "FILE: $LOG_FILE_GZ exists, go remove"
+  logit "FILE: $LOG_FILE_GZ exists, go remove"
+  rm ${LOG_FILE_GZ}
+  echo "FILE: $LOG_FILE_GZ removed"
+  logit "FILE: $LOG_FILE_GZ removed"
+fi
+
+if [ ! -f "$TIMESTAMP_FILE_GZ" ]; then
+  echo "FILE: no $TIMESTAMP_FILE_GZ exists"
+  logit "FILE: no $TIMESTAMP_FILE_GZ exists"
+else
+  echo "FILE: $TIMESTAMP_FILE_GZ exists, go remove"
+  logit "FILE: $TIMESTAMP_FILE_GZ exists, go remove"
+  rm ${TIMESTAMP_FILE_GZ}
+  echo "FILE: $TIMESTAMP_FILE_GZ removed"
+  logit "FILE: $TIMESTAMP_FILE_GZ removed"
+fi
+
+if [ ! -f "$FILES_TO_CURRENT_SCAN_GZ" ]; then
+  echo "FILE: no $FILES_TO_CURRENT_SCAN_GZ exists"
+  logit "FILE: no $FILES_TO_CURRENT_SCAN_GZ exists"
+else
+  echo "FILE: $FILES_TO_CURRENT_SCAN_GZ exists, go remove"
+  logit "FILE: $FILES_TO_CURRENT_SCAN_GZ exists, go remove"
+  rm ${FILES_TO_CURRENT_SCAN_GZ}
+  echo "FILE: $FILES_TO_CURRENT_SCAN_GZ removed"
+  logit "FILE: $FILES_TO_CURRENT_SCAN_GZ removed"
+fi
+
+if [ ! -f "$PANSEARCH_FILES_LIST_GZ" ]; then
+  echo "FILE: no $PANSEARCH_FILES_LIST_GZ exists"
+  logit "FILE: no $PANSEARCH_FILES_LIST_GZ exists"
+else
+  echo "FILE: $PANSEARCH_FILES_LIST_GZ exists, go remove"
+  logit "FILE: $PANSEARCH_FILES_LIST_GZ exists, go remove"
+  rm ${PANSEARCH_FILES_LIST_GZ}
+  echo "FILE: $PANSEARCH_FILES_LIST_GZ removed"
+  logit "FILE: $PANSEARCH_FILES_LIST_GZ removed"
+fi
+
+if [ ! -f "$HTML_MESSAGE_BODY" ]; then
+  echo "FILE: no $HTML_MESSAGE_BODY exists"
+  logit "FILE: no $HTML_MESSAGE_BODY exists"
+else
+  echo "FILE: $HTML_MESSAGE_BODY exists, go remove"
+  logit "FILE: $HTML_MESSAGE_BODY exists, go remove"
+  rm ${HTML_MESSAGE_BODY}
+  echo "FILE: $HTML_MESSAGE_BODY removed"
+  logit "FILE: $HTML_MESSAGE_BODY removed"
+fi
+
+### STARTING CHECKING PRESENTED TIMESTAMP FROM PAST RUNNIGNS
+logit "STARTING CHECKING PRESENTED EXEC_TIMESTAMP FROM PAST RUNNIGNS"
+#
+
+if [ ! -f "$TIMESTAMP_FILE" ]; then
+  CURRENT_TIMESTAMP="0"
+  echo ${EXEC_TIMESTAMP} >> ${TIMESTAMP_FILE}
+else
+  CURRENT_TIMESTAMP=`cat ${TIMESTAMP_FILE}`
+  rm ${TIMESTAMP_FILE}
+  echo ${EXEC_TIMESTAMP} >> ${TIMESTAMP_FILE}
+fi
+
+logit "EXEC_TIMESTAMP IS: ${EXEC_TIMESTAMP}"
+logit "CURRENT_TIMESTAMP IS: ${CURRENT_TIMESTAMP}"
+logit "DONE CHECKING PRESENTED TIMESTAMP FROM PAST RUNNIGNS"
+
+### CLEAN DATABASE FILES FOR SCAN IF PRESENTED
+
+if [ ! -f "$FILES_TO_CURRENT_SCAN" ]; then
+  echo "IT'S FIRST RUN"
+else
+  echo "IT'S RUN IN ${CURRENT_TIMESTAMP}"
+  rm ${FILES_TO_CURRENT_SCAN}
+fi
+
+if [ ! -f "$PANSEARCH_FILES_LIST" ]; then
+
+  echo "PANSEARCH_FILES_LIST NOT PRESENTED"
+  
+else
+
+  echo "PANSEARCH_FILES_LIST PRESENTED, REMOVE THEM"
+  touch $OVERALL_BEFORE_STATUS_LOCK
+  rm ${PANSEARCH_FILES_LIST}
+  
+fi
+
+if [ ! -f "$OVERALL_BEFORE_STATUS_LOCK" ]; then
+
+  OVERALL_BEFORE_STATUS="OK"
+  
+else 
+
+  OVERALL_BEFORE_STATUS="FAIL"
+  
+fi
+
+# {{ ansible_environment }}
+
+logit "START FIND ALL FILES"
+
+# Set internal field separator to newline
+IFS='
+'
+{% endraw %}
+{% for host in play_hosts %}
+{% if host == inventory_hostname %}{% raw %}
+all_files_paths=`(find {% endraw %}{{ pansearch_full_path | join }}{% raw %} -printf '%p\n' | sed 's/ /\\ /g')`{% endraw %}
+{% endif %}
+{% endfor %}
+{% raw %}
+logit "DONE FIND ALL FILES"
+
+for i in ${all_files_paths}; do
+
+    current_file_modified_tampstamp=`(stat -c%Y $i)`
+    current_file_path=$i
+
+    if [ "$current_file_modified_tampstamp" -gt "$CURRENT_TIMESTAMP" ]; then
+       logit "FILE $i TIMESTAMP: $current_file_modified_tampstamp SEND TO SCAN DATABASE"
+       echo ${current_file_path} >> ${FILES_TO_CURRENT_SCAN}
+    else
+       logit "FILE $i TIMESTAMP: $current_file_modified_tampstamp NO SEND TO SCAN DATABASE"
+    fi
+done
+
+## START SCANNING
+
+echo "START: pansearch"
+logit "START: pansearch"
+
+if [ ! -f "$FILES_TO_CURRENT_SCAN" ]; then
+
+  echo "NO FILES TO SCAN FROM PREVIOUS SCAN"
+  CHANGE_BODY_OF_EMAIL_MESSAGE="<p>No files to scan from past run!</p>"
+  
+else
+
+  echo "IT'S RUN IN SCAN ON ${FILES_TO_CURRENT_SCAN}"
+  array_to_scan=`cat ${FILES_TO_CURRENT_SCAN}`
+  
+  for current_file_path in ${array_to_scan}; do
+  
+    echo "current file path: $current_file_path"
+    
+    if [[ $current_file_path == *.gz ]]; then
+      
+      echo "matched gz log file $current_file_path"
+      
+      #.Unarchive
+          
+      declare -a CVV_ROW_ARRAY
+      declare -a FINDED_DIGEST_ARRAY_ROW
+      declare -a FINDED_DIGEST_ARRAY_ROW_4_on_4
+          
+      if [ $UNZIP_BEFORE -eq 1 ]; then
+
+          echo "UNZIP_BEFORE = 1"
+  
+          gzip -d "$current_file_path"
+      
+          file_without_ext=`echo `${current_file_path%.*}``
+          
+          echo "Current extracted gz file path: $file_without_ext"
+      
+          #/ TRY TO GET 16 DIGESTS
+          CVV_ROW_ARRAY=`grep -n -o -E -e 'cvc%2F[0-9]{3}' -e 'cvv%2F[0-9]{3}' -e 'cvc2%2F[0-9]{3}' -e 'cvv2%2F[0-9]{3}' -e 'cvc%3D[0-9]{3}' -e 'cvv%3D[0-9]{3}' -e 'cvc2%3D[0-9]{3}' -e 'cvv2%3D[0-9]{3}' -e 'cvc[0-9][0-9]{3}' -e 'cvc[^0-9][0-9]{3}' -e 'cvv[0-9][0-9]{3}' -e 'cvv[^0-9][0-9]{3}' -e 'cvv[2][^0-9][0-9]{3}' -e 'cvv[2][0-9][0-9]{3}' -e 'cvc[2][^0-9][0-9]{3}' -e 'cvc[2][0-9][0-9]{3}' ${file_without_ext} | uniq`
+          FINDED_DIGEST_ARRAY_ROW=`grep -n -o -E -e "\b[0-9]{16}\b" ${file_without_ext} | uniq`
+          FINDED_DIGEST_ARRAY_ROW_4_on_4=`grep -n -o -E -e "[^0-9][0-9]{4}[^0-9][0-9]{4}[^0-9][0-9]{4}[^0-9][0-9]{4}[^0-9]" ${file_without_ext} | uniq`
+
+      else 
+
+          echo "UNZIP_BEFORE = 0"
+          
+          echo "Current gz file path: $current_file_path"     
+            
+          #/ TRY TO GET 16 DIGESTS
+          # ZGREP CURRENTLY NOT WORK!
+          FINDED_DIGEST_ARRAY_ROW=`zgrep -n -o -E -e "\b[0-9]{16}\b" ${current_file_path} | uniq`
+          FINDED_DIGEST_ARRAY_ROW_4_on_4=`zgrep -n -o -E -e "[^0-9][0-9]{4}[^0-9][0-9]{4}[^0-9][0-9]{4}[^0-9][0-9]{4}[^0-9]" ${current_file_path} | uniq`
+          CVV_ROW_ARRAY=`zgrep -n -o -E -e 'cvc%2F[0-9]{3}' -e 'cvv%2F[0-9]{3}' -e 'cvc2%2F[0-9]{3}' -e 'cvv2%2F[0-9]{3}' -e 'cvc%3D[0-9]{3}' -e 'cvv%3D[0-9]{3}' -e 'cvc2%3D[0-9]{3}' -e 'cvv2%3D[0-9]{3}' -e 'cvc[0-9][0-9]{3}' -e 'cvc[^0-9][0-9]{3}' -e 'cvv[0-9][0-9]{3}' -e 'cvv[^0-9][0-9]{3}' -e 'cvv[2][^0-9][0-9]{3}' -e 'cvv[2][0-9][0-9]{3}' -e 'cvc[2][^0-9][0-9]{3}' -e 'cvc[2][0-9][0-9]{3}' ${current_file_path} | uniq`
+      fi
+      
+      #/ TRY VALIDATE GETTED DATA 4 x 4
+        
+      for row in ${FINDED_DIGEST_ARRAY_ROW_4_on_4}; do
+
+          #- SPLITTING ROW:PAN
+      
+          row_line_number=`(echo $row | awk -F  ":" '{print $1}')`
+          row_line_value=`(echo $row | awk -F  ":" '{print $2}' | sed 's/[^0-9]*//g')`
+
+          if [ -z "$row_line_value" ]; then
+              ERROR_LINE="1"
+          fi
+          
+          if [ -z "$row_line_number" ]; then
+              ERROR_LINE="1"
+          fi
+
+          if [ -z "$ERROR_LINE" ]; then
+
+                  # CHECK DIGEST TO MATCH A CARD MASK:
+                  
+                  if [ $UNZIP_BEFORE -eq 1 ]; then
+                  
+                    row_raw_data_check=`(cat ${file_without_ext} | awk "NR==${row_line_number} {print;exit}")`
+                  
+                  else
+                  
+                    row_raw_data_check=`(zcat ${current_file_path} | awk "NR==${row_line_number} {print;exit}")`
+                  
+                  fi
+                  
+                  #### CUSTOM CHECKS
+
+                  #x zero check to match PaReq|PaRes|PAREQ message
+                  pareq_pares_check_row_status=`(echo $row_raw_data_check | grep -qvE "PaReq|PaRes|PAREQ" && echo 1 || echo 0)`
+
+                  if [ $pareq_pares_check_row_status -eq 1 ]; then
+                      ERROR_LINE="1"
+                      echo "ERROR IN LINE WHERE PARES/PAREQ matched in possible PAN value"
+                  fi
+
+                  #0 zero check to match audit message
+
+                  audit_spd_check_row_status=`(echo $row_raw_data_check | grep -q "audispd" && echo 1 || echo 0)`
+
+                  if [ $audit_spd_check_row_status -eq 1 ]; then
+                      ERROR_LINE="1"
+                  fi
+
+                  #1 check possible a3 value in random message
+                  
+                  first_check_a3=`(echo $row_raw_data_check | grep -q -E -e "a3=${row_line_value}" && echo 1 || echo 0)`
+                  
+                  if [ $first_check_a3 -eq 1 ]; then
+                      ERROR_LINE="1"
+                  fi
+                  
+                  #3 check panhash row
+                  
+                  first_check_panHash=`(echo $row_raw_data_check | grep -q -E "panHash" && echo 1 || echo 0)`
+                  
+                  if [ $first_check_panHash -eq 1 ]; then
+                      ERROR_LINE="1"
+                  fi
+                  
+                  #4 check possible </MD> raw
+                  
+                  first_check_md_tag=`(echo $row_raw_data_check | grep -q -E "${row_line_value}</MD>" && echo 1 || echo 0)`
+
+
+                  if [ $first_check_md_tag -eq 1 ]; then
+                      ERROR_LINE="1"
+                  fi
+                  
+                  #5 check possible int ref <INT_REF>{/ value /}</INT_REF>
+                  
+                  first_check_int_ref=`(echo $row_raw_data_check | grep -q -E "<INT_REF>${row_line_value}</INT_REF>" && echo 1 || echo 0)`
+                  
+                  if [ $first_check_int_ref -eq 1 ]; then
+                      ERROR_LINE="1"
+                  fi
+                  
+                  #6 check possible irn= & intref
+                  
+                  first_check_int_irn=`(echo $row_raw_data_check | grep -q -E "irn=${row_line_value}" && echo 1 || echo 0)`
+                  first_check_int_ref_2=`(echo $row_raw_data_check | grep -q -E "int_ref=${row_line_value}" && echo 1 || echo 0)`
+
+                  if [ $first_check_int_irn -eq 1 ]; then
+                      ERROR_LINE="1"
+                  fi
+
+                  if [ $first_check_int_ref_2 -eq 1 ]; then
+                      ERROR_LINE="1"
+                  fi
+                  
+                  #7 check possible CDATA
+                  
+                  first_check_int_cdata=`(echo $row_raw_data_check | grep -q -E "CDATA" && echo 1 || echo 0)`
+
+                  if [ $first_check_int_cdata -eq 1 ]; then
+                      ERROR_LINE="1"
+                  fi
+
+                  #8 check VISA/MC/JCB/AMEX validation
+
+                  first_check_int_supercheck=`(echo $row_line_value | grep -q -E "4[0-9]{12}([0-9]{3})|[25][1-7][0-9]{14}|6(011|5[0-9][0-9])[0-9]{12}|3[47][0-9]{13}|3(0[0-5]|[68][0-9])[0-9]{11}|(2131|1800|35\d{3})\d{11}" && echo 0 || echo 1)`
+
+                  if [ $first_check_int_supercheck -eq 1 ]; then
+                      ERROR_LINE="1"
+                  fi
+          
+          fi
+          
+          if [ -z "$ERROR_LINE" ]; then
+          
+          echo "NO ERROR IN LINE... $row_line_number"
+
+          PAN_RESULT=`(pan_validation $row_line_value)`
+          
+              if [[ $PAN_RESULT == "NO" ]]; then
+
+                  echo "IT'S NO PAN"
+                
+              else 
+              
+                  echo "IT'S PAN"
+                  
+                  if [[ $WRITE_PAN_TO_LOG = "NO" ]]; then
+                
+                  echo "filename: $current_file_path line in file: $row_line_number type: pan"  >> "$PANSEARCH_FILES_LIST"
+                  
+                  else
+                  
+                  echo "filename: $current_file_path line in file: $row_line_number type: pan pan_value: $row_line_value"  >> "$PANSEARCH_FILES_LIST"
+                  
+                  fi
+
+                  if [[ $MASK_FINDED_RESULTS == "NO" ]]; then
+                  
+                      echo "AUTO MASKING DISABLED!"
+                      
+                  else
+                  
+                      echo "AUTO MASKING ENABLED!"
+                      
+                      if [ $UNZIP_BEFORE -eq 1 ]; then
+                      
+                        echo "UNZIP_BEFORE = 1"
+                      
+                        sed -e "${row_line_number}s/$row_line_value/****************/g" $file_without_ext
+                      
+                      else
+                      
+                        echo "UNZIP_BEFORE = 0"
+                      
+                        gzip -d "$current_file_path"
+            
+                        file_without_ext=`echo "${current_file_path%.*}"`
+                        
+                        sed -e "${row_line_number}s/$row_line_value/****************/g" $file_without_ext
+                        
+                        gzip $file_without_ext
+                      
+                      fi
+                      
+                  fi
+              fi
+              
+          else
+          
+          echo "ERROR IN LINE..."
+          
+          fi
+          
+      done
+        
+      #/ TRY VALIDATE GETTED DATA
+      
+      for row in ${FINDED_DIGEST_ARRAY_ROW}; do
+
+          #- SPLITTING ROW:PAN
+      
+          row_line_number=`(echo $row | awk -F  ":" '{print $1}')`
+          row_line_value=`(echo $row | awk -F  ":" '{print $2}')`
+
+          if [ -z "$row_line_value" ]; then
+              ERROR_LINE="1"
+          fi
+          
+          if [ -z "$row_line_number" ]; then
+              ERROR_LINE="1"
+          fi
+
+          if [ -z "$ERROR_LINE" ]; then
+
+                  # CHECK DIGEST TO MATCH A CARD MASK:
+                  
+                  if [ $UNZIP_BEFORE -eq 1 ]; then
+                  
+                    row_raw_data_check=`(cat ${file_without_ext} | awk "NR==${row_line_number} {print;exit}")`
+                  
+                  else
+                  
+                    row_raw_data_check=`(zcat ${current_file_path} | awk "NR==${row_line_number} {print;exit}")`
+                  
+                  fi
+                  
+                  #### CUSTOM CHECKS
+
+                  #x zero check to match PaReq|PaRes|PAREQ message
+                  pareq_pares_check_row_status=`(echo $row_raw_data_check | grep -qvE "PaReq|PaRes|PAREQ" && echo 1 || echo 0)`
+
+                  if [ $pareq_pares_check_row_status -eq 1 ]; then
+                      ERROR_LINE="1"
+                      echo "ERROR IN LINE WHERE PARES/PAREQ matched in possible PAN value"
+                  fi
+
+                  #0 zero check to match audit message
+
+                  audit_spd_check_row_status=`(echo $row_raw_data_check | grep -q "audispd" && echo 1 || echo 0)`
+
+                  if [ $audit_spd_check_row_status -eq 1 ]; then
+                      ERROR_LINE="1"
+                  fi
+
+                  #1 check possible a3 value in random message
+                  
+                  first_check_a3=`(echo $row_raw_data_check | grep -q -E -e "a3=${row_line_value}" && echo 1 || echo 0)`
+                  
+                  if [ $first_check_a3 -eq 1 ]; then
+                      ERROR_LINE="1"
+                  fi
+                  
+                  #3 check panhash row
+                  
+                  first_check_panHash=`(echo $row_raw_data_check | grep -q -E "panHash" && echo 1 || echo 0)`
+                  
+                  if [ $first_check_panHash -eq 1 ]; then
+                      ERROR_LINE="1"
+                  fi
+                  
+                  #4 check possible </MD> raw
+                  
+                  first_check_md_tag=`(echo $row_raw_data_check | grep -q -E "${row_line_value}</MD>" && echo 1 || echo 0)`
+
+
+                  if [ $first_check_md_tag -eq 1 ]; then
+                      ERROR_LINE="1"
+                  fi
+                  
+                  #5 check possible int ref <INT_REF>{/ value /}</INT_REF>
+                  
+                  first_check_int_ref=`(echo $row_raw_data_check | grep -q -E "<INT_REF>${row_line_value}</INT_REF>" && echo 1 || echo 0)`
+                  
+                  if [ $first_check_int_ref -eq 1 ]; then
+                      ERROR_LINE="1"
+                  fi
+                  
+                  #6 check possible irn= & intref
+                  
+                  first_check_int_irn=`(echo $row_raw_data_check | grep -q -E "irn=${row_line_value}" && echo 1 || echo 0)`
+                  first_check_int_ref_2=`(echo $row_raw_data_check | grep -q -E "int_ref=${row_line_value}" && echo 1 || echo 0)`
+
+                  if [ $first_check_int_irn -eq 1 ]; then
+                      ERROR_LINE="1"
+                  fi
+
+                  if [ $first_check_int_ref_2 -eq 1 ]; then
+                      ERROR_LINE="1"
+                  fi
+                  
+                  #7 check possible CDATA
+                  
+                  first_check_int_cdata=`(echo $row_raw_data_check | grep -q -E "CDATA" && echo 1 || echo 0)`
+
+                  if [ $first_check_int_cdata -eq 1 ]; then
+                      ERROR_LINE="1"
+                  fi
+
+                  #8 check VISA/MC/JCB/AMEX validation
+
+                  first_check_int_supercheck=`(echo $row_line_value | grep -q -E "4[0-9]{12}([0-9]{3})|[25][1-7][0-9]{14}|6(011|5[0-9][0-9])[0-9]{12}|3[47][0-9]{13}|3(0[0-5]|[68][0-9])[0-9]{11}|(2131|1800|35\d{3})\d{11}" && echo 0 || echo 1)`
+
+                  if [ $first_check_int_supercheck -eq 1 ]; then
+                      ERROR_LINE="1"
+                  fi
+          
+          fi
+          
+          if [ -z "$ERROR_LINE" ]; then
+          
+          echo "NO ERROR IN LINE... $row_line_number"
+
+          PAN_RESULT=`(pan_validation $row_line_value)`
+          
+              if [[ $PAN_RESULT == "NO" ]]; then
+
+                  echo "IT'S NO PAN"
+                
+              else 
+              
+                  echo "IT'S PAN"
+                  
+                  if [[ $WRITE_PAN_TO_LOG = "NO" ]]; then
+                
+                  echo "filename: $current_file_path line in file: $row_line_number type: pan"   >> "$PANSEARCH_FILES_LIST"
+                  
+                  else
+                  
+                  echo "filename: $current_file_path line in file: $row_line_number type: pan pan_value: $row_line_value"  >> "$PANSEARCH_FILES_LIST"
+                  
+                  fi
+
+                  if [[ $MASK_FINDED_RESULTS == "NO" ]]; then
+                  
+                      echo "AUTO MASKING DISABLED!"
+                      
+                  else
+                  
+                      echo "AUTO MASKING ENABLED!"
+                      
+                      if [ $UNZIP_BEFORE -eq 1 ]; then
+                      
+                        echo "UNZIP_BEFORE = 1"
+                      
+                        sed -e "${row_line_number}s/$row_line_value/****************/g" $file_without_ext
+                      
+                      else
+                      
+                        echo "UNZIP_BEFORE = 0"
+                      
+                        gzip -d "$current_file_path"
+            
+                        file_without_ext=`echo "${current_file_path%.*}"`
+                        
+                        sed -e "${row_line_number}s/$row_line_value/****************/g" $file_without_ext
+                        
+                        gzip $file_without_ext
+                      
+                      fi
+                      
+                  fi
+              fi
+              
+          else
+          
+          echo "ERROR IN LINE..."
+          
+          fi
+          
+      done
+
+      for row in ${CVV_ROW_ARRAY}; do
+
+          #- SPLITTING ROW:PAN
+      
+          row_line_number=`(echo $row | awk -F  ":" '{print $1}')`
+          row_line_value=`(echo $row | awk -F  ":" '{print $2}' | sed 's/[^0-9]*//g')`
+          row_line_value_full=`(echo $row | awk -F  ":" '{print $2}')`
+          # CHECK DIGEST TO MATCH A CARD MASK:
+
+          if [ -z "$row_line_value" ]; then
+              ERROR_LINE="1"
+          else
+              ERROR_LINE="0"
+          fi
+          
+          if [ -z "$row_line_number" ]; then
+              ERROR_LINE="1"
+          else
+              ERROR_LINE="0"
+          fi
+          
+          cvcvv_row_normal_check=`(echo $row_line_value_full | grep -z -q -s -e 'cvc' -e 'cvv' -e 'cvc2' -e 'cvv2' &>/dev/null && echo 1 || echo 0)` 
+
+          if [ $cvcvv_row_normal_check -eq 1 ]; then
+              ERROR_LINE="0"
+          else
+              ERROR_LINE="1"
+          fi
+
+          #x zero check to match PaReq|PaRes|PAREQ message
+          pareq_pares_check_row_status_cvv=`(echo $row_line_value_full | grep -qvE "PaReq|PaRes|PAREQ" && echo 1 || echo 0)`
+
+          if [ $pareq_pares_check_row_status_cvv -eq 1 ]; then
+              ERROR_LINE="1"
+              echo "ERROR IN LINE WITH CVV CVC POSSIBLE VALUESE WHERE MATCHED PAREQ/PARES"
+          else
+              ERROR_LINE="0"
+          fi
+
+          if [ $ERROR_LINE -eq 0 ]; then
+          
+              echo "NO ERROR IN LINE... $row_line_number"
+                  
+              echo "IT'S CVV POSSIBLE VALUE"
+              
+              if [[ $WRITE_CVV_TO_LOG = "NO" ]]; then
+            
+              echo "filename: $current_file_path line in file: $row_line_number type: cvv"  >> "$PANSEARCH_FILES_LIST"
+              
+              else
+              
+              echo "filename: $current_file_path line in file: $row_line_number type: cvv cvv_value: $row_line_value"  >> "$PANSEARCH_FILES_LIST"
+              
+              fi
+
+              if [[ $MASK_FINDED_RESULTS == "NO" ]]; then
+              
+                  echo "AUTO MASKING DISABLED!"
+                  
+              else
+              
+                  echo "AUTO MASKING ENABLED!"
+                  
+                  if [ $UNZIP_BEFORE -eq 1 ]; then
+                  
+                    echo "UNZIP_BEFORE = 1"
+                  
+                    sed -e "${row_line_number}s/$row_line_value/***/g" $file_without_ext
+                  
+                  else
+                  
+                    echo "UNZIP_BEFORE = 0"
+                  
+                    gzip -d "$current_file_path"
+        
+                    file_without_ext=`echo "${current_file_path%.*}"`
+                    
+                    sed -e "${row_line_number}s/$row_line_value/***/g" $file_without_ext
+                    
+                    gzip $file_without_ext
+                  
+                  fi
+                  
+              fi
+              
+          else
+          
+          echo "ERROR IN LINE..."
+          
+          fi
+          
+      done
+
+      if [ $UNZIP_BEFORE -eq 1 ]; then
+      
+        echo "UNZIP_BEFORE = 1"
+      
+        gzip $file_without_ext
+        
+      else
+
+        echo "UNZIP_BEFORE = 0"
+
+      fi
+            
+    else
+    
+            logit "checking SCANNING_ONLY_GZ variable, value is - $SCANNING_ONLY_GZ"
+
+            if [[ $SCANNING_ONLY_GZ == "YES" ]]; then
+            
+              echo "We scan only the archives, because SCANNING_ONLY_GZ = $SCANNING_ONLY_GZ"
+              logit "We scan only the archives, because SCANNING_ONLY_GZ = $SCANNING_ONLY_GZ"
+
+            else
+    
+              echo "We scan all files and archives, because SCANNING_ONLY_GZ = $SCANNING_ONLY_GZ"
+              logit "We scan all files and archives, because SCANNING_ONLY_GZ = $SCANNING_ONLY_GZ"
+              echo "matched clear log file $current_file_path"
+              logit "matched clear log file $current_file_path"
+
+              declare -a CVV_ROW_ARRAY
+              declare -a FINDED_DIGEST_ARRAY_ROW
+              declare -a FINDED_DIGEST_ARRAY_ROW_4_on_4
+              CVV_ROW_ARRAY=`grep -n -o -E -e 'cvc%2F[0-9]{3}' -e 'cvv%2F[0-9]{3}' -e 'cvc2%2F[0-9]{3}' -e 'cvv2%2F[0-9]{3}' -e 'cvc%3D[0-9]{3}' -e 'cvv%3D[0-9]{3}' -e 'cvc2%3D[0-9]{3}' -e 'cvv2%3D[0-9]{3}' -e 'cvc[0-9][0-9]{3}' -e 'cvc[^0-9][0-9]{3}' -e 'cvv[0-9][0-9]{3}' -e 'cvv[^0-9][0-9]{3}' -e 'cvv[2][^0-9][0-9]{3}' -e 'cvv[2][0-9][0-9]{3}' -e 'cvc[2][^0-9][0-9]{3}' -e 'cvc[2][0-9][0-9]{3}' ${current_file_path} | uniq`
+              FINDED_DIGEST_ARRAY_ROW=`grep -n -o -E -e "\b[0-9]{16}\b" ${current_file_path} | uniq`
+              FINDED_DIGEST_ARRAY_ROW_4_on_4=`grep -n -o -E -e "[^0-9][0-9]{4}[^0-9][0-9]{4}[^0-9][0-9]{4}[^0-9][0-9]{4}[^0-9]" ${current_file_path} | uniq`
+
+              #/ TRY VALIDATE GETTED DATA
+
+              for row in ${FINDED_DIGEST_ARRAY_ROW}; do
+                  
+                  #- SPLITTING ROW:PAN
+                  
+                  row_line_number=`(echo $row | awk -F  ":" '{print $1}')`
+                  row_line_value=`(echo $row | awk -F  ":" '{print $2}')`
+                  
+                  if [ -z "$row_line_value" ]; then
+                      ERROR_LINE="1"
+                  fi
+                  
+                  if [ -z "$row_line_number" ]; then
+                      ERROR_LINE="1"
+                  fi
+
+                  if [ -z "$ERROR_LINE" ]; then
+
+                          # CHECK DIGEST TO MATCH A CARD MASK:
+
+                          row_raw_data_check=`(cat ${current_file_path} | awk "NR==${row_line_number} {print;exit}")`
+
+                          #### CUSTOM CHECKS
+
+                          #x zero check to match PaReq|PaRes|PAREQ message
+                          pareq_pares_check_row_status=`(echo $row_raw_data_check | grep -qvE "PaReq|PaRes|PAREQ" && echo 1 || echo 0)`
+
+                          if [ $pareq_pares_check_row_status -eq 1 ]; then
+                              ERROR_LINE="1"
+                              echo "ERROR IN LINE WHERE PARES/PAREQ matched in possible PAN value"
+                          fi
+
+                          #0 zero check to match audit message
+
+                          audit_spd_check_row_status=`(echo $row_raw_data_check | grep -q "audispd" && echo 1 || echo 0)`
+
+                          if [ $audit_spd_check_row_status -eq 1 ]; then
+                              ERROR_LINE="1"
+                          fi
+
+                          #1 check possible a3 value in random message
+                          
+                          first_check_a3=`(echo $row_raw_data_check | grep -q -E -e "a3=${row_line_value}" && echo 1 || echo 0)`
+                          
+                          if [ $first_check_a3 -eq 1 ]; then
+                              ERROR_LINE="1"
+                          fi
+                          
+                          #3 check panhash row
+                          
+                          first_check_panHash=`(echo $row_raw_data_check | grep -q -E "panHash" && echo 1 || echo 0)`
+                          
+                          if [ $first_check_panHash -eq 1 ]; then
+                              ERROR_LINE="1"
+                          fi
+                          
+                          #4 check possible </MD> raw
+                          
+                          first_check_md_tag=`(echo $row_raw_data_check | grep -q -E "${row_line_value}</MD>" && echo 1 || echo 0)`
+
+
+                          if [ $first_check_md_tag -eq 1 ]; then
+                              ERROR_LINE="1"
+                          fi
+                          
+                          #5 check possible int ref <INT_REF>{/ value /}</INT_REF>
+                          
+                          first_check_int_ref=`(echo $row_raw_data_check | grep -q -E "<INT_REF>${row_line_value}</INT_REF>" && echo 1 || echo 0)`
+                          
+                          if [ $first_check_int_ref -eq 1 ]; then
+                              ERROR_LINE="1"
+                          fi
+                          
+                          #6 check possible irn= & intref
+                          
+                          first_check_int_irn=`(echo $row_raw_data_check | grep -q -E "irn=${row_line_value}" && echo 1 || echo 0)`
+                          first_check_int_ref_2=`(echo $row_raw_data_check | grep -q -E "int_ref=${row_line_value}" && echo 1 || echo 0)`
+
+                          if [ $first_check_int_irn -eq 1 ]; then
+                              ERROR_LINE="1"
+                          fi
+
+                          if [ $first_check_int_ref_2 -eq 1 ]; then
+                              ERROR_LINE="1"
+                          fi
+                          
+                          #7 check possible CDATA
+                          
+                          first_check_int_cdata=`(echo $row_raw_data_check | grep -q -E "CDATA" && echo 1 || echo 0)`
+
+                          if [ $first_check_int_cdata -eq 1 ]; then
+                              ERROR_LINE="1"
+                          fi
+
+                          #8 check VISA/MC/JCB/AMEX validation
+
+                          first_check_int_supercheck=`(echo $row_line_value | grep -q -E "4[0-9]{12}([0-9]{3})|[25][1-7][0-9]{14}|6(011|5[0-9][0-9])[0-9]{12}|3[47][0-9]{13}|3(0[0-5]|[68][0-9])[0-9]{11}|(2131|1800|35\d{3})\d{11}" && echo 0 || echo 1)`
+
+                          if [ $first_check_int_supercheck -eq 1 ]; then
+                              ERROR_LINE="1"
+                          fi
+                  
+                  fi
+                  
+                  if [ -z "$ERROR_LINE" ]; then
+
+                  echo "NO ERROR IN LINE... $row_line_number"
+
+                  PAN_RESULT=`(pan_validation $row_line_value)`
+                      
+                      if [[ $PAN_RESULT == "NO" ]]; then
+                      
+                          echo "IT'S NO PAN"
+                      
+                      else
+                      
+                          echo "IT'S PAN"
+                          
+                          if [[ $WRITE_PAN_TO_LOG = "NO" ]]; then
+                        
+                          echo "filename: $current_file_path line in file: $row_line_number type: pan"  >> "$PANSEARCH_FILES_LIST"
+                          
+                          else
+                          
+                          echo "filename: $current_file_path line in file: $row_line_number pan: $row_line_value"  >> "$PANSEARCH_FILES_LIST"
+                          
+                          fi
+
+                          if [[ $MASK_FINDED_RESULTS == "NO" ]]; then
+                        
+                              echo "AUTO MASKING DISABLED!"
+                          
+                          else
+                        
+                              echo "AUTO MASKING ENABLED!"
+                              
+                              sed -e "${row_line_number}s/$row_line_value/****************/g" $current_file_path
+                          fi
+
+                      fi
+                      
+                  else
+                  
+                  echo "ERROR IN LINE..."
+                  
+                  fi
+                  
+              done
+
+              for row in ${FINDED_DIGEST_ARRAY_ROW_4_on_4}; do
+                        
+                #- SPLITTING ROW:PAN
+                
+                row_line_number=`(echo $row | awk -F  ":" '{print $1}')`
+                row_line_value=`(echo $row | awk -F  ":" '{print $2}' | sed 's/[^0-9]*//g')`
+
+                if [ -z "$row_line_value" ]; then
+                      ERROR_LINE="1"
+                fi
+                  
+                if [ -z "$row_line_number" ]; then
+                      ERROR_LINE="1"
+                fi
+
+                        if [ -z "$ERROR_LINE" ]; then
+
+                                  # CHECK DIGEST TO MATCH A CARD MASK:
+                          
+                                  row_raw_data_check=`(cat ${current_file_path} | awk "NR==${row_line_number} {print;exit}")`
+                                  
+                                  #### CUSTOM CHECKS
+
+                                  #x zero check to match PaReq|PaRes|PAREQ message
+                                  pareq_pares_check_row_status=`(echo $row_raw_data_check | grep -qvE "PaReq|PaRes|PAREQ" && echo 1 || echo 0)`
+
+                                  if [ $pareq_pares_check_row_status -eq 1 ]; then
+                                      ERROR_LINE="1"
+                                      echo "ERROR IN LINE WHERE PARES/PAREQ matched in possible PAN value"
+                                  fi
+
+                                  #0 zero check to match audit message
+
+                                  audit_spd_check_row_status=`(echo $row_raw_data_check | grep -q "audispd" && echo 1 || echo 0)`
+
+                                  if [ $audit_spd_check_row_status -eq 1 ]; then
+                                      ERROR_LINE="1"
+                                  fi
+
+                                  #1 check possible a3 value in random message
+                                  
+                                  first_check_a3=`(echo $row_raw_data_check | grep -q -E -e "a3=${row_line_value}" && echo 1 || echo 0)`
+                                  
+                                  if [ $first_check_a3 -eq 1 ]; then
+                                      ERROR_LINE="1"
+                                  fi
+                                  
+                                  #3 check panhash row
+                                  
+                                  first_check_panHash=`(echo $row_raw_data_check | grep -q -E "panHash" && echo 1 || echo 0)`
+                                  
+                                  if [ $first_check_panHash -eq 1 ]; then
+                                      ERROR_LINE="1"
+                                  fi
+                                  
+                                  #4 check possible </MD> raw
+                                  
+                                  first_check_md_tag=`(echo $row_raw_data_check | grep -q -E "${row_line_value}</MD>" && echo 1 || echo 0)`
+
+                                  if [ $first_check_md_tag -eq 1 ]; then
+                                      ERROR_LINE="1"
+                                  fi
+                                  
+                                  #5 check possible int ref <INT_REF>{/ value /}</INT_REF>
+                                  
+                                  first_check_int_ref=`(echo $row_raw_data_check | grep -q -E "<INT_REF>${row_line_value}</INT_REF>" && echo 1 || echo 0)`
+                                  
+                                  if [ $first_check_int_ref -eq 1 ]; then
+                                      ERROR_LINE="1"
+                                  fi
+                                  
+                                  #6 check possible irn= & intref
+                                  
+                                  first_check_int_irn=`(echo $row_raw_data_check | grep -q -E "irn=${row_line_value}" && echo 1 || echo 0)`
+                                  first_check_int_ref_2=`(echo $row_raw_data_check | grep -q -E "int_ref=${row_line_value}" && echo 1 || echo 0)`
+
+                                  if [ $first_check_int_irn -eq 1 ]; then
+                                      ERROR_LINE="1"
+                                  fi
+
+                                  if [ $first_check_int_ref_2 -eq 1 ]; then
+                                      ERROR_LINE="1"
+                                  fi
+                                  
+                                  #7 check possible CDATA
+                                  
+                                  first_check_int_cdata=`(echo $row_raw_data_check | grep -q -E "CDATA" && echo 1 || echo 0)`
+
+                                  if [ $first_check_int_cdata -eq 1 ]; then
+                                      ERROR_LINE="1"
+                                  fi
+
+                                  #8 check VISA/MC/JCB/AMEX validation
+
+                                  first_check_int_supercheck=`(echo $row_line_value | grep -q -E "4[0-9]{12}([0-9]{3})|[25][1-7][0-9]{14}|6(011|5[0-9][0-9])[0-9]{12}|3[47][0-9]{13}|3(0[0-5]|[68][0-9])[0-9]{11}|(2131|1800|35\d{3})\d{11}" && echo 0 || echo 1)`
+
+                                  if [ $first_check_int_supercheck -eq 1 ]; then
+                                      ERROR_LINE="1"
+                                  fi
+                          
+                        fi
+                        
+                        if [ -z "$ERROR_LINE" ]; then
+
+                        echo "NO ERROR IN LINE... $row_line_number"
+
+                        PAN_RESULT=`(pan_validation $row_line_value)`
+                            
+                            if [[ $PAN_RESULT == "NO" ]]; then
+                            
+                                echo "IT'S NO PAN"
+                            
+                            else
+                            
+                                echo "IT'S PAN"
+                              
+                                if [[ $WRITE_PAN_TO_LOG = "NO" ]]; then
+                              
+                                echo "filename: $current_file_path line in file: $row_line_number type: pan"  >> "$PANSEARCH_FILES_LIST"
+                                
+                                else
+                                
+                                echo "filename: $current_file_path line in file: $row_line_number pan: $row_line_value"  >> "$PANSEARCH_FILES_LIST"
+                                
+                                fi
+                                
+                                if [[ $MASK_FINDED_RESULTS == "NO" ]]; then
+                              
+                                    echo "AUTO MASKING DISABLED!"
+                                
+                                else
+                              
+                                    echo "AUTO MASKING ENABLED!"
+                                    
+                                    sed -e "${row_line_number}s/$row_line_value/****************/g" $current_file_path
+                                fi
+
+                            fi
+                            
+                        else
+                        
+                        echo "ERROR IN LINE..."
+                        
+                        fi
+                        
+              done
+
+              for row in ${CVV_ROW_ARRAY}; do
+
+                  #- SPLITTING ROW:PAN
+              
+                  row_line_number=`(echo $row | awk -F  ":" '{print $1}')`
+                  row_line_value=`(echo $row | awk -F  ":" '{print $2}' | sed 's/[^0-9]*//g')`
+                  row_line_value_full=`(echo $row | awk -F  ":" '{print $2}')`
+                  # CHECK DIGEST TO MATCH A CARD MASK:
+
+                  if [ -z "$row_line_value" ]; then
+                      ERROR_LINE="1"
+                  else
+                      ERROR_LINE="0"
+                  fi
+                  
+                  if [ -z "$row_line_number" ]; then
+                      ERROR_LINE="1"
+                  else
+                      ERROR_LINE="0"
+                  fi
+
+                  cvcvv_row_normal_check=`(echo $row_line_value_full | grep -z -q -s -e 'cvc' -e 'cvv' -e 'cvc2' -e 'cvv2' &>/dev/null && echo 1 || echo 0)` 
+
+                  if [ $cvcvv_row_normal_check -eq 1 ]; then
+                      ERROR_LINE="0"
+                  else
+                      ERROR_LINE="1"
+                  fi
+
+                   #x zero check to match PaReq|PaRes|PAREQ message
+                   pareq_pares_check_row_status_cvv=`(echo $row_line_value_full | grep -qvE "PaReq|PaRes|PAREQ" && echo 1 || echo 0)`
+
+                   if [ $pareq_pares_check_row_status_cvv -eq 1 ]; then
+                      ERROR_LINE="1"
+                      echo "ERROR IN LINE WITH CVV CVC POSSIBLE VALUESE WHERE MATCHED PAREQ/PARES"
+                   else
+                      ERROR_LINE="0"
+                   fi
+
+                  if [ $ERROR_LINE -eq 0 ]; then
+                  
+                      echo "NO ERROR IN LINE... $row_line_number"
+                          
+                      echo "IT'S CVV POSSIBLE VALUE"
+                      
+                      if [[ $WRITE_CVV_TO_LOG = "NO" ]]; then
+                    
+                      echo "filename: $current_file_path line in file: $row_line_number type: cvv"  >> "$PANSEARCH_FILES_LIST"
+                      
+                      else
+                      
+                      echo "filename: $current_file_path line in file: $row_line_number type: cvv cvv_value: $row_line_value"  >> "$PANSEARCH_FILES_LIST"
+                      
+                      fi
+
+                      if [[ $MASK_FINDED_RESULTS == "NO" ]]; then
+                      
+                          echo "AUTO MASKING DISABLED!"
+                          
+                      else
+                      
+                          echo "AUTO MASKING ENABLED!"
+                          
+                          if [ $UNZIP_BEFORE -eq 1 ]; then
+                          
+                            echo "UNZIP_BEFORE = 1"
+                          
+                            sed -e "${row_line_number}s/$row_line_value/***/g" $file_without_ext
+                          
+                          else
+                          
+                            echo "UNZIP_BEFORE = 0"
+                          
+                            gzip -d "$current_file_path"
+                
+                            file_without_ext=`echo "${current_file_path%.*}"`
+                            
+                            sed -e "${row_line_number}s/$row_line_value/***/g" $file_without_ext
+                            
+                            gzip $file_without_ext
+                          
+                          fi
+                          
+                      fi
+                      
+                  else
+                  
+                  echo "ERROR IN LINE..."
+                  
+                  fi
+                  
+              done
+    
+            fi
+        
+    fi
+    
+  done
+
+fi
+
+# Set internal field separator to defaults
+IFS=''
+
+echo "DONE: pansearch"
+logit "DONE: pansearch"
+
+## SENDING REPORT
+
+echo "START: creating mail message"
+logit "START: creating mail message"
+
+## CALCULATE RUNTIME
+
+END_TIME=`date +%Y-%m-%d-%r`
+END_EXEC_TIMESTAMP=`date +%s`
+
+TOTAL_EXEC_TIME_SECS=`expr $END_EXEC_TIMESTAMP - $EXEC_TIMESTAMP`
+
+TOTAL_EXEC_TIME_MINS=`expr $TOTAL_EXEC_TIME_SECS / 60`
+
+echo "START TIME: $START_TIME"
+logit "START TIME: $START_TIME"
+echo "END TIME: $END_TIME"
+logit "END TIME: $END_TIME"
+echo "TOTAL in mins: $TOTAL_EXEC_TIME_MINS ; TOTAL in secs: $TOTAL_EXEC_TIME_SECS"
+logit "TOTAL in mins: $TOTAL_EXEC_TIME_MINS ; TOTAL in secs: $TOTAL_EXEC_TIME_SECS"
+
+## CALCULATE COUNT OF PANSEARCH FILES
+
+if [ ! -f "$PANSEARCH_FILES_LIST" ]; then
+
+  echo "PANSEARCH_FILES_LIST NOT PRESENTED"
+  SCAN_OVERALL_RESULT="OK"
+  
+else
+
+  echo "PANSEARCH_FILES_LIST PRESENTED, SCAN THEM"
+  PANSEARCH_FILES_COUNT=`cat $PANSEARCH_FILES_LIST | wc -l`
+
+  if [ $PANSEARCH_FILES_COUNT -eq 0 ]; then
+     SCAN_OVERALL_RESULT="OK"
+     echo "SCAN_OVERALL_RESULT OK"
+  else
+     SCAN_OVERALL_RESULT="FAIL"
+     echo "SCAN_OVERALL_RESULT FAIL"
+  fi
+  
+fi
+
+# html message to send
+
+if [ -z "$CHANGE_BODY_OF_EMAIL_MESSAGE" ]; then
+    echo "<html>
+    <body>
+        <div>
+            <p>Hello, Admins! PANSEARCH Scan completed, </p>
+            <p>Please see the logs files attached</p>
+            <p>----------------------------------</p>
+            <p>BEFORE STATUS: $OVERALL_BEFORE_STATUS</p>
+            <p>----------------------------------</p>
+            <p>SCAN STATUS: $SCAN_OVERALL_RESULT</p>
+            <p>----------------------------------</p>
+            <p>----------------------------------</p>
+            <p>START TIME: $START_TIME</p>
+            <p>----------------------------------</p>
+            <p>END TIME: $END_TIME</p>
+            <p>----------------------------------</p>
+            <p>TOTAL in mins: $TOTAL_EXEC_TIME_MINS ; TOTAL in secs: $TOTAL_EXEC_TIME_SECS</p>
+            <p>Have a nice day!</p>
+            <p>With best regards,</p>
+            <p>PANSEARCH Cron Job</p>
+        </div>
+    </body>
+    </html>" > message.html
+else
+    echo "<html>
+    <body>
+        <div>
+            <p>Hello, Admins! PANSEARCH Scan not running at this time, </p>
+            <p>Please see the logs files attached</p>
+            <p>----------------------------------</p>
+            <p>BEFORE STATUS: $OVERALL_BEFORE_STATUS</p>
+            <p>----------------------------------</p>
+            <p>SCAN STATUS: $SCAN_OVERALL_RESULT</p>
+            <p>----------------------------------</p>
+            <p>----------------------------------</p>
+            <p>START TIME: $START_TIME</p>
+            <p>----------------------------------</p>
+            <p>END TIME: $END_TIME</p>
+            <p>----------------------------------</p>
+            <p>TOTAL in mins: $TOTAL_EXEC_TIME_MINS ; TOTAL in secs: $TOTAL_EXEC_TIME_SECS</p>
+            ${CHANGE_BODY_OF_EMAIL_MESSAGE}
+            <p>Have a nice day!</p>
+            <p>With best regards,</p>
+            <p>PANSEARCH Cron Job</p>
+        </div>
+    </body>
+    </html>" > message.html
+fi
+
+mail_from="PanSearch Autoscanner <$MAILING_USER>"
+mail_to="Admins vortex <$MAILING_DESTINATION>"
+mail_subject="PanSearch Scanner Log from $CURRENT_HOSTNAME"
+mail_reply_to="Admins vortex <$MAILING_USER>"
+mail_cc=""
+
+function add_file {
+    echo "Content-Type: $1
+Content-Transfer-Encoding: base64" >> "$HTML_MESSAGE_BODY"
+
+    if [ ! -z "$2" ]; then
+        echo "Content-Disposition: inline
+Content-Id: <$2>" >> "$HTML_MESSAGE_BODY"
+    else
+        echo "Content-Disposition: attachment; filename=\"$4\"
+" >> "$HTML_MESSAGE_BODY"
+    fi
+    echo "$3
+
+" >> "$HTML_MESSAGE_BODY"
+}
+
+message_base64=$(cat message.html | base64)
+
+echo "From: $mail_from
+To: $mail_to
+Subject: $mail_subject
+Reply-To: $mail_reply_to
+Cc: $mail_cc
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary=\"MULTIPART-MIXED-BOUNDARY\"
+
+--MULTIPART-MIXED-BOUNDARY
+Content-Type: multipart/alternative; boundary=\"MULTIPART-ALTERNATIVE-BOUNDARY\"
+
+--MULTIPART-ALTERNATIVE-BOUNDARY
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+$message_base64
+--MULTIPART-ALTERNATIVE-BOUNDARY--" > "$HTML_MESSAGE_BODY"
+
+echo "START: packing to archive logs files and sending mail message"
+logit "START: packing to archive logs files and sending mail message"
+
+if [ ! -f "$LOG_FILE" ]; then
+  echo "FILE: no $LOG_FILE exists"
+  logit "FILE: no $LOG_FILE exists"
+
+else
+  echo "FILE: $LOG_FILE exists, go gzip and attach"
+  logit "FILE: $LOG_FILE exists, go gzip and attach"
+  gzip -k -- ${LOG_FILE}
+  LOG_FILE_MD5=`md5sum $LOG_FILE_GZ | awk '{print $1}'`
+  LOG_FILE_64=$(cat ${LOG_FILE_GZ} | base64)
+  echo "--MULTIPART-MIXED-BOUNDARY" >> "$HTML_MESSAGE_BODY"
+  echo "Content-Type: multipart/mixed; boundary=\"${LOG_FILE_MD5}\"" >> "$HTML_MESSAGE_BODY"
+  echo "
+             " >> "$HTML_MESSAGE_BODY"
+  echo "--${LOG_FILE_MD5}" >> "$HTML_MESSAGE_BODY"
+  add_file "application/zip" "" "$LOG_FILE_64" "LOG_FILE_GZ.gz"
+  echo "--${LOG_FILE_MD5}--" >> "$HTML_MESSAGE_BODY"
+  echo "FILE: $LOG_FILE added and compressed"
+  logit "FILE: $LOG_FILE added and compressed"
+fi
+
+if [ ! -f "$TIMESTAMP_FILE" ]; then
+  echo "FILE: no $TIMESTAMP_FILE exists"
+  logit "FILE: no $TIMESTAMP_FILE exists"
+
+else
+  echo "FILE: $TIMESTAMP_FILE exists, go gzip and attach"
+  logit "FILE: $TIMESTAMP_FILE exists, go gzip and attach"
+  gzip -k -- ${TIMESTAMP_FILE}
+  TIMESTAMP_FILE_MD5=`md5sum $TIMESTAMP_FILE_GZ | awk '{print $1}'`
+  TIMESTAMP_FILE_64=$(cat ${TIMESTAMP_FILE_GZ} | base64)
+  echo "--MULTIPART-MIXED-BOUNDARY" >> "$HTML_MESSAGE_BODY"
+  echo "Content-Type: multipart/alternative; boundary=\"${TIMESTAMP_FILE_MD5}\"" >> "$HTML_MESSAGE_BODY"
+    echo "
+             " >> "$HTML_MESSAGE_BODY"
+  echo "--${TIMESTAMP_FILE_MD5}" >> "$HTML_MESSAGE_BODY"
+  add_file "application/zip" "" "$TIMESTAMP_FILE_64" "TIMESTAMP_FILE_GZ.gz"
+  echo "--${TIMESTAMP_FILE_MD5}--" >> "$HTML_MESSAGE_BODY"
+  echo "FILE: $TIMESTAMP_FILE added and compressed"
+  logit "FILE: $TIMESTAMP_FILE added and compressed"
+fi
+
+if [ ! -f "$FILES_TO_CURRENT_SCAN" ]; then
+  echo "FILE: no $FILES_TO_CURRENT_SCAN exists"
+  logit "FILE: no $FILES_TO_CURRENT_SCAN exists"
+
+else
+  echo "FILE: $FILES_TO_CURRENT_SCAN exists, go gzip and attach"
+  logit "FILE: $FILES_TO_CURRENT_SCAN exists, go gzip and attach"
+  gzip -k -- ${FILES_TO_CURRENT_SCAN}
+  FILES_TO_CURRENT_SCAN_MD5=`md5sum $FILES_TO_CURRENT_SCAN_GZ | awk '{print $1}'`
+  FILES_TO_CURRENT_SCAN_64=$(cat ${FILES_TO_CURRENT_SCAN_GZ} | base64)
+  echo "--MULTIPART-MIXED-BOUNDARY" >> "$HTML_MESSAGE_BODY"
+  echo "Content-Type: multipart/alternative; boundary=\"${FILES_TO_CURRENT_SCAN_MD5}\"" >> "$HTML_MESSAGE_BODY"
+    echo "
+             " >> "$HTML_MESSAGE_BODY"
+  echo "--${FILES_TO_CURRENT_SCAN_MD5}" >> "$HTML_MESSAGE_BODY"
+  add_file "application/zip" "" "$FILES_TO_CURRENT_SCAN_64" "FILES_TO_CURRENT_SCAN_GZ.gz"
+  echo "--${FILES_TO_CURRENT_SCAN_MD5}--" >> "$HTML_MESSAGE_BODY"
+  echo "FILE: $FILES_TO_CURRENT_SCAN added and compressed"
+  logit "FILE: $FILES_TO_CURRENT_SCAN added and compressed"
+fi
+
+if [ ! -f "$PANSEARCH_FILES_LIST" ]; then
+  echo "FILE: no $PANSEARCH_FILES_LIST exists"
+  logit "FILE: no $PANSEARCH_FILES_LIST exists"
+
+else
+  echo "FILE: $PANSEARCH_FILES_LIST exists, go gzip and attach"
+  logit "FILE: $PANSEARCH_FILES_LIST exists, go gzip and attach"
+  gzip -k -- ${PANSEARCH_FILES_LIST}
+  PANSEARCH_FILES_LIST_MD5=`md5sum $PANSEARCH_FILES_LIST_GZ | awk '{print $1}'`
+  PANSEARCH_FILES_LIST_64=$(cat ${PANSEARCH_FILES_LIST_GZ} | base64)
+  echo "--MULTIPART-MIXED-BOUNDARY" >> "$HTML_MESSAGE_BODY"
+  echo "Content-Type: multipart/alternative; boundary=\"${PANSEARCH_FILES_LIST_MD5}\"" >> "$HTML_MESSAGE_BODY"
+  echo "
+             " >> "$HTML_MESSAGE_BODY"
+  echo "--${PANSEARCH_FILES_LIST_MD5}" >> "$HTML_MESSAGE_BODY"
+  add_file "application/zip" "" "$PANSEARCH_FILES_LIST_64" "PANSEARCH_FILES_LIST_GZ.gz"
+  echo "--${PANSEARCH_FILES_LIST_MD5}--" >> "$HTML_MESSAGE_BODY"
+  echo "FILE: $PANSEARCH_FILES_LIST added and compressed"
+  logit "FILE: $PANSEARCH_FILES_LIST added and compressed"
+fi
+
+echo "--MULTIPART-MIXED-BOUNDARY--" >> "$HTML_MESSAGE_BODY"
+
+if [[ $SEND_EMAIL_WITH_RESULTS == "NO" ]]; then
+
+  echo "sending email disabled"
+  logit "sending email disabled"
+
+else
+  curl -s "$MAILING_HOSTNAME_URI" \
+       --mail-from "$MAILING_USER" \
+       --mail-rcpt "$MAILING_DESTINATION" \
+       --ssl \
+       -T "$HTML_MESSAGE_BODY" -k --anyauth
+  res=$?
+  if test "$res" != "0"; then
+     echo "sending failed with: $res"
+  else
+     echo "OK"
+  fi
+fi
+
+echo "SCRIPT: DONE"
+logit "SCRIPT: DONE"
+{% endraw %}

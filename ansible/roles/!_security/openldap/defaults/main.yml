@@ -1,0 +1,7 @@
+---
+
+slapd_domain: "{{ slapd_domain | default(hostvars[inventory_hostname].ansible_fqdn) }}"
+slapd_organization: "My Organization"
+
+# role specific ldif files will be uploaded to this directory
+slapd_ldif_helper_dir: '/tmp/ldif'

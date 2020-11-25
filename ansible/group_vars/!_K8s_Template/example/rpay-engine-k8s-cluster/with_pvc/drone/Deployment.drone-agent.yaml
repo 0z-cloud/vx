@@ -1,0 +1,77 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "6"
+    field.cattle.io/creatorId: user-rxbgq
+  creationTimestamp: null
+  generation: 1
+  labels:
+    cattle.io/creator: norman
+    workload.user.cattle.io/workloadselector: deployment-drone-drone-agent
+  name: drone-agent
+  selfLink: /apis/extensions/v1beta1/namespaces/drone/deployments/drone-agent
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      workload.user.cattle.io/workloadselector: deployment-drone-drone-agent
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        cattle.io/timestamp: "2019-07-02T11:43:54Z"
+        workload.cattle.io/state: '{"d29ya2VyMQ==":"c-4rvhr:m-ebad64149cc7"}'
+      creationTimestamp: null
+      labels:
+        workload.user.cattle.io/workloadselector: deployment-drone-drone-agent
+    spec:
+      containers:
+      - envFrom:
+        - secretRef:
+            name: drone-secret
+            optional: false
+        - configMapRef:
+            name: drone-agent-config
+            optional: false
+        image: drone/agent
+        imagePullPolicy: Always
+        name: drone-agent
+        resources: {}
+        securityContext:
+          allowPrivilegeEscalation: true
+          capabilities: {}
+          privileged: true
+          procMount: Default
+          readOnlyRootFilesystem: false
+          runAsNonRoot: false
+        stdin: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        tty: true
+        volumeMounts:
+        - mountPath: /var/run/docker.sock
+          name: docker
+        - mountPath: /drone
+          name: drone-agent-data
+      dnsPolicy: ClusterFirst
+      nodeName: worker1
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - hostPath:
+          path: /var/run/docker.sock
+          type: ""
+        name: docker
+      - name: drone-agent-data
+        persistentVolumeClaim:
+          claimName: drone-agent-data
+status: {}

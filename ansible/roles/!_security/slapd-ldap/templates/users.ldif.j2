@@ -1,0 +1,117 @@
+# Rostislav Grigoryev
+dn: uid=vortex,ou=People,dc=vortex,dc=co
+objectClass: top
+objectClass: account
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: Rostislav Grigoryev
+uid: vortex
+uidNumber: 16859
+gidNumber: 1000
+# mail: vortex@vortex.co
+homeDirectory: /home/vortex
+loginShell: /bin/bash
+gecos: adam
+userPassword: {{ default_password.stdout }}
+shadowLastChange: 0
+shadowMax: 0
+shadowWarning: 0
+
+# Charlie CI
+dn: uid=charlie.ci,ou=People,dc=vortex,dc=co
+objectClass: top
+objectClass: account
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: Charlie CI
+uid: charlie.ci
+uidNumber: 16861
+gidNumber: 1000
+# mail: charlie.ci@example.com
+homeDirectory: /home/charlie.ci
+loginShell: /bin/bash
+gecos: adam
+userPassword: {{ default_password.stdout }}
+shadowLastChange: 0
+shadowMax: 0
+shadowWarning: 0
+
+# Dylan Deploy
+dn: uid=dylan.deploy,ou=People,dc=vortex,dc=co
+objectClass: top
+objectClass: account
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: Dylan Deploy
+uid: dylan.deploy
+uidNumber: 16862
+gidNumber: 1000
+# mail: dylan.deploy@example.com
+homeDirectory: /home/dylan.deploy
+loginShell: /bin/bash
+gecos: adam
+userPassword: {{ default_password.stdout }}
+shadowLastChange: 0
+shadowMax: 0
+shadowWarning: 0
+
+# Edward Editor
+dn: uid=edward.editor,ou=People,dc=vortex,dc=co
+objectClass: top
+objectClass: account
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: Edward Editor
+uid: edward.editor
+uidNumber: 16863
+gidNumber: 1000
+# mail: edward.editor@example.com
+homeDirectory: /home/edward.editor
+loginShell: /bin/bash
+gecos: adam
+userPassword: {{ default_password.stdout }}
+shadowLastChange: 0
+shadowMax: 0
+shadowWarning: 0
+
+# Frank Fixer
+dn: uid=frank.fixer,ou=People,dc=vortex,dc=co
+objectClass: top
+objectClass: account
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: Frank Fixer
+uid: frank.fixer
+uidNumber: 16864
+gidNumber: 1000
+# mail: frank.fixer@example.com
+homeDirectory: /home/frank.fixer
+loginShell: /bin/bash
+gecos: adam
+userPassword: {{ default_password.stdout }}
+shadowLastChange: 0
+shadowMax: 0
+shadowWarning: 0
+
+# Gerrit Service User
+dn: cn=gerrit_serviceuser,ou=People,dc=vortex,dc=co
+objectClass: person
+sn: Gerrit Service User
+description: Service account for Gerrit access to LDAP
+userPassword: {{ default_password.stdout }}
+
+# Tim Tester
+dn:cn=Tim Tester,ou=People,dc=vortex,dc=co
+cn: Tim Tester
+uid: tim.tester
+gn: Tim
+sn: Tester
+o: Work
+l: London
+street: 221B Baker Street
+postalCode: NW1 6XE
+telephoneNumber: +44 123 1234 1234
+mail: tim.tester@example.com
+userPassword: {{ default_password.stdout }}
+objectClass: top
+objectClass: inetOrgPerson

@@ -1,0 +1,70 @@
+- name: CREATE CONFIGURATION | Tempalte Cluster Init configuration
+  template: 
+    src: cluster_init.yaml
+    dest: /opt/ca/kube/cluster_init.yaml
+  when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: 1st MASTER | STOPPING KUBELET ON FIRST MASTER
+  systemd:
+    name: "{{ item }}"
+    state: stopped
+  when: inventory_hostname in groups['kubernetes-master']
+  with_items:
+    - kubelet
+
+- name: 1st MASTER | Init first master
+  shell: kubeadm init --config=/opt/ca/kube/cluster_init.yaml --ignore-preflight-errors=all
+  register: get_init_master_result
+  when: inventory_hostname in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: DEBUG 1st MASTER | Show status of init first master
+  debug:
+    msg: "{{ get_init_master_result.stdout_lines }}"
+  when: debug_playbook_stdout is defined and inventory_hostname in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: 1st MASTER | Get /etc/kubernetes/pki contents
+  shell: ls -la /etc/kubernetes/pki/
+  register: get_etc_kubernetes_pki
+  when: inventory_hostname in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: DEBUG 1st MASTER | Show status of get /etc/kubernetes/pki contents
+  debug:
+    msg: "{{ get_etc_kubernetes_pki.stdout_lines }}"
+  when: debug_playbook_stdout is defined and inventory_hostname in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: ALL CLUSTER NODES SYNC FROM MASTER | Copy /etc/kubernetes/pki certificates from first master to all other nodes
+  synchronize:
+    src: "/etc/kubernetes/pki"
+    dest: "/etc/kubernetes/"
+  delegate_to: "{{ groups['kubernetes-master'][0] }}"
+  when: inventory_hostname not in groups['kubernetes-master'][0] and inventory_hostname in groups['kubernetes-cluster']
+  tags: certificates_copy
+
+- name: PREPARE OTHER MASTERS | Remove needed apiserver certs
+  shell: rm /etc/kubernetes/pki/apiserver.*
+  when: inventory_hostname not in groups['kubernetes-master'][0] and inventory_hostname in groups['kubernetes-cluster']
+
+- name: STOPPING KUBELET | Stopping kubelet service on other masters
+  systemd:
+    name: "{{ item }}"
+    state: stopped
+  when: inventory_hostname not in groups['kubernetes-master'][0]
+  with_items:
+    - kubelet
+
+- name: OTHER MASTER | Init other master to cluster
+  shell: kubeadm init --config=/opt/ca/kube/cluster_init.yaml --ignore-preflight-errors=all
+  register: get_init_other_masters_result
+  when: inventory_hostname not in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: DEBUG OTHER MASTERS | Show status of init other masters
+  debug:
+    msg: "{{ get_init_other_masters_result.stdout_lines }}"
+  when: debug_playbook_stdout is defined and inventory_hostname not in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: MASTERS | Copy result config to root home dir for able to manage the cluster
+  command: "{{ item }}"
+  with_items:
+    - mkdir -p /root/.kube
+    - cp -R /etc/kubernetes/admin.conf /root/.kube/config
+  when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']

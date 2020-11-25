@@ -1,0 +1,561 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: "2019-06-28T12:33:07Z"
+    labels:
+      app: business
+      chart: business-0.1.0
+      heritage: Tiller
+      io.cattle.field/appId: rpay-engine
+      release: rpay-engine
+    name: business
+    namespace: rpay-engine
+  spec:
+    ports:
+    - port: 4000
+      protocol: TCP
+      targetPort: 4000
+    selector:
+      app: business
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: "2019-06-28T12:33:07Z"
+    labels:
+      app: business-docs
+      chart: business-docs-0.1.0
+      heritage: Tiller
+      io.cattle.field/appId: rpay-engine
+      release: rpay-engine
+    name: business-docs
+    namespace: rpay-engine
+  spec:
+    ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 80
+    selector:
+      app: business-docs
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: "2019-06-28T12:33:07Z"
+    labels:
+      app: card-storage
+      chart: card-storage-0.1.0
+      heritage: Tiller
+      io.cattle.field/appId: rpay-engine
+      release: rpay-engine
+    name: card-storage
+    namespace: rpay-engine
+  spec:
+    ports:
+    - port: 3200
+      protocol: TCP
+      targetPort: 3200
+    selector:
+      app: card-storage
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      auth.istio.io/8089: NONE
+      field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":32444,"protocol":"TCP","serviceName":"rpay-engine:cm-acme-http-solver-dk2z6","allNodes":true}]'
+    creationTimestamp: "2019-07-02T19:03:11Z"
+    generateName: cm-acme-http-solver-
+    labels:
+      certmanager.k8s.io/acme-http-domain: "1998915948"
+      certmanager.k8s.io/acme-http-token: "992415373"
+    name: cm-acme-http-solver-dk2z6
+    namespace: rpay-engine
+  spec:
+    externalTrafficPolicy: Cluster
+    ports:
+    - name: http
+      nodePort: 32444
+      port: 8089
+      protocol: TCP
+      targetPort: 8089
+    selector:
+      certmanager.k8s.io/acme-http-domain: "1998915948"
+      certmanager.k8s.io/acme-http-token: "992415373"
+    sessionAffinity: None
+    type: NodePort
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      auth.istio.io/8089: NONE
+      field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":31959,"protocol":"TCP","serviceName":"rpay-engine:cm-acme-http-solver-zwd6x","allNodes":true}]'
+    creationTimestamp: "2019-07-02T19:03:11Z"
+    generateName: cm-acme-http-solver-
+    labels:
+      certmanager.k8s.io/acme-http-domain: "1339099049"
+      certmanager.k8s.io/acme-http-token: "1227296494"
+    name: cm-acme-http-solver-zwd6x
+    namespace: rpay-engine
+  spec:
+    externalTrafficPolicy: Cluster
+    ports:
+    - name: http
+      nodePort: 31959
+      port: 8089
+      protocol: TCP
+      targetPort: 8089
+    selector:
+      certmanager.k8s.io/acme-http-domain: "1339099049"
+      certmanager.k8s.io/acme-http-token: "1227296494"
+    sessionAffinity: None
+    type: NodePort
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: "2019-06-28T12:33:07Z"
+    labels:
+      app: core
+      chart: core-0.1.0
+      heritage: Tiller
+      io.cattle.field/appId: rpay-engine
+      release: rpay-engine
+    name: core
+    namespace: rpay-engine
+  spec:
+    ports:
+    - port: 3000
+      protocol: TCP
+      targetPort: 3000
+    selector:
+      app: core
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      field.cattle.io/targetWorkloadIds: '["deployment:rpay-engine:core-old"]'
+      workload.cattle.io/targetWorkloadIdNoop: "true"
+      workload.cattle.io/workloadPortBased: "true"
+    creationTimestamp: "2019-07-03T20:54:32Z"
+    labels:
+      cattle.io/creator: norman
+    name: core-old
+    namespace: rpay-engine
+  spec:
+    ports:
+    - name: 3000tcp2
+      port: 3000
+      protocol: TCP
+      targetPort: 3000
+    selector:
+      workload.user.cattle.io/workloadselector: deployment-rpay-engine-core-old
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: "2019-06-28T12:33:07Z"
+    labels:
+      app: demo
+      chart: demo-0.1.0
+      heritage: Tiller
+      io.cattle.field/appId: rpay-engine
+      release: rpay-engine
+    name: demo
+    namespace: rpay-engine
+  spec:
+    ports:
+    - port: 8000
+      protocol: TCP
+      targetPort: 8000
+    selector:
+      app: demo
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: "2019-06-28T12:33:07Z"
+    labels:
+      app: f-guard-admin
+      chart: f-guard-admin-0.1.0
+      heritage: Tiller
+      io.cattle.field/appId: rpay-engine
+      release: rpay-engine
+    name: f-guard-admin
+    namespace: rpay-engine
+  spec:
+    ports:
+    - port: 5000
+      protocol: TCP
+      targetPort: 5000
+    selector:
+      app: f-guard-admin
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: "2019-06-28T12:33:07Z"
+    labels:
+      app: flexy-guard
+      chart: flexy-guard-0.1.0
+      heritage: Tiller
+      io.cattle.field/appId: rpay-engine
+      release: rpay-engine
+    name: flexy-guard
+    namespace: rpay-engine
+  spec:
+    ports:
+    - port: 5000
+      protocol: TCP
+      targetPort: 5000
+    selector:
+      app: flexy-guard
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      field.cattle.io/targetWorkloadIds: '["deployment:rpay-engine:wallet"]'
+    creationTimestamp: "2019-07-06T21:53:31Z"
+    labels:
+      cattle.io/creator: norman
+    name: ingress-cc8d32ff010cd1dfbdf3430a79b4f242
+    namespace: rpay-engine
+  spec:
+    ports:
+    - port: 8800
+      protocol: TCP
+      targetPort: 8800
+    selector:
+      workloadID_ingress-cc8d32ff010cd1dfbdf3430a79b4f242: "true"
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: "2019-06-28T12:33:07Z"
+    labels:
+      app: metabase
+      chart: metabase-0.1.0
+      heritage: Tiller
+      io.cattle.field/appId: rpay-engine
+      release: rpay-engine
+    name: metabase
+    namespace: rpay-engine
+  spec:
+    ports:
+    - port: 3000
+      protocol: TCP
+      targetPort: 3000
+    selector:
+      app: metabase
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: "2019-06-28T12:33:07Z"
+    labels:
+      app: metabase-setup
+      chart: metabase-setup-0.1.0
+      heritage: Tiller
+      io.cattle.field/appId: rpay-engine
+      release: rpay-engine
+    name: metabase-setup
+    namespace: rpay-engine
+  spec:
+    ports:
+    - port: 5060
+      protocol: TCP
+      targetPort: 5060
+    selector:
+      app: metabase-setup
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      field.cattle.io/targetWorkloadIds: '["deployment:rpay-engine:minio"]'
+      workload.cattle.io/targetWorkloadIdNoop: "true"
+      workload.cattle.io/workloadPortBased: "true"
+    creationTimestamp: "2019-07-06T19:58:37Z"
+    labels:
+      cattle.io/creator: norman
+    name: minio
+    namespace: rpay-engine
+  spec:
+    ports:
+    - name: 9001tcp90003-minio
+      port: 9000
+      protocol: TCP
+      targetPort: 9000
+    selector:
+      workload.user.cattle.io/workloadselector: deployment-rpay-engine-minio
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      field.cattle.io/creatorId: user-rxbgq
+      field.cattle.io/ipAddresses: "null"
+      field.cattle.io/targetDnsRecordIds: '["rpay-engine:mongo-mongodb"]'
+      field.cattle.io/targetWorkloadIds: "null"
+    creationTimestamp: "2019-07-06T18:39:39Z"
+    labels:
+      cattle.io/creator: norman
+    name: mongo
+    namespace: rpay-engine
+  spec:
+    clusterIP: None
+    ports:
+    - name: default
+      port: 42
+      protocol: TCP
+      targetPort: 42
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      field.cattle.io/targetWorkloadIds: '["deployment:rpay-engine:mongo-express"]'
+      workload.cattle.io/targetWorkloadIdNoop: "true"
+      workload.cattle.io/workloadPortBased: "true"
+    creationTimestamp: "2019-07-03T11:57:06Z"
+    labels:
+      cattle.io/creator: norman
+    name: mongo-express
+    namespace: rpay-engine
+  spec:
+    ports:
+    - name: 8081tcp300001-mongo-express
+      port: 8081
+      protocol: TCP
+      targetPort: 8081
+    selector:
+      workload.user.cattle.io/workloadselector: deployment-rpay-engine-mongo-express
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      field.cattle.io/ipAddresses: "null"
+      field.cattle.io/targetDnsRecordIds: "null"
+      field.cattle.io/targetWorkloadIds: "null"
+    creationTimestamp: "2019-07-06T18:18:14Z"
+    labels:
+      app: mongodb
+      chart: mongodb-5.0.0
+      heritage: Tiller
+      io.cattle.field/appId: mongo
+      release: mongo
+    name: mongo-mongodb
+    namespace: rpay-engine
+  spec:
+    ports:
+    - name: mongodb
+      port: 27017
+      protocol: TCP
+      targetPort: mongodb
+    selector:
+      app: mongodb
+      release: mongo
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      field.cattle.io/targetWorkloadIds: '["deployment:rpay-engine:postgres"]'
+      workload.cattle.io/targetWorkloadIdNoop: "true"
+      workload.cattle.io/workloadPortBased: "true"
+    creationTimestamp: "2019-07-03T13:33:48Z"
+    labels:
+      cattle.io/creator: norman
+    name: postgres
+    namespace: rpay-engine
+  spec:
+    clusterIP: None
+    ports:
+    - name: default
+      port: 42
+      protocol: TCP
+      targetPort: 42
+    selector:
+      workload.user.cattle.io/workloadselector: deployment-rpay-engine-postgres
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: "2019-06-28T12:33:07Z"
+    labels:
+      app: rate
+      chart: rate-0.1.0
+      heritage: Tiller
+      io.cattle.field/appId: rpay-engine
+      release: rpay-engine
+    name: rate
+    namespace: rpay-engine
+  spec:
+    ports:
+    - port: 4040
+      protocol: TCP
+      targetPort: 4040
+    selector:
+      app: rate
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      field.cattle.io/targetWorkloadIds: '["deployment:rpay-engine:redis"]'
+      workload.cattle.io/targetWorkloadIdNoop: "true"
+      workload.cattle.io/workloadPortBased: "true"
+    creationTimestamp: "2019-06-28T14:49:05Z"
+    labels:
+      cattle.io/creator: norman
+    name: redis
+    namespace: rpay-engine
+  spec:
+    clusterIP: None
+    ports:
+    - name: default
+      port: 42
+      protocol: TCP
+      targetPort: 42
+    selector:
+      workload.user.cattle.io/workloadselector: deployment-rpay-engine-redis
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: "2019-06-28T12:33:07Z"
+    labels:
+      app: settings
+      chart: settings-0.1.0
+      heritage: Tiller
+      io.cattle.field/appId: rpay-engine
+      release: rpay-engine
+    name: settings
+    namespace: rpay-engine
+  spec:
+    ports:
+    - port: 6001
+      protocol: TCP
+      targetPort: 6001
+    selector:
+      app: settings
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      field.cattle.io/targetWorkloadIds: '["deployment:rpay-engine:test"]'
+      workload.cattle.io/targetWorkloadIdNoop: "true"
+      workload.cattle.io/workloadPortBased: "true"
+    creationTimestamp: "2019-06-28T14:13:59Z"
+    labels:
+      cattle.io/creator: norman
+    name: test
+    namespace: rpay-engine
+  spec:
+    clusterIP: None
+    ports:
+    - name: default
+      port: 42
+      protocol: TCP
+      targetPort: 42
+    selector:
+      workload.user.cattle.io/workloadselector: deployment-rpay-engine-test
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      field.cattle.io/targetWorkloadIds: '["deployment:rpay-engine:wallet"]'
+      workload.cattle.io/targetWorkloadIdNoop: "true"
+      workload.cattle.io/workloadPortBased: "true"
+    creationTimestamp: "2019-07-03T12:02:12Z"
+    labels:
+      cattle.io/creator: norman
+    name: wallet
+    namespace: rpay-engine
+  spec:
+    clusterIP: None
+    ports:
+    - name: default
+      port: 42
+      protocol: TCP
+      targetPort: 42
+    selector:
+      workload.user.cattle.io/workloadselector: deployment-rpay-engine-wallet
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""

@@ -1,0 +1,51 @@
+#### GENERATE NEW HOST RSA DSA ECDSA KEYS
+
+# - name: Install pip package pexpect
+#   pip:
+#     name: pexpect
+#     state: latest
+
+# - name: Generate /etc/ssh/ RSA host key
+#   expect:
+#     command: ssh-keygen -q -t rsa -N '' -f /wrk/ssh_keys/ssh_host_rsa_key 
+#     responses: 
+#       "Overwrite (y/n)?": "y\n"
+
+# - name: Generate /etc/ssh/ DSA host key
+#   expect:
+#     command: ssh-keygen -q -t dsa -N '' -f /wrk/ssh_keys/ssh_host_dsa_key 
+#     responses: 
+#       "Overwrite (y/n)?": "y\n"
+
+# - name: Generate /etc/ssh/ ECDSA host key
+#   expect:
+#     command: ssh-keygen -q -t ecdsa -N '' -f /wrk/ssh_keys/ssh_host_ecdsa_key 
+#     responses: 
+#       "Overwrite (y/n)?": "y\n"
+
+
+# - name: Generate new machine host ssh-keys
+#   openssh_keypair:
+#     path: "/wrk/ssh_keys/ssh_host_{{ item }}_key"
+#     force: True
+#     comment: "{{ inventory_hostname }}"
+#     type: "{{ item }}"
+#   register: new_host_keys
+#   with_items:
+#     - rsa
+#     - dsa
+#     - ecdsa
+#   when: full_clean is defined
+
+# - name: Generate new machine host ssh-keys
+#   openssh_keypair:
+#     path: "/wrk/ssh_keys/ssh_host_{{ item }}_key"
+#     force: True
+#     comment: "{{ inventory_hostname }}"
+#     type: "{{ item }}"
+#   register: new_host_keys
+#   with_items:
+#     - rsa
+#     - dsa
+#     - ecdsa
+#   when: full_clean is defined

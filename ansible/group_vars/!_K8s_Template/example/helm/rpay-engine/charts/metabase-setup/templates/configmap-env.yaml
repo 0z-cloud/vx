@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "metabase-setup.name" . }}-env
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ template "metabase-setup.name" . }}
+    chart: {{ template "metabase-setup.chart" . }}
+data:
+{{ toYaml .Values.env | indent 2 }}  

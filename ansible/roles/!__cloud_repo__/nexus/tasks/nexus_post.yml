@@ -1,0 +1,49 @@
+---
+- name: Create Nexus Systemd Unit file
+  template:
+    src: nexus.service.j2
+    dest: /lib/systemd/system/nexus.service
+    mode: 0644
+  register: nexus_systemd
+
+- name: Ensure Nexus started and enabled
+  systemd:
+    name: nexus
+    state: started
+    enabled: yes
+    daemon_reload: yes
+
+- name: Configure VM Options
+  template:
+    src: nexus.vmoptions.j2
+    dest: "{{ nexus_instance_settings.nexus_config_vmoptions_file_path }}"
+  notify: Restart Nexus
+
+- name: Wait until Nexus config is created
+  wait_for:
+    path: "{{ nexus_instance_settings.nexus_config_file_path }}"
+    state: present
+
+- name: Configure Nexus
+  template:
+    src: nexus.properties.j2
+    dest: "{{ nexus_instance_settings.nexus_config_file_path }}"
+  notify: Restart Nexus
+
+- name: Wait until initial admin password is appear
+  register: nexus_is_find_init_token
+  wait_for:
+    timeout: 60
+    path: "{{ nexus_instance_settings.nexus_admin_init_password_path }}"
+  ignore_errors: yes
+
+- name: Retry for expose initial password
+  when: not nexus_is_find_init_token.failed
+  block:
+    - name: Get initial admin password
+      command: "cat {{ nexus_instance_settings.nexus_admin_init_password_path }}"
+      register: nexus_initial_admin_password
+      changed_when: false
+    - name: Initial admin password is
+      debug:
+        msg: "{{ nexus_initial_admin_password.stdout }}"

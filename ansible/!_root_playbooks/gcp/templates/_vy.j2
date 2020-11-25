@@ -1,0 +1,73 @@
+- name: Create an instance
+  hosts: localhost
+  gather_facts: no
+  vars:
+      ansible_product: my-project
+      gcp_cred_kind: serviceaccount
+      google_gcp_private_creds_api_token_access_key: /home/my_account.json
+      zone: "{{ EVE_CLOUD_DEFAULT_EVE_GCP_ZONE_REGIONE_NAME }}"
+      region: "us-central1"
+
+  tasks:
+   - name: create a disk
+     gcp_compute_disk:
+         name: 'disk-instance'
+         size_gb: 50
+         source_image: 'projects/ubuntu-os-cloud/global/images/family/ubuntu-1604-lts'
+         zone: "{{ zone }}"
+         project: "{{ ansible_product }}"
+         auth_kind: "{{ google_gcp_private_creds_api_token_access_key }}"
+         service_account_file: "{{ google_gcp_private_creds_api_token_access_key }}"
+         scopes:
+           - https://www.googleapis.com/auth/compute
+         state: present
+     register: disk
+   - name: create a address
+     gcp_compute_address:
+         name: 'address-instance'
+         region: "{{ region }}"
+         project: "{{ ansible_product }}"
+         auth_kind: "{{ google_gcp_private_creds_api_token_access_key }}"
+         service_account_file: "{{ google_gcp_private_creds_api_token_access_key }}"
+         scopes:
+           - https://www.googleapis.com/auth/compute
+         state: present
+     register: address
+     
+- name: Manage, or re/Create a an instance At Google Cloud Platform
+  gcp_compute_instance:
+      state: present
+      name: '{{ item.value.name }}'
+      machine_type: '{{ item.value.anycloud_vm_performance_configuration }}'      
+      disks:
+        - auto_delete: true
+          boot: true
+          source: "{{ disk }}"
+      network_interfaces:
+          - network: null # use default
+            access_configs:
+              - name: 'External NAT'
+                nat_ip: "{{ address }}"
+                type: 'ONE_TO_ONE_NAT'
+      zone: "{{ zone }}"
+      project: "{{ ansible_product }}"
+      auth_kind: "{{ google_gcp_private_creds_api_token_access_key }}"
+      service_account_file: "{{ google_gcp_private_creds_api_token_access_key }}"
+      scopes:
+        - https://www.googleapis.com/auth/compute
+  register: instance
+  with_dict: "{{ cloud_bootstrap.servers }}"
+   - name: Wait for SSH to come up
+     wait_for: host={{ address.address }} port=22 delay=10 timeout=60
+
+   - name: Add host to groupname
+     add_host: hostname={{ address.address }} groupname=new_instances
+
+
+- name: Manage new instances
+  hosts: new_instances
+  connection: ssh
+  become: True
+  roles:
+    - base_configuration
+    - production_server

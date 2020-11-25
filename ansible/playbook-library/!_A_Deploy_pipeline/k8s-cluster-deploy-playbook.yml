@@ -1,0 +1,8 @@
+- name: STACK | Run to remote generate the k8s and deploy stack
+  become: true
+  hosts: "{{ HOSTS | default('kubernetes-master') }}"
+  vars_files:
+    - "./group_vars/!_ApplicationDocker_Template/docker-compose-template.yml"
+  roles:
+    - name: Run the k8s_deploy role
+      role: roles/!_cloud/k8s_deploy

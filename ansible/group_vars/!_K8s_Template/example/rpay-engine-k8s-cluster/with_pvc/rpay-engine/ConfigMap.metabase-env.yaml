@@ -1,0 +1,15 @@
+apiVersion: v1
+data:
+  MB_DB_HOST: postgres
+  MB_DB_PORT: "5432"
+  MB_DB_TYPE: postgres
+  MB_DB_USER: postgres
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  labels:
+    app: metabase
+    chart: metabase-0.1.0
+    io.cattle.field/appId: rpay-engine
+  name: metabase-env
+  selfLink: /api/v1/namespaces/rpay-engine/configmaps/metabase-env

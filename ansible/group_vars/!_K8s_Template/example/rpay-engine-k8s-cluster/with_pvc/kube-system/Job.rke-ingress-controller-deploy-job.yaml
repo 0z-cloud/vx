@@ -1,0 +1,64 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  creationTimestamp: null
+  labels:
+    controller-uid: 3df750ca-9851-11e9-890b-b42e994820d9
+    job-name: rke-ingress-controller-deploy-job
+  name: rke-ingress-controller-deploy-job
+  selfLink: /apis/batch/v1/namespaces/kube-system/jobs/rke-ingress-controller-deploy-job
+spec:
+  backoffLimit: 10
+  completions: 1
+  parallelism: 1
+  selector:
+    matchLabels:
+      controller-uid: 3df750ca-9851-11e9-890b-b42e994820d9
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        controller-uid: 3df750ca-9851-11e9-890b-b42e994820d9
+        job-name: rke-ingress-controller-deploy-job
+      name: rke-deploy
+    spec:
+      containers:
+      - command:
+        - kubectl
+        - apply
+        - -f
+        - /etc/config/rke-ingress-controller.yaml
+        image: rancher/hyperkube:v1.13.5-rancher1
+        imagePullPolicy: IfNotPresent
+        name: rke-ingress-controller-pod
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+      dnsPolicy: ClusterFirst
+      hostNetwork: true
+      nodeName: worker1
+      restartPolicy: Never
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: rke-job-deployer
+      serviceAccountName: rke-job-deployer
+      terminationGracePeriodSeconds: 30
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/controlplane
+        operator: Exists
+      - effect: NoExecute
+        key: node-role.kubernetes.io/etcd
+        operator: Exists
+      volumes:
+      - configMap:
+          defaultMode: 420
+          items:
+          - key: rke-ingress-controller
+            path: rke-ingress-controller.yaml
+          name: rke-ingress-controller
+        name: config-volume
+status: {}

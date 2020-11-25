@@ -1,0 +1,63 @@
+#!/bin/bash
+
+set -e
+
+{% for item in powerdns_postgresql_settings.web_ui_db %}
+
+#### BASE PART
+
+useradd_default_route53master_{{ item }} () {
+    #######################
+    echo "Start add Route53User to DB {{ item }}"
+    #######################
+    psql -v ON_ERROR_STOP=1 --username "{{ powerdns_postgresql_settings.user }}" -qtA <<-EOSQL 
+    \c {{ item }};  
+    INSERT INTO public.user (username, password, firstname, lastname, role_id) VALUES
+('route53master', '\$2b\$12\$XFyG0mvGSRx.E2q71E5lB.pl/y0X1o3TdRFHConKu6PMyxu7XrcZO', 'Administrator', 'Route53', '1');
+EOSQL
+    #######################
+    echo "Completed adding Route53User to DB {{ item }}"
+    #######################
+   return $@
+}
+
+route53usercheck_{{ item }} () {
+    #######################
+    echo "Start get Route53User from DB {{ item }}"
+    #######################
+    psql -v ON_ERROR_STOP=1 --username "{{ powerdns_postgresql_settings.user }}" -qtA <<-EOSQL 
+    \c {{ item }}; SELECT public.id FROM public.user WHERE 'route53master' ~ username;
+EOSQL
+    echo "$@"
+    #######################
+    echo "Completed, return result of query for Route53User from DB {{ item }}"
+    #######################
+    #return $@
+}
+
+perform_web_user_check_{{ item }} () {
+    #######################
+    echo "Start User Check {{ item }}"
+    #######################
+    VALUE_{{ item }}=$(route53usercheck_{{ item }})
+    VALUE_{{ item }}_D="1"
+
+    echo "VALUE_{{ item }}: $VALUE_{{ item }}"
+    echo "VALUE_{{ item }}_D: $VALUE_{{ item }}_D"
+
+    if [[ $VALUE_{{ item }} -eq $VALUE_{{ item }}_D ]]; then
+        echo "User Exists in DB {{ item }}"
+    else
+        echo "We need add Master User to DB {{ item }}"
+        useradd_default_route53master_{{ item }};
+    fi
+    #######################
+    echo "Completed for DB {{ item }}"
+    #######################
+}
+
+## SETUP DB NAME {{ item }};
+
+perform_web_user_check_{{ item }};
+
+{% endfor %}

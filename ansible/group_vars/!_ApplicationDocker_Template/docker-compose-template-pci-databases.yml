@@ -1,0 +1,145 @@
+# NG DEPLOY STRATEGY
+
+all_services_remap_docker_compose_generate:
+
+    elasticsearch:
+      image: "elasticsearch"
+      tag: "latest"
+      location: "{{ default_docker_image_environment_location }}"
+      ports: "{{ elasticsearch_service_listen_port }}:{{ elasticsearch_service_listen_port }}"
+      volumes:
+        - "{{ elasticsearch_stack_settings.directories.data }}:/usr/share/elasticsearch/data/:rw"
+        - "{{ elasticsearch_stack_settings.directories.logs }}:/usr/share/elasticsearch/logs/:rw"
+        - "{{ elasticsearch_stack_settings.directories.catalina_logs }}:/var/log/elasticsearch/:rw"
+        - "{{ elasticsearch_stack_settings.directories.etc }}/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:bind"
+      scale: 1
+      mode: global
+      endpoint_mode: vip
+      order: start-first
+      container_type: service
+      resources:
+        limits:
+          cpus: "6"
+          memory: "6045M"
+        reservations:
+          cpus: "2"
+          memory: "6045M"
+
+    mongo:
+      image: "mongo"
+      tag: "latest"
+      location: "{{ default_docker_image_environment_location }}"
+      ports: "{{ mongo_backend_service_listen_port }}:27017"
+      volumes:
+        - "{{ default_docker_database_mongo_environment_location }}"
+      scale: 1
+      mode: global
+      endpoint_mode: vip
+      order: start-first
+      container_type: database
+
+    postgres:
+      image: "postgres"
+      tag: "latest"
+      volumes:
+        - "{{ default_docker_database_postgresql_environment_location }}"
+        - "{{ default_docker_database_postgresql_logs_environment_location }}"
+      location: "{{ default_docker_image_environment_location }}"
+      ports: "{{ pgbouncer_backend_service_listen_port }}:5432"
+      scale: 1
+      healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U postgres"]
+        interval: 50s
+        timeout: 5s
+        retries: 10
+      mode: global
+      endpoint_mode: vip
+      order: start-first
+      container_type: database
+      resources:
+        limits:
+          cpus: "6"
+          memory: "6045M"
+        reservations:
+          cpus: "2"
+          memory: "6045M"
+
+    redis:
+      image: "redis"
+      tag: "latest"
+      command: "redis-server"
+      location: "{{ default_docker_image_environment_location }}"
+      ports: "{{ redis_backend_service_listen_port }}:6379"
+      scale: 1
+      mode: global
+      endpoint_mode: vip
+      order: start-first
+      container_type: database
+
+    minio:
+      image: "minio"
+      tag: "latest"
+      volumes:
+        - "{{ default_docker_database_minio_environment_location }}"
+        - "{{ default_docker_database_minio_config_environment_location }}"
+      command: "server /export"
+      location: "{{ default_docker_image_environment_location }}"
+      ports: "{{ minio_backend_service_listen_port }}:9000"
+      scale: 1
+      attached_networks_main: "default"
+      deployment_strategy: high_availability
+      depends_on_condition:
+        postgres:
+          condition: service_healthy
+      mode: global
+      endpoint_mode: vip
+      order: start-first
+      no_healthcheck: true
+      container_type: database
+
+    mariadb:
+      image: "mariadb"
+      build_context: dockerfiles
+      tag: "latest"
+      volumes:
+        - "{{ default_docker_database_mariadb_environment_location }}"
+        - "{{ default_docker_database_mariadb_logs_environment_location }}"
+      location: "{{ default_docker_image_environment_location }}"
+      ports: 
+        - "{{ mariadb_service_listen_port }}:{{ mariadb_service_listen_port }}"
+      scale: 1
+      attached_networks_main: "{{ docker_compose_netwroks.default }}"
+      healthcheck:
+          test: ["CMD", "mysqladmin", "ping", "--silent"]
+      # healthcheck:
+      #   test: ["CMD-SHELL", "pg_isready -U postgres"]
+      #   interval: 50s
+      #   timeout: 5s
+      #   retries: 10
+      mode: global
+      endpoint_mode: vip
+      order: start-first
+      container_type: database
+      resources:
+        limits:
+          cpus: "4"
+          memory: "2045M"
+        reservations:
+          cpus: "2"
+          memory: "2045M"
+      placement: manager
+      k8s_container_type: database
+      k8s_service_protocol: HTTPS
+      k8s_service_placement: true
+      k8s_storage_space_size: 20Gi
+    # pgbouncer:
+    #   image: "pgbouncer"
+    #   tag: "latest"
+    #   location: "{{ default_docker_image_environment_location }}"
+    #   ports: "{{ pgbouncer_backend_service_listen_port }}:5432"
+    #   scale: 1
+    #   mode: global
+    #   endpoint_mode: vip
+    #   order: start-first
+    #   container_type: database
+    #   no_healthcheck: true

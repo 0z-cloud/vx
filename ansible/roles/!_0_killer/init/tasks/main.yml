@@ -1,0 +1,18 @@
+# ## INIT
+
+- name: GET LA INFO | Check load average
+  shell: uptime | awk '{print $10,$11,$12}'
+  register: load_average
+  when: debug_playbook_stdout is defined
+
+- name: GET CPU INFO | Check count of cpu 
+  shell: cat /proc/cpuinfo | grep 'cpu MHz' | wc -l
+  register: cpu_count
+  when: debug_playbook_stdout is defined
+
+- name: INFORMATION! ATTENTION!
+  vars:
+     MESSAGE_IN: "[CPU COUNT]: {{ cpu_count.stdout_lines | join }} | [LA]: {{ load_average.stdout_lines | join }}"
+  debug: 
+    msg: "{{ attention_phase_1.split('\n') }}"
+  when: debug_playbook_stdout is defined

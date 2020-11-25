@@ -1,0 +1,111 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+  creationTimestamp: null
+  generation: 1
+  labels:
+    app: openebs
+    chart: openebs-0.9.0
+    component: apiserver
+    heritage: Tiller
+    io.cattle.field/appId: openebs
+    name: maya-apiserver
+    release: openebs
+  name: openebs-apiserver
+  selfLink: /apis/extensions/v1beta1/namespaces/openebs/deployments/openebs-apiserver
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: openebs
+      release: openebs
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: openebs
+        component: apiserver
+        name: maya-apiserver
+        openebs.io/component-name: maya-apiserver
+        openebs.io/version: 0.9.0
+        release: openebs
+    spec:
+      containers:
+      - env:
+        - name: OPENEBS_IO_INSTALL_DEFAULT_CSTOR_SPARSE_POOL
+          value: "false"
+        - name: OPENEBS_IO_CSTOR_POOL_SPARSE_DIR
+          value: /opt/openebs/sparse
+        - name: OPENEBS_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        - name: OPENEBS_SERVICE_ACCOUNT
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: spec.serviceAccountName
+        - name: OPENEBS_MAYA_POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: OPENEBS_IO_JIVA_CONTROLLER_IMAGE
+          value: quay.io/openebs/jiva:0.9.0
+        - name: OPENEBS_IO_JIVA_REPLICA_IMAGE
+          value: quay.io/openebs/jiva:0.9.0
+        - name: OPENEBS_IO_JIVA_REPLICA_COUNT
+          value: "3"
+        - name: OPENEBS_IO_CSTOR_TARGET_IMAGE
+          value: quay.io/openebs/cstor-istgt:0.9.0
+        - name: OPENEBS_IO_CSTOR_POOL_IMAGE
+          value: quay.io/openebs/cstor-pool:0.9.0
+        - name: OPENEBS_IO_CSTOR_POOL_MGMT_IMAGE
+          value: quay.io/openebs/cstor-pool-mgmt:0.9.0
+        - name: OPENEBS_IO_CSTOR_VOLUME_MGMT_IMAGE
+          value: quay.io/openebs/cstor-volume-mgmt:0.9.0
+        - name: OPENEBS_IO_VOLUME_MONITOR_IMAGE
+          value: quay.io/openebs/m-exporter:0.9.0
+        - name: OPENEBS_IO_CSTOR_POOL_EXPORTER_IMAGE
+          value: quay.io/openebs/m-exporter:0.9.0
+        - name: OPENEBS_IO_ENABLE_ANALYTICS
+          value: "true"
+        - name: OPENEBS_IO_ANALYTICS_PING_INTERVAL
+          value: 24h
+        image: quay.io/openebs/m-apiserver:0.9.0
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          exec:
+            command:
+            - /usr/local/bin/mayactl
+            - version
+          failureThreshold: 3
+          initialDelaySeconds: 30
+          periodSeconds: 60
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: openebs-apiserver
+        ports:
+        - containerPort: 5656
+          protocol: TCP
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: openebs
+      serviceAccountName: openebs
+      terminationGracePeriodSeconds: 30
+status: {}

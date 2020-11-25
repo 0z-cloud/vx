@@ -1,0 +1,6 @@
+- name: Shorewall zero in for balancer
+  hosts: "{{ HOSTS | default('vlan_network_balancer') }}"
+  roles:
+  - name: Run zero in shorewall service role
+    role: ./!_network/shorewall/zero-in
+

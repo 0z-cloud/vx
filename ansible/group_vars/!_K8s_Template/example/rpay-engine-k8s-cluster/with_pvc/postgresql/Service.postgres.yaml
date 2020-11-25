@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    field.cattle.io/creatorId: user-rxbgq
+    field.cattle.io/ipAddresses: "null"
+    field.cattle.io/targetDnsRecordIds: "null"
+    field.cattle.io/targetWorkloadIds: '["deployment:postgresql:postgres"]'
+  creationTimestamp: null
+  labels:
+    cattle.io/creator: norman
+  name: postgres
+  selfLink: /api/v1/namespaces/postgresql/services/postgres
+spec:
+  clusterIP: None
+  ports:
+  - name: default
+    port: 42
+    protocol: TCP
+    targetPort: 42
+  selector:
+    workloadID_postgres: "true"
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}

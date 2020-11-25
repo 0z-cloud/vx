@@ -1,0 +1,36 @@
+
+- name: CLIENT | Set ossec deploy facts for Debian
+  set_fact:
+    ossec_agent_config_filename: ossec.conf
+    ossec_init_name: ossec
+  when: ossec_managed_server is not defined
+
+- name: CLIENT | Create the ossec-agent.conf configuration
+  template: 
+    src: agent.conf.j2
+    dest: /var/ossec/etc/{{ ossec_agent_config_filename }}
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart ossec-agent
+  when: ossec_managed_server is not defined
+
+- name: CLIENT | Remove client.keys if client_key_clean is defined
+  file: 
+    path: /var/ossec/etc/client.keys
+    state: absent
+  when: ossec_managed_server is not defined and client_key_clean is defined
+
+- name: CLIENT | Check if client.keys exists
+  stat: 
+    path: /var/ossec/etc/client.keys
+  register: check_keys
+  when: ossec_managed_server is not defined
+  
+- name: SERVER | Check if client.keys exists on ossec-server
+  stat: 
+    path: /var/ossec/etc/client.keys
+  when: ossec_managed_server is defined
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['vortex-ossec-server'] }}"
+  register: check_server_keys

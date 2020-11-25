@@ -1,0 +1,15 @@
+logging_es_cluster_defaults:
+  directories:
+    main: /opt/logging/elasticsearch/{{ ansible_environment }}
+    configs: /opt/logging/elasticsearch/{{ ansible_environment }}/configs
+    data: /opt/logging/elasticsearch/{{ ansible_environment }}/data
+    logs: /opt/logging/elasticsearch/{{ ansible_environment }}/logs
+    run: /opt/logging/elasticsearch/{{ ansible_environment }}/run
+    etc: /opt/logging/elasticsearch/{{ ansible_environment }}/etc
+    elasticsearch: /opt/logging/elasticsearch/{{ ansible_environment }}/etc/elasticsearch
+  system_security:
+    linux:
+      user_group: elasticsearch
+  api:
+    username: elasticsearchapi
+    password: elasticsearchapisad012jrni

@@ -1,0 +1,17 @@
+- name: Debug files to fetch
+  debug:
+   msg: "{{ item }}"
+  with_items: "{{ files_to_fetch.files }}"
+
+- name: Fetch the files from SQL secondary
+  fetch:
+    src: "{{ files_to_fetch.path }}/{{ item }}"
+    dest: /tmp/sql/{{ item }}
+    flat: yes
+  with_items: "{{ files_to_fetch.files }}" 
+
+- name: Remove old files from SQL secondary
+  file:
+    path: "{{ files_to_fetch.path }}/{{ item }}"
+    state: absent
+  with_items: "{{ files_to_fetch.files }}" 

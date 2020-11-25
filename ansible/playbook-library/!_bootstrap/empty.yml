@@ -1,0 +1,17 @@
+# empty playbook for bootstrap config of vagrant
+
+- hosts: all
+  user: vagrant
+  become: true
+  tasks:
+    - name: Debug current values
+      debug: "{{ inventory_hostname }}"
+    - name: Debug current values
+      debug: var=hostvars['inventory_hostname']
+
+- hosts: all
+  user: vagrant
+  become: true
+  roles:
+    - test
+    - vagrant

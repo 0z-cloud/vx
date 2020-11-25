@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    field.cattle.io/creatorId: user-rxbgq
+  creationTimestamp: null
+  finalizers:
+  - kubernetes.io/pvc-protection
+  labels:
+    cattle.io/creator: norman
+  name: postgres-data
+  selfLink: /api/v1/namespaces/rpay-engine/persistentvolumeclaims/postgres-data
+spec:
+  accessModes:
+  - ReadWriteOnce
+  dataSource: null
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: openebs-hostpath
+  volumeMode: Filesystem
+status: {}

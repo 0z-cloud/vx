@@ -1,0 +1,113 @@
+# NGINX
+# For information on the settings in this file, type "man shorewall-rules"
+####################################################################################################################################################################################################
+# ACTION		SOURCE		                                DEST		                PROTO	    DEST	SOURCE		ORIGINAL	RATE		USER/	MARK	CONNLIMIT	TIME	HEADERS		SWITCH		HELPER
+#	
+#						                                    PORT	                    PORT(S)		    DEST		LIMIT		GROUP
+{% if inventory_hostname in groups['nginx-frontend'] %}
+
+# ACCEPT WEB HTTP & HTTPS
+ACCEPT		    nginx		                                    net         	            tcp	        80
+ACCEPT		    nginx		                                    net     		            tcp	        443
+
+# SSH MAINTANANCE MODE
+# ACCEPT            nginx                                     fw:{ip,n}			            tcp	        22
+ACCEPT              nginx                                     fw	                        tcp	        22
+
+# VPN MAINTANANCE MODE
+ACCEPT              nginx                                     fw	                        tcp	        1194
+ACCEPT              nginx                                     fw	                        tcp	        1194
+
+# MAIN PCI DSS VPN
+ACCEPT              nginx                                     fw		                    tcp	        11443
+
+# MAIN PCI DSS VPN
+ACCEPT              bas                                   fw		                    tcp	        11443
+ACCEPT              bas                                   nginx		                    tcp	        11443
+
+
+# SSH MAIN MODE
+# ACCEPT            bas                                 fw:{ip,n}			        tcp	        22
+ACCEPT              bas                                 fw	                        tcp	        22
+
+{% for dict_item in unification_services %}
+{% for key, value in dict_item.items() %}
+{% if 'service_discovery' == value.target %}
+
+ACCEPT              nginx                                   nginx                       tcp {{ value.listen_port | replace('\n', '') }}
+DROP                all                                     nginx                       tcp {{ value.listen_port | replace('\n', '') }}
+
+{% else %}
+
+ACCEPT              nginx                                   nginx                       tcp {{ value.listen_port | replace('\n', '') }}
+DROP                all                                     nginx                       tcp {{ value.listen_port | replace('\n', '') }}
+
+{% endif %}
+{% endfor %}
+{% endfor %}
+
+# nginx SWARM BETWEEN
+ACCEPT             nginx                                    fw							                tcp	    2376,2377,7946
+ACCEPT             nginx                                    fw							                udp	    4789,7946
+ACCEPT             fw                                       nginx							            tcp	    2376,2377,7946
+ACCEPT             fw                                       nginx							            udp	    4789,7946
+ACCEPT             nginx                                    nginx							            tcp	    2376,2377,7946
+ACCEPT             nginx                                    nginx							            udp	    4789,7946
+
+# GLUSTERFS POSTS
+
+ACCEPT             nginx                   fw							                tcp	    2049
+ACCEPT             nginx                   fw							                tcp	    38465
+ACCEPT             nginx                   fw							                tcp	    38466
+ACCEPT             nginx                   fw							                tcp	    38468
+ACCEPT             nginx                   fw							                tcp	    38469
+ACCEPT             nginx                   fw							                tcp	    24007
+ACCEPT             nginx                   fw							                tcp	    49152-65535
+ACCEPT             nginx                   fw							                tcp	    22
+ACCEPT             nginx                   fw							                tcp	    111
+ACCEPT             nginx                   fw							                tcp	    445
+ACCEPT             nginx                   fw							                tcp	    8080
+ACCEPT             nginx                   fw							                tcp	    6010
+ACCEPT             nginx                   fw							                tcp	    6011
+ACCEPT             nginx                   fw							                tcp	    6012
+ACCEPT             nginx                   fw							                tcp	    443
+ACCEPT             nginx                   fw							                tcp	    111
+
+ACCEPT             fw                   nginx							                tcp	    2049
+ACCEPT             fw                   nginx							                tcp	    38465
+ACCEPT             fw                   nginx							                tcp	    38466
+ACCEPT             fw                   nginx							                tcp	    38468
+ACCEPT             fw                   nginx							                tcp	    38469
+ACCEPT             fw                   nginx							                tcp	    24007
+ACCEPT             fw                   nginx							                tcp	    49152-65535
+ACCEPT             fw                   nginx							                tcp	    22
+ACCEPT             fw                   nginx							                tcp	    111
+ACCEPT             fw                   nginx							                tcp	    445
+ACCEPT             fw                   nginx							                tcp	    8080
+ACCEPT             fw                   nginx							                tcp	    6010
+ACCEPT             fw                   nginx							                tcp	    6011
+ACCEPT             fw                   nginx							                tcp	    6012
+ACCEPT             fw                   nginx							                tcp	    443
+ACCEPT             fw                   nginx							                tcp	    111
+
+########################
+# block local ip from nginx
+# DEFAULT DROP FROM nginx LAN_IP SUBNETS
+DROP		        nginx:$LAN_IP	                                fw
+
+########################
+# Dummy - ping, drop telnet, accept traceroute from nginx to fw
+Ping(ACCEPT)	    nginx		                                    fw		-	-	-		-		s:2/sec
+
+# anti ping flood
+ACCEPT		        nginx		                                    fw		                        icmp	    0,3/4,8,11
+
+# ping response
+ACCEPT		        nginx		                                    fw		                        udp	        33434:33529
+
+# for traceroute
+DROP		        nginx		                                    fw		                        tcp	        23
+# block telnet
+
+{% endif %}
+

@@ -1,0 +1,55 @@
+
+- name: INSTALL | Install the ntpd service if server is a IDS
+  apt:
+    name: ntp
+    state: present
+  when: ids_server is defined
+
+#- name: DEBUG ids_ntp_servers
+#  debug:
+#    msg: "{{ ids_ntp_servers }}"
+
+- name: TEMPLATE | Generate NTPd default configuration for host
+  template: 
+    src: ntp_defaults
+    dest: /etc/default/ntp
+  when: ids_server is defined
+
+- name: TEMPLATE | Generate NTPd service default configuration for host
+  template: 
+    src: ntp.conf
+    dest: /etc/ntp.conf
+  when: ids_server is defined
+
+- name: DEBUG CAT | Get result of generation 
+  raw: cat /etc/ntp.conf
+  register: ntpd_config_contents
+  when: ids_server is defined
+  
+- name: DEBUG | Show result of generation 
+  debug:
+    msg: "{{ ntpd_config_contents }}"
+  when: ids_server is defined
+
+- name: RESTART NTPD | Restarting NTPd service on IDS
+  service:
+    name: ntp
+    state: restarted
+    enabled: 
+  when: ids_server is defined
+
+- name: ENABLE AUTOSTART NTPD | Add NTP service to runlevels
+  service:
+    name: ntp
+    enabled: yes
+  when: ids_server is defined
+
+- name: GET STATUS | Get NTP service status all
+  raw: sudo ntpq -p
+  register: ntpd_status
+  when: ids_server is defined
+  
+- name: DEBUG | Show result of NTP service status all
+  debug:
+    msg: "{{ ntpd_status }}"
+  when: ids_server is defined

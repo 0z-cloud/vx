@@ -1,0 +1,57 @@
+apiVersion: kubeadm.k8s.io/v1beta2
+kind: ClusterConfiguration
+localAPIEndpoint:
+  advertiseAddress: {{ hostvars[inventory_hostname]['second_ip'] }}
+nodeRegistration:
+  kubeletExtraArgs:
+    node-ip: {{ hostvars[inventory_hostname]['second_ip'] }}
+apiServerExtraArgs:
+  enable-admission-plugins: PodSecurityPolicy
+certificatesDir: /opt/ca/pki
+kubernetesVersion: v1.18.0
+clusterName: "{{ K8S_CLUSTER_NAME }}"
+#   advertiseAddress: {{ hostvars[inventory_hostname]['second_ip'] }}
+#   bindPort: {{ K8S_CLUSTER_LISTEN_PORT }}
+#   controlPlaneEndpoint: "{{ K8S_CLUSTER_ADDRESS }}:{{ K8S_CLUSTER_LISTEN_PORT }}"
+apiServer:
+  extraArgs:
+    advertise-address: {{ hostvars[inventory_hostname]['second_ip'] }}
+    anonymous-auth: "false"
+    enable-admission-plugins: PodSecurityPolicy,AlwaysPullImages,DefaultStorageClass
+    audit-log-path: /var/log/k8s-audit.log
+controllerManager:
+  extraArgs:
+    cluster-signing-key-file: /opt/ca/pki/ca.key
+    bind-address: {{ hostvars[inventory_hostname]['second_ip'] }}
+    deployment-controller-sync-period: "50"
+apiServerCertSANs:
+- "{{ K8S_CLUSTER_ADDRESS }}"
+api:
+  advertiseAddress: {{ hostvars[inventory_hostname]['second_ip'] }}
+  bindPort: {{ K8S_CLUSTER_LISTEN_PORT }}
+  controlPlaneEndpoint: {{ K8S_CLUSTER_ADDRESS }}:{{ K8S_CLUSTER_LISTEN_PORT }}
+etcd:
+  external:
+    extraArgs:
+      listen-client-urls: "https://127.0.0.1:{{ K8S_CLUSTER_LISTEN_PORT_2379 }},https://{{ hostvars[inventory_hostname]['second_ip'] }}:{{ K8S_CLUSTER_LISTEN_PORT_2379 }}"
+      advertise-client-urls: "https://{{ hostvars[inventory_hostname]['second_ip'] }}:{{ K8S_CLUSTER_LISTEN_PORT_2379 }}"
+      listen-peer-urls: "https://{{ hostvars[inventory_hostname]['second_ip'] }}:{{ K8S_CLUSTER_LISTEN_PORT_2380 }}"
+      initial-advertise-peer-urls: "https://{{ hostvars[inventory_hostname]['second_ip'] }}:{{ K8S_CLUSTER_LISTEN_PORT_2380 }}"
+      initial-cluster: "{% for host in groups['kubernetes-master'] %}{{ hostvars[host].ansible_nodename }}{% raw %}=https://{% endraw %}{{ hostvars[host]['second_ip'] }}{% raw %}:{% endraw %}{{ K8S_CLUSTER_LISTEN_PORT_2380 }}{% if not loop.last %}{% raw %},{% endraw %}{% endif %}{% endfor %}"
+      initial-cluster-state: new
+    caFile: /opt/ca/pki/ca.pem
+    certFile: /opt/ca/pki/etcd.pem
+    keyFile: /opt/ca/pki/etcd-key.pem
+    serverCertSANs:{% for host in groups['kubernetes-master'] %}{% raw %}
+      - "{% endraw %}{{ hostvars[host]['ansible_nodename'] }}"{% raw %}
+      - "{% endraw %}{{ hostvars[host]['second_ip'] }}"{% raw %}
+      - "{% endraw %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}"{% endfor %}{% raw %}
+      - "{% endraw %}{{ K8S_CLUSTER_ADDRESS }}"{% raw %}
+{% endraw %}    peerCertSANs:{% for host in groups['kubernetes-master'] %}{% raw %}
+      - "{% endraw %}{{ hostvars[host]['ansible_nodename'] }}"{% raw %}
+      - "{% endraw %}{{ hostvars[host]['second_ip'] }}"{% raw %}
+      - "{% endraw %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}"{% endfor %}{% raw %}
+{% endraw %}networking:
+    # This CIDR is a Calico default. Substitute or remove for your CNI provider.
+    podSubnet: "{{ POD_NETWORK_CIDR }}"
+    serviceSubnet: {{ hostvars[inventory_hostname]['second_network_subnet'] }}

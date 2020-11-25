@@ -1,0 +1,143 @@
+- name: Fact gathering
+  hosts: all
+  tasks: []
+  tags: [get-facts, always]
+    
+- name: INIT MONGO SERVICE
+  become: true
+  hosts: "{{ HOSTS }}"
+  tasks:
+    - name: INIT | Inspect swarm for get Leader
+      shell: docker node ls --format "{% raw %}{{.Hostname}} {{.ManagerStatus}}{% endraw %}" | grep Leader | awk '{print $1}'
+      register: swarm_info
+
+    # - name: DEBUG | Swarm info
+    #   debug:
+    #     msg: "{{ swarm_info.stdout }}"
+
+    - name: REPLACE | If inventory a production
+      set_fact:
+        remapper_leader: "{{ swarm_info.stdout }}"
+      when: ansible_environment == 'production'
+
+    - name: REPLACE | If inventory not a production
+      set_fact:
+        remapper_leader: "{{ swarm_info.stdout | regex_replace('(production)', '') }}{{ ansible_environment }}"
+      when: ansible_environment != 'production'
+  
+    # - name: DEBUG | Show remapper_leader
+    #   debug:
+    #     msg: "{{ item }}"
+    #   with_items: "{{ remapper_leader }}"
+      
+    - name: CREATE HOST | Add a host to in-memory inventory
+      add_host:
+        hostname: "SWARM_LEADER"
+        name: "{{ hostvars[item]['ansible_hostname'] }}"
+        groups: "SWARM_LEADER"
+        ansible_ssh_host: "{{ hostvars[item]['ansible_ssh_host'] }}"
+      with_items: "{{ remapper_leader }}"
+
+    - name: CREATE HOST | Add a host to in-memory inventory
+      add_host:
+        hostname: "SWARM_LEADER"
+        name: "{{ hostvars[item]['ansible_hostname'] }}"
+        groups: "SWARM_LEADER"
+        ansible_ssh_host: "{{ hostvars[item]['ansible_ssh_host'] }}"
+      delegate_to: "{{ hostvars[item]['ansible_hostname'] }}"
+      with_items: "{{ remapper_leader }}"
+
+    # - name: DEBUG | Run delegate to leader
+    #   debug:
+    #     msg: "{{ inventory_hostname }}"
+    #   delegate_to: "{{ hostvars[item]['ansible_hostname'] }}"
+    #   with_items: "{{ remapper_leader }}"
+
+    - name: DEBUG | Run echo test to leader
+      shell: hostname
+      delegate_to: "{{ hostvars[item]['ansible_hostname'] }}"
+      with_items: "{{ remapper_leader }}"
+      register: remote_stdout
+      
+    # - name: DEBUG | Show remote_stdout
+    #   debug:
+    #     msg: "{{ remote_stdout }}"
+
+    - name: FACTS | Set fact about service name
+      set_fact:
+        fullservicename: "{{ ansible_product }}-{{ ansible_environment }}_mongo"
+
+    # - name: DEBUG | Show mongo full service name
+    #   debug:
+    #     msg: "{{ fullservicename }}"
+      
+    - name: SERVICE LOCATOR | Get the service locator id
+      shell: "docker service ps {{ fullservicename }} -q --no-trunc | head -n1"
+      register: service_locator
+
+    - name: WORKER LOCATOR | Get the service worker node name
+      shell: "docker service ps {{ fullservicename }} | head -2 | awk '{print $4}' | head -n2 | tail -n +2"
+      register: worker_locator
+
+    # - name: DEBUG | Show mongo worker_locator id
+    #   debug:
+    #     msg: "{{ worker_locator }}"
+
+    # - name: DEBUG | Show mongo service_locator id
+    #   debug:
+    #     msg: "{{ service_locator }}"
+
+    - name: REPLACE | If inventory a production for worker_locator
+      set_fact:
+        worker_remapper_leader: "{{ worker_locator.stdout }}"
+      when: ansible_environment == 'production'
+
+    - name: REPLACE | If inventory not a production for worker_locator
+      set_fact:
+        worker_remapper_leader: "{{ worker_locator.stdout | regex_replace('(production)', '') }}{{ ansible_environment }}"
+      when: ansible_environment != 'production'
+  
+    # - name: DEBUG | Show worker_remapper_leader
+    #   debug:
+    #     msg: "{{ item }}"
+    #   with_items: "{{ worker_remapper_leader }}"
+
+    # - name: DEBUG | Show remapper_leader
+    #   debug:
+    #     msg: "{{ item }}"
+    #   with_items: "{{ remapper_leader }}"
+
+    - name: CREATE HOST | Add a host to in-memory inventory
+      add_host:
+        hostname: "WORKER_SWARM_NODE"
+        name: "{{ hostvars[item]['ansible_hostname'] }}"
+        groups: "WORKER_SWARM_NODE"
+        ansible_ssh_host: "{{ hostvars[item]['ansible_ssh_host'] }}"
+      with_items: "{{ worker_remapper_leader }}"
+
+    # - name: MONGO INIT | Setup mongo replica set
+    #  shell: "docker exec {{ fullservicename }}.1.{{ service_locator.stdout }} mongo --host mongo --eval \"rsconf = { protocolVersion: 1, _id: 'rs0', members: [ { _id: 0, host: 'localhost:27017'} ] }; rs.initiate(rsconf); cfg = rs.conf(); cfg.members['0'].priority = 3; cfg.members['0'].votes = 1; rs.reconfig(rsconf, { 'force': true } ); \""
+    #  delegate_to: "{{ hostvars[worker_remapper_leader]['ansible_hostname'] }}"
+    #  register: mongo_init_databases_and_indecies_first
+
+    # - name: MONGO INIT | Perform to be a primary
+    #  shell: "docker exec {{ fullservicename }}.1.{{ service_locator.stdout }} mongo --host mongo --eval 'cfg = rs.conf(); cfg.members['0'].priority = 3; cfg.members['0'].votes = 1; rs.reconfig(cfg,{'force':true})'"
+    #  delegate_to: "{{ hostvars[worker_remapper_leader]['ansible_hostname'] }}"
+    #  register: mongo_init_databases_and_indecies_primary
+
+    # - name: DEBUG | Show final result of mongo init
+    #   debug:
+    #     msg: "{{ item }}"
+    #   with_items:
+    #     - "{{ mongo_init_databases_and_indecies_first }}"
+    #     - "{{ mongo_init_databases_and_indecies_primary }}"
+
+    # - name: DEBUG | Show array primary_databases_for_services
+    #   debug:
+    #     msg: "{{ item }}"
+    #   with_dict: "{{ primary_databases_for_services }}"
+
+    # - name: FACTS | Set fact about service name
+    #   set_fact:
+    #     {{ item }}_fullservicename: "{{ ansible_product }}-{{ ansible_environment }}_{{ item }}"
+    #   with_dict: "{{ primary_databases_for_services }}"

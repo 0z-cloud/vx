@@ -1,0 +1,9 @@
+- name: TeamCity Agent Docker Playbook step...
+  become: true
+  hosts: teamcity-agent
+  # vars_files:
+  #   - "{{ inventory_dir }}/group_vars/swarm-network/swarm-main.yml"
+  roles:
+    - name: TeamCity Agent Up
+      role: ./!_applications/teamcity-server/agent
+  tags: [teamcity-agent]

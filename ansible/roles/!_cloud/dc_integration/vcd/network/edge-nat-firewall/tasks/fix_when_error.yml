@@ -1,0 +1,8 @@
+# - name: FIX_WHEN_ERROR - Show unwanted error NAT records with dynamic variable passed - list_to_remove
+#   debug:
+#     msg: "{{ item }}"
+#   with_items: "{{ list_to_remove }}"
+
+- name: FIX_WHEN_ERROR - RULE DUPLICATED TO REMOVE
+  shell: vcd gateway services nat delete {{ anycloud_result_edge_router }} {{ item | join }}
+  with_items: "{{ list_to_remove }}"

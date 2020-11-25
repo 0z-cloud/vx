@@ -1,0 +1,14 @@
+---
+
+- name: Ensure LDIF files for custom schemas have been transferred
+  copy: src="{{ item.src }}" dest="{{ slapd_conf_dir }}/schema/{{ item.name }}.ldif" owner=root group=root mode=0644
+  with_items: "{{ slapd_custom_schemas }}"
+
+- name: Ensure custom schemas have been imported
+  command: ldapadd -Q -Y EXTERNAL -H ldapi:/// -f "{{ slapd_conf_dir }}/schema/{{ item.name }}.ldif"
+  register: ldap_schema_import
+  failed_when: |
+    ldap_schema_import.rc != 0 and 'Duplicate attributeType: \"{{ item.id }}\"' not in ldap_schema_import.stderr
+  changed_when: |
+    ldap_schema_import.rc == 0 and 'Duplicate attributeType: \"{{ item.id }}\"' not in ldap_schema_import.stderr
+  with_items: "{{ slapd_custom_schemas }}"

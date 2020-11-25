@@ -1,0 +1,39 @@
+- set_fact:
+    laravel_migration_variables:
+      CONTAINER_ROLE: artisan
+      ARTISAN_COMMAND: migrate --force
+      APP_NAME: "{{ laravel_application.name }}"
+      APP_ENV: stage
+      APP_DEBUG: true
+      LOG_CHANNEL: errorlog
+      CONSUL_HTTP_ADDR: http://{{ inventory_hostname }}:8500
+      CONFIG_ENCRYPTION_KEY_PART_1: "{{ config_encryption_key_part1 }}"
+
+- name: run database migrations
+  docker_container:
+    name: "{{ laravel_application.name }}_migrations"
+    image: "{{ laravel_application.docker_image }}:{{ laravel_application.docker_image_tag }}"
+    env: "{{ laravel_migration_variables | combine(laravel_application.variables) }}"
+    volumes:
+      - "{{ glusterfs_settings.directories.cloud_dir }}/laravel/{{ laravel_application.name }}/storage:/var/www/storage"
+
+- name: wait for migrations to finish
+  shell: "docker inspect {{ laravel_application.name }}_migrations {% raw %}--format='{{.State.Status}}'{% endraw %}"
+  register: migration_status
+  until: migration_status.stdout == 'exited'
+  retries: 1000000000000
+  delay: 1
+
+- shell: "docker inspect {{ laravel_application.name }}_migrations {% raw %}--format='{{.State.ExitCode}}'{% endraw %}"
+  register: migration_result
+
+- assert:
+    that:
+      - "migration_result.stdout == '0'"
+    fail_msg: "Migrations failed."
+    success_msg: "Migrations succeed."
+
+# todo?
+- docker_container:
+    name: "{{ laravel_application.name }}_migrations"
+    state: absent

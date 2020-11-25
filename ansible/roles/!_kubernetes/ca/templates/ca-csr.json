@@ -1,0 +1,16 @@
+{
+    "CN": "etcd.{{ public_consul_domain }}",
+    "key": {
+      "algo": "rsa",
+      "size": 2048
+    },
+    "names": [
+      {
+        "C": "RU",
+        "ST": "MO",
+        "L": "Moscow",
+        "O": "k8s",
+        "OU": "System"
+      }
+    ]
+  }

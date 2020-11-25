@@ -1,0 +1,457 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    annotations:
+      pv.kubernetes.io/provisioned-by: openebs.io/local
+    creationTimestamp: "2019-07-06T15:11:54Z"
+    finalizers:
+    - kubernetes.io/pv-protection
+    name: pvc-63e87270-a000-11e9-890b-b42e994820d9
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 10Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: datadir-mongo-mongodb-replicaset-0
+      namespace: rpay-engine
+    hostPath:
+      path: /var/openebs/local/pvc-63e87270-a000-11e9-890b-b42e994820d9
+      type: DirectoryOrCreate
+    nodeAffinity:
+      required:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+            - worker1
+    persistentVolumeReclaimPolicy: Delete
+    storageClassName: openebs-hostpath
+    volumeMode: Filesystem
+  status:
+    phase: Bound
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    annotations:
+      pv.kubernetes.io/provisioned-by: openebs.io/local
+    creationTimestamp: "2019-07-06T15:07:00Z"
+    finalizers:
+    - kubernetes.io/pv-protection
+    name: pvc-b4b84d91-9fff-11e9-890b-b42e994820d9
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 8Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: datadir-mongodb-primary-0
+      namespace: rpay-engine
+    hostPath:
+      path: /var/openebs/local/pvc-b4b84d91-9fff-11e9-890b-b42e994820d9
+      type: DirectoryOrCreate
+    nodeAffinity:
+      required:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+            - worker2
+    persistentVolumeReclaimPolicy: Delete
+    storageClassName: openebs-hostpath
+    volumeMode: Filesystem
+  status:
+    phase: Bound
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    annotations:
+      pv.kubernetes.io/provisioned-by: openebs.io/local
+    creationTimestamp: "2019-07-06T15:09:59Z"
+    finalizers:
+    - kubernetes.io/pv-protection
+    name: pvc-1f3ee1f6-a000-11e9-890b-b42e994820d9
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 10Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: datadir-mongodb-replicaset-0
+      namespace: rpay-engine
+    hostPath:
+      path: /var/openebs/local/pvc-1f3ee1f6-a000-11e9-890b-b42e994820d9
+      type: DirectoryOrCreate
+    nodeAffinity:
+      required:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+            - worker1
+    persistentVolumeReclaimPolicy: Delete
+    storageClassName: openebs-hostpath
+    volumeMode: Filesystem
+  status:
+    phase: Bound
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    annotations:
+      pv.kubernetes.io/provisioned-by: openebs.io/local
+    creationTimestamp: "2019-07-06T15:07:00Z"
+    finalizers:
+    - kubernetes.io/pv-protection
+    name: pvc-b4badc6c-9fff-11e9-890b-b42e994820d9
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 8Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: datadir-mongodb-secondary-0
+      namespace: rpay-engine
+    hostPath:
+      path: /var/openebs/local/pvc-b4badc6c-9fff-11e9-890b-b42e994820d9
+      type: DirectoryOrCreate
+    nodeAffinity:
+      required:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+            - worker2
+    persistentVolumeReclaimPolicy: Delete
+    storageClassName: openebs-hostpath
+    volumeMode: Filesystem
+  status:
+    phase: Bound
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    annotations:
+      pv.kubernetes.io/provisioned-by: openebs.io/local
+    creationTimestamp: "2019-07-03T11:42:55Z"
+    finalizers:
+    - kubernetes.io/pv-protection
+    name: pvc-b2b1d6f4-9d87-11e9-890b-b42e994820d9
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 5Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: flexy-guard
+      namespace: rpay-engine
+    hostPath:
+      path: /var/openebs/local/pvc-b2b1d6f4-9d87-11e9-890b-b42e994820d9
+      type: DirectoryOrCreate
+    nodeAffinity:
+      required:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+            - worker2
+    persistentVolumeReclaimPolicy: Delete
+    storageClassName: openebs-hostpath
+    volumeMode: Filesystem
+  status:
+    phase: Bound
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    annotations:
+      pv.kubernetes.io/provisioned-by: openebs.io/local
+    creationTimestamp: "2019-07-06T19:59:53Z"
+    finalizers:
+    - kubernetes.io/pv-protection
+    name: pvc-9e817309-a028-11e9-890b-b42e994820d9
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 10Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: minio-config
+      namespace: rpay-engine
+    hostPath:
+      path: /var/openebs/local/pvc-9e817309-a028-11e9-890b-b42e994820d9
+      type: DirectoryOrCreate
+    nodeAffinity:
+      required:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+            - worker2
+    persistentVolumeReclaimPolicy: Delete
+    storageClassName: openebs-hostpath
+    volumeMode: Filesystem
+  status:
+    phase: Bound
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    annotations:
+      pv.kubernetes.io/provisioned-by: openebs.io/local
+    creationTimestamp: "2019-07-06T19:59:53Z"
+    finalizers:
+    - kubernetes.io/pv-protection
+    name: pvc-9e816476-a028-11e9-890b-b42e994820d9
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 10Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: minio-data
+      namespace: rpay-engine
+    hostPath:
+      path: /var/openebs/local/pvc-9e816476-a028-11e9-890b-b42e994820d9
+      type: DirectoryOrCreate
+    nodeAffinity:
+      required:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+            - worker2
+    persistentVolumeReclaimPolicy: Delete
+    storageClassName: openebs-hostpath
+    volumeMode: Filesystem
+  status:
+    phase: Bound
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    annotations:
+      pv.kubernetes.io/provisioned-by: openebs.io/local
+    creationTimestamp: "2019-07-03T11:33:04Z"
+    finalizers:
+    - kubernetes.io/pv-protection
+    name: pvc-5289029b-9d86-11e9-890b-b42e994820d9
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 10Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: mongo-data
+      namespace: rpay-engine
+    hostPath:
+      path: /var/openebs/local/pvc-5289029b-9d86-11e9-890b-b42e994820d9
+      type: DirectoryOrCreate
+    nodeAffinity:
+      required:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+            - worker1
+    persistentVolumeReclaimPolicy: Delete
+    storageClassName: openebs-hostpath
+    volumeMode: Filesystem
+  status:
+    phase: Bound
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    annotations:
+      pv.kubernetes.io/provisioned-by: openebs.io/local
+    creationTimestamp: "2019-07-06T18:18:14Z"
+    finalizers:
+    - kubernetes.io/pv-protection
+    name: pvc-6ba1dd2d-a01a-11e9-890b-b42e994820d9
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 8Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: mongo-mongodb
+      namespace: rpay-engine
+    hostPath:
+      path: /var/openebs/local/pvc-6ba1dd2d-a01a-11e9-890b-b42e994820d9
+      type: DirectoryOrCreate
+    nodeAffinity:
+      required:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+            - worker1
+    persistentVolumeReclaimPolicy: Delete
+    storageClassName: openebs-hostpath
+    volumeMode: Filesystem
+  status:
+    phase: Bound
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    annotations:
+      pv.kubernetes.io/provisioned-by: openebs.io/local
+    creationTimestamp: "2019-07-03T13:10:25Z"
+    finalizers:
+    - kubernetes.io/pv-protection
+    name: pvc-ebf358b2-9d93-11e9-890b-b42e994820d9
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 10Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: pg-data
+      namespace: rpay-engine
+    hostPath:
+      path: /var/openebs/local/pvc-ebf358b2-9d93-11e9-890b-b42e994820d9
+      type: DirectoryOrCreate
+    nodeAffinity:
+      required:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+            - worker1
+    persistentVolumeReclaimPolicy: Delete
+    storageClassName: openebs-hostpath
+    volumeMode: Filesystem
+  status:
+    phase: Bound
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""
+apiVersion: v1
+items: []
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    annotations:
+      pv.kubernetes.io/provisioned-by: openebs.io/local
+    creationTimestamp: "2019-06-28T14:50:21Z"
+    finalizers:
+    - kubernetes.io/pv-protection
+    name: pvc-0dcac920-99b4-11e9-890b-b42e994820d9
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 10Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: redis-data
+      namespace: rpay-engine
+    hostPath:
+      path: /var/openebs/local/pvc-0dcac920-99b4-11e9-890b-b42e994820d9
+      type: DirectoryOrCreate
+    nodeAffinity:
+      required:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+            - worker1
+    persistentVolumeReclaimPolicy: Delete
+    storageClassName: openebs-hostpath
+    volumeMode: Filesystem
+  status:
+    phase: Bound
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""

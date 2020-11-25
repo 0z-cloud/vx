@@ -1,0 +1,5 @@
+- name: Apt upgrade all packages to the latest version
+  apt:
+    upgrade: dist
+  tags:
+    - apt_upgrade

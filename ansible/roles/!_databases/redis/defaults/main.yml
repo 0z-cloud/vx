@@ -1,0 +1,32 @@
+---
+# defaults file for roles/redis
+
+redis_default_instance:
+  # -- network
+  port: 6379
+
+  # -- system
+  #name: "redis_{{ port }}"
+  user: redis
+  group: redis
+  ulimit: 10000
+
+  # -- various studd
+  latency_monitor_threshold: 0
+
+  # -- cluster
+  cluster_enabled: true
+  cluster_node_timeout: 2000
+  cluster_require_full_coverage: yes
+
+  # -- paths
+  #path_conf: "/opt/redis/{{ name }}/conf"
+  #path_data: "/opt/redis/{{ name }}/data"
+  #path_pid: "/opt/redis/{{ name }}"
+  #path_logs: "/opt/redis/{{ name }}/logs"
+
+  # -- persistance
+  save:
+    - 900 1
+    - 600 100
+    - 60 10000

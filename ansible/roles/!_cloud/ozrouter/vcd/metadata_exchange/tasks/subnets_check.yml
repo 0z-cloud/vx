@@ -1,0 +1,32 @@
+#  # when: port_check_result_in_restricted_list.results is true
+
+# - name: Show current in repo excluded ports
+#   debug:
+#     msg: "{{ item }}"
+#   with_items: |
+#       {% set return_item = [] %}
+#       {% for dict_item in anycloud_zone_extra_subnets_adapters_vpn_ozrouter_ports.items() %}
+#       {% set return_item2 = return_item.append(dict_item['value']) %}
+#       {% endfor %}
+#       {{ return_item }}
+
+  # with_items: |
+  #   {% set exitlist = [] %}
+  #   {% for dict_item in unificated_keepalive_services.vrrp_script_services %}
+  #   {% for key,value in dict_item.items() %}
+  #   {% set exitlist2 = exitlist.append(value['script']) %}
+  #   {% endfor %}{% endfor %}{{ exitlist }}
+  #when: "(item.key == 'VPN' or item.key == 'WEB')"
+    # {% set return_item = [] %}
+    # {% for dict_item in  %}
+    # {% for key, value in dict_item %}
+    # {% set return_item2 = return_item.append(value) %}
+    # {% endfor %}
+    # {% endfor %}
+    # {{ return_item }}
+  # with_items: |
+  #   {% for dict_item in anycloud_zone_extra_subnets_adapters_vpn_ozrouter_ports %}
+  #   {{ dict_item }}
+  #   {% endfor %}
+  
+  #"{{ anycloud_zone_extra_subnets_adapters_vpn_ozrouter_ports }}"

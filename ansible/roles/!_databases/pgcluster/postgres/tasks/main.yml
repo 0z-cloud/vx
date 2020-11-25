@@ -1,0 +1,75 @@
+---
+
+- name: Inject and merge defaults settings with postgres_cluster_settings
+  set_fact:
+    postgres_cluster_settings: "{{ postgres_cluster_settings_defaults | combine(postgres_cluster_settings) }}"
+  tags: [always]
+
+- name: Create "postgres" group
+  group:
+    name: postgres
+    state: present
+
+- name: Create postgres User
+  user: 
+    name: postgres
+    shell: /bin/bash
+    groups: postgres
+    append: yes
+
+- name: Create the directories
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0750
+    owner: postgres
+    group: root
+  with_dict: "{{ postgres_cluster_settings.directories | default({}) }}"
+
+- name: Change own the directories
+  shell: "chown 50010:50010 {{ item.value }}"
+  with_dict: "{{ postgres_cluster_settings.directories | default({}) }}"
+
+- name: Create hosts file from template for container
+  template:
+     src: hosts.j2 
+     dest: "{{ postgres_cluster_settings.directories.config_path }}/hosts"
+
+# PREPARE
+
+- name: PREPARE | Docker login
+  shell: "echo {{ ANSIBLE_TRIGGER_TOKEN }} | docker login {{ ANSIBLE_REGISTRY_URL }} -u root --password-stdin"
+  register: docker_login_result
+
+- name: re/Create a First Postgres Cluster Service docker container
+  docker_container:
+      name: "{{ hostvars[inventory_hostname].pgcluster_node_name }}-{{ ansible_environment }}-{{ ansible_hostname }}"
+      image: "{{ ansible_global_gitlab_registry_site_name }}/{{ ansible_git_project_path }}/postgres:{{ default_docker_image_environment_tag }}"
+      hostname: "{{ hostvars[inventory_hostname].pgcluster_node_name }}-{{ ansible_environment }}-{{ ansible_hostname }}"
+      volumes:
+        - "{{ postgres_cluster_settings.directories.data_path }}:/data"
+        - "{{ postgres_cluster_settings.directories.archive_path }}:/archive"
+        - "{{ postgres_cluster_settings.directories.config_path }}/hosts:/etc/hosts"
+      ports:
+        - "{{ postgres_cluster_settings.pg_port }}:{{ postgres_cluster_settings.pg_port }}"
+      env:
+        INITIAL_NODE_TYPE: "{{ hostvars[inventory_hostname].psql_init_node_type }}"
+        NODE_ID: "{{ hostvars[inventory_hostname].psql_init_node_id }}"
+        NODE_NAME: "{{ hostvars[inventory_hostname].pgcluster_node_name }}"
+        MSLIST: "myservice" 
+                # for each micro-service two db users are created, for ex. asset_owner and asset_user, etc.
+        MSOWNERPWDLIST: "myservice_owner"
+        MSUSERPWDLIST: "myservice_user"
+        REPMGRPWD: rep123
+        REPMGRD_FAILOVER_MODE: manual
+        REPMGRD_RECONNECT_ATTEMPS: "5"
+        REPMGRD_INTERVAL: "2"
+        PGMASTER: "{{ hostvars[inventory_hostname].pg_node_master_name }}"
+        #
+      privileged: yes
+      restart_policy: always
+      detach: True
+      recreate: yes
+      state: started
+      network_mode: host
+      user: root

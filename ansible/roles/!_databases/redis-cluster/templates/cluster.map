@@ -1,0 +1,11 @@
+{% for master in redis_cluster_map %}
+{% for slave in master.slaves %}
+{{ slave.host }} {{ slave.port }} {{ master.host }} {{ master.port }}
+{% endfor %}
+{% endfor %}
+
+{% for master in redis_cluster_map %}
+{% for other_master in redis_cluster_map %}
+{{ other_master.host }} {{ other_master.port }} {{ master.host }} {{ master.port }}
+{% endfor %}
+{% endfor %}

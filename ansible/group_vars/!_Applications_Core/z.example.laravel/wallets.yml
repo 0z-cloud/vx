@@ -1,0 +1,20 @@
+name: wallets
+published_port: "{{ wallets_service_listen_port }}"
+docker_image: "gitlab.vortex.ru:4567/vortex/wallets"
+docker_image_tag: latest
+replicas: 1
+
+queues:
+  - { queue: "default", workers: 1 }
+  - { queue: "callbacks", workers: 1 }
+
+db_migrate: false
+db_seed: false
+link_storage: false
+
+variables:
+  APP_URL: "https://wallets.vortex.me"
+
+secured_variables:
+  - {name: "app.key", value: "base64:93e1H1xTugXfoGrXfJ3O2ZMCrcL9CmDHpL6tWldkrM8="}
+  - {name: "database.connections.mysql.password", value: "foo"}

@@ -1,0 +1,24 @@
+# For information on the settings in this file, type "man shorewall-rules"
+######################################################################################################################################################################################################
+#ACTION		        SOURCE		                                DEST		                    PROTO	    DEST	SOURCE		ORIGINAL	RATE		USER/	MARK	CONNLIMIT	TIME	HEADERS		SWITCH		HELPER
+#							                                    PORT	                    PORT(S)		    DEST		LIMIT		GROUP
+
+
+
+########################
+# block local ip from net
+# DEFAULT DROP FROM net LAN_IP SUBNETS
+DROP		        net:$LAN_IP	                                fw
+
+########################
+# Dummy - ping, drop telnet, accept traceroute from net to fw
+Ping(ACCEPT)	    net		                                    fw		-	-	-		-		s:2/sec
+
+# anti ping flood
+ACCEPT		        net		                                    fw		                        icmp	    0,3/4,8,11
+
+# ping response
+ACCEPT		        net		                                    fw		                        udp	        33434:33529
+
+# for traceroute
+DROP		        net		                                    fw		                        tcp	        23

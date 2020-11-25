@@ -1,0 +1,19 @@
+- name: Ensure watchdog script directory exists
+  file:
+    path: /wrk/scripts/
+    state: directory
+
+- name: Generate watchdog scanner script from template
+  template:
+    src: watchdog.sh.j2
+    dest: /wrk/scripts/watchdog.sh
+    mode: 0755
+
+- name: Adding run to cron
+  cron:
+    name: "watchdog scanner"
+    minute: "{{ watchdog_startup_minutes }}"
+    hour: "{{ watchdog_startup_hour }}"
+    weekday: "{{ watchdog_weekday }}"
+    job: "/wrk/scripts/watchdog.sh"
+    user: root

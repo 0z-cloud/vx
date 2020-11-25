@@ -1,0 +1,13 @@
+- name: PREPARE | Template init DB main script
+  template: 
+    src: init_db.sh.j2
+    dest: /tmp/init_db.sh
+    mode: 0777
+
+- name: EXEC | Running the init DB wrapper inplace
+  command: "/tmp/init_db.sh {{ ansible_environment }} {{ ansible_product }}"
+  register: all_results
+
+- name: DEBUG | Show all results of exec
+  debug:
+    msg: "{{ all_results }}"

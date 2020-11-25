@@ -1,0 +1,18 @@
+---
+
+#The domain prefix for ldap
+openldap_server_domain_name: vortex.co
+
+#This is the password for admin for openldap 
+openldap_server_rootpw: asd819hr1br12br18qQ
+
+#The self signed ssl parameters
+openldap_server_country: RU
+openldap_server_state: moscow
+openldap_server_location: moscow
+openldap_server_organization: IT
+
+openldap_server_enable_ssl: true
+
+#The ldif file
+openldap_server_ldif: domain.ldif

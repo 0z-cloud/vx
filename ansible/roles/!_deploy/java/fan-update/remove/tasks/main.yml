@@ -1,0 +1,58 @@
+
+- name: JAVA DELEGATE TASK TO KEEPALIVED - DEBUG | Remove a maintraince host
+  become: true
+  shell: ipvsadm -L --stats -n
+  delegate_to: "{{ item }}"
+  with_items: "{{ KEEPALIVE_TARGET }}"
+  register: ipvsadm_stats
+  tags:
+   - fan-update-remove
+
+- name: JAVA DELEGATE TASK TO KEEPALIVED - DEBUG | SHOW
+  debug: 
+    msg: "{{ ipvsadm_stats }}"
+  delegate_to: "{{ item }}"
+  with_items: "{{ KEEPALIVE_TARGET }}"
+
+# WIP
+# - name: PlayHosts
+#   debug:
+#     msg: "{% for host in groups[play_hosts] %}{% if host != inventory_hostname %} {{ host }} {% endif %}{% endfor %}"
+#   tags: debug
+
+# - name: Check another servers in load balancer, except exists we must to fail
+#   raw: "echo {{ ipvsadm_stats }} | grep {{ item[0] }} && echo 0 || echo 1"
+#   delegate_to: "{{ item[1] }}"
+#   with_nested:
+#     - "{% for host in groups[play_hosts] %}{% if host != inventory_hostname %} {{ host }} {% endif %}{% endfor %}"
+#     - "{{ KEEPALIVE_TARGET }}"
+#   tags: debug
+
+- name: JAVA DELEGATE TASK TO KEEPALIVED - DEBUG | DRAIN TARGETS
+  shell: "ipvsadm -d -t {{ item[0] }} -r {{ hostvars[inventory_hostname].k_node_settings_backend_ip }}:{{ k_cd_settings.backends.port }}"
+  delegate_to: "{{ item[1] }}"
+  with_nested:
+    - "{{ k_cd_settings.targets }}"
+    - "{{ KEEPALIVE_TARGET }}"
+  ignore_errors: true
+
+- name: JAVA DELEGATE TASK TO KEEPALIVED - DEBUG | Remove a maintraince host check
+  become: true
+  shell: ipvsadm -L --stats -n
+  delegate_to: "{{ item }}"
+  with_items: "{{ KEEPALIVE_TARGET }}"
+  register: ipvsadm_stats_after
+  tags:
+   - fan-update-remove
+
+- name: JAVA DELEGATE TASK TO KEEPALIVED - DEBUG | SHOW
+  debug: 
+    msg: "{{ ipvsadm_stats_after }}"
+  delegate_to: "{{ item }}"
+  with_items: "{{ KEEPALIVE_TARGET }}"
+
+- name: JAVA DELEGATE TASK TO KEEPALIVED - DEBUG | AWAIT AFTER DRAIN
+  shell: "sleep {{ TOMCAT_DEPLOY_TIMEOUT }}"
+  delegate_to: "{{ item }}"
+  with_items: "{{ KEEPALIVE_TARGET }}"
+  when: SKIP_WAIT is not defined

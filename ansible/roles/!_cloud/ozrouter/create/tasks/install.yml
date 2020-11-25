@@ -1,0 +1,12 @@
+- name: Check local python pip3 requirements
+  pip:
+    name: "{{ item }}"
+    state: present
+    executable: pip3
+  with_items:
+    - netaddr
+    - ipaddr
+    - pyvmomi
+    - pyvim
+    - requests
+    - pyvcloud

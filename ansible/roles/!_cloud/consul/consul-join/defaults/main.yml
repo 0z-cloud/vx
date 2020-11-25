@@ -1,0 +1,12 @@
+consul_defaults:
+    directories:
+        working_etc_directory: /opt/consul/etc
+        working_directory: /opt
+        working_opt_directory: /opt/consul/opt
+        working_opt_pki: /opt/consul/opt/pki
+        working_opt_pki_cert: /opt/consul/opt/pki/cert        
+        working_opt_pki_private: /opt/consul/opt/pki/private
+        working_consul: /opt/consul
+        working_consul_data: /opt/consul/data
+        working_consul_data_raft: /opt/consul/data/raft
+    datacenter: dc1

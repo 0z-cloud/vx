@@ -1,0 +1,54 @@
+# - name: Register item for hostname
+#   set_fact: 
+#     magic2: "{{ item | replace('\n', '') }}"
+#   with_items: |
+#     {% for dict_item in application_logs_tags %}{% if hostvars[inventory_hostname].ansible_hostname in dict_item %}{{ dict_item }}{% endif %}{% endfor %}
+#   register: application_logs_tags_list_path
+
+# - name: DEBUG
+#   debug:
+#     msg: 'if {% for item in application_logs_tags[magic2 | join] %}{% raw %}not ($syslogtag=="{% endraw %}{{ item | join }}{% raw %}" ){% endraw %}{% if not loop.last %}{% raw %} and {% endraw %}{% endif %}{% endfor %} then -/var/log/syslog'
+
+- name: Template the /etc/rsyslog.d/11-auditd.conf
+  template:
+    src: 11-auditd.conf
+    dest: /etc/rsyslog.d/11-auditd.conf
+    backup: yes
+
+- name: Template the /etc/rsyslog.d/13-clamav.conf
+  template:
+    src: 13-clamav.conf
+    dest: /etc/rsyslog.d/13-clamav.conf
+    backup: yes
+  tags: clamav
+
+- name: Template the /etc/rsyslog.d/17-ossec.conf
+  template:
+    src: 17-ossec.conf
+    dest: /etc/rsyslog.d/17-ossec.conf
+    backup: yes
+  tags: ossec
+
+- name: Template the /etc/rsyslog.d/10-remote.conf
+  template:
+    src: 10-remote.conf
+    dest: /etc/rsyslog.d/10-remote.conf
+    backup: yes
+
+- name: Template the rsyslog.conf
+  template:
+    src: rsyslog.conf
+    dest: /etc/rsyslog.conf
+    backup: yes
+    
+# - name: Template the /etc/rsyslog.d/50-default.conf
+#   template:
+#     src: 50-default.conf.j2
+#     dest: /etc/rsyslog.d/50-default.conf
+#     backup: yes
+
+- name: Restart rsyslog service
+  service:
+    name: rsyslog
+    state: restarted
+  tags: restart

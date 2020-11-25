@@ -1,0 +1,44 @@
+- name: Inject defaults
+  set_fact:
+    postfix: "{{ postfix_defaults | combine(postfix) }}"
+  tags: [always]
+
+- name: Remove sendmail
+  apt: 
+    name: "{{ item }}"
+    state: absent
+  with_items:
+    - sendmail
+
+- name: Install postfix packages
+  apt: 
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  with_items: "{{ postfix.packages }}"
+
+- name: Template postfix main.cf configuration
+  template:
+    src: main.cf.j2
+    dest: "{{ postfix.directories.main }}/main.cf"
+
+- name: Template postfix sasl_password and tls_policy
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ postfix.directories.main }}/{{ item }}"
+    mode: 0600
+  with_items:
+    - sasl_passwd
+    - tls_policy
+
+- name: Compile the postfix dbs
+  command: "postmap hash:{{ postfix.directories.main }}/{{ item }}"
+  with_items:
+    - sasl_passwd
+    - tls_policy
+
+- name: Restart and enable postfix service
+  service: 
+    name: postfix 
+    state: restarted
+    enabled: yes

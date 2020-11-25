@@ -1,0 +1,11 @@
+{% for key,value in inventory_ldap.groups.items() %}
+
+dn: cn={{ key }},ou={{ value.ou }},dc=vortex,dc=co
+changetype: add
+objectClass: posixGroup
+objectClass: top
+cn: {{ key }}
+gidNumber: {{ value.gidNumber }}
+description: {{ value.description }}
+
+{% endfor %}

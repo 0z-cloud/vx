@@ -1,0 +1,24 @@
+- name: inventory_hostname get playbook step with role
+  become: true
+  hosts: linux-hosts
+  tasks:
+    - name: Get uptime
+      raw: uptime
+      register: inventory_hostname_uptime
+    - name: Get uname -a
+      raw: uname -a
+      register: inventory_hostname_upname
+    - name: Raw get inventory_hostname_uptime
+      debug:
+        msg: "{{ inventory_hostname }} {{ inventory_hostname_uptime.stdout_lines | join }} {{ hostvars[inventory_hostname]['ansible_fqdn'] }} {{ inventory_hostname_upname.stdout_lines | join }}"
+    - name: Get date
+      raw: date
+      register: inventory_hostname_date
+    - name: Debug
+      debug:
+        msg: "{{ inventory_hostname }} {{ inventory_hostname_date }}"
+    - name: Debug ansible_date_time
+      debug:
+        msg: "{{ ansible_date_time.year }}"
+#  serial: 1
+  tags: [test-autorun]

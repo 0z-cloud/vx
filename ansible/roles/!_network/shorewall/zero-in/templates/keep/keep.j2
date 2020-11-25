@@ -1,0 +1,122 @@
+    
+    {% if 'docker_gwbridge' not in network_subnet_name_cleaned or 'ess' not in network_subnet_name_cleaned or 'bridge' not in network_subnet_name_cleaned %}
+        {% if network_subnet_name_cleaned != 'bridge' and 'ess' not in network_subnet_name_cleaned  %}
+
+            {% if 'vpn' in network_subnet_name_cleaned %}
+
+            {% endif %}
+
+            {% if 'ess' in network_subnet_name_cleaned %}
+
+            {% endif %}
+
+            ess-{{ network_subnet_name_cleaned | replace('_default', "") | replace('_', "-") }}:ess                             bport4          # ess NETWORK
+        {% endif %}
+    {% endif %}
+
+
+
+        {% for network_subnet in docker_networks_array.results %}
+    {% set network_subnet_joined = network_subnet.stdout_lines %}
+    {% set network_subnet_joined_cleaned = network_subnet_joined | join %}
+    {% set network_subnet_joined_kv = network_subnet_joined_cleaned | replace(': ', "=") %}
+    {% set network_subnet_name_cleaned = network_subnet_joined_kv |  regex_replace('=[^=]+$', '') %}
+    {% set network_subnet_cleaned = network_subnet_joined_kv |  regex_replace('.*=', '') %}
+
+    {% if 'docker_gwbridge' not in network_subnet_name_cleaned or 'ess' not in network_subnet_name_cleaned or 'bridge' not in network_subnet_name_cleaned %}
+        {% if network_subnet_name_cleaned != 'bridge' and 'ess' not in network_subnet_name_cleaned  %}
+            ess-{{ network_subnet_name_cleaned | replace('_default', "") | replace('_', "-") }}:ess                             bport4          # ess NETWORK
+        {% endif %}
+    {% endif %}
+{% endfor %}
+
+
+
+######## DOCKER ZONES AND DEFAULT INTERFACES WITH BRIDGES
+
+{% for interface in docker_networks_array_interfaces.results %}
+    {% for bridge in bridges_interfaces.results %}
+        {% for bridge_name in bridge.stdout_lines %}
+
+
+
+
+
+
+{% for interface in docker_networks_array_interfaces.results %} 
+{% for bridge in bridges_interfaces.results %}
+{% for bridge_name in bridge.stdout_lines %}
+
+{% set interface_string = interface.stdout_lines | join %}
+{% set bridge_veth = bridge_name | replace(interface_string, "") %}
+{% set bridge_veth_name = bridge_veth | replace('_veth', "veth") %}
+
+{% if interface_string in bridge_name | string() %}
+{% if interface_string == 'docker0' %}
+bridge {{ interface_string }}:{{ bridge_veth_name }} 
+{% endif %}
+{% if interface_string == 'docker_gwbridge' %}
+ess {{ interface_string }}:{{ bridge_veth_name }} 
+{% endif %}
+{% endif %}
+
+{% endfor %}
+{% endfor %}
+{% endfor %}
+
+
+{% for network_subnet in docker_networks_array.results %}
+
+    {% set network_subnet_joined = network_subnet.stdout_lines %}
+    {% set network_subnet_joined_cleaned = network_subnet_joined | join %}
+    {% set network_subnet_joined_kv = network_subnet_joined_cleaned | replace(': ', "=") %}
+    {% set network_subnet_name_cleaned = network_subnet_joined_kv |  regex_replace('=[^=]+$', '') %}
+    {% set network_subnet_cleaned = network_subnet_joined_kv |  regex_replace('.*=', '') %}
+
+    {% if 'bridge' in network_subnet_name_cleaned and 'docker_gwbridge' not in network_subnet_name_cleaned %}
+# {{ network_subnet_name_cleaned }}                                                                                  docker0:{{ network_subnet_cleaned }}    maclist
+    {% endif %}
+    {% if 'ess' in network_subnet_name_cleaned %}
+# ess-docker-gwbridge                                                                                            docker_gwbridge:{{ network_subnet_cleaned }}    maclist
+    {% endif %}
+    
+    {% if 'docker_gwbridge' not in network_subnet_name_cleaned and 'ess' not in network_subnet_name_cleaned and 'bridge' not in network_subnet_name_cleaned %}
+        {% if network_subnet_name_cleaned == "docker_gwbridge" %}
+            # docker-gwbridge                                                                                                    docker_gwbridge:{{ network_subnet_cleaned }}    maclist
+        {% else %}
+            # ess-{{ network_subnet_name_cleaned | replace('_default', "") | replace('_', "-")   }}                          docker_gwbridge:{{ network_subnet_cleaned }}   maclist
+        {% endif %}
+    {% endif %}
+
+
+{% endfor %}
+
+
+
+
+
+
+
+
+
+
+{% for interface in docker_networks_array_interfaces.results %} 
+{% for bridge in bridges_interfaces.results %}
+{% for bridge_name in bridge.stdout_lines %}
+
+{% set interface_string = interface.stdout_lines | join %}
+{% set bridge_veth = bridge_name | replace(interface_string, "") %}
+{% set bridge_veth_name = bridge_veth | replace('_veth', "veth") %}
+
+{% if interface_string in bridge_name | string() %}
+{% if interface_string == 'docker0' %}
+bridge {{ interface_string }}:{{ bridge_veth_name }} 
+{% endif %}
+{% if interface_string == 'docker_gwbridge' %}
+ess {{ interface_string }}:{{ bridge_veth_name }} 
+{% endif %}
+{% endif %}
+
+{% endfor %}
+{% endfor %}
+{% endfor %}

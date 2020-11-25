@@ -1,0 +1,7 @@
+- name: Long lifetime certificates update playbook
+  become: true
+  hosts: "{{ HOSTS | default('all-webservers') }}"
+  roles:
+    - name: Run certificate upload role
+      role: ./!_acme/certificate_update/
+  tags: certificate_update

@@ -1,0 +1,25 @@
+# Deploy Keepalive Playbook
+- name: Fact gathering
+  hosts: "elasticsearch-endpoint:minio-endpoint:redis-endpoint:nginx-frontend:all"
+  vars_files:
+    - "group_vars/all.yml"
+  tasks: []
+  tags: [get-facts, always]
+
+- name: Deploy keepalive with configuration
+  hosts: "{{ HOSTS | default('network-balancer-stack') }}"
+  vars_files:
+    - "group_vars/all.yml"
+    - "{{ inventory_dir }}/group_vars/{{ HOSTS | default('network-balancer-stack') }}/{{ HOSTS | default('network-balancer-stack') }}.yml"
+  become: true
+  roles:
+    - name: Install iptables-persistent
+      role: ./!_network/iptables-persistent/install
+      tags:
+        - install_iptables_persistent
+    - name: Install keepalived
+      role: ./!_network/keepalived/install
+      tags:
+        - install_keepalived
+    - name: Run primary keepalive role
+      role: ./!_network/keepalived/deploy

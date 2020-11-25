@@ -1,0 +1,5 @@
+#!/bin/bash
+{% for item in python_qa_settings_map %}
+export {{ item | regex_replace (': ','=') }}
+{% endfor %}
+export environment="{{ ansible_environment }}"

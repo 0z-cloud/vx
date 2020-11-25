@@ -1,0 +1,7 @@
+- name: Install docker step...for all hosts
+  become: true
+  hosts: "{{ HOSTS | default('all') }}"
+  roles:
+    - name: Docker install playbook
+      role: ./!_cloud/docker/install_dev
+  tags: [docker-setup]

@@ -1,0 +1,24 @@
+apiVersion: kubeadm.k8s.io/v1beta1
+kind: ClusterConfiguration
+kubernetesVersion: stable
+clusterName: "{{ K8S_CLUSTER_NAME }}"
+apiServer:
+  extraArgs:
+    apiserver-count: "3"
+    advertise-address: "{{ hostvars[inventory_hostname]['second_ip'] }}"
+  certSANs:
+  - "{{ K8S_CLUSTER_ADDRESS }}"{% for host in groups['kubernetes-master'] %}{% raw %}
+  - "{% endraw %}{{ hostvars[host]['second_ip'] }}"{% raw %}
+  - "{% endraw %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}"{% endfor %}{% raw %}
+{% endraw %}controlPlaneEndpoint: "{{ hostvars[inventory_hostname]['second_ip'] }}:{{ K8S_CLUSTER_LISTEN_PORT }}"
+etcd:
+  external:
+        endpoints:{% for host in groups['kubernetes-master'] %}{% raw %}
+        - https://{% endraw %}{{ hostvars[host]['second_ip'] }}:{{ K8S_CLUSTER_LISTEN_PORT_2379 }}{% endfor %}{% raw %}
+        caFile: {% endraw %}/etc/kubernetes/pki/etcd/ca.crt
+        certFile: /etc/kubernetes/pki/etcd/server.crt
+        keyFile: /etc/kubernetes/pki/etcd/server.key
+networking:
+    dnsDomain: "{{ public_consul_domain }}"
+    podSubnet: "{{ POD_NETWORK_CIDR }}"
+    serviceSubnet: "{{ SERVICE_NETWORK_CIDR }}"

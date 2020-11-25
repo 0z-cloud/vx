@@ -1,0 +1,27 @@
+sysctl_settings_defaults:
+  - "vm.max_map_count = 262144"
+  - "vm.swappiness = 0"
+  - "vm.overcommit_memory = 1"
+  - "vm.overcommit_ratio = 100"
+  - "kernel.shmmax = 17179869184"
+  - "kernel.shmall = 4194304"
+
+sysctl_network_defaults:
+  - "net.ipv6.conf.all.disable_ipv6 = 1"
+  - "net.ipv6.conf.default.disable_ipv6 = 1"
+  - "net.ipv4.ip_forward = 1"
+  - "net.ipv4.conf.all.rp_filter = 1"
+  - "net.ipv4.conf.default.rp_filter = 1"
+  - "net.ipv4.icmp_echo_ignore_broadcasts = 1"
+  - "net.ipv4.conf.default.proxy_arp = 1"
+  - "net.ipv4.conf.all.promote_secondaries = 1"
+  - "net.ipv4.conf.all.arp_ignore = 1"
+  - "net.ipv4.conf.all.arp_announce = 2"
+  ##### SPECIFIC SETTINGS FOR BALANCER
+  # - "net.ipv4.conf.virbr0.arp_ignore = 1"
+  # - "net.ipv4.conf.virbr0.arp_announce = 2"
+  # - "net.ipv4.conf.eth1.arp_announce = 0"
+
+sysctl_security_defaults:
+  - "fs.protected_hardlinks = 0"
+  - "fs.protected_symlinks = 0"

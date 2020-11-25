@@ -1,0 +1,3 @@
+- name: Include install runners
+  include_tasks: "server.yml"
+  when: "'gitlab-runners' in group_names"

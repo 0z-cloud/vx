@@ -1,0 +1,67 @@
+- name: Templating the web.xml main configuration from tomcat/web.xml.j2
+  template:
+    src: tomcat/web.xml.j2
+    dest: "{{ ansible_tomcat_settings.configurations.conf_web_xml }}"
+
+- name: Templating the server.xml main configuration from tomcat/server.xml.j2
+  template:
+    src: tomcat/server.xml.j2
+    dest: "{{ ansible_tomcat_settings.configurations.conf_server_xml }}"
+
+- name: Templating the tomcat-users.xml configuration from tomcat/tomcat-users.xml
+  template:
+    src: tomcat/tomcat-users.xml
+    dest: "{{ ansible_tomcat_settings.configurations.conf_tomcat_users }}"
+    
+- name: Templating the logging.properties configuration from tomcat/logging.properties
+  template:
+    src: tomcat/logging.properties
+    dest: "{{ ansible_tomcat_settings.configurations.conf_logging_properties }}"
+
+- name: Templating the etc_default_tomcat configuration from tomcat/etc_default_tomcat
+  template:
+    src: tomcat/etc_default_tomcat
+    dest: "{{ ansible_tomcat_settings.configurations.conf_default }}"
+
+- name: Templating the catalina.properties configuration from tomcat/catalina.properties
+  template:
+    src: tomcat/catalina.properties
+    dest: "{{ ansible_tomcat_settings.configurations.conf_catalina_properties }}"
+
+########
+
+- name: Templating the 01system.policy configuration from policy/01system.policy
+  template:
+    src: policy/01system.policy
+    dest: "{{ ansible_tomcat_settings.configurations.ansible_conf_catalina_policy }}/01system.policy"
+
+- name: Templating the 02debian.policy configuration from policy/02debian.policy
+  template:
+    src: policy/02debian.policy
+    dest: "{{ ansible_tomcat_settings.configurations.ansible_conf_catalina_policy }}/02debian.policy"
+
+- name: Templating the 03catalina.policy configuration from policy/03catalina.policy
+  template:
+    src: policy/03catalina.policy
+    dest: "{{ ansible_tomcat_settings.configurations.ansible_conf_catalina_policy }}/03catalina.policy"
+
+- name: Templating the 04webapps.policy configuration from policy/04webapps.policy
+  template:
+    src: policy/04webapps.policy
+    dest: "{{ ansible_tomcat_settings.configurations.ansible_conf_catalina_policy }}/04webapps.policy"
+    
+########
+
+- name: Generate server error pages mappings
+  template: 
+    src: shared_settings/template_page.html.j2
+    dest: "{{ ansible_tomcat_settings.directories.ansible_product_webapps_root }}/error_page_{{ item }}.html"
+  with_items: "{{ ansible_catalina_web_xml_error_pages }}"
+
+- name: Generate server exceptions mappings
+  template: 
+    src: shared_settings/template_page.html.j2
+    dest: "{{ ansible_tomcat_settings.directories.ansible_product_webapps_root }}/ex_{{ item }}.html"
+  with_items: "{{ ansible_catalina_web_xml_exceptions_settings }}"
+  
+########

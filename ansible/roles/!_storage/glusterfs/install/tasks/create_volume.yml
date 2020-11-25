@@ -1,0 +1,347 @@
+- name: -- GlusterFS Debug -- Create bootstrap only primary hostname group
+  add_host: 
+    name: "{{ hostvars[inventory_hostname]['inventory_hostname'] }}"
+    hostname: "{{ hostvars[item]['inventory_hostname'] }}"
+    groups: GLUSTERFS_CLUSTER_HOSTS_BOOTSTRAP
+  delegate_to: "{{ item }}"
+  with_items: "{{ ansible_play_hosts }}"
+  tags: debug
+
+- name: -- GlusterFS Debug -- reate full primary hostname group
+  add_host: 
+    name: "{{ hostvars[item]['inventory_hostname'] }}"
+    hostname: "{{ hostvars[item]['inventory_hostname'] }}"
+    groups: GLUSTERFS_CLUSTER_HOSTS_FULL
+  #delegate_to: "{{ item }}"
+  with_items: "{{ ansible_play_hosts }}"
+  tags: debug
+
+- name: -- GlusterFS Debug -- New group GLUSTERFS_CLUSTER_HOSTS_FULL
+  debug:
+    msg: "{{ hostvars[item]['inventory_hostname'] }}"
+  with_items: "{{ groups['GLUSTERFS_CLUSTER_HOSTS_FULL'] }}"
+  delegate_to: "{{ item }}"
+  #with_items: "{{ ansible_play_hosts }}"
+  #when: inventory_hostname in groups['GLUSTERFS_CLUSTER_HOSTS_FULL']
+  tags: debug
+
+- name: -- GlusterFS Debug -- New group GLUSTERFS_CLUSTER_HOSTS_BOOTSTRAP
+  debug:
+    msg: "{{ hostvars[item]['inventory_hostname'] }}"
+  with_items: "{{ groups['GLUSTERFS_CLUSTER_HOSTS_BOOTSTRAP'] }}"
+  delegate_to: "{{ item }}"
+  #with_items: "{{ ansible_play_hosts }}"
+  #when: inventory_hostname in groups['GLUSTERFS_CLUSTER_HOSTS_BOOTSTRAP']
+  tags: debug
+
+- name: -- GlusterFS Service -- Ensure the glusterd is running by restarting
+  service: 
+      name: glusterd
+      state: restarted
+  tags: [install-glusterfs]
+
+- name: -- GlusterFS Service -- Ensure the glusterd is enabled
+  systemd: 
+    name: glusterd
+    enabled: yes
+    masked: no
+  tags: [service-glusterfs]
+
+- name: Raw restart rpc bind
+  shell: systemctl start rpcbind && systemctl enable rpcbind 
+  
+- name: -- GlusterFS Volume -- Create GlusterFS Point
+  file:
+      path: "{{ glusterfs_settings.directories.opt_dir }}"
+      state: directory
+      mode: 755
+  tags: [create-volume]
+
+- name: -- GlusterFS Volume -- Create GlusterFS Point bricks 
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 755
+  with_items: "{{ glusterfs_settings.bricks_array }}"
+  tags: [create-volume]
+
+- name: -- GlusterFS Volume -- Removing GlusterFS Volume
+  gluster_volume: 
+      state: absent 
+      name: "{{ glusterfs_settings.directories.volume_name }}"
+      bricks: "{% for brick in glusterfs_settings.bricks_array %}{{ brick }}{% if not loop.last %},{% endif %}{% endfor %}"
+      #rebalance: yes 
+      directory: "{{ glusterfs_settings.directories.opt_dir }}"
+      #transport: rdma
+      #force: true
+  run_once: true
+  when: clean_glusterfs_all is defined
+  ignore_errors: true
+  tags: [delete-volume]
+
+# - name: -- GlusterFS Mountpoint -- Umount the volume
+#   raw: umount {{ glusterfs_settings.directories.cloud_dir }}
+#   when: clean_glusterfs_all is defined
+#   ignore_errors: true
+
+###
+# INFO:
+#
+# 1. If to create volume passed more then one brick per server this volume borned as Distributed-Replicated
+# 2. For only Replicated Volume must use 3 replicas count, 1 arbiter and one brick.
+###
+
+###
+# 3. Current looks works are a perfect way, but need to check all possible values and determine by tests, 
+# the best type of configuration options, on each and differents type of storage use io requests.
+# Currently works, we can see in last info about GlusterFS Volume Configuration,
+# which prints by last step in role.
+#
+### NOT TESTED. TO RnD / Test / Investigate
+#
+# gluster v set {{ glusterfs_settings.directories.volume_name }} cluster.entry-self-heal on
+# gluster v set {{ glusterfs_settings.directories.volume_name }} cluster.data-self-heal on
+# gluster v set {{ glusterfs_settings.directories.volume_name }} cluster.metadata-self-heal on
+#
+###
+# GO CREATE THE REQUESTED VOLUME BY INVOKING THE GLUSTER_VOLUME MODULE:
+###
+
+- name: Creating GlusterFS Volume with Arbiter Configuration
+  gluster_volume: 
+      state: present 
+      name: "{{ glusterfs_settings.directories.volume_name }}"
+      bricks: "{% for brick in glusterfs_settings.bricks_array %}{{ brick }}{% if not loop.last %},{% endif %}{% endfor %}"
+      rebalance: yes
+      directory: "{{ glusterfs_settings.directories.opt_dir }}"
+      #transport: tcp
+      force: true
+      #replicas: 2
+      replicas: "{{ hostvars[inventory_hostname].glusterfs_replica_count }}"
+      arbiters: '1'
+      cluster: "{% for host in groups['GLUSTERFS_CLUSTER_HOSTS_FULL'] %}{% if host in groups['cloud-bind-frontend-dns'] %}glusterfs.{{ hostvars[host]['inventory_hostname'] }}.{{ public_consul_domain }}{% else %}{{ hostvars[host]['inventory_hostname'] }}.{{ public_consul_domain }}{% endif %}{% if not loop.last %},{% endif %}{% endfor %}"
+      options:
+        features.shard: 'on'
+        server.allow-insecure: 'on'
+        features.shard-block-size: '512MB'
+        storage.owner-gid: '36'
+        storage.owner-uid: '36'
+        nfs.disable: 'on'
+        cluster.data-self-heal-algorithm: 'full'
+        auth.allow: '*'
+        network.ping-timeout: '10'
+        performance.low-prio-threads: '32'
+        performance.io-thread-count: '32'
+        cluster.server-quorum-type: 'server'
+        cluster.quorum-type: 'auto'
+        network.remote-dio: 'enable'
+        cluster.eager-lock: 'enable'
+        performance.stat-prefetch: 'off'
+        performance.io-cache: 'off'
+        performance.read-ahead: 'off'
+        performance.quick-read: 'off'
+        transport.address-family: 'inet'
+        performance.readdir-ahead: 'on'
+        cluster.data-self-heal-algorithm: 'full'
+        auth.allow: '*'
+        performance.cache-size: 256MB
+        performance.client-io-threads: off
+  retries: 3  
+  delay: 5
+  ignore_errors: true
+
+### TECHICAL CRITICAL BACKLOG TO CHECK
+
+# - name: -- GlusterFS with Arbiter -- Creating GlusterFS Volume with Arbiter Configuration
+#   gluster_volume: 
+#       state: present 
+#       name: "{{ glusterfs_settings.directories.volume_name }}"
+#       bricks: "{% for brick in glusterfs_settings.bricks_array %}{{ brick }}{% if not loop.last %},{% endif %}{% endfor %}"
+#       # rebalance: yes
+#       # directory: "{{ glusterfs_settings.directories.opt_dir }}"
+#       transport: rdma
+#       transport: tcp
+#       force: true
+#       # replicas: 2
+#       replicas: "{{ hostvars[inventory_hostname].glusterfs_replica_count }}"
+#       arbiters: '1'
+#       cluster: "{% for host in groups['GLUSTERFS_CLUSTER_HOSTS_FULL'] %}{% if host in groups['cloud-bind-frontend-dns'] %}glusterfs.{{ hostvars[host]['inventory_hostname'] }}.{{ public_consul_domain }}{% else %}{{ hostvars[host]['inventory_hostname'] }}.{{ public_consul_domain }}{% endif %}{% if not loop.last %},{% endif %}{% endfor %}"
+#       options:
+#         features.shard: 'on'
+#         server.allow-insecure: 'on'
+#         features.shard-block-size: '512MB'
+#         storage.owner-gid: '36'
+#         storage.owner-uid: '36'
+#         nfs.disable: 'on'
+#         cluster.data-self-heal-algorithm: 'full'
+#         auth.allow: '*'
+#         network.ping-timeout: '10'
+#         performance.low-prio-threads: '32'
+#         performance.io-thread-count: '32'
+#         cluster.server-quorum-type: 'server'
+#         cluster.quorum-type: 'auto'
+#         network.remote-dio: 'enable'
+#         cluster.eager-lock: 'enable'
+#         performance.stat-prefetch: 'off'
+#         performance.io-cache: 'off'
+#         performance.read-ahead: 'off'
+#         performance.quick-read: 'off'
+#         transport.address-family: 'inet'
+#         performance.readdir-ahead: 'on'
+#         #######
+#         performance.readdir-ahead: 'on'
+#         transport.address-family: 'inet'
+#         cluster.quorum-type: 'auto'
+#         cluster.server-quorum-type: 'server'
+#         cluster.data-self-heal-algorithm: 'full'
+#         cluster.self-heal-readdir-size: '2KB'
+#         performance.write-behind-window-size: '10MB'
+#         server.allow-insecure: 'on'
+#         cluster.lookup-optimize: 'on'
+#         storage.batch-fsync-delay-usec: '0'
+#         performance.low-prio-threads: '64'
+#         performance.io-thread-count: '64'
+#         performance.client-io-threads: 'on'
+#         cache-max-file-size: '10MB'
+#         performance.cache-refresh-timeout: '5'
+#         performance.cache-size: '5GB'
+#         performance.read-ahead: 'off'
+#         write-behind: 'off'
+#         quick-read: 'off'
+#         network.inode-lru-limit: '1000000'
+#         network.remote-dio: 'enable'
+#         cluster.eager-lock: 'enable'
+#         performance.stat-prefetch: 'off'
+#         performance.io-cache: 'off'
+#         network.ping-timeout: '20'
+#         nfs.nlm: 'on'
+#         nfs.addr-namelookup: 'on'
+#         nfs.enable-ino32: 'on'
+#         nfs.disable: 'on'
+#         network.frame-timeout: '60'
+#         performance.quick-read: 'off'
+#         performance.flush-behind: 'off'
+#         performance.high-prio-threads: '64'
+#         performance.normal-prio-threads: '64'
+#         server.event-threads: '16'
+#         client.event-threads: '16'
+#         features.shard: 'on'
+#         features.shard-block-size: '512MB'
+#         # disperse.shd-max-threads: '6'
+#         disperse.self-heal-window-size: '4'
+#         cluster.self-heal-window-size: '2'
+#         cluster.heal-timeout: '500'
+#         cluster.background-self-heal-count: '20'
+#         #cluster.disperse-self-heal-daemon: 'enable'
+#         disperse.background-heals: '18'
+#         storage.owner-gid: '36'
+#         storage.owner-uid: '36'
+#         performance.cache-size: 256MB
+#         # server.allow-insecure: on
+#         # nfs.disable: on
+#         # performance.client-io-threads: off
+#     #   #}
+#     # options:
+#     #   performance.cache-size: 256MB
+#     #   server.allow-insecure: on
+    
+#     # nfs.disable: on
+#     # performance.client-io-threads: off
+#     #   #NEW OPTIONS
+#   ignore_errors: true
+#   when: glusterfs_arbiter_no_present is not defined
+#   run_once: true
+#   #delegate_to: "{{ item }}"
+#   #with_items: groups['GLUSTERFS_CLUSTER_HOSTS_FULL']
+#   #with_items: "{{ groups['GLUSTERFS_CLUSTER_HOSTS_BOOTSTRAP'] }}"
+#   #when: inventory_hostname in groups['GLUSTERFS_CLUSTER_HOSTS_BOOTSTRAP']
+#   tags: [create-volume]
+
+
+- name: -- GlusterFS Storage -- Fix the missed by maintainer dir if we perform reinstall the service
+  file: 
+      path: /var/lib/glusterd/nfs/
+      state: directory
+      mode: 755
+
+- name: -- GlusterFS Mount Target -- Start GlusterFS Volume Service
+  shell: gluster volume start {{ glusterfs_settings.directories.volume_name }} force
+  ignore_errors: true
+  run_once: true
+
+- name: -- GlusterFS Create Volume Placement -- Create Mount Point 
+  file:
+      path: "{{ glusterfs_settings.directories.cloud_dir }}"
+      state: directory
+      mode: 755
+  tags: [mount-volume]
+
+- name: -- GlusterFS Attaching Volume -- Mounting Cluster Volume
+  mount: 
+      name: "{{ glusterfs_settings.directories.cloud_dir }}"
+      src: "{{ hostvars[inventory_hostname]['inventory_hostname'] }}.{{ public_consul_domain }}:/{{ glusterfs_settings.directories.volume_name }}"
+      fstype: glusterfs
+      opts: "defaults,_netdev"
+      # backupvolfile-server=volfile_server2,use-readdirp=no,volfile-max-fetch-attempts=2,log-level=WARNING,log-file=/var/log/gluster.log
+      # opts: -o rw,async,vers=3,rsize=65536,wsize=65536
+      # {node}:/{volumename} {mount/location} glusterfs defaults,_netdev,direct-io-mode=disable 0 0
+      # localhost:/gfs /mnt glusterfs defaults,_netdev,backupvolfile-server=localhost 0 0
+      state: present
+  tags: [mount-volume]
+
+## WIP - must clean or do better
+# - name: -- GlusterFS Sync Group -- Allow access to glusterfs volume only from current servers group
+#   shell: gluster volume set {{ glusterfs_settings.directories.volume_name }} auth.allow {% for host in groups['GLUSTERFS_CLUSTER_HOSTS_BOOTSTRAP'] %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}{% if not loop.last %},{% endif %}{% endfor %}
+
+- name: -- GlusterFS Autostart -- Modify rc.local - add awaiting glusterfs
+  lineinfile:
+      line: 'sleep 30'
+      insertbefore: exit 0
+      dest: /etc/rc.local
+      state: present
+  tags: [mount-volume]
+
+- name: -- GlusterFS Autostart -- Modify rc.local - add mounting glusterfs
+  lineinfile:
+      line: 'mount -a'
+      insertafter: 'sleep 30'
+      dest: /etc/rc.local
+      state: present
+  tags: [mount-volume]
+
+- name: -- GlusterFS State -- Get the status from service
+  raw: gluster volume status all
+  register: gluster_volume_status
+
+- name: -- GlusterFS Show State -- Show Volume Status
+  debug:
+    msg: "{{ gluster_volume_status.stdout_lines }}"
+
+- name: -- GlusterFS Just Exec -- Mounting now
+  raw: mount -a
+  ignore_errors: true
+  tags: [mount-volume]
+
+- name: Retieve all gluster volumes info by render with xml output
+  raw: gluster volume status all detail --xml
+  register: all_gluster_volumes_detailed_status
+
+- name: -- GlusterFS Show Detailed Info -- Show Volume Detailed Status
+  debug:
+    msg: "{{ all_gluster_volumes_detailed_status.stdout_lines }}"
+
+- name: Get new states with all volume data
+  raw: gluster volume get {{ glusterfs_settings.directories.volume_name }} all
+  register: volume_options_key_values_map
+
+- name: -- GlusterFS Show Detailed Info -- Show Volume Options
+  debug:
+    msg: "{{ volume_options_key_values_map.stdout_lines }}"
+
+- name: Retieve all gluster volumes info with cluster configuration layout
+  raw: gluster volume info
+  register: all_gluster_volumes_configuration_layout_detailed_status
+
+- name: -- GlusterFS Show Layout of Storage -- Show Volume Layout Cluster Configuration
+  debug:
+    msg: "{{ all_gluster_volumes_configuration_layout_detailed_status.stdout_lines }}"

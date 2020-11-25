@@ -1,0 +1,7 @@
+- name: Running sudoers configuration
+  hosts: all
+  become: true
+  roles:
+
+    - name: Call afterinstall cleaning role
+      role: "./!__layouts__/sudoers"

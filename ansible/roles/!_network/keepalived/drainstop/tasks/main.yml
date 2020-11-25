@@ -1,0 +1,34 @@
+- name: START DRAIN | Generationg UUID of current run
+  shell: uuidgen
+  register: uuid_generated
+
+- name: KEEPALIVED | Generating helper script for preventing drain all
+  template:
+    src: helper.sh
+    dest: "/tmp/drainstop_helper_{{ uuid_generated.stdout }}.sh"
+    mode: 0777
+
+- name: KEEPALIVED | DrainStop Service {{ service_name }} on Keepalive 
+  shell: ipvsadm -d -t {{ primary_service_ip }}:{{ primary_service_port }} -r {{ backend_service_ip }}:{{ backend_service_port }}
+
+- name: KEEPALIVED | Running DrainStop Helper...
+  shell: /tmp/drainstop_helper_{{ uuid_generated.stdout }}.sh
+  register: drainstop_helper
+
+- name: DEBUG | Show helper result
+  debug:
+    msg: "{{ drainstop_helper }}"
+
+- name: KEEPALIVED | Clean helper file
+  file:
+    path: "/tmp/drainstop_helper_{{ uuid_generated.stdout }}.sh"
+    state: absent
+
+- name: KEEPALIVED | Fail Drain Stop {{ service_name }} if return code not a zero
+  fail:
+    msg: "Whoops! Drain Stop the BackEnd IP {{ backend_service_ip }} Port {{ backend_service_port }} FAILED!"
+  when: drainstop_helper.rc != 0
+
+- name: DONE DRAIN | Ansible will go next?...
+  debug:
+    msg: "We can go update service {{ service_name }}"

@@ -1,0 +1,2 @@
+oz_router_subnet_anycloud_vpn_port: {{ oz_router_subnet_anycloud_vpn_port }}
+oz_router_subnet_anycloud_web_port: {{ oz_router_subnet_anycloud_web_port }}

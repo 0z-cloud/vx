@@ -1,0 +1,13 @@
+apiVersion: v1
+data:
+  MINIO_ACCESS_KEY: Jhs617UAGfg1A15
+  MINIO_SECRET_KEY: nZBj1h7O9ahAGf1hFA51fasAs1f
+kind: ConfigMap
+metadata:
+  annotations:
+    field.cattle.io/creatorId: user-rxbgq
+  creationTimestamp: null
+  labels:
+    cattle.io/creator: norman
+  name: minio-env
+  selfLink: /api/v1/namespaces/rpay-engine/configmaps/minio-env

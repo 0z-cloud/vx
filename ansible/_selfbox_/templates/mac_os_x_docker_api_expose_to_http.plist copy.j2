@@ -1,0 +1,35 @@
+
+#file: docker.socat_listener
+# <?xml version="1.0" encoding="UTF-8"?>
+# <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+# <plist version="1.0">
+#     <dict>
+#         <key>Label</key>
+#         <string>docker.socat_listener</string>
+#         <key>Disabled</key>
+#         <false/>
+#         <key>RunAtLoad</key>
+#         <true/>
+#         <key>KeepAlive</key>
+#         <true/>
+#         <key>ProgramArguments</key>
+#         <array>
+#             <string>/usr/local/bin/socat</string>
+#             <string>-d</string>
+#             <string>TCP-LISTEN:2377,reuseaddr,fork</string>
+#             <string>UNIX:/var/run/docker.sock</string>
+#         </array>
+#         <key>StandardErrorPath</key>
+#     	<string>/Library/Logs/socat_docker.log</string>
+#     	<key>StandardOutPath</key>
+#     	<string>/Library/Logs/socat_docker.log</string>
+#         <key>StartInterval</key>
+#        <integer>30</integer>
+#     </dict>
+# </plist>
+
+# copy plist file to LaunchDaemons folder
+#cd /Library/LaunchDaemons
+#sudo chown root:wheel docker.socat_listener.plist
+#sudo launchctl load se.ivankrizsan.socat_launcher.plist
+# verify service with url:  http://127.0.0.1:2377/version

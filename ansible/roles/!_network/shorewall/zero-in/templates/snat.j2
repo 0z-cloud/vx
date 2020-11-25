@@ -1,0 +1,18 @@
+# Shorewall - SNAT/Masquerade File
+#
+# For information about entries in this file, type "man shorewall-snat"
+#
+# See http://shorewall.net/manpages/shorewall-snat.html for additional information
+###################################################################################################################
+#ACTION         SOURCE          DEST            PROTO   PORT   IPSEC  MARK   USER    SWITCH  ORIGDEST   PROBABILITY
+#
+
+## PRIMARY INTERFACES #
+{% set first_ipv4_alias = hostvars[inventory_hostname]['ansible_default_ipv4']['interface'] %}
+{% set second_ipv4_alias = hostvars[inventory_hostname]['second_iface'] %}
+{% if first_ipv4_alias != second_ipv4_alias %}
+MASQUERADE     172.17.0.0/12                                               {{ first_ipv4_alias }}   
+MASQUERADE     172.17.0.0/12                                               {{ second_ipv4_alias }}                             
+{% else %}
+MASQUERADE     172.17.0.0/12                                               {{ hostvars[inventory_hostname]['second_iface'] }}   
+{% endif %}

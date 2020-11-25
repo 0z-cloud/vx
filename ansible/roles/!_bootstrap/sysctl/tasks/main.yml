@@ -1,0 +1,13 @@
+- name: Template the sysctl conf from template
+  template:
+    src: sysctl.j2
+    dest: /etc/sysctl.conf
+
+- name: Apply main sysctl options
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+  with_items:
+    - { name: 'vm.swappiness', value: '0' }
+    - { name: 'net.bridge.bridge-nf-call-iptables', value: '1' }

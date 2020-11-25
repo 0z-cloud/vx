@@ -1,0 +1,15 @@
+---
+
+- name: Fact Gathering
+  hosts: "all:logging-elasticsearch-cluster"
+  tasks: []
+  tags: [get_facts, always]
+
+- name: Installing Kibana Logging Cluster Viewer
+  become: true
+  gather_facts: true 
+  hosts: logging-kibana-service
+  roles: 
+    - name: Run logging kibana service role
+      role: roles/!_logging/logging-kibana-service
+  tags: [elasticsearch-cluster-install]

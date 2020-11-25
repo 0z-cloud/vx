@@ -1,0 +1,84 @@
+apiVersion: v1
+data:
+  rke-ingress-controller: "\napiVersion: v1\nkind: Namespace\nmetadata:\n  name: ingress-nginx\n---\nkind:
+    ConfigMap\napiVersion: v1\nmetadata:\n  name: nginx-configuration\n  namespace:
+    ingress-nginx\n  labels:\n    app: ingress-nginx\ndata:\n\n---\nkind: ConfigMap\napiVersion:
+    v1\nmetadata:\n  name: tcp-services\n  namespace: ingress-nginx\n---\nkind: ConfigMap\napiVersion:
+    v1\nmetadata:\n  name: udp-services\n  namespace: ingress-nginx\n\n---\napiVersion:
+    v1\nkind: ServiceAccount\nmetadata:\n  name: nginx-ingress-serviceaccount\n  namespace:
+    ingress-nginx\n---\napiVersion: rbac.authorization.k8s.io/v1beta1\nkind: ClusterRole\nmetadata:\n
+    \ name: nginx-ingress-clusterrole\nrules:\n  - apiGroups:\n      - \"\"\n    resources:\n
+    \     - configmaps\n      - endpoints\n      - nodes\n      - pods\n      - secrets\n
+    \   verbs:\n      - list\n      - watch\n  - apiGroups:\n      - \"\"\n    resources:\n
+    \     - nodes\n    verbs:\n      - get\n  - apiGroups:\n      - \"\"\n    resources:\n
+    \     - services\n    verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n
+    \     - \"extensions\"\n    resources:\n      - ingresses\n      - daemonsets\n
+    \   verbs:\n      - get\n      - list\n      - watch\n  - apiGroups:\n      -
+    \"\"\n    resources:\n        - events\n    verbs:\n        - create\n        -
+    patch\n  - apiGroups:\n      - \"extensions\"\n    resources:\n      - ingresses/status\n
+    \   verbs:\n      - update\n---\napiVersion: rbac.authorization.k8s.io/v1beta1\nkind:
+    Role\nmetadata:\n  name: nginx-ingress-role\n  namespace: ingress-nginx\nrules:\n
+    \ - apiGroups:\n      - \"\"\n    resources:\n      - configmaps\n      - pods\n
+    \     - secrets\n      - namespaces\n    verbs:\n      - get\n  - apiGroups:\n
+    \     - \"\"\n    resources:\n      - configmaps\n    resourceNames:\n      #
+    Defaults to \"<election-id>-<ingress-class>\"\n      # Here: \"<ingress-controller-leader>-<nginx>\"\n
+    \     # This has to be adapted if you change either parameter\n      # when launching
+    the nginx-ingress-controller.\n      - \"ingress-controller-leader-nginx\"\n    verbs:\n
+    \     - get\n      - update\n  - apiGroups:\n      - \"\"\n    resources:\n      -
+    configmaps\n    verbs:\n      - create\n  - apiGroups:\n      - \"\"\n    resources:\n
+    \     - endpoints\n    verbs:\n      - get\n---\napiVersion: rbac.authorization.k8s.io/v1beta1\nkind:
+    RoleBinding\nmetadata:\n  name: nginx-ingress-role-nisa-binding\n  namespace:
+    ingress-nginx\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: Role\n
+    \ name: nginx-ingress-role\nsubjects:\n  - kind: ServiceAccount\n    name: nginx-ingress-serviceaccount\n
+    \   namespace: ingress-nginx\n---\napiVersion: rbac.authorization.k8s.io/v1beta1\nkind:
+    ClusterRoleBinding\nmetadata:\n  name: nginx-ingress-clusterrole-nisa-binding\nroleRef:\n
+    \ apiGroup: rbac.authorization.k8s.io\n  kind: ClusterRole\n  name: nginx-ingress-clusterrole\nsubjects:\n
+    \ - kind: ServiceAccount\n    name: nginx-ingress-serviceaccount\n    namespace:
+    ingress-nginx\n\n---\napiVersion: extensions/v1beta1\nkind: DaemonSet\nmetadata:\n
+    \ name: nginx-ingress-controller\n  namespace: ingress-nginx\nspec:\n  selector:\n
+    \   matchLabels:\n      app: ingress-nginx\n  template:\n    metadata:\n      labels:\n
+    \       app: ingress-nginx\n      annotations:\n        prometheus.io/port: '10254'\n
+    \       prometheus.io/scrape: 'true'\n    spec:\n      affinity:\n        nodeAffinity:\n
+    \         requiredDuringSchedulingIgnoredDuringExecution:\n            nodeSelectorTerms:\n
+    \             - matchExpressions:\n                - key: beta.kubernetes.io/os\n
+    \                 operator: NotIn\n                  values:\n                    -
+    windows\n      hostNetwork: true\n      nodeSelector:\n      \n      \n      serviceAccountName:
+    nginx-ingress-serviceaccount\n      \n      containers:\n        - name: nginx-ingress-controller\n
+    \         image: rancher/nginx-ingress-controller:0.21.0-rancher3\n          args:\n
+    \           - /nginx-ingress-controller\n            - --default-backend-service=$(POD_NAMESPACE)/default-http-backend\n
+    \           - --configmap=$(POD_NAMESPACE)/nginx-configuration\n            -
+    --tcp-services-configmap=$(POD_NAMESPACE)/tcp-services\n            - --udp-services-configmap=$(POD_NAMESPACE)/udp-services\n
+    \           - --annotations-prefix=nginx.ingress.kubernetes.io\n          \n          securityContext:\n
+    \           capabilities:\n                drop:\n                - ALL\n                add:\n
+    \               - NET_BIND_SERVICE\n            runAsUser: 33\n          env:\n
+    \           - name: POD_NAME\n              valueFrom:\n                fieldRef:\n
+    \                 fieldPath: metadata.name\n            - name: POD_NAMESPACE\n
+    \             valueFrom:\n                fieldRef:\n                  fieldPath:
+    metadata.namespace\n          ports:\n          - name: http\n            containerPort:
+    80\n          - name: https\n            containerPort: 443\n          livenessProbe:\n
+    \           failureThreshold: 3\n            httpGet:\n              path: /healthz\n
+    \             port: 10254\n              scheme: HTTP\n            initialDelaySeconds:
+    10\n            periodSeconds: 10\n            successThreshold: 1\n            timeoutSeconds:
+    1\n          readinessProbe:\n            failureThreshold: 3\n            httpGet:\n
+    \             path: /healthz\n              port: 10254\n              scheme:
+    HTTP\n            periodSeconds: 10\n            successThreshold: 1\n            timeoutSeconds:
+    1\n---\napiVersion: extensions/v1beta1\nkind: Deployment\nmetadata:\n  name: default-http-backend\n
+    \ labels:\n    app: default-http-backend\n  namespace: ingress-nginx\nspec:\n
+    \ replicas: 1\n  template:\n    metadata:\n      labels:\n        app: default-http-backend\n
+    \   spec:\n      terminationGracePeriodSeconds: 60\n      containers:\n      -
+    name: default-http-backend\n        # Any image is permissable as long as:\n        #
+    1. It serves a 404 page at /\n        # 2. It serves 200 on a /healthz endpoint\n
+    \       image: rancher/nginx-ingress-controller-defaultbackend:1.4-rancher1\n
+    \       livenessProbe:\n          httpGet:\n            path: /healthz\n            port:
+    8080\n            scheme: HTTP\n          initialDelaySeconds: 30\n          timeoutSeconds:
+    5\n        ports:\n        - containerPort: 8080\n        resources:\n          limits:\n
+    \           cpu: 10m\n            memory: 20Mi\n          requests:\n            cpu:
+    10m\n            memory: 20Mi\n---\napiVersion: v1\nkind: Service\nmetadata:\n
+    \ name: default-http-backend\n  namespace: ingress-nginx\n  labels:\n    app:
+    default-http-backend\nspec:\n  ports:\n  - port: 80\n    targetPort: 8080\n  selector:\n
+    \   app: default-http-backend\n"
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: rke-ingress-controller
+  selfLink: /api/v1/namespaces/kube-system/configmaps/rke-ingress-controller

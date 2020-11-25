@@ -1,0 +1,97 @@
+- name: Template apt default sources.list configuration
+  template:
+    src: sources.list.j2
+    dest: "/etc/apt/sources.list"
+    mode: 0666
+  tags: configuration
+
+- name: Template pip default pip.conf configuration
+  template:
+    src: pip.conf.j2
+    dest: "/root/.pip/pip.conf"
+    mode: 0666
+  ignore_errors: true
+  tags: configuration
+
+- name: Install necessary packages DNS
+  apt:
+    name: "{{ bind_cloud_settings.packages }}"
+    state: present
+    update_cache: true
+
+- name: Create Dir with local domain
+  file:
+    path: "{{ bind_cloud_settings.bind_etc }}/{{ bind_cloud_settings.zone_path }}/"
+    state: directory
+    mode: 0755
+  tags: configuration
+
+- name: Template DNS options
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ bind_cloud_settings.bind_etc }}/{{ item }}"
+  with_items:
+    - named.conf.local
+    - named.conf.options
+    - named.conf
+    - named.conf.default-zones
+  tags: configuration
+  
+- name: Template etc defaults bind9 configuration startup options
+  template:
+    src: etc_default.j2
+    dest: /etc/default/bind9
+
+- name: Template the domain configuration
+  template:
+    src: domain.j2
+    dest: "{{ bind_cloud_settings.bind_etc }}/{{ bind_cloud_settings.zone_path }}/{{ bind_cloud_settings.public_domain }}"
+  tags: configuration
+
+- name: Template new startup configuration
+  template:
+    src: bind9.j2
+    dest: "/etc/init.d/bind9"
+    mode: 0777
+  tags: configuration
+
+- name: Chown changes to bind:bind
+  raw: chown -R bind:bind {{ bind_cloud_settings.bind_etc }}/*
+
+- name: Configure the apparmor profile for new dirs
+  lineinfile:
+      line: '{{ bind_cloud_settings.bind_etc }}** rwm,'
+      insertbefore: '/var/cache/bind/ rw,'
+      dest: /etc/apparmor.d/usr.sbin.named
+      state: present
+
+- name: Reloading apparmor 
+  service:
+    name: apparmor
+    state: reloaded
+
+- name: Remove anycloud network config /etc/netplan/99-netcfg.yaml
+  file:
+    path: /etc/netplan/99-netcfg.yaml
+    state: absent
+
+- name: Make netplan great again
+  template:
+    src: netplan.conf.j2
+    dest: /etc/netplan/99-netcfg-cloud.yaml
+  tags: netplan
+
+- name: Apply new netplan configuration
+  shell: netplan apply
+
+- name: Restarting services
+  service:
+    name: "{{ item }}"
+    state: restarted
+  with_items:
+    - bind9
+    - systemd-resolved
+    # - keepalived
+
+# - name: Run inplace firewall sh
+#   shell: /firewall.sh

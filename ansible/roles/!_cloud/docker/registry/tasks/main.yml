@@ -1,0 +1,106 @@
+mkdir auth
+ docker run \
+  --entrypoint htpasswd \
+  registry:2 -Bbn testuser testpassword > auth/htpasswd
+  
+  
+   docker run -d \
+  -p 5000:5000 \
+  --restart=always \
+  --name registry \
+  -v /core_root/docker_registry:/var/lib/registry \
+  registry:2
+  
+
+
+docker run \
+   --entrypoint htpasswd \
+   registry:2 -Bbn docker_registry_user FncChLr2bKiftnew9ky2Lps > auth/htpasswd
+
+  
+  
+  
+  docker run -d \
+  -p 5000:5000 \
+  --restart=always \
+  --name registry \
+  -v `pwd`/auth:/auth \
+  -e "REGISTRY_AUTH=htpasswd" \
+  -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm" \
+  -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd \
+  -v /core_root/docker_registry:/var/lib/registry \
+  registry:2
+
+
+
+docker run -p 443:5000 --entrypoint htpasswd registry:2 -Bbn docker_registry_user FncChLr2bKiftnew9ky2Lps > /core_root/docker_registry/auth.htpasswd
+docker run -p 443:5000 -v /core_root/docker_registry/auth.htpasswd:/auth.htpasswd -e REGISTRY_AUTH=htpasswd -e REGISTRY_AUTH_HTPASSWD_PATH=/auth.htpasswd -e REGISTRY_AUTH_HTPASSWD_REALM="Registry Realm" -e REGISTRY_HTTP_TLS_LETSENCRYPT_CACHEFILE=/cache.letsencrypt -e REGISTRY_HTTP_TLS_LETSENCRYPT_EMAIL=support@vortex.com -e  --entrypoint htpasswd registry:2
+
+
+
+/path/data:/var/lib/registry    
+
+
+docker run -d --restart always -p 443:5000 \
+   -e REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY=/registry \
+   -v /core_root/docker_registry/data:/registry \
+   -v /core_root/docker_registry/auth.htpasswd:/auth.htpasswd \
+   -v /core_root/docker_registry/letsencrypt:/etc/letsencrypt/archive \
+   -e REGISTRY_AUTH=htpasswd -e REGISTRY_AUTH_HTPASSWD_PATH=/auth.htpasswd \
+   -e REGISTRY_AUTH_HTPASSWD_REALM="vortex.com" \
+   -e REGISTRY_HTTP_TLS_LETSENCRYPT_CACHEFILE=/cache.letsencrypt \
+   -e REGISTRY_HTTP_TLS_LETSENCRYPT_EMAIL=support@vortex.com \
+   -e REGISTRY_HTTP_SECRET:d0s9f90utj093h2023h6 registry:2
+   
+   lrwxrwxrwx 1 root root   38 Mar 16 02:49 cert.pem -> ../../archive/node2.vortex.com/cert1.pem
+lrwxrwxrwx 1 root root   39 Mar 16 02:49 chain.pem -> ../../archive/node2.vortex.com/chain1.pem
+lrwxrwxrwx 1 root root   43 Mar 16 02:49 fullchain.pem -> ../../archive/node2.vortex.com/fullchain1.pem
+lrwxrwxrwx 1 root root   41 Mar 16 02:49 privkey.pem
+   
+   cd /etc/letsencrypt/live/node2.vortex.com/
+cp privkey.pem domain.key
+cat cert.pem chain.pem > domain.crt
+chmod 777 domain.crt
+chmod 777 domain.key
+
+   
+docker run -d -p 443:5000 --restart=always --name registry \
+  -v /etc/letsencrypt/live/node2.vortex.com:/certs \
+  -v /core_root/docker_registry/auth.htpasswd:/auth.htpasswd \
+  -v /core_root/docker_registry/data:/var/lib/registry \
+  -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt \
+  -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key \
+  registry:2
+
+- name: Test result
+  become: true
+  hosts: "{{ HOSTS }}"
+  roles:
+    - name: Install package htop
+      role: my_super_role
+  tags: [docker-setup]
+  
+
+
+
+
+
+  
+- name: Install packages for something host by specific for that host packages
+  apt:
+    name: "{{ item }}"
+    state: installed
+  with_items: "{{ packages_to_install }}"
+  
+REGISTRY_HTTP_TLS_LETSENCRYPT_CACHEFILE: /cache.letsencrypt
+    REGISTRY_HTTP_TLS_LETSENCRYPT_EMAIL: hello@rdseventeen.com
+    REGISTRY_AUTH: htpasswd
+    REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
+    REGISTRY_AUTH_HTPASSWD_REALM: Registry Realm
+    
+    
+    docker_registry_user FncChLr2bKiftnew9ky2Lps > auth/htpasswd
+    
+    
+    /core_root/docker_registry
+docker run -p 443:5000 -v /core_root/docker_registry/auth.htpasswd:/auth.htpasswd -e REGISTRY_AUTH=htpasswd -e REGISTRY_AUTH_HTPASSWD_PATH=/auth.htpasswd -e REGISTRY_AUTH_HTPASSWD_REALM="Registry Realm" -e REGISTRY_HTTP_TLS_LETSENCRYPT_CACHEFILE=/cache.letsencrypt -e REGISTRY_HTTP_TLS_LETSENCRYPT_EMAIL=support@vortex.com -e  --entrypoint htpasswd registry:2

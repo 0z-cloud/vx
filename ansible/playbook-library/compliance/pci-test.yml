@@ -1,0 +1,28 @@
+- name: PCI TEST
+  hosts: vortex-pci-test
+  become: true
+  tasks:
+    - name: a
+      shell: apt list --installed | grep ntp
+      register: result_ntp
+    - name: Show result a
+      debug:
+        msg: "{{ result_ntp.stdout }}"
+    - name: b
+      shell: apt list --installed | grep ossec
+      register: result_ossec
+    - name: Show result b
+      debug:
+        msg: "{{ result_ossec.stdout }}"
+    - name: c
+      shell: apt list --installed | grep clamav
+      register: result_clamav
+    - name: Show result c
+      debug:
+        msg: "{{ result_clamav.stdout }}"
+    - name: h
+      shell: apt list --installed | grep hunter
+      register: result_hunter
+    - name: Show result h
+      debug:
+        msg: "{{ result_hunter.stdout }}"

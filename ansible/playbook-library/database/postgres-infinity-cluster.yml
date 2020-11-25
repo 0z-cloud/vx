@@ -1,0 +1,15 @@
+- name: Fact gathering
+  hosts: "all"
+  tasks: []
+  tags: [get-facts, always]
+
+- name: Install and configure postgres docker cluster
+  hosts: "{{ HOSTS }}"
+  become: true
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/!_Databases/postgres/{{ HOSTS }}/{{ HOSTS }}.yml"
+    - "group_vars/nginx-frontend/specific-target-group/{{ HOSTS | default('nginx-frontend') }}.yml"
+    - "group_vars/nginx-frontend/{{ HOSTS | default('nginx-frontend') }}.yml"
+  roles:
+    - name: Install and configure postgres cluster
+      role: ./!_databases/postgres-cluster

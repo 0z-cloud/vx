@@ -1,0 +1,78 @@
+- name: GET CLUSTER DATA | Register ClusterIP
+  shell: kubectl get svc --namespace=kube-system --kubeconfig /etc/kubernetes/admin.conf | awk '{print $3}' | tail -n -1
+  register: clusterip_raw
+
+- name: SET ANSIBLE DATA | Set ClusterIP as fact
+  set_fact:
+    k8s_cluster_ip_inside: "{{ clusterip_raw.stdout_lines  | default('10.96.0.10') }}"
+
+- name: DEBUG SHOW | Show ClusterIP getted value
+  debug:
+    msg: "{{ k8s_cluster_ip_inside }}"
+  when: debug_playbook_stdout is defined
+
+- name: MAKE SPEC | Template new K8 CoreDNS (kube-dns) specification
+  template:
+    src: coredns.spec
+    dest: /opt/ca/kube/coredns.spec
+
+- name: REMOVE OLD COREDNS CONFIGURATIONS - SERVICES, CONFIGMAPS, DEPLOYMENTS, PODS
+  shell: "{{ item }}"
+  with_items: 
+      - kubectl get configmaps -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep coredns | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete configmaps -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get configmaps -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep kube-dns | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete configmaps -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get endpoints -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep kube-dns | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete endpoints -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get endpointslices -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep kube-dns | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete endpointslices -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get clusterrolebindings -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep kube-dns | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete clusterrolebindings -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get clusterrolebindings -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep coredns | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete clusterrolebindings -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get ep -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep kube-dns  | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete ep -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get replicaset.apps -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep kube-dns | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete replicaset.apps -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get replicaset.apps -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep coredns | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete replicaset.apps -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get rs -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep coredns | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete rs -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get secrets -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep kube-dns | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete secret -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get secrets -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep coredns | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete secret -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl delete roles -n kube-system coredns --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl delete roles -n kube-system kube-dns --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl delete svc -n kube-system kube-dns --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl delete svc -n kube-system coredns --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl delete serviceaccounts -n kube-system kube-dns --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl delete serviceaccounts -n kube-system coredns --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl delete deployments -n kube-system coredns --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl delete deployments -n kube-system kube-dns --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl delete configmaps -n kube-system coredns --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl delete configmaps -n kube-system kube-dns --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl delete clusterrolebinding -n kube-system system:coredns --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl delete ds -n kube-system coredns --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl delete ds -n kube-system kube-dns --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl delete clusterroles -n kube-system system:coredns --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl delete clusterroles -n kube-system coredns --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get pods -n kube-system | grep kube-dns | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete pod --grace-period=0 --force -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get pods -n kube-system | grep coredns | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete pod --grace-period=0 --force -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+  register: core_dns_clean_cluster_data_result
+  ignore_errors: true
+
+# - name: DEBUG SHOW | Show result of cleaning cluster 
+#   debug:
+#     msg: "{{ core_dns_clean_cluster_data_result.results }}"
+#   when: debug_playbook_stdout is defined
+
+- name: INFORMATION! ATTENTION!
+  vars:
+     MESSAGE_IN: "COMMAND: {{ item.cmd }}"
+     STD_ERROR: "{% if '' not in item.stderr %}STD_ERROR: {{ item.stderr | trim }}{% endif %}{% if '' not in item.stderr_lines %}STD_ERROR_LINES: {{ item.stderr_lines | join | trim }}{% endif %}"
+     STD_OUT: "{% if '' not in item.stdout %}STD_OUT: {{ item.stdout | trim }}{% endif %}{% if '' not in item.stdout_lines %}STD_OUT_LINES: {{ item.stdout_lines | join | trim }}{% endif %}"
+  debug: 
+    msg: "{{ attention_phase_2.split('\n') }}"
+  when: debug_playbook_stdout is defined
+  with_items: 
+    - "{{ core_dns_clean_cluster_data_result.results }}"
+
+- name: "CNI COREDNS UPDATE | Apply coredns.spec updated common"
+  command: kubectl apply -f /opt/ca/kube/coredns.spec --kubeconfig /etc/kubernetes/admin.conf
+  register: coredns_deploy_result_raw
+  ignore_errors: true
+
+- name: DEBUG SHOW | Show CoreDNS update result
+  debug:
+    msg: "{{ coredns_deploy_result_raw.stdout_lines }}"
+  when: debug_playbook_stdout is defined

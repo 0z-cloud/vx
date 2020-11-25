@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<meta-runner name="PrepareCI">
+  <description>PrepareCI</description>
+  <settings>
+    <parameters>
+      <param name="ANSIBLE_APPLICATION_TYPE" value="" />
+      <param name="ANSIBLE_BUILD_ID" value="" />
+      <param name="ANSIBLE_CI_PROJECT_NAME" value="" />
+      <param name="ANSIBLE_CI_PROJECT_NAMESPACE" value="" />
+      <param name="ANSIBLE_CLOUD_TYPE" value="" />
+      <param name="ANSIBLE_COMMIT_SHA" value="" />
+      <param name="ANSIBLE_DEPLOY_USERNAME" value="" />
+      <param name="ANSIBLE_ENVIRONMENT" value="" />
+      <param name="ANSIBLE_PRODUCT_NAME" value="" />
+      <param name="ANSIBLE_REGISTRY_URL" value="" />
+      <param name="ANSIBLE_REGISTRY_USERNAME" value="" />
+      <param name="ANSIBLE_RUN_TYPE" value="" />
+      <param name="ANSIBLE_VERSION" value="" />
+      <param name="A_DEPLOY_PASSWORD" value="" spec="text display='normal'" />
+      <param name="A_ENV_SECURITY" value="" />
+      <param name="A_VAULT_PASSWORD" value="" spec="text validationMode='any' display='hidden'" />
+      <param name="INIT_PASS" value="credentialsJSON:b2bc6c27-ec64-413a-b27c-8a32e5628dd9" spec="password display='normal'" />
+      <param name="MAIN_ANSIBLE_BUILD_ID" value="" />
+      <param name="RunningOfferForBuild" value="" />
+      <param name="RunningOfferForPublish" value="" />
+      <param name="RunningOnlyQA" value="" />
+      <param name="message" value="credentialsJSON:b2bc6c27-ec64-413a-b27c-8a32e5628dd9" spec="password description='message' label='message' display='normal'" />
+    </parameters>
+    <build-runners>
+      <runner name="Prepare CI" type="simpleRunner">
+        <parameters>
+          <param name="script.content"><![CDATA[echo "start";
+echo %ANSIBLE_COMMIT_SHA%;
+echo %ANSIBLE_DEPLOY_USERNAME%;
+echo %ANSIBLE_APPLICATION_TYPE%;
+echo %ANSIBLE_APPLICATION_TYPE%;
+echo %ANSIBLE_BUILD_ID%;
+echo %ANSIBLE_CI_PROJECT_NAME%;
+echo %ANSIBLE_CI_PROJECT_NAMESPACE%;
+echo %ANSIBLE_CLOUD_TYPE%;
+echo %ANSIBLE_COMMIT_SHA%;
+echo %ANSIBLE_DEPLOY_USERNAME%;
+echo %ANSIBLE_ENVIRONMENT%;
+echo %ANSIBLE_PRODUCT_NAME%;
+echo %ANSIBLE_REGISTRY_URL%;
+echo %ANSIBLE_REGISTRY_USERNAME%;
+echo %ANSIBLE_RUN_TYPE%;
+echo %ANSIBLE_VERSION%;
+echo %A_ENV_SECURITY%;
+echo %MAIN_ANSIBLE_BUILD_ID%;
+echo %RunningOfferForBuild%;
+echo %RunningOnlyQA%;
+echo "done show params"
+
+echo "show encrypted values";
+echo %message%;
+echo %A_VAULT_PASSWORD%;
+echo %A_DEPLOY_PASSWORD%;
+echo "done encrypted show params"
+
+RUNNING_ONLY_QA="%RunningOnlyQA%";
+
+echo "RUNNING_ONLY_QA is $RUNNING_ONLY_QA";
+if [ "$RUNNING_ONLY_QA" = true ]; then
+    echo "RUNNING_ONLY_QA is true";
+else
+    echo "RUNNING_ONLY_QA is false";
+fi
+#ls -la ./;
+#echo "%message%" > ./message.yml
+#echo "%secure:teamcity.password.message%" > ./super_message.yml
+#echo "%secure:teamcity.password.NG_DEPLOY_PASSWORD%" > ./NG_DEPLOY_PASSWORD.yml
+#echo "%NG_DEPLOY_PASSWORD%" > ./pass.yml
+#echo %secure:password.A_DEPLOY_PASSWORD% > ./pass.yml
+#chmod +x ./ci_vault.sh
+#ls -la ./
+echo "done";]]></param>
+          <param name="teamcity.step.mode" value="default" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
+    </build-runners>
+    <requirements />
+  </settings>
+</meta-runner>
+

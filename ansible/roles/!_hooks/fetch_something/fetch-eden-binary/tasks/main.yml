@@ -1,0 +1,11 @@
+- name: Debug files to fetch
+  debug:
+   msg: "{{ item }}"
+  with_items: "{{ files_to_fetch.files }}"
+
+- name: Fetch the log files from EDEN to TC Agent
+  fetch:
+    src: "{{ files_to_fetch.path }}/{{ item }}"
+    dest: /tmp/eden/{{ inventory_hostname }}/{{ item }}
+    flat: yes
+  with_items: "{{ files_to_fetch.files }}" 

@@ -1,0 +1,34 @@
+####
+
+- name: '[eve:] Bootstrap infrastructure from localhost to ESXi Vcenter Appliance'
+  hosts: localhost
+  #strategy: free
+  gather_facts: False
+  roles:
+
+      - name: Load groupvars/product global shared settings
+        include_vars: group_vars/products/{{ ansible_product }}/{{ item }}.yml
+        with_items:
+          - eve
+          - main
+
+      - name: Load groupvars/product global shared settings
+        include_vars: group_vars/products/{{ ansible_product }}/{{ ansible_environment }}/{{ item }}.yml
+        with_items:
+          - attached
+          - main
+
+      - name: Template a EVE Modified Settings Go Interface 
+        template:
+          src: defaults.go.j2
+          dest: "../services/luka/pkg/defaults/defaults.go"
+  
+- name: '[eve:] Starting the instance bootstrap and check'
+  hosts: localhost
+  roles:
+
+      # - name: Include role Network Zone maintain
+      #   role: ./!_cloud/dc_integration/eve/network
+
+      - name: Include role vSwitch Zone maintain
+        role: ./!_cloud/dc_integration/eve/instance/present-state

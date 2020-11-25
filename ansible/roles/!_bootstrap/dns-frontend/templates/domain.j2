@@ -1,0 +1,33 @@
+{% raw %}
+$ORIGIN {% endraw %}{{ consul_merge_domain_name }}{% raw %}
+$TTL 86400 ; 1 day
+@ IN SOA {% endraw %}{{ hostvars[inventory_hostname].ansible_nodename }}{% raw %} hostmaster (
+        2018070104 ; serial
+                60 ; refresh (60 seconds)
+                900 ; retry (15 minutes)
+            604800 ; expire (1 week)
+                60 ; minimum (60 seconds)
+)
+;
+{% endraw %}
+; NS DNS SECTION			                            ------------------------------------
+{% for host in groups['cloud-bind-frontend-dns'] %}
+				            IN	     NS	     {{ hostvars[host].ansible_nodename }}.{{ consul_merge_domain_name }}
+{% endfor %}
+
+; A DNS SECTION			                                ------------------------------------
+{% for host in groups['cloud-bind-frontend-dns'] %}
+{{ hostvars[host].ansible_nodename }}                 IN      A       {{ hostvars[host]['ansible_default_ipv4']['address'] }}
+{% endfor %}
+
+; HA DNS SECTION			                            ------------------------------------
+{% for item in bind_cloud_settings.mixed_static_with_dynamic_entries %}
+;{{ item.record }}{{ item.value }}
+{% endfor %}
+
+; HOSTS SECTION
+{% for host in groups['all'] %}
+{% if host not in groups['cloud-bind-frontend-dns'] %}
+{{ hostvars[host].ansible_nodename }}                 IN      A       {{ hostvars[host]['ansible_default_ipv4']['address'] }}
+{% endif %}
+{% endfor %}

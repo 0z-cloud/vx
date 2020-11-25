@@ -1,0 +1,28 @@
+- name: Get Facts
+  hosts: "{{ HOSTS | default('localhost') }}"
+  gather_facts: yes
+  tasks:
+  - set_fact: laravel_app_install=true
+
+- name: Import apache2 playbook
+  import_playbook: apache2.yml
+
+- name: Configuring host to allow php cron
+  hosts: "{{ HOSTS | default('localhost') }}"
+  become: true
+  
+  tasks:
+    - name: Check that the /etc/cron.allow exists
+      stat:
+        path: /etc/cron.allow
+      register: stat_result
+      tags:
+        - allow_crontab_www-data
+
+    - name: Allow crontab for www-data user
+      lineinfile:
+        path: /etc/cron.allow
+        line: 'www-data'
+      when: stat_result.stat.exists
+      tags:
+        - allow_crontab_www-data

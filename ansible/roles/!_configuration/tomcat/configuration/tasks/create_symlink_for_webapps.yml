@@ -1,0 +1,18 @@
+- name: Moving current webapps directory to default folder
+  
+- name: Copy current webapps directory to default folder
+  copy: 
+    remote_src: true
+    src: "{{ ansible_tomcat_settings.directories.ansible_product_webapps_path }}/*"
+    dest: "{{ ansible_tomcat_settings.directories.ansible_catalina_backup_dir }}"
+
+- name: Remove old files foo
+  file: 
+    path: "{{ ansible_tomcat_settings.directories.ansible_product_webapps_path }}"
+    state: absent
+  
+- name: Link webapps to symlinked local home destination
+  file:
+    src: "{{ tomcat_properties.directories.CATALINA_LOCAL_DEPLOY }}/{{ ansible_product_webapps_path }}"
+    path: "{{ tomcat_properties.directories.ansible_product_webapps_path }}"
+    state: hard

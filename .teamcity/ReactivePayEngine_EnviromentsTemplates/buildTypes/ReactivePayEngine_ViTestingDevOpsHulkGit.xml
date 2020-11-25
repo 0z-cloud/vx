@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="759af0a5-02c1-4d81-a0e1-952f15c1b305" xsi:noNamespaceSchemaLocation="https://www.jetbrains.com/teamcity/schemas/2018.1/project-config.xsd">
+  <name>VI. Testing DevOps ^ Hulk ^ Git</name>
+  <description />
+  <settings>
+    <options>
+      <option name="showDependenciesChanges" value="true" />
+    </options>
+    <parameters>
+      <param name="BuildNumber" value="%build.number%" />
+      <param name="env.A_MAIN_VERSION" value="%main_build_id%" />
+      <param name="env.reverse.dep.*.env.A_MAIN_VERSION" value="%env.A_MAIN_VERSION%" />
+      <param name="main_build_id" value="%dep.ReactivePay_Main.build.counter%" />
+      <param name="reverse.dep.*.ANSIBLE_APPLICATION_TYPE" value="rails" />
+      <param name="reverse.dep.*.ANSIBLE_CI_PROJECT_NAME" value="wirecapital_gate" />
+      <param name="reverse.dep.*.ANSIBLE_CI_PROJECT_NAMESPACE" value="wirecapital" />
+      <param name="reverse.dep.*.ANSIBLE_CLOUD_TYPE" value="bare" />
+      <param name="reverse.dep.*.ANSIBLE_COMMIT_SHA" value="%system.build.vcs.number%" />
+      <param name="reverse.dep.*.ANSIBLE_DEPLOY_USERNAME" value="" spec="text label='DEPLOY USERNAME' validationMode='any' display='prompt'" />
+      <param name="reverse.dep.*.ANSIBLE_ENVIRONMENT" value="development" />
+      <param name="reverse.dep.*.ANSIBLE_PRODUCT_NAME" value="office" />
+      <param name="reverse.dep.*.ANSIBLE_REGISTRY_URL" value="registry.adam.local.cloud.eve.vortice.eden" />
+      <param name="reverse.dep.*.ANSIBLE_REGISTRY_USERNAME" value="root" />
+      <param name="reverse.dep.*.ANSIBLE_RUN_TYPE" value="true" />
+      <param name="reverse.dep.*.ANSIBLE_TRIGGER_TOKEN" value="o5hqKNkto4-VPRP2xQh4" spec="text validationMode='any' display='normal'" />
+      <param name="reverse.dep.*.A_DEPLOY_PASSWORD" value="" spec="text label='A_DEPLOY_PASSWORD' validationMode='any' display='prompt'" />
+      <param name="reverse.dep.*.A_VAULT_PASSWORD" value="" spec="text label='A_VAULT_PASSWORD' validationMode='any' display='prompt'" />
+      <param name="reverse.dep.*.RunningOfferForBuild" value="" spec="checkbox label='Disable run Build suite pipeline step' uncheckedValue='false' display='prompt' checkedValue='true'" />
+      <param name="reverse.dep.*.RunningOfferForPublish" value="" spec="checkbox label='Disable run Publish suite pipeline step' uncheckedValue='false' display='prompt' checkedValue='true'" />
+      <param name="reverse.dep.*.RunningOnlyQA" value="" spec="checkbox label='Running only test suite' uncheckedValue='false' display='prompt' checkedValue='true'" />
+      <param name="reverse.dep.*.TEST_VALUE" value="TEST_VALUE" />
+    </parameters>
+    <build-runners />
+    <vcs-settings>
+      <vcs-entry-ref root-id="ReactivePayEngine_Teamctity" />
+    </vcs-settings>
+    <requirements />
+    <build-triggers />
+    <build-extensions>
+      <extension id="BUILD_EXT_6" type="pullRequests">
+        <parameters>
+          <param name="authenticationType" value="token" />
+          <param name="providerType" value="gitlab" />
+          <param name="secure:accessToken" value="credentialsJSON:3bdec7f0-9bfb-470b-befb-cde6bcf141cb" />
+          <param name="vcsRootId" value="ReactivePayEngine_Teamctity" />
+        </parameters>
+      </extension>
+      <extension id="BUILD_EXT_7" type="commit-status-publisher">
+        <parameters>
+          <param name="gitlabApiUrl" value="https://gitlab.adam.local.cloud.eve.vortice.eden/api/v4" />
+          <param name="publisherId" value="gitlabStatusPublisher" />
+          <param name="secure:gitlabAccessToken" value="credentialsJSON:3bdec7f0-9bfb-470b-befb-cde6bcf141cb" />
+          <param name="vcsRootId" value="ReactivePayEngine_Teamctity" />
+        </parameters>
+      </extension>
+    </build-extensions>
+    <dependencies>
+      <depend-on sourceBuildTypeId="ReactivePayEngine_BuildChain_PythonQA">
+        <options>
+          <option name="take-started-build-with-same-revisions" value="true" />
+          <option name="take-successful-builds-only" value="true" />
+        </options>
+      </depend-on>
+    </dependencies>
+    <cleanup />
+  </settings>
+</build-type>
+

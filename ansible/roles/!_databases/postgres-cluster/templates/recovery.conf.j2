@@ -1,0 +1,3 @@
+standby_mode=on
+trigger_file='/tmp/promotedb'
+primary_conninfo='host={% for host in groups['POSTGRES_CLUSTER_BOOTSTRAP'] %}{{ hostvars[host].['ansible_default_ipv4']['address'] }}{% endfor %} port={{ postgres_settings.pg_port }} user={{ postgres_settings.pgsqlrep_user }} application_name={{ postgres_settings.pgsqlrep_application_name }}'

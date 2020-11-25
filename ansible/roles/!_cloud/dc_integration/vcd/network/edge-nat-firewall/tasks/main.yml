@@ -1,0 +1,23 @@
+- name: GET FIREWALL RULES IDS
+  shell: vcd gateway services firewall list {{ anycloud_result_edge_router }} | awk '{print $1}' | tail -n +3
+  register: vcd_gateway_firewall_ids_list
+
+# - name: FIREWALL SHOW ALL | Show all firewall rules IDs
+#   debug:
+#     msg: "{{ item }}"
+#   with_items: "{{ vcd_gateway_firewall_ids_list.stdout_lines }}"
+
+# ##############################################################################################################
+# ### NAT RULES
+# ##############################################################################################################
+
+- name: INCLUDE NAT TASKS
+  include_tasks: nat_ng.yml
+  # include_tasks: nat.yml
+
+# ##############################################################################################################
+# ### FIREWALL RULES
+# ##############################################################################################################
+
+- name: INCLUDE FIREWALL TASKS
+  include_tasks: firewall.yml

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" parent-id="ReactivePayEngine" uuid="4e71dd90-dfb4-4eb3-87bb-f9eae5487510" xsi:noNamespaceSchemaLocation="https://www.jetbrains.com/teamcity/schemas/2018.1/project-config.xsd">
+  <name>Enviroments Templates</name>
+  <parameters />
+  <cleanup />
+</project>
+

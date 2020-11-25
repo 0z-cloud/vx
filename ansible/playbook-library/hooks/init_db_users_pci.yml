@@ -1,0 +1,13 @@
+- name: Fact gathering
+  hosts: all
+  vars_files:
+    - "group_vars/all.yml"
+  tasks: []
+  tags: [get-facts, always]
+
+- name: INIT | Checking and spawn main databases users and password with global settings
+  become: true
+  hosts: "{{ HOSTS }}"
+  roles:
+    - name: Calling the init users and passwords in DBs role
+      role: ./!_databases/!_psql/pci/users_management/

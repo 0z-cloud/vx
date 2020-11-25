@@ -1,0 +1,21 @@
+
+# Facts Getting from All Server's clients for DNS templating
+
+- name: ECHO | Fact gathering
+  hosts: "{{ HOSTS | default('master-bind-master-backend') }}"
+  become: true
+  tasks: []
+  tags: [get_facts, always]
+
+- name: MAGIC | Setup letsencrypt-pacemaker backend service for run specific tasks
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/dns/{{ HOSTS | default('master-bind-master-backend') }}/{{ HOSTS | default('master-bind-master-backend') }}.yml"
+  vars_prompt:
+  - name: acme_domain_for_obtain
+    prompt: "Acme Domain for abtain certificate"
+    private: no
+  hosts: "{{ HOSTS | default('master-bind-master-backend') }}"
+  roles:
+  
+    - name: ACME | Run CoreDNS service role
+      role: ./!_acme/letsencrypt-pacemaker

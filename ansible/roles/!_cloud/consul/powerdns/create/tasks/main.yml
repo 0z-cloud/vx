@@ -1,0 +1,57 @@
+# - name: Create the directories
+#   file:
+#     path: "{{ item.value }}"
+#     state: directory
+#     mode: 0755
+#   with_dict: "{{ powerdns_service_settings.directories | default({}) }}"
+
+- name: "re/Create a powerdns Service docker container"
+  docker_container:
+      name: powerdns-53-{{ ansible_hostname }}
+      image: "local/powerdns"
+      privileged: yes
+      pull: no
+      restart_policy: always
+      detach: True
+      docker_host: tcp://0.0.0.0:2375
+      recreate: yes
+      ports: 
+        - "{{ powerdns_main_dns_service_listen_port }}:{{ powerdns_main_dns_service_listen_port }}"
+        - "{{ powerdns_main_dns_service_listen_port }}:{{ powerdns_main_dns_service_listen_port }}/udp"
+        - "{{ powerdns_main_dns_web_listen_port }}:{{ http_service_listen_port }}"
+        - "{{ powerdns_primary_api_port }}:{{ powerdns_primary_api_port }}"
+        # - "{{ powerdns_recursor_public_port }}:{{ powerdns_recursor_private_port }}"
+        - "{{ powerdns_admin_ui_backend_port }}:{{ powerdns_admin_ui_backend_port }}"
+      networks:
+        - name: "{{ swarm_masters.overlay_network.network_name }}"
+          ipv4_address: "{{ powerdns_overlay_ip }}"
+      env:
+        NGINX_HTTP_INTERNAL_PORT: "{{ http_service_listen_port }}"
+        POWERDNS_API_REST_PORT: "{{ powerdns_primary_api_port }}"
+        NGINX_HTTP_INTERNAL_ADMIN_UI_PORT: "{{ powerdns_admin_ui_backend_port }}"
+        # POWERDNS_RECURSOR_PORT: "{{ powerdns_recursor_private_port }}"
+        # CURRENT_NODE_PREFIX_DB_REPOSITORY: "{{ ansible_nodename }}"
+        POWERDNS_NSMASTER_PORT: "{{ powerdns_main_dns_service_listen_port }}"
+        POSTGRESQL_SERVER_HOST: "{{ powerdns_postgresql_settings_inventory_ip | safe }}"
+        POSTGRESQL_SERVER_PORT: "{{ powerdns_postgresql_listen_port }}"
+        POSTGRESQL_SERVER_USER: "{{ powerdns_postgresql_settings.user }}"
+        POSTGRESQL_SERVER_PASSWORD: "{{ powerdns_postgresql_settings.password }}"
+        POSTGRESQL_SERVER_WEBUI_ADMIN_PASSWORD: "{{ powerdns_postgresql_settings.password }}"
+        POSTGRESQL_SERVER_DB: "powerdns_main_{{ ansible_nodename }}"
+        POSTGRESQL_SERVER_WEBUI_ADMIN_DB: "powerdns_{{ ansible_nodename }}"
+        POWERDNS_PRIMARY_API_KEY: "{{ powerdns_primary_api_key }}"
+        PDNS_ALLOW_AXFR_IPS: "127.0.0.1,{% for host in groups['consul-masters'] %}{{ hostvars[host].ansible_default_ipv4.address }}{% if not loop.last %},{% endif %}{% endfor %}"
+        CONSUL_MASTERS: "{% for host in groups['consul-masters'] %}{{ hostvars[host].ansible_default_ipv4.address }}{% if not loop.last %},{% endif %}{% endfor %}"
+        DNS_HOSTNAME_OF_NAMESERVER: "{{ ansible_nodename }}"
+        PDNS_MASTER: "yes"
+        PDNS_SLAVE: "no"
+        PDNS_CACHE_TTL: "2"
+        PDNS_DISTRIBUTOR_THREADS: "3"
+        PDNS_RECURSIVE_CACHE_TTL: "3"
+        PDNS_ALLOW_RECURSION: "127.0.0.1,{% for host in groups['consul-masters'] %}{{ hostvars[host].ansible_default_ipv4.address }}{% if not loop.last %},{% endif %}{% endfor %}"
+        PDNS_RECURSOR: "no"
+        PDNS_SOA_DEFAULT: "{{ hostvars[inventory_hostname].main_node_name }}.{{ merge_consul_domain }}"
+      state: started
+
+- name: Wait before adding user to UI
+  raw: sleep 15

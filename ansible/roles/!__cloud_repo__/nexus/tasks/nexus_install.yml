@@ -1,0 +1,34 @@
+---
+- name: Download Nexus
+  unarchive:
+    src: "{{ nexus_instance_settings.nexus_download_url }}"
+    dest: "{{ nexus_instance_settings.nexus_install_tmp_base_dir }}"
+    remote_src: yes
+    creates: "{{ nexus_instance_settings.nexus_service_file_path }}"
+
+- name: Install Nexus
+  shell: "shopt -s dotglob && mv {{ nexus_instance_settings.nexus_install_tmp_dir }}/* {{ nexus_instance_settings.nexus_install_dir }} && shopt -u dotglob"
+  args:
+    executable: /bin/bash
+    creates: "{{ nexus_instance_settings.nexus_install_dir }}/bin"
+    removes: "{{ nexus_instance_settings.nexus_install_tmp_dir }}"
+
+- name: Install Nexus Data
+  command: "mv {{ nexus_instance_settings.nexus_install_tmp_data_dir }} {{ nexus_instance_settings.nexus_data_dir }}"
+  args:
+    creates: "{{ nexus_instance_settings.nexus_data_dir }}"
+    removes: "{{ nexus_instance_settings.nexus_install_tmp_data_dir }}"
+
+- name: Change file permission of Nexus installation directory
+  file:
+    dest: "{{ nexus_instance_settings.nexus_install_dir }}"
+    owner: "{{ nexus_instance_settings.nexus_user }}"
+    group: "{{ nexus_instance_settings.nexus_group }}"
+    recurse: yes
+
+- name: Change file permission of Nexus Data directory
+  file:
+    dest: "{{ nexus_instance_settings.nexus_data_dir }}"
+    owner: "{{ nexus_instance_settings.nexus_user }}"
+    group: "{{ nexus_instance_settings.nexus_group }}"
+    recurse: yes

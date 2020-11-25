@@ -1,0 +1,105 @@
+- name: Create PostgreSQL directories for env specific configurations
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0755
+  with_dict: "{{ powerdns_postgresql_settings.directories | default({}) }}"
+
+- name: Set current timestamp
+  shell: 'date +%Y%m%d%H'
+  register: current_run_timestamp
+
+- name: Permanently clean configs if that defined in extra-vars
+  raw: "rm -rf {{ powerdns_postgresql_settings.directories.config_path }}/*"
+  when: clean_all_databases is defined
+
+- name: Show var with DB Names
+  debug: msg="{{ powerdns_postgresql_settings.web_ui_db }}"
+
+- name: Show var with DB primary_array
+  debug: msg="{{ powerdns_postgresql_settings.primary_array }}"
+
+- name: Create init-user-db.sh file from template init-user-db.sh.j2 for container
+  template:
+     src: init-user-db.sh.j2
+     dest: "{{ powerdns_postgresql_settings.directories.config_path }}/init-user-db.sh"
+     mode: 0755
+
+- name: Create quake-user-db.sh file from template quake-user-db.sh.j2 for container
+  template:
+     src: quake-user-db.sh.j2
+     dest: "{{ powerdns_postgresql_settings.directories.quake_path }}/quake-user-db.sh"
+     mode: 0755
+
+- name: Create quake-records-db.sh file from template quake-records-db.sh.j2 for container
+  template:
+     src: quake-records-db.sh.j2
+     dest: "{{ powerdns_postgresql_settings.directories.quake_path }}/quake-records-db.sh"
+     mode: 0755
+
+- name: Create quake-copy-pgconfig.sh file from template quake-copy-pgconfig.sh.j2 for container
+  template:
+     src: quake-copy-pgconfig.sh.j2
+     dest: "{{ powerdns_postgresql_settings.directories.quake_path }}/quake-copy-pgconfig.sh"
+     mode: 0755
+
+- name: Create quake-superserver-db.sh file from template quake-superserver-db.sh.j2 for container
+  template:
+     src: quake-superserver-db.sh.j2
+     dest: "{{ powerdns_postgresql_settings.directories.quake_path }}/quake-superserver-db.sh"
+     mode: 0755
+
+- name: Create postgresql pgpass
+  template:
+     src: pgpass.conf
+     dest: "{{ powerdns_postgresql_settings.directories.script_path }}/pgpass"
+     mode: 0600
+
+- name: Permanently clean if that defined in extra-vars
+  raw: "rm -rf {{ powerdns_postgresql_settings.directories.data_dir }}/* "
+  when: clean_all_databases is defined
+
+- name: Permanently Add Back if that defined in extra-vars
+  raw: "mkdir -p  {{ powerdns_postgresql_settings.directories.data_dir }}"
+  when: clean_all_databases is defined
+
+- name: Create postgresql.conf.j2 file from template postgresql.conf.j2 for container
+  template:
+     src: postgresql.conf.j2
+     dest: "{{ powerdns_postgresql_settings.directories.quake_path }}/postgresql.conf"
+     mode: 0755
+
+- name: Dry remove container from cluster
+  raw: "docker -H :4000 ps -a | grep powerdns-PostgreSQL-{{ ansible_environment }} | awk '{print $1}' | xargs -I ID docker -H :4000 rm -f ID"
+  when: clean_all_databases is defined
+  
+- name: "re/Create a PostgreSQL Service docker container"
+  docker_container:
+      name: "powerdns-PostgreSQL-{{ ansible_environment }}"
+      image: "postgres"
+      hostname: "powerdns-postgres-{{ ansible_environment }}"
+      ports:
+        - "5432:5432"
+      volumes:
+        - "{{ powerdns_postgresql_settings.directories.data_dir }}:/var/lib/postgresql/data/pgdata"
+        - "{{ powerdns_postgresql_settings.directories.config_path }}:/docker-entrypoint-initdb.d"
+        - "{{ powerdns_postgresql_settings.directories.script_path }}/pgpass:/root/.pgpass"
+        - "{{ powerdns_postgresql_settings.directories.quake_path }}:/quake"
+      networks:
+        - name: "{{ swarm_masters.overlay_network.network_name }}"
+          ipv4_address: "{{ powerdns_postgresql_settings.overlay_ip }}"
+      env:
+        PGDATA: "/var/lib/postgresql/data/pgdata"
+        POSTGRES_PASSWORD: "{{ powerdns_postgresql_settings.password }}"
+      privileged: yes
+      pull: true
+      docker_host: tcp://0.0.0.0:4000
+      labels: com.docker.swarm.reschedule-policies=["on-node-failure"]
+      restart_policy: unless-stopped
+      recreate: yes 
+      state: started
+      memory: "{{ default_container_memory }}"
+
+- name: Wait complete PowerDNS PostgreSQL UP,... It takes overall 405 seconds.
+  raw: sleep 405
+  when: clean_all_databases is defined

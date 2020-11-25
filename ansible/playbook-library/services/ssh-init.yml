@@ -1,0 +1,6 @@
+- name: SSH FW task
+  become: true
+  hosts: all
+  roles:
+    - name: Configure SSH
+      role: ./!_security/ssh_access/configuration

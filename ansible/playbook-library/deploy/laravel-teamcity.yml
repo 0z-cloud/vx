@@ -1,0 +1,134 @@
+- hosts: "{{ HOSTS }}"
+  become: true
+  vars:
+      RELEASE: "{{ ansible_date_time.year }}{{ ansible_date_time.month }}{{ ansible_date_time.day }}{{ ansible_date_time.hour }}{{ ansible_date_time.minute }}{{ ansible_date_time.second }}"
+      RELEASE_DIRECTORY: "{{ APPLICATION_DIRECTORY }}/releases/{{ RELEASE }}"
+      RELEASE_OWNER: www-data
+      RELEASE_GROUP: www-data
+      APPLICATION_SHARED_DIRECTORIES:
+        - { path: "storage/app", symlink: true }
+        - { path: "storage/app/public", symlink: false }
+        - { path: "storage/framework", symlink: true }
+        - { path: "storage/framework/cache", symlink: false }
+        - { path: "storage/framework/cache/data", symlink: false }
+        - { path: "storage/framework/sessions", symlink: false }
+        - { path: "storage/framework/views", symlink: false }
+        - { path: "storage/logs", symlink: true }
+
+  roles:
+    - ./!_deploy/create-application-directories
+    - ./!_deploy/create-release-directory
+    - ./!_deploy/download-artifacts
+
+  tasks:
+    - name: Create .env
+      template:
+        src: laravel/.env.j2
+        dest: "{{ RELEASE_DIRECTORY }}/.env"
+        owner: "{{ RELEASE_OWNER }}"
+        group: "{{ RELEASE_GROUP }}"
+        mode: 0775
+
+    - name: Delete shared directories from release
+      file:
+        path: "{{ RELEASE_DIRECTORY }}/{{ item.path }}"
+        state: absent
+      with_items: "{{ APPLICATION_SHARED_DIRECTORIES }}"
+
+    - name: Symlink shared directories
+      file:
+        src: "{{ APPLICATION_DIRECTORY }}/shared/{{ item.path }}"
+        dest: "{{ RELEASE_DIRECTORY }}/{{ item.path }}"
+        owner: "{{ RELEASE_OWNER }}"
+        group: "{{ RELEASE_GROUP }}"
+        state: link
+        mode: 0775
+      with_items: "{{ APPLICATION_SHARED_DIRECTORIES | selectattr('symlink') | list }}"
+
+    - name: Copy storage files
+      copy:
+        src: "{{ item }}"
+        dest: "{{ RELEASE_DIRECTORY }}/storage"
+        owner: "{{ RELEASE_OWNER }}"
+        group: "{{ RELEASE_GROUP }}"
+      with_fileglob:
+        - "./files/{{ ansible_environment }}/{{ HOSTS }}/storage/*"
+
+    - name: Optimize application
+      shell: php {{ RELEASE_DIRECTORY }}/artisan
+      with_items:
+        - clear-compiled
+        - optimize
+        - config:cache
+        - route:cache
+
+    - name: Run migrations
+      shell: "php {{ RELEASE_DIRECTORY }}/artisan migrate --force"
+      when: LARAVEL_DB_CONNECTION is defined and LARAVEL_DB_MIGRATE is defined and LARAVEL_DB_MIGRATE == "yes"
+
+    - name: Seed database
+      shell: "php {{ RELEASE_DIRECTORY }}/artisan db:seed --force"
+      when: LARAVEL_DB_CONNECTION is defined and LARAVEL_DB_SEED is defined and LARAVEL_DB_SEED == "yes"
+
+    - name: Add scheduler to cron
+      cron:
+        name: "Laravel Scheduler"
+        job: "php {{ APPLICATION_DIRECTORY }}/current/artisan schedule:run >> /dev/null 2>&1"
+        user: "{{ RELEASE_OWNER }}"
+
+    - name: Change application directory permissions
+      file:
+        path: "{{ APPLICATION_DIRECTORY }}"
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: 0775
+        recurse: true
+
+    - name: Set release as current
+      file:
+        src: "{{ RELEASE_DIRECTORY }}"
+        dest: "{{ APPLICATION_DIRECTORY }}/current"
+        owner: www-data
+        group: www-data
+        state: link
+
+    - name: Create supervisor programs for queue workers
+      template:
+        src: queue.j2
+        dest: /etc/supervisor/conf.d/{{ item.program }}.conf
+      with_items: "{{ LARAVEL_QUEUES }}"
+      when: LARAVEL_QUEUES is defined
+
+    - name: Restart queue workers
+      shell: php {{ RELEASE_DIRECTORY }}/artisan queue:restart
+      when: LARAVEL_QUEUES is defined
+
+    - name: Restart webserver
+      service:
+        name: "{{ WEB_SERVER }}"
+        state: reloaded
+      when: WEB_SERVER is defined
+
+    - name: Reload php-fpm
+      service:
+        name: php7.1-fpm
+        state: reloaded
+      when: WEB_SERVER == "nginx"
+
+    - name: Restart supervisor
+      shell: service supervisor restart
+      when: LARAVEL_QUEUES is defined
+
+    - name: Find old releases
+      find:
+        paths: "{{ APPLICATION_DIRECTORY }}/releases"
+        file_type: directory
+      register: old_releases
+
+    - name: Delete old releases
+      file:
+        dest: "{{ item[1].path }}"
+        state: absent
+      with_indexed_items:
+        - "{{ (old_releases.files | sort(attribute='mtime', reverse=true))[3:] }}"

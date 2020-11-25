@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<meta-runner name="INIT_TMP">
+  <description>INIT_TMP</description>
+  <settings>
+    <parameters>
+      <param name="ANSIBLE_APPLICATION_TYPE" value="" />
+      <param name="ANSIBLE_BUILD_ID" value="" />
+      <param name="ANSIBLE_CI_PROJECT_NAME" value="" />
+      <param name="ANSIBLE_CI_PROJECT_NAMESPACE" value="" />
+      <param name="ANSIBLE_CLOUD_TYPE" value="" />
+      <param name="ANSIBLE_COMMIT_SHA" value="" />
+      <param name="ANSIBLE_DEPLOY_USERNAME" value="" />
+      <param name="ANSIBLE_ENVIRONMENT" value="" />
+      <param name="ANSIBLE_PRODUCT_NAME" value="" />
+      <param name="ANSIBLE_REGISTRY_URL" value="" />
+      <param name="ANSIBLE_REGISTRY_USERNAME" value="" />
+      <param name="ANSIBLE_RUN_TYPE" value="" />
+      <param name="ANSIBLE_VERSION" value="" />
+      <param name="A_DEPLOY_PASSWORD" value="" spec="text validationMode='any' display='hidden'" />
+      <param name="A_ENV_SECURITY" value="" />
+      <param name="A_VAULT_PASSWORD" value="" spec="text validationMode='any' display='hidden'" />
+      <param name="INIT_PASS" value="credentialsJSON:b2bc6c27-ec64-413a-b27c-8a32e5628dd9" spec="password display='prompt' description='INIT_PASS' label='INIT_PASS'" />
+      <param name="MAIN_ANSIBLE_BUILD_ID" value="" />
+      <param name="NG_DEPLOY_PASSWORD" value="credentialsJSON:b2bc6c27-ec64-413a-b27c-8a32e5628dd9" spec="password description='NG_DEPLOY_PASSWORD' label='NG_DEPLOY_PASSWORD' display='normal'" />
+      <param name="RunningOfferForBuild" value="" />
+      <param name="RunningOfferForPublish" value="" />
+      <param name="RunningOnlyQA" value="" />
+      <param name="env.reverse.dep.env.ReactivePayEngine_Infrastructure.A_DEPLOY_PASSWORD" value="%A_DEPLOY_PASSWORD%" />
+      <param name="env.reverse.dep.env.ReactivePayEngine_Infrastructure.A_VAULT_PASSWORD" value="%A_VAULT_PASSWORD%" />
+      <param name="env.reverse.dep.env.ReactivePay_Main.A_DEPLOY_PASSWORD" value="%A_DEPLOY_PASSWORD%" />
+      <param name="env.reverse.dep.env.ReactivePay_Main.A_VAULT_PASSWORD" value="%A_VAULT_PASSWORD%" />
+      <param name="message" value="credentialsJSON:b2bc6c27-ec64-413a-b27c-8a32e5628dd9" spec="password description='message' label='message' display='prompt'" />
+    </parameters>
+    <build-runners>
+      <runner name="" type="ReactivePayEngine_BuildChain_InitNg">
+        <parameters>
+          <param name="ANSIBLE_APPLICATION_TYPE" value="" />
+          <param name="ANSIBLE_BUILD_ID" value="" />
+          <param name="ANSIBLE_CI_PROJECT_NAME" value="" />
+          <param name="ANSIBLE_CI_PROJECT_NAMESPACE" value="" />
+          <param name="ANSIBLE_CLOUD_TYPE" value="" />
+          <param name="ANSIBLE_COMMIT_SHA" value="" />
+          <param name="ANSIBLE_DEPLOY_USERNAME" value="" />
+          <param name="ANSIBLE_ENVIRONMENT" value="" />
+          <param name="ANSIBLE_PRODUCT_NAME" value="" />
+          <param name="ANSIBLE_REGISTRY_URL" value="" />
+          <param name="ANSIBLE_REGISTRY_USERNAME" value="" />
+          <param name="ANSIBLE_RUN_TYPE" value="" />
+          <param name="ANSIBLE_VERSION" value="" />
+          <param name="A_ENV_SECURITY" value="" />
+          <param name="INIT_PASS" value="zxx175d32bfa837dc7e" />
+          <param name="MAIN_ANSIBLE_BUILD_ID" value="" />
+          <param name="NG_DEPLOY_PASSWORD" value="zxx175d32bfa837dc7e" />
+          <param name="RunningOfferForBuild" value="" />
+          <param name="RunningOfferForPublish" value="" />
+          <param name="RunningOnlyQA" value="" />
+          <param name="env.reverse.dep.env.ReactivePayEngine_Infrastructure.A_DEPLOY_PASSWORD" value="%A_DEPLOY_PASSWORD%" />
+          <param name="env.reverse.dep.env.ReactivePayEngine_Infrastructure.A_VAULT_PASSWORD" value="%A_VAULT_PASSWORD%" />
+          <param name="env.reverse.dep.env.ReactivePay_Main.A_DEPLOY_PASSWORD" value="%A_DEPLOY_PASSWORD%" />
+          <param name="env.reverse.dep.env.ReactivePay_Main.A_VAULT_PASSWORD" value="%A_VAULT_PASSWORD%" />
+          <param name="message" value="zxx175d32bfa837dc7e" />
+          <param name="teamcity.step.mode" value="default" />
+        </parameters>
+      </runner>
+    </build-runners>
+    <requirements />
+  </settings>
+</meta-runner>
+

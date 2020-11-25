@@ -1,0 +1,23 @@
+- name: Starting deploy notification
+  hosts: "{{ HOSTS }}"
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/java/{{ HOSTS }}.yml"
+  tasks:
+    - include_role:
+        name: "./!_hooks/notifier"
+        tasks_from: deploy_notify
+      vars:
+        DEPLOY_NOTIFY_MESSAGE: "TEST MESSAGE: DEPLOY STARTED!"
+        NOTIFIER_TELEGRAM_CHAT_ID: "{{ merchant_telegram_notification_chat_id }}"
+
+- name: Finish deploy notification
+  hosts: "{{ HOSTS }}"
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/java/{{ HOSTS }}.yml"
+  tasks:
+    - include_role:
+        name: "./!_hooks/notifier"
+        tasks_from: deploy_notify
+      vars:
+        DEPLOY_NOTIFY_MESSAGE: "TEST MESSAGE: DEPLOY COMPLETE!"
+        NOTIFIER_TELEGRAM_CHAT_ID: "{{ merchant_telegram_notification_chat_id }}"

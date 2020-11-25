@@ -1,0 +1,6 @@
+wazuh_agent_defaults:
+  directories:
+    main: /opt/wazuh/agent/{{ ansible_environment }}
+  system_security:
+    linux:
+      user_group: wazuh

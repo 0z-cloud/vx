@@ -1,0 +1,9 @@
+- name: TEMPLATE | Replace /etc/hostname
+  template:
+    src: hostname.j2
+    dest: /etc/hostname
+
+- name: APT | Remove and purge cloud-init 
+  apt:
+    name: cloud-init
+    state: absent

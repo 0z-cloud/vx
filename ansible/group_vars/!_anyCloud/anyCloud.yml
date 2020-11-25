@@ -1,0 +1,73 @@
+# ANYCLOUD CONFIGURATIONS
+
+##### Platform Infrastructure Target Layout
+# possible configurations of layout:
+#
+# simple = 1 zone; multiple sections 
+# couple = 2 zones; multiple sections 
+# mixed = more than 2 zones, more then one sectors.
+#
+# possible configurations for mandatory:
+#
+# false = on merge and checking no does complete process of checking the sections layouts between tartget/source layout and bootstraped results
+# true = layout can be only stable, and works only with sections on layout which have same layout and that layout is mandatory
+
+ansilbe_infrastructure_target_layout: simple
+ansilbe_infrastructure_target_layout_mandatory: false
+ansilbe_infrastructure_target_layout_default: simple
+
+anycloud_environment: access-f1-run
+# anycloud_product: adam
+anycloud_datacenter: "lf-vx-z1e-vcd"
+anycloud_defaults_virtual_organization: "lf-vx-z1e"
+anycloud_datacenter_location: piter
+anycloud_one_instance_duplicates_count: 1
+anycloud_allocate_public_ip: yes
+
+#####  ANYCLOUD DEFAULT ZONE SETTINGS MAP
+# anycloud_defaults_cloud_name: global
+anycloud_defaults_cloud_name: "vZone_Sector_Network_Exchange_{{ ansible_product }}_zone_{{ ansible_environment }}_{{ ansible_datacenter }}"
+anycloud_defaults_zone: earth
+anycloud_defaults_region: worldwide
+anycloud_defaults_vpc_zone_virtual_abstract_layout: all
+anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_description: "Virtual Primary Cloud Network Communication Device for {{ ansible_environment }}"
+anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_dns_suffix: "dn"
+
+anycloud_defaults_vpc_zone_virtual_abstract: 
+  zones: 
+    earth: 
+      index: 0
+      enabled: true # true / false
+      cidr: 0.0.0.0/0
+    0z_template: 
+      index: 1
+      enabled: true # true / false
+      cidr: 172.16.1.0/16
+    main:
+      index: 2
+      enabled: true # true / false
+      cidr: 192.168.1.0/16
+  dns_servers:
+    - 8.8.4.4
+    - 8.8.8.8
+  initial_only_dns_servers:
+    - 8.8.4.4
+    - 8.8.8.8
+
+anycloud_defaults_virtual_cloud_cidr: 192.16.0.0/16
+anycloud_defaults_virtual_cloud_primary_network_virtual_communication_cidr: 192.168.103.1/24
+anycloud_defaults_virtual_edge_start_static_pool: 192.168.103.5
+anycloud_defaults_virtual_edge_end_static_pool: 192.168.103.100
+anycloud_defaults_virtual_edge_start_dhcp_pool: 192.168.103.105
+anycloud_defaults_virtual_edge_end_dhcp_pool: 192.168.103.195
+
+anycloud_defaults_virtual_cloud_primary_network_virtual_communication_gwip: 192.168.103.1
+
+anycloud_defaults_virtual_cloud_primary_network_virtual_communication_cidr_static_range: 
+    - 192.168.103.5-192.168.103.100
+
+anycloud_defaults_virtual_cloud_primary_network_virtual_communication_cidr_dhcp_range: 
+    - 192.168.103.105-192.168.103.195
+
+anycloud_internet_charge_type: PayByTraffic # PayByTraffic / PayByBandwidth
+anycloud_instance_charge_type: PostPaid # PostPaid

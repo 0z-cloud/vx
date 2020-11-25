@@ -1,0 +1,12 @@
+# - name: DEBUG | register
+#   debug: 
+#     msg: "Client connection address {% for host in groups['vortex-ossec-server'] %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}{% endfor %}"
+#   when: ossec_managed_server is undefined
+#   tags: debug
+  
+- name: DEBUG | Current keys files
+  debug: 
+    msg: "check_keys: {{ check_keys }} check_server_keys: {{ check_server_keys }}"
+  when: ossec_managed_server is defined
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['vortex-ossec-server'] }}"

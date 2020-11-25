@@ -1,0 +1,9 @@
+[program:{{ item.program }}]
+process_name=%(program_name)s_%(process_num)02d
+
+command=java -Dvortex.debug=false -Dvortex.resdir={{ RELEASE_DIRECTORY }}/{{ item.command }}{{ RELEASE_DIRECTORY }}{{ item.jar_path }}
+
+user={{ RELEASE_OWNER }}
+autostart=true
+autorestart=true
+numprocs={{ item.processes }}

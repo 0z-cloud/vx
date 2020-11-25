@@ -1,0 +1,97 @@
+- name: Create full hosts group
+  add_host: 
+    name: "{{ hostvars[item]['ansible_default_ipv4']['address'] }}"
+    hostname: "{{ hostvars[item]['ansible_hostname'] }}"
+    groups: REDIS_CLUSTER_BOOTSTRAP
+  delegate_to: "{{ item }}"
+  with_items: "{{ ansible_play_hosts }}"
+
+- name: Debug group REDIS_CLUSTER_BOOTSTRAP
+  debug:
+    msg: "{{ hostvars[item]['ansible_hostname'] }}"
+  with_items: "{{ groups['REDIS_CLUSTER_BOOTSTRAP'] }}"
+  when: inventory_hostname in groups['REDIS_CLUSTER_BOOTSTRAP']
+
+- name: Debug
+  debug:
+    msg: "{{ redis_io_cluster_enabled }}"
+
+- name: Create full primary hostname group
+  add_host: 
+    name: "{{ hostvars[item]['ansible_default_ipv4']['address'] }}"
+    hostname: "{{ hostvars[item]['ansible_hostname'] }}"
+    groups: REDIS_CLUSTER_HOSTS_FULL
+  #delegate_to: "{{ item }}"
+  with_items: "{{ ansible_play_hosts }}"
+  tags: debug
+
+- name: Debug group REDIS_CLUSTER_HOSTS_FULL
+  debug:
+    msg: "{{ hostvars[item]['ansible_hostname'] }}"
+  with_items: "{{ groups['REDIS_CLUSTER_HOSTS_FULL'] }}"
+  when: inventory_hostname in groups['REDIS_CLUSTER_HOSTS_FULL']
+
+- name: Test group usage
+  debug: "{{ inventory_hostname }}"
+  when: inventory_hostname == groups['REDIS_CLUSTER_HOSTS_FULL'][0] and redis_io_cluster_enabled == "true"
+  
+
+- name: Inject defaults redis_io_settings
+  set_fact:
+    redis_io_service_settings: "{{ redis_io_service_settings_defaults | combine(redis_io_service_settings) }}"
+
+- name: Remove all data if defined
+  file:
+    path: "{{ item.value }}"
+    state: absent
+    mode: 0777
+  with_dict: "{{ redis_io_service_settings.directories | default({}) }}"
+  tags: [configuration,redis-io-service-settings-setup-directories]
+  when: clear_cluster is defined
+
+- name: Create the directories for env specific configurations
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0777
+  with_dict: "{{ redis_io_service_settings.directories | default({}) }}"
+  tags: [configuration,redis-io-service-settings-setup-directories]
+
+# # redis-cli --cluster create 172.16.21.71:6379 172.16.21.72:6379 172.16.21.73:6379
+
+# docker exec -it a0 redis-cli --cluster add-node 172.16.21.71:6379 --cluster-master-id 1
+
+- name: Include Master yaml
+  include: master.yml
+  when: redis_io_cluster_enabled == "true"
+  tags: [include-master]
+
+- name: Include Slave yaml
+  include: slave.yml
+  when: redis_io_cluster_enabled == "true"
+  tags: [include-slave]
+
+- name: Include Master yaml
+  include: master.yml
+  when: inventory_hostname == groups['REDIS_CLUSTER_HOSTS_FULL'][0] and redis_io_cluster_enabled == "false"
+  tags: [include-master]
+
+- name: Include Slave yaml
+  include: slave.yml
+  when: inventory_hostname != groups['REDIS_CLUSTER_HOSTS_FULL'][0] and redis_io_cluster_enabled == "false"
+  tags: [include-slave]
+
+- name: Include Cluster yaml for
+  include: cluster.yml
+  when: inventory_hostname == groups['REDIS_CLUSTER_HOSTS_FULL'][0] and redis_io_cluster_enabled == "true"
+  tags: [include-cluster]
+
+- name: Include cluster_check yaml for Cluster
+  include: cluster_check.yml
+  when: inventory_hostname == groups['REDIS_CLUSTER_HOSTS_FULL'][0] and redis_io_cluster_enabled == "true"
+  tags: [cluster-check]
+
+- name: Include add_slave yaml
+  include: add_slave.yml
+  when: redis_io_cluster_enabled == "true"
+  tags: [cluster-check]

@@ -1,0 +1,61 @@
+# bas
+#
+# For information on the settings in this file, type "man shorewall-rules"
+######################################################################################################################################################################################################
+# ACTION		    SOURCE		            DEST							        PROTO	DEST	SOURCE		ORIGINAL	RATE		USER/	MARK	CONNLIMIT	TIME		HEADERS		SWITCH		HELPER
+#
+
+{% if inventory_hostname not in groups['bastion-admin-host'] %}                       
+
+# bas HOST
+
+ACCEPT             fw                           bas                                    tcp         22
+ACCEPT             bas                      fw                                         tcp         22
+
+{% endif %}
+
+{% if inventory_hostname in groups['bastion-admin-host'] %}   
+
+# ICMP												
+ACCEPT              bas                      all							            icmp
+
+# NTP
+ACCEPT              bas                      vrrp						    	        udp     ntp,domain
+ACCEPT              bas                      nginx					    		        udp     ntp,domain
+ACCEPT              bas                      fw						    	            udp     ntp,domain
+ACCEPT              bas                      fw						    	            udp     ntp,domain
+
+# DNS
+ACCEPT              bas                      vrrp					    		        udp	    53
+ACCEPT              bas                      nginx					    		        udp	    53
+
+# SSH
+ACCEPT              bas                      vrrp						    	        tcp	    22
+ACCEPT              bas                      nginx						    	        tcp	    22
+ACCEPT              bas                      net							            tcp	    22
+ACCEPT              bas                      sec							            tcp	    22
+ACCEPT              bas                      dmz							            tcp	    22
+ACCEPT              bas                      nginx					    		        tcp	    22
+ACCEPT              bas                      repo						    	        tcp	    22
+ACCEPT              bas                      vrrp						    	        tcp	    22
+ACCEPT              bas                      vip							            tcp	    22
+
+# REPO
+ACCEPT              bas                      repo						    	        tcp	    80,443
+
+{% endif %}
+
+########################
+# block local ip from bas
+# DEFAULT DROP FROM bas LAN_IP SUBNETS
+DROP		        bas:$LAN_IP	                                fw
+########################
+# Dummy - ping, drop telnet, accept traceroute from bas to fw
+Ping(ACCEPT)	    bas		                                    fw		-	-	-		-		s:2/sec
+# anti ping flood
+ACCEPT		        bas		                                    fw		                        icmp	    0,3/4,8,11
+# ping response
+ACCEPT		        bas		                                    fw		                        udp	        33434:33529
+# for traceroute
+DROP		        bas		                                    fw		                        tcp	        23
+# block telnet

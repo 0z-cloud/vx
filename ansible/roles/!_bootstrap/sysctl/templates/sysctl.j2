@@ -1,0 +1,57 @@
+# {{ ansible_managed }}
+# /etc/sysctl.conf - Configuration file for setting system variables
+# See /etc/sysctl.d/ for additional system variables.
+# See sysctl.conf (5) for information.
+#
+### Custom sysctl.conf configuration via template
+#
+# Uncomment the following to stop low-level messages on console
+# kernel.printk = 3 4 1 3
+# sysctl:
+#   network:
+#     - "net.ipv4.ip_nonlocal_bind=1"
+#     - "net.ipv4.ip_forward=1"
+#     - "net.ipv4.conf.{{ second_iface }}.arp_ignore=1"
+#     - "net.ipv4.conf.{{ second_iface }}.arp_announce=2"
+#     - "net.bridge.bridge-nf-call-iptables=1"
+#   kernel:
+#     - "kernel.shmmax=17179869184"
+#     - "kernel.shmall=4194304"
+#     - "kernel/panic_on_oops=1"
+#     - "kernel/panic=10"
+
+#   perfomance:
+#     - "vm.swappiness=0"
+#     - "vm.vfs_cache_pressure=120"
+#     - "vm.dirty_ratio=5"
+#     - "kernel.shmmax=17179869184"
+#     - "kernel.shmall=4194304"
+#     - "vm.overcommit_memory=1"
+#     - "vm.overcommit_ratio=100"
+#     - "vm.max_map_count=262144"
+#     - "vm.panic_on_oom=0"
+
+net.core.wmem_max=12582912
+net.core.rmem_max=12582912
+net.ipv4.tcp_rmem= 10240 87380 12582912
+net.ipv4.tcp_wmem= 10240 87380 12582912
+net.ipv4.tcp_window_scaling = 1
+net.ipv4.tcp_timestamps = 1
+net.ipv4.tcp_sack = 1
+# GLUSTER
+vm.swappiness=0
+vm.vfs_cache_pressure=120
+vm.dirty_ratio=5
+#
+vm.dirty_background_ratio=1
+net.ipv4.neigh.default.gc_thresh2=2048
+net.ipv4.neigh.default.gc_thresh3=4096
+net.core.netdev_max_backlog=2500
+net.ipv4.tcp_mem= 12582912 12582912 12582912
+net.bridge.bridge-nf-call-iptables=1
+vm.max_map_count=262144
+
+net.core.r(w)mem_max=67108864
+net.ipv4.tcp_(w)rmem=33554432
+net.core.netdev_max_backlog=30000
+net.ipv4.tcp_congestion_control=htcp

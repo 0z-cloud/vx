@@ -1,0 +1,11 @@
+- name: SSH append users
+  become: true
+  hosts: "{{ HOSTS }}"
+  vars_prompt:
+    - name: "NEW_PASSWORD"
+      prompt: "Enter New Password"
+      private: yes
+      confirm: yes
+  roles:
+    - name: Setup users
+      role: ./!_security/ssh_access/add_initial_users

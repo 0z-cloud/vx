@@ -1,0 +1,226 @@
+---
+
+- name: Get the existing vpc
+  ali_vpc_facts:
+    region: "{{ item.value.anycloud_landscape_region }}"
+    vpc_name: "{{ item.value.anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_name }}"
+    alicloud_secret_key: "{{ anycloud_api_secret_key }}"
+    alicloud_access_key: "{{ anycloud_api_access_key }}"
+  register: vpcs
+  with_dict: "{{ cloud_bootstrap.vpc_zones }}"
+
+- name: Set Facts VPC_ID_FOR vpc_id
+  set_fact: 
+    VPC_ID_FOR: "{{ item }}"
+  with_items: |
+      {% for dict_item in vpcs.results %}{% for k,v in dict_item.items() %}{% if k == 'ids' %}{{ v | join | regex_replace('vpc.+?(?=)(?=\\)', '\\1') }}{% endif %}{% endfor %}{% endfor %}
+  register: VPC_ID
+
+- name: Creating security group
+  ali_security_group:
+    alicloud_region: "{{ anycloud_landscape_region }}"
+    name: "{{ anycloud_zone_sector_section_primary_security_group }}"
+    group_name: "{{ anycloud_zone_sector_section_primary_security_group }}"
+    description: "{{ anycloud_zone_sector_section_primary_security_group }}"
+    vpc_id: "{{ VPC_ID_FOR }}"
+    rules: "{{ group_inboundRules }}"
+    rules_egress: "{{ group_outboundRules }}"
+    alicloud_secret_key: "{{ anycloud_api_secret_key }}"
+    alicloud_access_key: "{{ anycloud_api_access_key }}"
+  register: createsgeresult
+
+- name: Quering security group
+  ali_security_group:
+    alicloud_region: "{{ anycloud_landscape_region }}"
+    name: "{{ anycloud_zone_sector_section_primary_security_group }}"
+    group_id: "{{ createsgeresult.group.group_id }}"
+    group_name: "{{ anycloud_zone_sector_section_primary_security_group }}"
+    alicloud_secret_key: "{{ anycloud_api_secret_key }}"
+    alicloud_access_key: "{{ anycloud_api_access_key }}"
+    state: present
+    vpc_id: "{{ createsgeresult.group.vpc_id }}"
+  register: quetysgeresult
+
+- name: Modify the existing vswitch
+  ali_vswitch:
+    cidr_block: "{{ item.value.anycloud_defaults_virtual_cloud_cidr }}"
+    vpc_id: "{{ VPC_ID_FOR }}"
+    name: "{{ item.value.anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_name }}"
+    alicloud_secret_key: "{{ anycloud_api_secret_key }}"
+    alicloud_access_key: "{{ anycloud_api_access_key }}"
+    alicloud_region: "{{ anycloud_landscape_region }}"
+    alicloud_zone: "{{ anycloud_landscape_region_sub_zone }}"
+  register: vswitch
+  with_dict: "{{ cloud_bootstrap.switches }}"
+
+- name: Create the anycloud_communication_device_id
+  set_fact: 
+    anycloud_communication_device_id: "{{ item['vswitch']['vswitch_id'] }}"
+  with_items: 
+     - "{{ vswitch['results'] }}"
+
+- name: Stop an ECS instance
+  ali_instance:
+    security_groups: "{{ createsgeresult.group.group_id }}"
+    alicloud_region: "{{ anycloud_landscape_region }}"
+    image: "{{ item.value.anycloud_vm_template_name }}"
+    type: "{{ item.value.anycloud_vm_performance_configuration }}"
+    instance_name: "{{ item.value.name }}"
+    description: "{{ item.value.name }}"
+    host_name: "{{ item.value.name }}"
+    password: "{{ anycloud_vm_access_pass }}"
+    count: "{{ anycloud_one_instance_duplicates_count }}"
+    internet_charge_type: "{{ anycloud_internet_charge_type }}"
+    instance_charge_type: "{{ anycloud_instance_charge_type }}"
+    allocate_public_ip: "{{ anycloud_allocate_public_ip }}"
+    max_bandwidth_in: "{{ anycloud_defaults_max_bandwidth_in }}"
+    max_bandwidth_out: "{{ anycloud_defaults_max_bandwidth_out }}"
+    vswitch_id: "{{ anycloud_communication_device_id }}"
+    alicloud_secret_key: "{{ anycloud_api_secret_key }}"
+    alicloud_access_key: "{{ anycloud_api_access_key }}"
+    state: stopped
+  register: stop_instance_result
+  when: destroy_instances is defined
+  with_dict: "{{ cloud_bootstrap.servers }}"
+
+- name: Destroy an ECS instance
+  ali_instance:
+    security_groups: "{{ createsgeresult.group.group_id }}"
+    alicloud_region: "{{ anycloud_landscape_region }}"
+    image: "{{ item.value.anycloud_vm_template_name }}"
+    type: "{{ item.value.anycloud_vm_performance_configuration }}"
+    instance_name: "{{ item.value.name }}"
+    description: "{{ item.value.name }}"
+    host_name: "{{ item.value.name }}"
+    password: "{{ anycloud_vm_access_pass }}"
+    count: "{{ anycloud_one_instance_duplicates_count }}"
+    internet_charge_type: "{{ anycloud_internet_charge_type }}"
+    instance_charge_type: "{{ anycloud_instance_charge_type }}"
+    allocate_public_ip: "{{ anycloud_allocate_public_ip }}"
+    max_bandwidth_in: "{{ anycloud_defaults_max_bandwidth_in }}"
+    max_bandwidth_out: "{{ anycloud_defaults_max_bandwidth_out }}"
+    vswitch_id: "{{ anycloud_communication_device_id }}"
+    alicloud_secret_key: "{{ anycloud_api_secret_key }}"
+    alicloud_access_key: "{{ anycloud_api_access_key }}"
+    state: absent
+  register: destroy_instance_result
+  when: destroy_instances is defined
+  with_dict: "{{ cloud_bootstrap.servers }}"
+
+- name: Creating an ECS instance
+  ali_instance:
+    security_groups: "{{ createsgeresult.group.group_id }}"
+    alicloud_region: "{{ anycloud_landscape_region }}"
+    anycloud_virtual_machine_resources_primary_type: "{{ item.value.anycloud_vm_performance_configuration }}"
+    image: "{{ item.value.anycloud_vm_template_name }}"
+    image: "{{ item.value.anycloud_vm_template_name }}"
+    type: "{{ item.value.anycloud_vm_performance_configuration }}"
+    instance_name: "{{ item.value.name }}"
+    description: "{{ item.value.name }}"
+    host_name: "{{ item.value.name }}"
+    password: "{{ anycloud_vm_access_pass }}"
+    count: "{{ anycloud_one_instance_duplicates_count }}"
+    internet_charge_type: "{{ anycloud_internet_charge_type }}"
+    instance_charge_type: "{{ anycloud_instance_charge_type }}"
+    allocate_public_ip: "{{ anycloud_allocate_public_ip }}"
+    max_bandwidth_in: "{{ anycloud_defaults_max_bandwidth_in }}"
+    max_bandwidth_out: "{{ anycloud_defaults_max_bandwidth_out }}"
+    vswitch_id: "{{ anycloud_communication_device_id }}"
+    alicloud_secret_key: "{{ anycloud_api_secret_key }}"
+    alicloud_access_key: "{{ anycloud_api_access_key }}"
+    state: present
+  retries: 3
+  delay: 3
+  register: create_instance_result
+  with_dict: "{{ cloud_bootstrap.servers }}"
+  when: destroy_instances is not defined
+
+- name: Running an ECS instance
+  ali_instance:
+    security_groups: "{{ createsgeresult.group.group_id }}"
+    alicloud_region: "{{ anycloud_landscape_region }}"
+    instance_type: "{{ anycloud_virtual_machine_resources_middle_type }}"
+    image: "{{ item.value.anycloud_vm_template_name }}"
+    type: "{{ item.value.anycloud_vm_performance_configuration }}"
+    instance_name: "{{ item.value.name }}"
+    description: "{{ item.value.name }}"
+    host_name: "{{ item.value.name }}"
+    password: "{{ anycloud_vm_access_pass }}"
+    count: "{{ anycloud_one_instance_duplicates_count }}"
+    internet_charge_type: "{{ anycloud_internet_charge_type }}"
+    instance_charge_type: "{{ anycloud_instance_charge_type }}"
+    allocate_public_ip: "{{ anycloud_allocate_public_ip }}"
+    max_bandwidth_in: "{{ anycloud_defaults_max_bandwidth_in }}"
+    max_bandwidth_out: "{{ anycloud_defaults_max_bandwidth_out }}"
+    vswitch_id: "{{ anycloud_communication_device_id }}"
+    alicloud_secret_key: "{{ anycloud_api_secret_key }}"
+    alicloud_access_key: "{{ anycloud_api_access_key }}"
+    state: running
+  retries: 3
+  delay: 3
+  register: create_instance_result
+  with_dict: "{{ cloud_bootstrap.servers }}"
+  when: destroy_instances is not defined
+
+- name: Set fact newlist item from create_instance_result.results
+  set_fact:
+    newlist: "{{ item }}"
+  with_items: |
+    "{% for dict_item in create_instance_result.results %}{% for k,v in dict_item.items() %}{% if k == 'instances' %}{{ v }}{% endif %}{% endfor %}{% endfor %}"
+  when: destroy_instances is not defined
+
+- name: set_fact newlist
+  set_fact:
+    new_pre: "{{ newlist | replace('\"[', '') | replace(']\"', '') | replace('\\u', '') }}"
+  when: destroy_instances is not defined
+
+- name: Debug new_pre 
+  debug:
+    msg: "{{ new_pre | replace('\\u', '') }}"
+  when: destroy_instances is not defined
+
+- name: set_fact new_p
+  set_fact:
+    new_p: "{{ new_pre | replace('\\u', '') }}"
+  when: destroy_instances is not defined
+
+- name: Debug new_p 
+  set_fact:
+    new_pp: "{{ new_p | replace('][', ', ') }}"
+  when: destroy_instances is not defined
+
+- name: Debug new_pp 
+  debug:
+    msg: "{{ new_pp }}"
+  when: destroy_instances is not defined
+
+- name: Set authorized ssh key, extracting just that data from 'users'
+  debug:
+    msg: "{{ item.host_name }} {{ item.public_ip_address }} {{ item.private_ip_address }}"
+  with_items:
+      - "{{ new_pp }}"
+  when: destroy_instances is not defined
+
+- name: Copy 0z inventory to work ignored copy for generate the local inventory
+  copy:
+    src: "inventories/0z-cloud/products/types/!_alicloud/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+    dest: "inventories/0z-cloud/products/types/!_alicloud/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/.alicloud.cloud.run.yml"
+  when: destroy_instances is not defined
+
+- name: Line public_ip_address in file change for dynamic inventory
+  lineinfile:
+    path: inventories/0z-cloud/products/types/!_alicloud/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/.alicloud.cloud.run.yml
+    regexp: '^(.*\ip: "{{ item.host_name }}_public_ip_address_REPLACED")'
+    line: '        ip: "{{ item.public_ip_address }}"'
+  with_items: 
+       - "{{ new_pp }}"
+  when: destroy_instances is not defined
+
+- name: Line private_ip_address in file change for dynamic inventory
+  lineinfile:
+    path: inventories/0z-cloud/products/types/!_alicloud/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/.alicloud.cloud.run.yml
+    regexp: '^(.*\_ip: "{{ item.host_name }}_private_ip_address_REPLACED")'
+    line: '            second_ip: "{{ item.private_ip_address }}"'
+  with_items: 
+       - "{{ new_pp }}"
+  when: destroy_instances is not defined

@@ -1,0 +1,84 @@
+- name: Get current contents of configurations and get services states - named
+  shell: "rm -rf {{ item }}"
+  with_items:
+    - /etc/systemd/system/named.service 
+    - /lib/systemd/system/named.service
+    - /etc/systemd/system/bind9.service 
+
+# - name: Get current contents of configurations and get services states - bind9
+#   shell: cat /etc/systemd/system/named.service ; /lib/systemd/system/named.service
+#   register: named_cat_results
+
+# - name: Show current named services configurations
+#   debug: 
+#     msg: "{{ n_cat_results }}"
+
+# - name: Disable by oldstyle the bind9/named and named services
+#   service: 
+#     name: "{{ item }}"
+#     enabled: no
+#   with_items:
+#     - bind9
+#     - named
+
+- name: System stop all dns services possible bind9/named
+  systemd:
+    state: stopped
+    name: "{{ item }}"
+  with_items:
+    - bind9
+    - named
+
+- name: Template lib and etc service Bind9/named startup configuration
+  template:
+    src: etc.systemd.system.bind9.service.j2
+    dest: /lib/systemd/system/bind9.service 
+    mode: 0777
+  tags: configuration
+
+- name: Chown changes to bind:bind
+  raw: chown -R bind:bind {{ bind_cloud_settings.bind_etc }}/*
+  when: "'master-bind-master-backend' in group_names"
+
+- name: Configure the apparmor profile for new dirs
+  lineinfile:
+      line: '{{ bind_cloud_settings.bind_etc }}** rwm,'
+      insertbefore: '/var/cache/bind/ rw,'
+      dest: /etc/apparmor.d/usr.sbin.named
+      state: present
+  when: "'master-bind-master-backend' in group_names"
+
+- name: CONFIGURATION DEFAULTS | Place configuration /etc/default/{{ item }}
+  template:
+    src: etc.default.named.conf.j2
+    dest: /etc/default/{{ item }}
+  with_items:
+    - bind9
+
+- name: System disable all dns services possible bind9/named
+  systemd:
+    enabled: no
+    name: "{{ item }}"
+  with_items:
+    - bind9
+
+- name: Re-read services configurations by calling systemctl daemon-reload
+  systemd:
+    daemon_reload: yes
+
+- name: System enable all dns services possible bind9/named
+  systemd:
+    enabled: yes
+    name: "{{ item }}"
+  with_items:
+    - bind9
+
+- name: Restart service cron on centos, in all cases, also issue daemon-reload to pick up config changes
+  systemd:
+    enabled: yes
+    state: restarted
+    daemon_reload: yes
+    name: "{{ item }}"
+  with_items:
+    - apparmor
+    - bind9

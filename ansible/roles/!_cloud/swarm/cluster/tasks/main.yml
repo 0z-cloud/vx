@@ -1,0 +1,10 @@
+- name: INCLUDE | Run prepare get the dynamic groups
+  include_tasks: dynamic_groups.yml
+
+- name: INCLUDE | Run tasks on private network
+  include_tasks: private_network.yml
+  when: second_ip is defined
+
+- name: INCLUDE | Run tasks on primary network
+  include_tasks: primary_network.yml
+  when: second_ip is not defined

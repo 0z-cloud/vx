@@ -1,0 +1,17 @@
+- name: Elastic docker cluster swarm overlay
+  hosts: "{{ HOSTS }}"
+  become: true
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/{{ HOSTS }}/{{ HOSTS }}.yml"
+  roles:
+
+    - name: Install and configure elasticsearch cluster
+      role: ./!_databases/elasticsearch/es-service
+
+    - name: Create the Web UI Elasticsearch HQ
+      role: ./!_databases/elasticsearch/web-hq
+
+    - name: Consul magic do...
+      role: ./!_cloud/consul/magic-join
+
+  tags: [elasticsearch-install]

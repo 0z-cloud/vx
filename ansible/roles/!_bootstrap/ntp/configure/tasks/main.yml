@@ -1,0 +1,22 @@
+- name: DEBUG | Show ids_server
+  debug: "{{ hostvars[inventory_hostname].ansible_default_ipv4.gateway }}"
+
+- name: IDS RUN | Running on IDS | Included tasks for IDS
+  include: ids.yml
+  
+- name: CLIENT RUN | Running on Clients | Included tasks for Clients
+  include: client.yml
+  
+- name: CRON | Change the cron job on all hosts
+  include: cron.yml
+  
+- name: SET TIMEZONE | Include tasks for set correct timezone
+  include: timezone.yml
+  
+- name: GET DATE
+  raw: date
+  register: result_change_time
+  
+- name: DEBUG | GET DATE
+  debug: 
+    msg: "{{ result_change_time }}"

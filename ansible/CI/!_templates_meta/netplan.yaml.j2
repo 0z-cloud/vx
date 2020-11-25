@@ -1,0 +1,35 @@
+#!/bin/sh
+
+echo "REPLACE NETPLAN SERVER ENTITY MAIN CONFIG" >> /var/log/oz-netplan-local-cloud-init-$DATE.log
+
+rm -rf /tmp/11-ozrouter-autogen-conf.yaml
+tee -a /tmp/11-ozrouter-autogen-conf.yaml > /dev/null <<EOT
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    {{ __eta_Mlookup['interface_name'] }}:
+      dhcp4: no
+      dhcp6: no
+      addresses:
+      - {{ __eta_Mlookup['ip_address'] }}/24
+      gateway4: "{{ __eta_Mlookup['gateway4'] }}"
+      nameservers:
+        addresses:
+          - "{{ __eta_Mlookup['nameservers_addresses'] }}"
+    {{ __eta_Mlookup['second_interface_name'] }}:
+      dhcp4: no
+      dhcp6: no
+      addresses:
+      - {{ __eta_Mlookup['second_ip_address'] }}/24
+      nameservers:
+        addresses:
+          - "{{ __eta_Mlookup['nameservers_addresses'] }}"
+EOT
+
+rm -rf /etc/netplan/11-ozrouter-autogen-conf.yaml
+cp /tmp/11-ozrouter-autogen-conf.yaml /etc/netplan/11-ozrouter-autogen-conf.yaml
+echo "RELOAD SYSTEMCTL DAEMONS" >> /var/log/oz-netplan-local-cloud-init-$DATE.log
+systemctl daemon-reload
+echo "APPLY NETPLAN" >> /var/log/oz-netplan-local-cloud-init-$DATE.log
+netplan apply

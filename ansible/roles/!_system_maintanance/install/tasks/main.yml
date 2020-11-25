@@ -1,0 +1,16 @@
+- name: Apt install packages
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  with_items: "{{ apt_install_packages }}"
+  tags:
+    - apt_install
+
+- name: Installing the pip3 modules
+  pip:
+    name: "{{ item }}"
+    state: forcereinstall
+  with_items:
+    - passlib
+    - ansible_merge_vars

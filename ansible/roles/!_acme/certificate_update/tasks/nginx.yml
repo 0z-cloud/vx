@@ -1,0 +1,9 @@
+- name: Get the nginx enables sites
+  raw: cat /etc/nginx/sites-enabled/*
+  register: nginx_enabled_sites
+  when: webserver  == "nginx"
+  
+- name: Debug current nginx_enabled_sites
+  debug:
+    msg: "{{ nginx_enabled_sites.stdout_lines }}"
+  when: webserver  == "nginx"

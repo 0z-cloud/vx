@@ -1,0 +1,7 @@
+kind: BGPPeer
+apiVersion: projectcalico.org/v3
+metadata:
+  name: rrs-to-rrs
+spec:
+  nodeSelector: has(calico-route-reflector)
+  peerSelector: has(calico-route-reflector)

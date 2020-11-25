@@ -1,0 +1,34 @@
+
+
+
+  # when: inventory_hostname not in groups['kubernetes-master'] and inventory_hostname in groups['kubernetes-worker']
+#
+
+# # SETUP CNI
+# - name: Conditional role cni
+#   include_role:
+#     name: ./!_cloud/kubernetes/cni
+#   when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+# # SETUP HELM
+# - name: Conditional role helm
+#   include_role:
+#     name: ./!_cloud/kubernetes/helm
+#   when: inventory_hostname in groups['kubernetes-master']
+
+# # SETUP DASHBOARD
+# - name: DASHBOARD | Include dashboard init role
+#   include_role:
+#     name: ./!_cloud/kubernetes/dashboard
+
+# # SETUP METALB
+# - name: Conditional role metalb
+#   include_role:
+#     name: ./!_cloud/k8/metalb
+#   when: inventory_hostname in groups['kubernetes-master']
+
+# # SETUP HEALTHCHECK
+# - name: Conditional role healthcheck
+#   include_role:
+#     name: ./!_cloud/k8/healthcheck
+#   when: inventory_hostname in groups['kubernetes-master']

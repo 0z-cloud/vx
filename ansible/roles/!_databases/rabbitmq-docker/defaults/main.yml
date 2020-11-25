@@ -1,0 +1,9 @@
+rabbitmq_settings:
+    public_port: 5672
+    extended_port: 15672
+    cluster_port: 4369
+    data_path: "/opt/rabbitmq/{{ ansible_environment }}/data"
+    config_path: "/opt/rabbitmq/{{ ansible_environment }}"
+    user: rabbit
+    password: rabbit
+    cookie: YUIGIJQZYEWJXSLNZGHW

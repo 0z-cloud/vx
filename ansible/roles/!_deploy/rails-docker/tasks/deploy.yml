@@ -1,0 +1,104 @@
+- set_fact:
+    timestamp: '{{ ansible_date_time.epoch }}'
+    rails_log_channel: "filebeat"
+
+- set_fact:
+    application_secret_name: "{{ rails_application.name }}_{{ timestamp }}_env"
+
+- set_fact:
+    encryption_password: "{{ application_secret_name | hash('md5') }}"
+
+- name: retrieve sentry dsn from consul
+  consul_kv:
+    key: "{{ rails_application.name }}/sentry_dsn"
+    host: "{{ ansible_hostname }}"
+  register: sentry_dsn
+
+- set_fact:
+    sentry_dsn: "{{ sentry_dsn.data.Value }}"
+
+- name: encrypt config
+  shell: "echo '{{ rails_application.secured_variables | to_json | b64encode }}' | openssl enc -aes-256-cbc -A -a -k {{ encryption_password }} -nosalt -p"
+  register: encrypted_config
+
+- set_fact:
+    config_encryption_key: "{{ encrypted_config.stdout_lines[0][4:] }}"
+
+- set_fact:
+    config_encryption_key_part1: "{{ config_encryption_key[0:32] }}"
+    config_encryption_key_part2: "{{ config_encryption_key[32:64] }}"
+
+- name: save encrypted config to consul
+  consul_kv:
+    host: "{{ groups['consul-masters'] | shuffle | random }}"
+    key: "{{ rails_application.name }}/config_encrypted"
+    value: "{{ {\"key_part_2\": config_encryption_key_part2, \"iv\": encrypted_config.stdout_lines[1][4:], \"value\": encrypted_config.stdout_lines[2]} | to_json | b64encode }}"
+
+- name: create docker stack config
+  template:
+    src: docker-stack.yml
+    dest: "{{ glusterfs_settings.directories.cloud_dir }}/docker-stacks-rails/{{ rails_application.name }}.yml"
+
+- name: create network for api services
+  docker_network:
+    name: "api_services"
+    driver: overlay
+
+- name: create docker secret for app
+  docker_secret:
+    name: "{{ application_secret_name }}"
+    data: |
+      {% for item in rails_application.variables | dict2items %}
+      {{ item.key }}={{ item.value }}
+      {% endfor %}
+    state: present
+  register: docker_secret
+
+- name: create folders for application in glusterfs
+  file:
+    path: "{{ glusterfs_settings.directories.cloud_dir }}/rails/{{ rails_application.name }}/{{ dir }}"
+    state: directory
+  with_items:
+    - storage/app/public
+    - storage/framework/cache/data
+    - storage/framework/sessions
+    - storage/framework/views
+    - storage/logs
+  loop_control:
+    loop_var: dir
+
+- name: copy related files
+  copy:
+    src: "{{ item }}"
+    dest: "{{ glusterfs_settings.directories.cloud_dir }}/rails/{{ rails_application.name }}/storage"
+  with_fileglob: "group_vars/!_Applications_Core/rails/{{ application_name }}/storage/*"
+
+- include: "deploy/artisan.yml"
+  vars:
+    artisan_command: "down"
+  when: (rails_application.maintenance | default(false)) or (maintenance | default(false) | bool)
+
+- name: shutdown application
+  shell: "docker stack rm {{ rails_application.name }}"
+  when: shutdown_application | bool
+
+- include: "deploy/migrations.yml"
+  when: rails_application.db_migrate | default(false)
+
+- include: "deploy/seeds.yml"
+  when: rails_application.db_seed | default(false)
+
+- name: deploy application stack
+  shell: "docker stack deploy --prune --compose-file={{ glusterfs_settings.directories.cloud_dir }}/docker-stacks-rails/{{ rails_application.name }}.yml {{ rails_application.name }}"
+  register: deploy_application_stack_result
+  until: deploy_application_stack_result.rc == 0
+  retries: 10
+  delay: 2
+  ignore_errors: yes
+
+- include: "deploy/assertions.yml"
+
+- include: "deploy/artisan.yml"
+  vars:
+    artisan_command: "up"
+  when: (rails_application.maintenance | default(false)) or (maintenance | default(false) | bool)

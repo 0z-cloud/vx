@@ -1,0 +1,23 @@
+- name: Find special_zones files
+  find:
+    paths: "{{ bind_cloud_settings.bind_etc }}"
+    patterns: 'special_zones_*.conf'
+  register: special_zones_presented
+  tags: debug
+
+- name: Debug the special_zones_presented
+  debug:
+    msg: "{{ item.value }}"
+  with_items: |
+    {% for dict_item in special_zones_presented.files %}{% for key, value in dict_item.items() %}{% if key == 'path' %}{ "value": "{{ value }}"}{% if not loop.last %},{% endif %}{% endif %}{% endfor %}{% endfor %}
+  tags: debug
+
+- name: Check and fill the other environments configurations
+  lineinfile: 
+      dest: "{{ bind_cloud_settings.bind_etc }}/named.conf.local"
+      regexp: '^include "{{ item.value }}";'
+      insertafter: '^// PLACEHOLDER'
+      line: 'include "{{ item.value }}";'
+  with_items: |
+    {% for dict_item in special_zones_presented.files %}{% for key, value in dict_item.items() %}{% if key == 'path' %}{ "value": "{{ value }}"}{% if not loop.last %},{% endif %}{% endif %}{% endfor %}{% endfor %}
+  tags: debug

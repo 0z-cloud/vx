@@ -1,0 +1,28 @@
+replicaCount: 1
+
+image:
+  image_name: settings
+  tag: dev-1
+  pullPolicy: Always
+
+container:
+  port: 6001
+
+service:
+  type: ClusterIP
+  port: 6001
+  targetPort: 6001
+
+env:
+  RAILS_LOG_TO_STDOUT: "true"
+  RAILS_ENV: production
+  APP_DB_NAME_ENV: reactivepay_settings_production
+  APP_SECRET_KEY_BASE: cc8309fcc8309fdecc8309fcc83be6ba216ba21778dd3a69118b3df1
+  APP_DB_HOST_ENV: postgres
+  APP_DB_USERNAME_ENV: postgres
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

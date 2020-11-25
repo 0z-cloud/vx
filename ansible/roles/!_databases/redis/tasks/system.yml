@@ -1,0 +1,47 @@
+---
+- name: debug print
+  debug:
+   var: instance
+
+- name: add group
+  group:
+    name: "{{ instance.group }}"
+    state: present
+
+- name: add user
+  user:
+    name: "{{ instance.user }}"
+    state: present
+    group: "{{ instance.group }}"
+
+- name: create configuration folder
+  file:
+    path: '{{ instance.paths.conf }}'
+    state: directory
+    owner: 0
+    group: "{{ instance.group }}"
+    mode: 0775
+
+- name: create pid folder
+  file:
+    path: '{{ instance.paths.pid }}'
+    state: directory
+    owner: 0
+    group: "{{ instance.group }}"
+    mode: 0775
+
+- name: create logs folder
+  file:
+    path: '{{ instance.paths.logs }}'
+    state: directory
+    owner: 0
+    group: "{{ instance.group }}"
+    mode: 0775
+
+- name: create data folder
+  file:
+    path: '{{ instance.paths.data }}'
+    state: directory
+    owner: 0
+    group: "{{ instance.group }}"
+    mode: 0775

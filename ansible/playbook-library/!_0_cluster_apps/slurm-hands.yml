@@ -1,0 +1,20 @@
+---
+
+
+- name: reInstall/Obtaining status from SLURM Cluster System
+  hosts: "localhost" # K8S MASTERS
+  run_once: yes
+  roles:
+    - name: Call to re/check and re/install/validate SLURM by Primary Role 
+      role: roles/!_cluster_apps/slurm/primary
+  tags: [slurm]
+  vars_prompt:
+  - name: slurm_namespace
+    prompt: "NAMESPACE"
+    private: no
+  - name: slurm_masters
+    prompt: "COUNT of MASTERS"
+    private: no
+  - name: slurm_workers
+    prompt: "COUNT of WORKERS"
+    private: no

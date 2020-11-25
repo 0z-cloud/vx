@@ -1,0 +1,14 @@
+- name: Generate from template proxy config
+  template:
+    src: mysql-proxy-run.sh.j2
+    dest: /usr/bin/mysql-proxy-run.sh
+    mode: 0755
+
+- name: Generate from template proxy config
+  template:
+    src: proxy-check.sh.j2
+    dest: /usr/bin/proxy-check.sh
+    mode: 0755
+
+- name: Apply changes for proxy config
+  shell: /usr/bin/mysql-proxy-run.sh

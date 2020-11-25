@@ -1,0 +1,20 @@
+
+{% raw %} acl ns { {% endraw %} {{ hostvars[inventory_hostname].ansible_default_ipv4.address }} {% raw %}; }; 
+{% endraw %}
+{% raw %}masters ns { {% endraw %}{{ hostvars[inventory_hostname].ansible_default_ipv4.address }} {% raw %} port {% endraw %} {{ dns_consul_service_listen_port }} {% raw %} ; } {% endraw %}
+
+;
+zone "{% endraw %}{{ merge_consul_domain }}{% raw %}" IN {
+     type forward;
+     forward first;
+     forwarders { {% endraw %}{{ hostvars[inventory_hostname].ansible_default_ipv4.address }}{% raw %}port 8600; };
+};
+{% endraw %}
+{% raw %}
+;
+zone "{% endraw %}{{ merge_consul_domain }}{% raw %}" IN {
+     type forward;
+     forward first;
+     forwarders { {% endraw %}{{ hostvars[inventory_hostname].ansible_default_ipv4.address }}{% raw %}port 8600; };
+};
+{% endraw %}

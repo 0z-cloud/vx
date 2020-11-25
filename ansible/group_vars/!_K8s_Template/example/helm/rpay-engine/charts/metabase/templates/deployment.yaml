@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "metabase.name" . }}
+  labels:
+    app: {{ include "metabase.name" . }}
+    chart: {{ template "metabase.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ include "metabase.name" . }}
+      release: {{ .Release.Name }}
+  strategy:
+    type: RollingUpdate
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "metabase.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+      - image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        name: {{ .Chart.Name }}
+        envFrom:
+          - configMapRef:
+              name: {{ include "metabase.name" . }}-env
+        ports:
+        - containerPort: {{ .Values.container.port }}
+          name: {{ include "metabase.name" . }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.container.port }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.container.port }}          
+      imagePullSecrets:
+      - name: rpay-key-reg
+
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

@@ -1,0 +1,50 @@
+---
+- name: Install tacacs+
+  apt:
+    name: tacacs+
+    state: present
+
+- name: Enable tac_plus
+  service:
+    name: tacacs_plus
+    enabled: yes
+  tags: [ 'tacacs' ]
+
+- name: Copy tacacas config
+  template:
+    src: etc-tac_plus.conf.j2
+    dest: /etc/tacacs+/tac_plus.conf
+    owner: root
+    group: root
+    mode: 0640
+  notify: restart tacacs_plus
+  tags: [ 'tacacs' , 'tacacsconfig', 'tacacsusers' ]
+
+- name: Setup rbash
+  file:
+    state: link
+    src: /bin/bash
+    dest: /bin/rbash
+    owner: root
+    group: root
+    mode: 0755
+  tags: [ 'config' ]
+
+- name: Add rbash to /etc/shells
+  lineinfile:
+    state: present
+    dest: /etc/shells
+    line: '/bin/rbash'
+  tags: [ 'config' ]
+
+# - name: Setup local user accounts
+#   user:
+#     name: "{{ item.name }}"
+#     comment: "{{ item.full_name | default('') }}"
+#     shell: "{{ item.shell | default('/bin/rbash') }}"
+#     state: "{{ item.state | default('present') }}"
+#     remove: "{{ item.remove | default('yes') }}"
+#     password: "{{ item.password | default('!!') }}"
+#     update_password: "{{ item.update_password | default('on_create') }}"
+#   with_items: tacacs_users
+#   when: item.local_account

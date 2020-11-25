@@ -1,0 +1,28 @@
+# Operate the proto inventory files
+
+
+- name: Copy 0z inventory to work ignored copy for generate the local inventory
+  copy:
+    src: "inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+    dest: "inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/.vsphere-hot-pot.cloud.run.yml"
+  when: destroy_instances is not defined
+
+
+
+# - name: Line public_ip_address in file change for dynamic inventory
+#   lineinfile:
+#     path: inventories/0z-cloud/products/types/!_alicloud/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/.vsphere-hot-pot.cloud.run.yml
+#     regexp: '^(.*\ip: "{{ item.host_name }}_public_ip_address_REPLACED")'
+#     line: '        ip: "{{ item.public_ip_address }}"'
+#   with_items: 
+#        - "{{ new_pp }}"
+#   when: destroy_instances is not defined
+
+# - name: Line private_ip_address in file change for dynamic inventory
+#   lineinfile:
+#     path: inventories/0z-cloud/products/types/!_alicloud/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/.vsphere-hot-pot.cloud.run.yml
+#     regexp: '^(.*\_ip: "{{ item.host_name }}_private_ip_address_REPLACED")'
+#     line: '            second_ip: "{{ item.private_ip_address }}"'
+#   with_items: 
+#        - "{{ new_pp }}"
+#   when: destroy_instances is not defined

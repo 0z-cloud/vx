@@ -1,0 +1,27 @@
+- name: print map
+  debug:
+    var: generated_redis_io_service_cluster_map
+  run_once: true
+  tags:
+    - verbose
+
+- name: Get status from first master
+  raw: "docker exec redis-{{ ansible_environment }}-{{ ansible_hostname }}-master redis-cli -p {{ generated_redis_io_service_cluster_map[0].port }} cluster info | grep assigned"
+  register: cluster_io_state
+  changed_when: False
+
+- name: Setting Cluster State Variable
+  set_fact:
+    cluster_state: "{{ cluster_io_state.stdout }}"
+
+- name: print cluster_state
+  debug:
+    var: cluster_state
+  run_once: true
+  tags:
+    - verbose
+
+- name: Slot assigning if cluster state fail
+  include: slots_assigning.yml
+  run_once: true
+  when: cluster_state != 'cluster_slots_assigned:16384'

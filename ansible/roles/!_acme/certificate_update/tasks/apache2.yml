@@ -1,0 +1,7 @@
+- name: Get the apache2 enables sites
+  raw: cat /etc/apache2/sites-enabled/*
+  register: apache2_enabled_sites
+
+- name: Debug current apache2_enabled_sites
+  debug:
+    msg: "{{ apache2_enabled_sites }}"

@@ -1,0 +1,208 @@
+- name: Inject defaults
+  set_fact:
+    logging_es_cluster: "{{ logging_es_cluster_defaults | combine(logging_es_cluster) }}"
+  tags: [always]
+
+- name: Destroy Logging Elasticsearch Cluster if destroy defined
+  docker_container:
+    name: "log-es-cl-{{ ansible_environment }}-{{ inventory_hostname }}"
+    image: "{{ ansible_global_gitlab_registry_site_name }}/{{ ansible_git_project_path }}/elasticsearch:{{ default_docker_image_environment_tag }}"
+    hostname: "log-es-cl-{{ ansible_environment }}-{{ inventory_hostname }}"
+    state: absent
+  when: destroy is defined
+
+- name: Destroy data directories
+  file:
+    path: "{{ item.value }}"
+    state: absent
+  with_dict: "{{ logging_es_cluster.directories | default({}) }}"
+  when: destroy is defined
+
+- name: DEBUG | Show before create first master primary host fact
+  debug: 
+    msg: "{{ hostvars[item]['ansible_nodename'] }}"
+  with_items: "{{ groups['logging-elasticsearch-cluster'][0] }}"
+  when: inventory_hostname not in groups['logging-elasticsearch-cluster'][0]
+
+- name: SET FACT | Show before create first master primary host fact
+  set_fact: 
+    logging_cluster_es_master: "{{ hostvars[item]['ansible_nodename'] }}"
+  with_items: "{{ groups['logging-elasticsearch-cluster'][0] }}"
+  # when: inventory_hostname not in groups['logging-elasticsearch-cluster'][0]
+
+- name: DEBUG | logging_cluster_es_master
+  debug: 
+    msg: "{{ logging_cluster_es_master }}"
+  # when: inventory_hostname not in groups['logging-elasticsearch-cluster'][0]
+
+# - name: ADD HOST | Create first master primary host fact
+#   add_host: 
+#     hostname: "{{ hostvars[item]['ansible_default_ipv4']['address'] | safe }}"
+#     ansible_host: "{{ hostvars[item]['ansible_nodename'] }}"
+#     groups: "logging-cluster-es-master"
+#   with_items: "{{ groups['logging-elasticsearch-cluster'][0] }}"
+#   when: inventory_hostname not in groups['logging-elasticsearch-cluster'][0]
+
+- name: Creating Logging Elasticsearch Groups
+  group:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - admin
+    - "{{ logging_es_cluster.system_security.linux.user_group }}"
+
+- name: Create Logging Elasticsearch User
+  user: 
+    name: "{{ logging_es_cluster.system_security.linux.user_group }}"
+    shell: /bin/bash
+    groups: "admin,sudo,root,{{ logging_es_cluster.system_security.linux.user_group }}"
+    append: yes
+    uid: 991
+
+# - name: Create the elastic cluster directories
+#   file:
+#     path: "{{ item.value }}"
+#     state: directory
+#     mode: 0755
+#     owner: "{{ logging_es_cluster.system_security.linux.user_group }}"
+#     group: "{{ logging_es_cluster.system_security.linux.user_group }}"
+#   with_dict: "{{ logging_es_cluster.directories | default({}) }}"
+
+- name: Create the directories
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0755
+    owner: "{{ logging_es_cluster.system_security.linux.user_group }}"
+    group: "{{ logging_es_cluster.system_security.linux.user_group }}"
+  with_dict: "{{ logging_es_cluster.directories | default({}) }}"
+
+- name: Create elasticsearch config from template
+  template: 
+    src: elasticsearch.yml.j2
+    dest: "{{ logging_es_cluster.directories.configs }}/elasticsearch.yml"
+  tags: generate
+
+- name: Create elasticsearch config from template
+  template: 
+    src: elasticsearch.yml.j2
+    dest: "{{ logging_es_cluster.directories.configs }}/opt_elasticsearch.yml"
+  tags: generate
+
+- name: Install Logging Elasticsearch Cluster. Setup First Master.
+  docker_container:
+    name: "log-es-cl-{{ ansible_environment }}-{{ inventory_hostname }}"
+    # image: "{{ ansible_global_gitlab_registry_site_name }}/{{ ansible_git_project_path }}/elasticsearch:{{ default_docker_image_environment_tag }}"
+    image: sebp/elk:740
+    hostname: "log-es-cl-{{ ansible_environment }}-{{ inventory_hostname }}"
+    domainname: "{{ public_consul_domain }}"
+    volumes:
+      - "{{ logging_es_cluster.directories.data }}/:/var/lib/elasticsearch/"
+      - "{{ logging_es_cluster.directories.logs }}/:/var/log/elasticsearch/"
+      - "{{ logging_es_cluster.directories.configs }}/elasticsearch.yml:/etc/elasticsearch/elasticsearch.yml"
+      - "{{ logging_es_cluster.directories.configs }}/opt_elasticsearch.yml:/opt/elasticsearch/config/elasticsearch.yml"
+      - "{{ logging_es_cluster.directories.run }}:/var/run/"
+      # - "{{ logging_es_cluster.directories.elasticsearch }}:/etc/default/elasticsearch"
+    ports:
+      - "{{ logging_elasticsearch_cluster_listen_port }}:9200"
+      - "9300:9300"
+    network_mode: host
+    #user: "{{ logging_es_cluster.system_security.linux.user_group }}:{{ logging_es_cluster.system_security.linux.user_group }}"
+    env:
+      ELASTICSEARCH_START: "1"
+      LOGSTASH_START: "0"
+      KIBANA_START: "0"
+      #################################
+      # API_USER: "{{ logging_es_cluster.api.username }}"
+      # API_PASSWORD: "{{ logging_es_cluster.api.password }}"
+      #################################
+      ES_JAVA_OPTS: "-Xms1g -Xmx1g"
+      # ELASTIC_CLUSTER: "true"
+      # CLUSTER_NODE_MASTER: "true"
+      # CLUSTER_MASTER_NODE_NAME: "log-es-cl-{{ ansible_environment }}-{{ inventory_hostname }}.{{ public_consul_domain }}"
+      # #################################
+      # CLUSTER_NAME: "logging"
+      # # CLUSTER_NODE_DATA: "true"
+      # # CLUSTER_NODE_INGEST: "true"
+      # #################################
+      # CLUSTER_NODE_NAME: "log-es-cl-{{ ansible_environment }}-{{ inventory_hostname }}.{{ public_consul_domain }}"
+      # CLUSTER_MEMORY_LOCK: "true"
+      # CLUSTER_DISCOVERY_SERVICE: "logging-elasticsearch-cluster.{{ public_consul_domain }}"
+      #################################
+      # CLUSTER_NUMBER_OF_MASTERS: "2"
+      # CLUSTER_MAX_NODES: "1"
+      # CLUSTER_DELAYED_TIMEOUT: "1m"
+      # CLUSTER_INITIAL_MASTER_NODES: "logging-elasticsearch"
+      # CLUSTER_INITIAL_MASTER_NODES_FULL_STRING: {% for host in groups['logging-elasticsearch-cluster'] %}{% raw %}log-es-cl-{% endraw %}{{ ansible_environment }}{% raw %}-{% endraw %}{{ hostvars[host].ansible_nodename }}{% raw %}.{% endraw %}{{ public_consul_domain }}{% if not loop.last %},{% endif %}{% endfor %}
+      #################################
+      # ELASTICSEARCH_URL: "logging-elasticsearch-cluster.{{ public_consul_domain }}"
+      # CLUSTER_MASTERS_NODES_NAMES: "{{ CLUSTER_INITIAL_MASTER_NODES_FULL_STRING }}"
+      #################################
+    ulimits:
+          - 'memlock:-1:-1'
+    memory: 2G
+    #privileged: yes
+    state: started
+    restart_policy: unless-stopped
+    recreate: yes
+  when: inventory_hostname in groups['logging-elasticsearch-cluster'][0]
+
+- name: Install Logging Elasticsearch Cluster. Setup other masters.
+  docker_container:
+    name: "log-es-cl-{{ ansible_environment }}-{{ inventory_hostname }}"
+    image: sebp/elk:740
+    hostname: "log-es-cl-{{ ansible_environment }}-{{ inventory_hostname }}"
+    domainname: "{{ public_consul_domain }}"
+    volumes:
+      - "{{ logging_es_cluster.directories.data }}/:/var/lib/elasticsearch/"
+      - "{{ logging_es_cluster.directories.logs }}/:/var/log/elasticsearch/"
+      - "{{ logging_es_cluster.directories.configs }}/elasticsearch.yml:/etc/elasticsearch/elasticsearch.yml"
+      - "{{ logging_es_cluster.directories.configs }}/opt_elasticsearch.yml:/opt/elasticsearch/config/elasticsearch.yml"
+      - "{{ logging_es_cluster.directories.run }}:/var/run/"
+      # - "{{ logging_es_cluster.directories.elasticsearch }}:/etc/default/elasticsearch"
+    ports:
+      - "{{ logging_elasticsearch_cluster_listen_port }}:9200"
+      - "9300:9300"
+    network_mode: host
+    #user: "{{ logging_es_cluster.system_security.linux.user_group }}:{{ logging_es_cluster.system_security.linux.user_group }}"
+    env:
+      ELASTICSEARCH_START: "1"
+      LOGSTASH_START: "0"
+      KIBANA_START: "0"
+      #################################
+      # API_USER: "{{ logging_es_cluster.api.username }}"
+      # API_PASSWORD: "{{ logging_es_cluster.api.password }}"
+      #################################
+      ES_JAVA_OPTS: "-Xms1g -Xmx1g"
+      # ELASTIC_CLUSTER: "true"
+      # CLUSTER_NODE_MASTER: true
+      # CLUSTER_MASTER_NODE_NAME: "{% for host in groups['logging-elasticsearch-cluster'] %}{% if host == logging_cluster_es_master %}{% raw %}log-es-cl-{% endraw %}{{ ansible_environment }}{% raw %}-{% endraw %}{{ hostvars[host].ansible_nodename }}{% raw %}.{% endraw %}{{ public_consul_domain }}{% endif %}{% endfor %}"
+      # #################################
+      # CLUSTER_NAME: "logging"
+      # # CLUSTER_NODE_DATA: "true"
+      # # CLUSTER_NODE_INGEST: "true"
+      # #################################
+      # CLUSTER_NODE_NAME: "log-es-cl-{{ ansible_environment }}-{{ inventory_hostname }}"
+      # CLUSTER_MEMORY_LOCK: "true"
+      # CLUSTER_DISCOVERY_SERVICE: "logging-elasticsearch-cluster.{{ public_consul_domain }}"
+      #################################
+      # CLUSTER_NUMBER_OF_MASTERS: "2"
+      # CLUSTER_MAX_NODES: "1"
+      # CLUSTER_DELAYED_TIMEOUT: "1m"
+      # CLUSTER_INITIAL_MASTER_NODES: "logging-elasticsearch-cluster"
+      # CLUSTER_INITIAL_MASTER_NODES_FULL_STRING: {% for host in groups['logging-elasticsearch-cluster'] %}{% raw %}log-es-cl-{% endraw %}{{ ansible_environment }}{% raw %}-{% endraw %}{{ hostvars[host].ansible_nodename }}{% raw %}.{% endraw %}{{ public_consul_domain }}{% if not loop.last %},{% endif %}{% endfor %}
+      #################################
+      # ELASTICSEARCH_URL: "logging-elasticsearch-cluster.{{ public_consul_domain }}"
+      # CLUSTER_MASTERS_NODES_NAMES: "{{ CLUSTER_INITIAL_MASTER_NODES_FULL_STRING }}"
+      #################################
+    ulimits:
+          - 'memlock:-1:-1'
+    memory: 2g
+    #privileged: yes
+    state: started
+    restart_policy: unless-stopped
+    recreate: yes
+  when: inventory_hostname not in groups['logging-elasticsearch-cluster'][0]
+
+- name: Create dir inside container
+  shell: docker exec -it log-es-cl-{{ ansible_environment }}-{{ inventory_hostname }} mkdir /etc/default/elasticsearch

@@ -1,0 +1,68 @@
+- name: Include role apt/install for install packages
+  include_role:
+    name: ./!_system_maintanance/install
+  tags:
+    - install_apache2
+
+- name: Enable Apache2 modules
+  apache2_module:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ enable_apache2_mods }}"
+  tags:
+    - install_apache2
+
+- name: Update Apache2 default configs
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  with_items: "{{ update_apache2_default_confs }}"
+  tags:
+    - install_apache2
+
+- name: Create symlink for default-ssl.conf as 000-default-ssl.conf
+  file:
+    src: /etc/apache2/sites-available/default-ssl.conf
+    dest: /etc/apache2/sites-available/000-default-ssl.conf
+    owner: root
+    group: root
+    state: link
+  tags:
+    - install_apache2
+
+- name: Enable default http:// and https:// sites
+  command: a2ensite {{ item }}
+  with_items: "{{ enable_apache2_default_sites }}"
+  tags:
+    - install_apache2
+
+- name: Create directory for ssl certificates
+  file:
+    path: /etc/apache2/ssl
+    state: directory
+    mode: 0750
+  tags:
+    - install_apache2
+
+- name: Update config /etc/apache2/ports.conf for listen ports 80/443 only ipv4
+  replace: 
+    dest: /etc/apache2/ports.conf
+    regexp: "{{ item.from }}"
+    replace: "{{ item.to }}"
+    backup: yes
+  with_items:
+    - { from: 'Listen 80$', to: 'Listen 0.0.0.0:80' }
+    - { from: 'Listen 443$', to: 'Listen 0.0.0.0:443' }
+  tags:
+    - install_apache2
+
+- name: Restart Apache2
+  service:
+    name: apache2
+    state: restarted
+  tags:
+    - install_apache2

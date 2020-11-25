@@ -1,0 +1,11 @@
+#!/bin/bash
+
+sudo mkdir -p /cloud_settings/iso
+
+sudo mount -t iso9660 /dev/scd0 /cloud_settings/iso
+
+sudo mkdir -p /cloud_settings/root_configs/
+
+sudo cp -R /cloud_settings/iso/* /cloud_settings/root_configs/
+
+sudo /cloud_settings/root_configs/vmware_customization.sh

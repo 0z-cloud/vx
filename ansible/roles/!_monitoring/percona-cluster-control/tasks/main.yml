@@ -1,0 +1,17 @@
+---
+
+- include: deploy-clustercontrol.yml
+  when: clustercontrol_ip_address is undefined
+  tags: controller
+
+- include: setup-passwordless.yml
+  when: clustercontrol_ip_address is defined
+  tags: dbnodes
+
+# Perform deployment if cc_cluster is defined
+- include: deploy-database.yml
+  with_items: "{{ cc_cluster }}"
+  when:
+    clustercontrol_ip_address is undefined and
+    item.operation is defined
+  tags: deploy-database

@@ -1,0 +1,100 @@
+---
+
+- name: create prometeus dir
+  file: "path=/opt/prometeus/{{ ansible_environment }}/{{ item }} state=directory mode=0775"
+  with_items:
+    - etc
+    - data
+    - logs
+  
+#- name: create prometeus alerts dir
+#  file: "path=/opt/prometeus/{{ ansible_environment }}/alerts.rules state=directory mode=0775"
+
+- name: create prometeus config from prometheus.yml.j2
+  template: 
+    src: prometheus.yml.j2
+    dest: /opt/prometeus/{{ ansible_environment }}/etc/prometheus.yml
+  tags: generate
+
+- name: create alert_tules config from alert_rules.yml
+  copy: 
+    src: "files/alert_rules.yml"
+    dest: "/opt/prometeus/{{ ansible_environment }}/etc/alert_rules.yml"
+
+- name: Recursively change owner/mode of a directory
+  file:
+    path: /opt/prometeus/{{ ansible_environment }}/
+    state: directory
+    mode: '0777'
+    recurse: yes
+    owner: nobody
+    group: nogroup
+
+#- name: create prometeus alert rules
+#  copy:
+#      src: "{{ item }}"
+#      dest: "/opt/prometeus/{{ ansible_environment }}/alerts.rules/"
+#  with_fileglob:
+#    - "files/alert.rules/*"
+
+- name: Install prometeus with swarm
+  docker_container:
+    name: "prometeus-{{ ansible_environment }}-{{ inventory_hostname }}"
+    image: prom/prometheus
+    hostname: "{{ ansible_hostname }}"
+#    command: "--config.file=/etc/prometheus/prometheus.yml --web.route-prefix=/ --web.external-url=http://{{hostvars[inventory_hostname].ansible_default_ipv4.address }}:9080/api/v1/proxy/namespaces/default/services/prometheus --alertmanager.url=http://{{hostvars[groups['alertmanager'][0]].alertmanager_overlay_network_ip}}:9093"
+#    command: "--config.file=/etc/prometheus/prometheus.yml --web.route-prefix=/ --web.external-url=http://{{hostvars[inventory_hostname].ansible_default_ipv4.address }}:9080/api/v1/proxy/namespaces/default/services/prometheus"
+    command: "--config.file=/etc/prometheus/prometheus.yml --web.route-prefix=/"
+    volumes:
+        - "/opt/prometeus/{{ ansible_environment }}/etc/prometheus.yml:/etc/prometheus/prometheus.yml"
+        - "/opt/prometeus/{{ ansible_environment }}:/prometheus"
+      #  - "/opt/prometeus/{{ ansible_environment }}/alerts.rules:/etc/prometheus/alerts.rules"
+    #purge_networks: yes
+    # networks:
+    #   - name: "{{ swarm_masters.overlay_network.network_name }}"
+    #     ipv4_address: "{{ prometheus_overlay_network_ip }}"
+    ports:
+      - "{{ prometheus_service_listen_port }}:9090"
+    privileged: yes
+    state: started
+    restart_policy: unless-stopped
+    recreate: yes 
+  when: swarm_disabled_inventory is not defined
+
+- name: Install prometeus without swarm
+  docker_container:
+    name: "prometeus-{{ ansible_environment }}-{{ inventory_hostname }}"
+    image: prom/prometheus
+    hostname: "{{ ansible_hostname }}"
+    #command: "--config.file=/etc/prometheus/prometheus.yml"
+    #command: "--config.file=/etc/prometheus/prometheus.yml --web.route-prefix=/ --web.external-url=http://{{hostvars[inventory_hostname].ansible_default_ipv4.address }}:9080/api/v1/proxy/namespaces/default/services/prometheus"
+    command: "--config.file=/etc/prometheus/prometheus.yml --web.route-prefix=/"
+    volumes:
+        - "/opt/prometeus/{{ ansible_environment }}/etc/prometheus.yml:/etc/prometheus/prometheus.yml"
+        - "/opt/prometeus/{{ ansible_environment }}:/prometheus"
+      #  - "/opt/prometeus/{{ ansible_environment }}/alerts.rules:/etc/prometheus/alerts.rules"
+    ports:
+      - "{{ prometheus_service_listen_port }}:9090"
+    privileged: yes
+    state: started
+    restart_policy: unless-stopped
+    recreate: yes 
+  when: swarm_disabled_inventory is defined
+  
+#- name: Chmod recursive
+#  raw: chmod -R 777 /opt/prometeus/{{ ansible_environment }}/*
+
+#- name: Chown recursive
+#  raw: chown -R nobody:nogroup /opt/prometeus/{{ ansible_environment }}/*
+
+#- name: Restart container
+#  raw: docker restart prometeus-{{ ansible_environment }}-{{ inventory_hostname }}
+
+#- name: Restart a container
+#  docker_container:
+#    name: "prometeus-{{ ansible_environment }}-{{ inventory_hostname }}"
+#    image: prom/prometheus
+#    ports:
+#      - "{{ prometheus_service_listen_port }}:9090"
+#    state: started
+#    restart: yes

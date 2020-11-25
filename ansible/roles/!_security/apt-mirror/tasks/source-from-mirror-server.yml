@@ -1,0 +1,4 @@
+- name: Create sources.list configuration
+  template:
+    src: sources.list.j2
+    dest: /etc/apt/sources.list

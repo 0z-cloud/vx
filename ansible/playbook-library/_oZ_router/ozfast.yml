@@ -1,0 +1,175 @@
+- hosts: localhost
+  gather_facts: True 
+  become: false
+  vars_files:
+    - "group_vars/products/{{ ansible_product }}/main.yml"
+    - "group_vars/products/{{ ansible_product }}/shared.yml"
+    - "group_vars/products/{{ ansible_product }}/zone.yml"
+    - "group_vars/!_anyCloud/anyCloud.yml"
+    - "group_vars/all.yml"
+    - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/dns/{{ REPLACED_HOSTS | default('master-bind-master-backend') }}/{{ REPLACED_HOSTS | default('master-bind-master-backend') }}.yml"
+    - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+    # - "group_vars/products/{{ ansible_product }}/{{ ansible_cloud_type }}.yml"
+    # - "inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+  tasks: 
+
+    - name: Load default inventory group_vars
+      include_vars: "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+
+    - name: Template 0z-cloud configuration state to all nodes
+      template:
+        src: inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml
+        dest: /tmp/cloud_info.yml
+      delegate_to: localhost
+
+    - name: Load Zero Cloud configuration for current environment, product, and cloud type
+      vars:
+        zero_cloud_load: "{{ lookup('file', '/tmp/cloud_info.yml') | from_yaml }}"
+      set_fact:
+        zero_cloud: "{{ zero_cloud_load }}"
+
+- name: GET NECESSARY DATA | oZvRouter Cloud Mesh VPN Interconnection networking playbook
+  hosts: localhost
+  tasks:
+    - name: Initialization of oZrouter
+      debug:
+        msg: "Initialization of oZrouter started"
+    - name: Load group_vars/product global shared settings
+      include_vars: group_vars/products/{{ ansible_product }}/{{ item }}.yml
+      with_items:
+        - main
+        - shared
+
+    - name: Load group_vars/product global shared settings
+      include_vars: group_vars/products/{{ ansible_product }}/{{ ansible_environment }}/{{ item }}.yml
+      with_items:
+        - attached
+        - main
+
+- name: vCloud Director Ansible Auth
+  hosts: localhost
+  environment:
+    env_user: "{{ anycloud_adapter_api_user }}"
+    env_password: "{{ anycloud_adapter_api_password }}"
+    env_host: "{{ anycloud_adapter_api_url_http_uri }}"            
+    env_org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+    env_api_version: '31.0'
+    env_verify_ssl_certs: True
+
+  # tasks:
+
+  #   - name: Debug ansible_product
+  #     debug:
+  #       msg: "{{ ansible_product }}"
+
+  #   - name: Debug ansible_cloud_type
+  #     debug:
+  #       msg: "{{ ansible_cloud_type }}"
+
+  #   - name: Listen localhost investigate
+  #     shell: ls -la ./
+  #     register: current_dir_listing
+
+  #   - name: Debug current_dir_listing
+  #     debug:
+  #       msg: "{{ current_dir_listing }}"
+
+- name: DEPLOY | oZvRouter Cloud Mesh VPN Interconnection networking playbook
+  vars_files:
+    - "inventories/global/oz_router/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+    - "group_vars/products/{{ ansible_product }}/main.yml"
+    - "group_vars/products/{{ ansible_product }}/shared.yml"
+    - "group_vars/products/{{ ansible_product }}/zone.yml"
+    - "group_vars/!_anyCloud/anyCloud.yml"
+    - "group_vars/all.yml"
+    - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/dns/{{ REPLACED_HOSTS | default('master-bind-master-backend') }}/{{ REPLACED_HOSTS | default('master-bind-master-backend') }}.yml"
+    - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+    - "inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+  environment:
+    env_user: "{{ anycloud_adapter_api_user }}"
+    env_password: "{{ anycloud_adapter_api_password }}"
+    env_host: "{{ anycloud_adapter_api_url_endpoint }}"
+    env_org: "{{ anycloud_defaults_virtual_organization }}"
+    env_api_version: "{{ anycloud_adapter_api_url_version }}"
+    env_verify_ssl_certs: "{{ anycloud_adapter_api_url_verify_ssl }}"
+    api_version: "{{ anycloud_adapter_api_url_version }}"
+  vars:
+    debug_log: true
+  strategy: debug
+  gather_facts: false
+  hosts: localhost
+  roles:
+
+      # LOADING THE ALL NEEDED VALUES, AND PROMOTE VAlUES TO FIRST CONFIGURATION
+    - name: Include role which load extra variables dicts
+      role: ./!_cloud/ozrouter/load_vars
+
+      # MUST TO CHECK WITH CURRENT AND EXCLUDED NETWORKS. 
+      # EXCLUDED WILL BE ALL NETWORKS CONNECTED VIA OZvRouter MASTER
+
+    - name: Include role vCloud Director Organization of Project in Cloud maintain
+      role: ./!_cloud/dc_integration/vcd/!_org_get_facts
+
+      # COLLECTING THE ALL NEEDED VALUES, AND PROMOTE VAlUES TO FIRST CONFIGURATION
+    - name: Calling create the oZrouter Role
+      role: ./!_cloud/ozrouter/create
+
+      # EXTRA CHECKING THE ALL NEEDED VALUES, BETWEEN ALL ZONES
+      # AND PROMOTE VAlUES TO FIRST CONFIGURATION
+      # REASON: WE MUST TO PREVENTION DUBLICATION THE NETWORKS AND PORTS & SOME ELSE 
+    - name: Calling metadata_exchange for check ports & firewall & nat the oZrouter Role
+      role: ./!_cloud/ozrouter/vcd/metadata_exchange
+
+      # DEFAULT 3-way NETWORKS GENERATOR with site-to-site extension (WIP NEED IF AND VAR)
+    - name: Include role vCloud Director 3-way network of Project in Cloud Chain
+      role: ./!_cloud/dc_integration/vcd/network/3-way
+
+      # CREATION DEFAULT NETWORK ROUTED SUBNET
+    - name: Include role vCloud Director VCD VDC EDGE Network Zone maintain
+      role: ./!_cloud/dc_integration/vcd/network/routed_distributed_subnet
+
+      # RE/CREATE THE vAPP BOX WITH NETWORK CONNECTION
+    - name: Include role vCloud Director vApp bootstrap and validate
+      role: ./!_cloud/dc_integration/vcd/vpc/create
+
+      # EXTEND NETWORK SECTOR TO UPDATE LAYOUT OF NETWORK
+    - name: Include role vCloud Director Network Zone maintain
+      role: ./!_cloud/dc_integration/vcd/network/network_sector/create
+
+      # BOOTSTRAP ENVIRONMENT INSTANCES BY SELECTED LANDSCAPE
+    - name: Include role vCloud Director VMs in vApp bootstrap and validate
+      role: ./!_cloud/dc_integration/vcd/instance/create
+
+      # UPDATE NETWORK INTERFACES CONFIGURATION
+    - name: Include role vCloud Director VMs in vApp nic update
+      role: ./!_cloud/dc_integration/vcd/instance/ether_nic
+
+
+      # UPDATE FIREWALL TO PUBLISH VPN AND OPEN INTERNET FOR NETWORK
+    - name: Include role vCloud Director Network EDGE FIREWALL oZrouter Publish maintain
+      role: ./!_cloud/dc_integration/vcd/network/edge-nat-firewall
+
+      # RE/CREATE MESH CLOUD SITE-TO-SITE NETWORK STACKING VPN ROUTERs
+    - name: Include role vCloud Director VMs in oZvRouter Bootstrap
+      role: ./!_cloud/dc_integration/vcd/instance/router
+
+    #   # OPEN FIREWALL FOR NEEDED SUBNETS, PUBLISHED PORTS AND ETC
+    # - name: Calling firewall the oZrouter Role
+    #   role: ./!_cloud/ozrouter/firewall
+
+    #   # WITH DELEGATE TO GETTED FROM GLOBAL
+    # - name: Calling create the oZrouter Role
+    #   role: ./!_cloud/ozrouter/master_update
+
+    #   # CHECK RELATIONSHIPS AND CONNECTION TESTING
+    # - name: Calling testing result after new networks adding
+    #   role: ./!_cloud/ozrouter/highload
+
+    # - name: Include role vCloud Director vApp start and validate
+    #   role: ./!_cloud/dc_integration/vcd/vpc/start
+
+    - name: Include role vCloud Director vApp start and validate
+      role: ./!_cloud/dc_integration/vcd/vpc/router_up
+
+    - name: Include role vCloud Director vApp re/start and re/validate all UP
+      role: ./!_cloud/dc_integration/vcd/vpc/start

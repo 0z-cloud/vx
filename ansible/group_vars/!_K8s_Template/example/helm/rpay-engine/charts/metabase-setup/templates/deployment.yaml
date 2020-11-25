@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "metabase-setup.name" . }}
+  labels:
+    app: {{ include "metabase-setup.name" . }}
+    chart: {{ template "metabase-setup.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ include "metabase-setup.name" . }}
+      release: {{ .Release.Name }}
+  strategy:
+    type: RollingUpdate
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "metabase-setup.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+      - image: "{{ .Values.global.image.repository }}{{ .Values.image.image_name }}:{{ .Values.image.tag }}"
+        command: ["sh", "-c", "python3 health_check.py && python3 -m pytest metabase.py; python3 ping.py"]
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        name: {{ .Chart.Name }}
+        envFrom:
+          - configMapRef:
+              name: {{ include "metabase-setup.name" . }}-env
+        ports:
+        - containerPort: {{ .Values.container.port }}
+          name: {{ include "metabase-setup.name" . }}
+      imagePullSecrets:
+      - name: rpay-key-reg
+
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

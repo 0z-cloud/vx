@@ -1,0 +1,2 @@
+- include_tasks: "server.yml"
+  when: "'master-bind-master-backend' in group_names"

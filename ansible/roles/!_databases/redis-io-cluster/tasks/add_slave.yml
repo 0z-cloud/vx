@@ -1,0 +1,10 @@
+- name: Copy add slave
+  template:
+    src: add-slave.sh.j2
+    dest: "{{ redis_io_service_settings.directories.slave_path_config }}/add-slave.sh"
+    mode: 0777
+  tags: [adding]
+
+- name: Adding Cluster Masters Node's
+  raw: "docker exec redis-{{ ansible_environment }}-{{ ansible_hostname }}-slave /config/add-slave.sh"
+  tags: [adding]

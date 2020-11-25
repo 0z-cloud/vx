@@ -1,0 +1,67 @@
+{
+  "name": "Composer Repository",
+  "homepage": "http://gitlab.vortex.ru:81",
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "git@gitlab.vortex.ru:gateways/vortex.git"
+    },
+    {
+      "type": "vcs",
+      "url": "git@gitlab.vortex.ru:gateways/creditpilot.git"
+    },
+    {
+      "type": "vcs",
+      "url": "git@gitlab.vortex.ru:gateways/bercut.git"
+    },
+    {
+      "type": "vcs",
+      "url": "git@gitlab.vortex.ru:gateways/best.git"
+    },
+    {
+      "type": "vcs",
+      "url": "git@gitlab.vortex.ru:gateways/mobicom.git"
+    },
+    {
+      "type": "vcs",
+      "url": "git@gitlab.vortex.ru:gateways/tele2-topup.git"
+    },
+    {
+      "type": "vcs",
+      "url": "git@gitlab.vortex.ru:gateways/tele2-autopay-billing.git"
+    },
+    {
+      "type": "vcs",
+      "url": "git@gitlab.vortex.ru:gateways/tele2-autopay-provider.git"
+    },
+    {
+      "type": "vcs",
+      "url": "git@gitlab.vortex.ru:foundation/helpers.git"
+    },
+    {
+      "type": "vcs",
+      "url": "git@gitlab.vortex.ru:foundation/testing.git"
+    },
+    {
+      "type": "vcs",
+      "url": "git@gitlab.vortex.ru:foundation/searchable.git"
+    },
+    {
+      "type": "vcs",
+      "url": "git@gitlab.vortex.ru:deposits/support.git"
+    },
+    {
+      "type": "vcs",
+      "url": "git@gitlab.vortex.ru:vortex/support.git"
+    },
+    {
+      "type": "vcs",
+      "url": "git@gitlab.vortex.ru:vortex/support.git"
+    },
+    {
+      "type": "vcs",
+      "url": "git@gitlab.vortex.ru:schet-ru/topor.git"
+    }
+  ],
+  "require-all": true
+}

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<meta-runner name="PublishMeta">
+  <description>PublishMeta</description>
+  <settings>
+    <parameters>
+      <param name="ANSIBLE_APPLICATION_TYPE" value="" />
+      <param name="ANSIBLE_CI_PROJECT_NAME" value="" />
+      <param name="ANSIBLE_CI_PROJECT_NAMESPACE" value="" />
+      <param name="ANSIBLE_CI_VERSION" value="" />
+      <param name="ANSIBLE_CLOUD_TYPE" value="" />
+      <param name="ANSIBLE_COMMIT_SHA" value="%system.build.vcs.number%" />
+      <param name="ANSIBLE_DEPLOY_USERNAME" value="" />
+      <param name="ANSIBLE_ENVIRONMENT" value="" />
+      <param name="ANSIBLE_PRODUCT_NAME" value="" />
+      <param name="ANSIBLE_REGISTRY_URL" value="" />
+      <param name="ANSIBLE_REGISTRY_USERNAME" value="" />
+      <param name="ANSIBLE_RUN_TYPE" value="" />
+      <param name="ANSIBLE_TRIGGER_TOKEN" value="" spec="text display='normal' validationMode='any'" />
+      <param name="ANSIBLE_VERSION" value="" />
+      <param name="MAIN_ANSIBLE_BUILD_ID" value="%env.BUILD_NUMBER%" />
+      <param name="RunningOfferForBuild" value="" />
+      <param name="RunningOfferForPublish" value="" />
+      <param name="RunningOnlyQA" value="" />
+      <param name="A_DEPLOY_PASSWORD" value="" spec="password display='normal'" />
+      <param name="A_ENV_SECURITY" value="" />
+      <param name="A_VAULT_PASSWORD" value="" spec="password display='normal'" />
+      <param name="INIT_PASS" value="" spec="password display='normal'" />
+      <param name="message" value="" spec="password display='normal'" />
+    </parameters>
+    <build-runners>
+      <runner name="Publication to Infrastructure" type="simpleRunner">
+        <parameters>
+          <param name="script.content"><![CDATA[ls -la ./;
+echo "start";
+              echo %ANSIBLE_COMMIT_SHA%;
+              echo %ANSIBLE_DEPLOY_USERNAME%;
+              echo %ANSIBLE_APPLICATION_TYPE%;
+              echo %ANSIBLE_BUILD_ID%;
+              echo %ANSIBLE_CI_PROJECT_NAME%;
+              echo %ANSIBLE_CI_PROJECT_NAMESPACE%;
+              echo %ANSIBLE_CLOUD_TYPE%;
+              echo %ANSIBLE_COMMIT_SHA%;
+              echo %ANSIBLE_DEPLOY_USERNAME%;
+              echo %ANSIBLE_ENVIRONMENT%;
+              echo %ANSIBLE_PRODUCT_NAME%;
+              echo %ANSIBLE_REGISTRY_URL%;
+              echo %ANSIBLE_REGISTRY_USERNAME%;
+              echo %ANSIBLE_RUN_TYPE%;
+              echo %ANSIBLE_VERSION%;
+              echo %A_ENV_SECURITY%;
+              echo %MAIN_ANSIBLE_BUILD_ID%;
+              echo %RunningOfferForBuild%;
+              echo %RunningOnlyQA%;
+              echo "done show params"
+
+              echo "show encrypted values";
+              echo %A_VAULT_PASSWORD%;
+              echo %A_DEPLOY_PASSWORD%;
+              echo "done encrypted show params"
+
+              RUNNING_ONLY_QA="%RunningOnlyQA%";
+
+              echo "MAIN_ANSIBLE_BUILD_ID: %MAIN_ANSIBLE_BUILD_ID%";
+              echo "ANSIBLE_COMMIT_SHA: %ANSIBLE_COMMIT_SHA%";
+              echo "A_ENV_SECURITY: %A_ENV_SECURITY%";
+
+              ANSIBLE_COMMIT_SHA_SHORT=`echo %ANSIBLE_COMMIT_SHA% | head -c 8`
+              DATE_YEAR=`date '+%Y'`
+              DATE_MOUTH=`date '+%m'`
+              ANSIBLE_CI_VERSION="${DATE_YEAR}.${DATE_MOUTH}.%MAIN_ANSIBLE_BUILD_ID%-${ANSIBLE_COMMIT_SHA_SHORT}"
+
+              echo "ANSIBLE_CI_VERSION: $ANSIBLE_CI_VERSION" >> ./ci_version.yml
+
+			  echo "ANSIBLE_CI_VERSION: $ANSIBLE_CI_VERSION"
+
+
+. ./.local/ci_version.sh
+
+cat ./.local/current_tags.yml
+
+echo "Docker Login:"
+
+docker login "%ANSIBLE_REGISTRY_URL%" -u "%ANSIBLE_REGISTRY_USERNAME%" -p "%ANSIBLE_TRIGGER_TOKEN%"
+
+echo "Docker login complete"
+
+echo "Change dir to ansible"
+cd ./ansible
+echo "Show contents of parent .local folder"
+ls -la ../.local
+
+#A_DEPLOY_PASSWORD=`cat ../.local/pass.yml`
+#A_VAULT_PASSWORD=`cat ../.local/vault_pass.yml`
+
+RUNNING_ONLY_QA="%RunningOnlyQA%"
+
+echo "RUNNING_ONLY_QA is $RUNNING_ONLY_QA"
+
+if [ "$RUNNING_ONLY_QA" = true ]; then
+
+  echo "RUNNING_ONLY_QA is true";
+
+else
+
+    echo "RUNNING_ONLY_QA is false";
+
+    RUNNING_DISABLE_PUBLISH="%RunningOfferForPublish%";
+
+    echo "RUNNING_DISABLE_PUBLISH is $RUNNING_DISABLE_PUBLISH";
+
+    if [ "$RUNNING_DISABLE_PUBLISH" = true ]; then
+    
+      echo "RUNNING_DISABLE_PUBLISH is true";
+
+    else
+    
+      echo "RUNNING_DISABLE_PUBLISH is false";
+      ./!_all_services_deployer.sh "%ANSIBLE_ENVIRONMENT%" "%ANSIBLE_PRODUCT_NAME%" "%ANSIBLE_DEPLOY_USERNAME%" "%secure:teamcity.password.A_DEPLOY_PASSWORD%" "%ANSIBLE_APPLICATION_TYPE%" "%ANSIBLE_RUN_TYPE%" "%ANSIBLE_CLOUD_TYPE%" "%secure:teamcity.password.A_VAULT_PASSWORD%" "%ANSIBLE_REGISTRY_URL%" "%ANSIBLE_CI_PROJECT_NAME%" "%ANSIBLE_CI_PROJECT_NAMESPACE%" "$ANSIBLE_CI_VERSION" "%A_ENV_SECURITY%"
+
+    fi
+
+fi
+
+	echo "done";]]></param>
+          <param name="teamcity.step.mode" value="default" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
+    </build-runners>
+    <requirements />
+  </settings>
+</meta-runner>
+

@@ -1,0 +1,1 @@
+templates dir is default templates dir

@@ -1,0 +1,10 @@
+[program:{{ item.program }}]
+process_name=%(program_name)s_%(process_num)02d
+command={{ item.command }}
+directory={{ item.directory }}
+numprocs={{ item.processes }}
+autostart=true
+autorestart=true
+user={{ RELEASE_OWNER }}
+redirect_stderr=true
+stdout_logfile=/var/log/supervisor/{{ item.program }}.log

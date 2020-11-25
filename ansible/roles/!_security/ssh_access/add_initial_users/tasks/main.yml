@@ -1,0 +1,31 @@
+
+- name: Install Python PIP
+  apt:
+   name: python-pip
+   state: present
+
+# - name: Install latest passlib with pip
+#   pip: name=passlib
+
+- name: ADD USER | Show vars
+  debug:
+    msg: "{{ item }}"
+  with_items: "{{ inventory_users }}"
+
+- name: ADD USER | Add user for the environment
+  user:
+    name: "{{ item }}"
+    update_password: always
+    append: yes
+    group: sudo
+    comment: "{{ item }}"
+    password: "{{ NEW_PASSWORD | password_hash('sha512') }}"
+  with_items: "{{ inventory_users }}"
+  tags: pass
+
+- name: ADD USER | Set user shell
+  user:
+    name: "{{ item }}"
+    shell: /bin/bash
+  with_items: "{{ inventory_users }}"
+  tags: shell

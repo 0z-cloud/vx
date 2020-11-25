@@ -1,0 +1,23 @@
+dn: dc=vortex,dc=co 
+objectclass: dcObject 
+objectclass: organization 
+o: vortex Company 
+dc: vortex 
+
+dn: cn=SwitchAccess,dc=vortex,dc=co
+objectclass: organizationalRole 
+cn: SwitchAccess
+
+dn: olcDatabase={1}hdb,cn=config
+add: olcAccess
+olcAccess: to attrs=userPassword 
+    by dn="cn=admin,dc=vortex,dc=co" write 
+    by self write 
+    by * none
+olcAccess: to dn.base="" 
+    by users read 
+    by * none
+olcAccess: to * 
+    by dn="cn=admin,dc=vortex,dc=co" write 
+    by * none
+    

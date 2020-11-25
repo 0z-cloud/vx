@@ -1,0 +1,16 @@
+- name: Tacacs Server Configuration Playbook
+  become: true
+  hosts: "{{ HOSTS | default('tacacs-server') }}"
+  roles:
+    - name: Install slapd-ldap
+      role: ./!_security/slapd-ldap
+    # - name: Install openldap
+    #   role: openldap
+    #   slapd_root_password: "asd819hr1br12br18qQasd819hr1br12br18qQ"
+    #   slapd_domain: "vortex.com
+
+    # - name: Install slapd
+    #   role: slapd
+    - name: Tacacs Server
+      role: ./!_security/tacacs
+      

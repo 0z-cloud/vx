@@ -1,0 +1,20 @@
+# ГЕНЕРИРУЕМ ПОДСЕТИ АВТОМАТИЧЕСКИ
+- name: 3-WAY Subnets | Include the 3-way subnets for networks keys renew
+  include_tasks: 3-way-subnets.yml
+
+# Заголовок и вывод основных переменных
+# - name: META | Include Head
+#   include_tasks: head.yml
+
+# Идем в vCloud проверяем/забираем настройки сети
+# Создаем объекты в облаке vCloud непосредственно указатели = ключ/значение
+# Выполняем требуемые сценарии
+- name: "META | Inspect vCloud Group Objects Tasks - check state of subnets for networks keys | present status in there is - set(changed:true) / present(changed:false)"
+  include_tasks: get_special_meta.yml
+
+# Вывод всех пременных и их значений если передан параметр ansible - debug_playbook_stdout
+# Передать можно как на примере ниже, в конце добавьте, - ```-e debug_playbook_stdout=1```
+# ansible-playbook -i inv... some-playbook.yml -e debug_playbook_stdout=1
+
+# - name: META | Run Results of run role vCloud Group Objects Tasks
+#   include_tasks: result_show.yml

@@ -1,0 +1,31 @@
+- name: Installing the apt-mirror
+  apt:
+    name: apt-mirror
+    state: present
+    update_cache: yes
+
+- name: Create mirror.list configuration
+  template:
+    src: mirror.list.j2
+    dest: /etc/apt/mirror.list
+
+- name: Create postmirror.sh
+  template:
+    src: postmirror.sh
+    dest: "{{ apt_mirror_settings.directories.main }}/postmirror.sh"
+    mode: 0777
+
+- name: Create the directories
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0755
+  with_dict: "{{ apt_mirror_settings.directories | default({}) }}"
+
+- name: Adding run to apt-mirror everyday scan task
+  cron:
+    name: "apt mirror sync everyday task"
+    minute: "{{ apt_mirror_startup_minutes }}"
+    hour: "{{ apt_mirror_startup_hour }}"
+    job: "apt-mirror > /var/spool/apt-mirror/var/cron.log"
+    user: root

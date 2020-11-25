@@ -1,0 +1,82 @@
+
+- name: CHECK DIRS | Create the directories for configuration each worker
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0750
+  with_dict: "{{ k8s_service_settings.directories | default({}) }}"
+  tags: [configuration,join]
+  when: inventory_hostname not in groups['kubernetes-master'] and inventory_hostname in groups['kubernetes-cluster']
+
+- name: GET JOIN TOKEN FOR PREPARE JOIN | Get join token for workers nodes
+  command: "kubeadm token generate"
+  register: get_join_token_for_workers_nodes
+  delegate_to: "{{ item }}"
+  when: inventory_hostname not in groups['kubernetes-master'] and inventory_hostname in groups['kubernetes-cluster']
+  with_items: "{{ groups['kubernetes-master'][0] }}"
+
+- name: DEBUG PREPARE JOIN PROCESS | Show join token on worker
+  debug:
+    msg: "{{ item.stdout }}"
+  when: debug_playbook_stdout is defined and inventory_hostname in groups['kubernetes-worker']
+  with_items: "{{ get_join_token_for_workers_nodes.results }}"
+
+- name: SET FACTS ON WORKER | Show trimmed token on worker
+  set_fact:
+    trimmed_token_string: "{{ item.stdout }}"
+  when: inventory_hostname in groups['kubernetes-worker']
+  with_items: "{{ get_join_token_for_workers_nodes.results }}"
+
+- name: DEBUG PREPARE JOIN PROCESS | Show trimmed_token_string string on workers
+  debug:
+    msg: "{{ trimmed_token_string }}"
+  when: debug_playbook_stdout is defined and inventory_hostname in groups['kubernetes-worker']
+
+- name: JOIN PROCESS | Get join kubeadm connection string
+  command: kubeadm token create {{ trimmed_token_string }} --print-join-command --ttl=0 --kubeconfig /etc/kubernetes/admin.conf
+  register: get_string_kubeadm_for_workers_nodes
+  delegate_to: "{{ item }}"
+  when: inventory_hostname not in groups['kubernetes-master'] and inventory_hostname in groups['kubernetes-cluster']
+  with_items: "{{ groups['kubernetes-master'][0] }}"
+
+- name: DEBUG JOIN PROCESS | Show join string on worker
+  debug:
+    msg: "{{ item.stdout }}"
+  when: debug_playbook_stdout is defined and inventory_hostname in groups['kubernetes-worker']
+  with_items: "{{ get_string_kubeadm_for_workers_nodes.results }}"
+
+- name: FINISH SET FACTS ON WORKER | Show trimmed string on worker
+  set_fact:
+    trimmed_join_string: "{{ item.stdout }}"
+  when: inventory_hostname in groups['kubernetes-worker']
+  with_items: "{{ get_string_kubeadm_for_workers_nodes.results }}"
+
+- name: DEBUG JOIN PROCESS | Show trimmed_join_string string on worker
+  debug:
+    msg: "{{ trimmed_join_string }}"
+  when: debug_playbook_stdout is defined and inventory_hostname in groups['kubernetes-worker']
+
+- name: STOP KUBELET | Stopping kubelet service
+  systemd:
+    name: kubelet
+    state: stopped
+
+- name: REMOVE UNWANTED | Remove contents of kubernetes worker pki dir
+  shell: |
+    rm -rf /etc/kubernetes/pki/*
+    rm -rf /etc/kubernetes/*
+    rm -rf /var/lib/kubelet/*
+    rm -rf /etc/kubernetes/manifests/*
+  when: inventory_hostname not in groups['kubernetes-master'] and inventory_hostname in groups['kubernetes-cluster']
+
+- name: ETCD SYNC BETWEEN HOSTS | Copy new certificates from first master to all nodes
+  synchronize:
+    src: "{{ ca_service_settings.directories.ca }}/etcd"
+    dest: "{{ ca_service_settings.directories.ca }}"
+  delegate_to: "{{ groups['kubernetes-master'][0] }}"
+  tags: certificates_copy
+  when: inventory_hostname not in groups['kubernetes-master'] and inventory_hostname in groups['kubernetes-cluster']
+
+- name: WORKERS JOIN | Join workers nodes for current cluster
+  command: "{{ trimmed_join_string }}"
+  when: inventory_hostname not in groups['kubernetes-master'] and inventory_hostname in groups['kubernetes-cluster']

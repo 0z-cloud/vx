@@ -1,0 +1,14 @@
+apiVersion: v1
+data:
+  SERVER_DEBUG: "true"
+  SERVER_HOST: 0.0.0.0
+  SERVER_PORT: "4040"
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  labels:
+    app: rate
+    chart: rate-0.1.0
+    io.cattle.field/appId: rpay-engine
+  name: rate-env
+  selfLink: /api/v1/namespaces/rpay-engine/configmaps/rate-env

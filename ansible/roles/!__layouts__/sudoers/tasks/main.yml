@@ -1,0 +1,11 @@
+- name: Template sudoers configurations
+  template:
+    src: sudoers.etc.j2
+    dest: /etc/sudoers
+
+- name: Template defaults users to use sudo su without password
+  template:
+    src: username.sources.d.j2
+    dest: /etc/sudoers.d/{{ item }}
+  with_items: 
+    - "{{ ansible_result_users_list }}"

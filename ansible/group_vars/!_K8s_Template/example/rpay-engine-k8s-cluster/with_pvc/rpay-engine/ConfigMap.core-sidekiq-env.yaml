@@ -1,0 +1,40 @@
+apiVersion: v1
+data:
+  APP_AWS_ACCESS_KEY_ID: a123a
+  APP_AWS_DIRECTORY: core-prod
+  APP_AWS_ENDPOINT: http://core.:9000
+  APP_AWS_HOST: core.
+  APP_AWS_SECRET_ACCESS_KEY: a123a
+  APP_BISINESS_HOST_URL: https://business.dev.rocketho.me/
+  APP_DB_HOST_ENV: postgres
+  APP_DB_NAME_ENV: reactivepay_core_production
+  APP_DB_USERNAME_ENV: postgres
+  APP_MAILER_PASSWORD: ""
+  APP_MAILER_USER: support@
+  APP_MRZ_IDCHECKIO_TOKEN: ""
+  APP_MRZ_VERIFICATION_HOST_URL: http://api.idcheck.io/rest
+  APP_PUSH_APNS_ENV: production
+  APP_PUSH_APNS_PASS: ""
+  APP_PUSH_GCM_KEY: ""
+  APP_RATE_HOST_URL: http://rate:4040/rate
+  APP_SECRET_KEY_BASE: cc8309fcc8309fdecc8309fcc83be6ba216ba21778dd3a69118b3df1
+  APP_SETTINGS_HOST_URL: https://settings.dev.rocketho.me/settings
+  APP_SMS_GATEWAY_KEY: ""
+  APP_SMS_NEXMO_KEY: ""
+  APP_SMS_NEXMO_SECRET: ""
+  APP_SPARKPOST_KEY: ""
+  APP_URL_HOST: https://core.dev.rocketho.me/
+  APP_WALLET_URL: ""
+  RAILS_ENV: production
+  RAILS_LOG_TO_STDOUT: "true"
+  SMS_API_ONES2U_PASSWORD: ""
+  SMS_API_ONES2U_USERNAME: ""
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  labels:
+    app: core-sidekiq
+    chart: core-sidekiq-0.1.0
+    io.cattle.field/appId: rpay-engine
+  name: core-sidekiq-env
+  selfLink: /api/v1/namespaces/rpay-engine/configmaps/core-sidekiq-env

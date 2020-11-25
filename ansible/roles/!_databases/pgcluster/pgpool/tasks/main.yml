@@ -1,0 +1,56 @@
+---
+
+- name: Inject and merge defaults settings with postgres_cluster_settings
+  set_fact:
+    postgres_cluster_settings: "{{ postgres_cluster_settings_defaults | combine(postgres_cluster_settings) }}"
+  tags: [always]
+
+- name: Create hosts file from template for container
+  template:
+     src: hosts.j2 
+     dest: "{{ postgres_cluster_settings.directories.config_path }}/hosts"
+
+- name: re/Create a PG Pool Service docker container
+  docker_container:
+      name: pgpool-{{ ansible_environment }}-{{ ansible_hostname }}
+      image: "{{ ansible_global_gitlab_registry_site_name }}/{{ ansible_git_project_path }}/pgpool:{{ default_docker_image_environment_tag }}"
+      hostname: "pgpool-{{ ansible_environment }}-{{ ansible_hostname }}"
+      volumes:
+        - "{{ postgres_cluster_settings.directories.config_path }}/hosts:/etc/hosts"
+      ports:
+        - "{{ pgpool_service_listen_port }}:{{ pgpool_service_listen_port }}"
+      env:
+        PGMASTER_NODE_NAME: pg01
+        PG_BACKEND_NODE_LIST: "{% for host in groups['postgres-pgcontrol-cluster'] %}{{ hostvars[host].pgcluster_node_index }}:{{ hostvars[host].pgcluster_node_name }}:{{ postgres_cluster_settings.pg_port }}:1:/data:ALLOW_TO_FAILOVER{% if not loop.last %},{% endif %}{% endfor %}"
+        #PG_BACKEND_NODE_LIST: 0:pg01:5432:1:/data:ALLOW_TO_FAILOVER,1:pg02:5432:1:/data:ALLOW_TO_FAILOVER,2:pg03:5432:1:/data:ALLOW_TO_FAILOVER
+                  # csv list of backend postgres databases, each backend db contains (separated by :)
+                  # number (start with 0):host name:pgpool port (default 9999):data dir (default /data):flag ALLOW_TO_FAILOVER or DISALLOW_TO_FAILOVER
+                  # not needed when there is a single postgres DB
+        PGP_NODE_NAME: pgpool
+        REPMGRPWD: rep123
+        FAILOVER_MODE: manual
+        PGPOOL_HEALTH_CHECK_MAX_RETRIES: "6"
+        PGPOOL_HEALTH_CHECK_RETRY_DELAY: "5"
+        PGPOOL_FAILOVER_ON_BACKEND_ERROR: "off"
+        PGPOOL_HEALTH_CHECK_PERIOD: "0"
+        #DELEGATE_IP: 172.18.0.100
+        #TRUSTED_SERVERS: 172.23.1.250
+        #PGP_HEARTBEATS: "0:pgpool01:9694,1:pgpool02:9694"
+        #PGP_OTHERS: "0:pgpool02:9999"
+                  # csv list of other pgpool nodes, each node contains (separated by :)
+                  # number (start with 0):host name:pgpool port (default 9999)
+                  # not needed when there is a single pgpool node
+        # PG_BACKEND_NODE_LIST: 0:pg01:5432:1:/data:ALLOW_TO_FAILOVER,1:pg02:5432:1:/data:ALLOW_TO_FAILOVER,2:pg03:5432:1:/data:ALLOW_TO_FAILOVER
+        # REPMGRPWD: rep123
+        # DBHOST: pgpool
+        # # POSTGRES_PASSWORD: "{{ postgres_cluster_settings.root_password }}"
+        # # POSTGRES_USER: "{{ postgres_cluster_settings.postgres_user }}"
+        # # MYSQL_ROOT_PASSWORD: "{{ postgres_settings.root_password }}"
+        # # CLUSTER_NAME: "{{ postgres_settings.wsrep_cluster_name }}"
+      privileged: yes
+      restart_policy: always
+      detach: True
+      recreate: yes
+      state: started
+      network_mode: host
+      user: root

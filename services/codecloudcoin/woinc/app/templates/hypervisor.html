@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% block title %}<title>DNS Control Panel - HOME</title>{% endblock %}
+
+{% block dashboard_stat %}
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <h1>
+        HyperVisor
+        <small>Info</small>
+      </h1>
+      <ol class="breadcrumb">
+        <li><a href="{{ url_for('hypervisor') }}"><i class="fa fa-dashboard"></i> Hyper-visor's</a></li>
+        <li class="active">Home</li>
+      </ol>
+    </section>
+{% endblock %}
+
+{% block content %}
+ <!-- Main content -->
+    <section class="content">
+      {% if current_user.role.name == 'Administrator' %}
+      <div class="row">
+          <!-- our //.Admin statistics panel -->
+
+          <div class="col-xs-12">
+              <div class="box totalPaddingadding">
+                  <div class="box-header">
+                      <h3 class="box-title">Hyper Visors Servers</h3>
+                  </div>
+                  <!-- /.box-header -->
+                  <!--
+                  {% if current_user.role.name == 'Administrator' %}
+                  <div class="box-body">
+                      <button type="button" class="btn btn-flat btn-primary" onclick="window.location.href='{{ url_for('domain_add') }}'">
+                          New Domain&nbsp;<i class="fa fa-plus"></i>
+                      </button>
+                  </div>
+                  {% endif %}
+                   -->
+                  <div class="box-body totalPaddingaddingFive">
+                      <table id="tbl_domain_list" class="table table-bordered table-striped totalPaddingadding">
+                          <thead>
+                          <tr>
+                              <th>Id</th>
+                              <th>Name</th>
+                              <th>IP address</th>
+                              <th>Username</th>
+                              <th>Password</th>
+                              <th>Action</th>
+                              <th>Status</th>
+                          </tr>
+                          </thead>
+                          <tbody>
+                          {% for hypervisor in hypervisors %}
+                          <tr>
+                              <td>
+                                 {{ hypervisor.id }}
+                              </td>
+                              <td>
+                                 {{ hypervisor.hv_server_name }}
+                              </td>
+                              <td>
+                                  {{ hypervisor.hv_server_ip }}
+                              </td>
+                              <td>
+                                  {{ hypervisor.hv_server_api_user}}
+                              </td>
+                              <td>
+                                 {{ hypervisor.hv_server_api_password}}
+                              </td>
+                              <td>
+                                    <button type="button" class="btn btn-flat btn-danger button_delete" id="{{ hypervisor.hv_server_name }}">
+                                        Delete&nbsp;<i class="fa fa-trash"></i>
+                                    </button>
+                              </td>
+                              <td>
+
+                                </td>
+                              </td>
+                          </tr>
+                          {% endfor %}
+                          </tbody>
+                      </table>
+
+                      <!--<div class="pull-down totalPaddingaddingFive">
+                          <a href="{{ url_for('add_new_hyper_visor') }}" class="btn btn-flat btn-default">Add New Hyper Visor</a>
+                      </div>-->
+                      <div class="pull-down totalPaddingaddingFive">
+                          <a href="{{ url_for('hypervisor_server_create') }}" class="btn btn-flat btn-default">Add New Hyper Visor</a>
+                      </div>
+                  </div>
+                  <!-- /.box-body -->
+
+
+              </div>
+              <!-- /.box -->
+          </div>
+      {% endif %}
+      <div class="row totalPaddingadding">
+
+        <!-- /.col -->
+      </div>
+      <!-- /.row -->
+    </section>
+    <!-- /.content -->
+{% endblock %}
+{% block extrascripts %}
+<script>
+    // set up history data table
+    $("#tbl_history").DataTable({
+        "paging" : false,
+        "lengthChange" : false,
+        "searching" : false,
+        "ordering" : false,
+        "info" : false,
+        "autoWidth" : false
+    });   
+    // set up domain list
+    $(document.body).on('click', '.history-info-button', function() {
+        var modal = $("#modal_history_info");
+        var info = $(this).val();
+        $('#modal-code-content').html(json_library.prettyPrint(info));
+        modal.modal('show');
+    });
+    $(document.body).on("click", ".button_dnssec", function() {
+        var domain = $(this).prop('id');
+        getdnssec($SCRIPT_ROOT + '/domain/' + domain + '/dnssec');
+    });
+    $(document.body).on('click', '.button_delete', function() {
+        var modal = $("#modal_delete");
+        var hypervisor = $(this).prop('id');
+        var info = "Are you sure you want to delete " + hypervisor + "?";
+        
+        modal.find('.modal-body p').text(info);
+        modal.find('#button_delete_confirm').click(function() {
+            var postdata = {'action': 'delete_hypervisor', 'data': hypervisor}
+            applyChanges(postdata, $SCRIPT_ROOT + '/hypervisor/server/delete', false, true);
+            modal.modal('hide');
+        })
+        modal.modal('show');
+        
+    });
+</script>
+{% endblock %}
+{% block modals %}
+<div class="modal fade" id="modal_history_info">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title">History Details</h4>
+            </div>
+            <div class="modal-body">
+                <pre><code id="modal-code-content"></code></pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-flat btn-default pull-right"
+                    data-dismiss="modal">Close</button>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+<!-- /.modal -->
+<div class="modal fade" id="modal_dnssec_info">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title">DNSSEC</h4>
+            </div>
+            <div class="modal-body">
+                <p></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-flat btn-default pull-right"
+                    data-dismiss="modal">Close</button>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+<!-- /.modal -->
+<div class="modal fade modal-warning" id="modal_delete">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title">Confirmation</h4>
+            </div>
+            <div class="modal-body">
+                <p></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-flat btn-default pull-left"
+                    data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-flat btn-danger" id="button_delete_confirm">Delete</button>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+{% endblock %}

@@ -1,0 +1,171 @@
+- name: CHECK WORK FOLDER | Create new ssh keys temp folder
+  file:
+    path: /wrk/ssh_keys
+    state: directory
+  when: full_clean is defined
+
+
+
+- name: WARMPUP | Generate new machine host rsa ssh-keys
+  openssh_keypair:
+    path: "/wrk/ssh_keys/ssh_host_rsa_key"
+    force: True
+    comment: "{{ inventory_hostname }}"
+    type: "rsa"
+  register: new_host_keys
+  when: full_clean is defined
+
+- name: WARMPUP | Generate new machine host dsa ssh-keys
+  openssh_keypair:
+    path: "/wrk/ssh_keys/ssh_host_dsa_key"
+    force: True
+    comment: "{{ inventory_hostname }}"
+    type: "dsa"
+  register: new_host_keys_dsa
+  when: full_clean is defined
+
+- name: WARMPUP | Generate new machine host ecdsa ssh-keys
+  openssh_keypair:
+    path: "/wrk/ssh_keys/ssh_host_ecdsa_key"
+    force: True
+    comment: "{{ inventory_hostname }}"
+    type: "ecdsa"
+  register: new_host_keys_ecdsa
+  when: full_clean is defined
+
+- name: DEBUG | new_host_keys
+  debug:
+    msg: "{{ new_host_keys }}"
+
+- name: FETCH | Merge all results from remote localhost
+  set_fact:
+    dict_new_host_keys: |
+      {
+      {% for s in groups['all'] | map('extract',hostvars,'new_host_keys') %}
+      "{{ s.comment }}":"{{ s.public_key }}" {% if not loop.last %},{% endif %}
+      {% endfor %}
+      }
+  delegate_to: "{{ item }}"
+  #delegate_facts: true
+  with_items:
+    - "{{ groups['all'] }}"
+
+- name: FETCH | Merge all results from remote localhost DSA
+  set_fact:
+    dict_new_host_keys_dsa: |
+      {
+      {% for s in groups['all'] | map('extract',hostvars,'new_host_keys_dsa') %}
+      "{{ s.comment }}":"{{ s.public_key }}" {% if not loop.last %},{% endif %}
+      {% endfor %}
+      }
+  delegate_to: "{{ item }}"
+  #delegate_facts: true
+  with_items:
+    - "{{ groups['all'] }}"
+
+- name: FETCH | Merge all results from remote localhost ECDSA
+  set_fact:
+    dict_new_host_keys_ecdsa: |
+      {
+      {% for s in groups['all'] | map('extract',hostvars,'new_host_keys_ecdsa') %}
+      "{{ s.comment }}":"{{ s.public_key }}" {% if not loop.last %},{% endif %}
+      {% endfor %}
+      }
+  delegate_to: "{{ item }}"
+  #delegate_facts: true
+  with_items:
+    - "{{ groups['all'] }}"
+
+- name: DEBUG | Dict with host keys RSA
+  debug:
+    msg: "{{ dict_new_host_keys }}"
+
+- name: DEBUG | Dict with host keys DSA
+  debug:
+    msg: "{{ dict_new_host_keys_dsa }}"
+
+- name: DEBUG | Dict with host keys ECDSA
+  debug:
+    msg: "{{ dict_new_host_keys_ecdsa }}"
+
+- name: REGISTER | Set result merge array with known_hosts on whole group RSA
+  debug:
+    msg: "{% set node_address = hostvars[item.key]['ansible_default_ipv4']['address'] %}{{ item.key }},{{ node_address }} {{ item.value }}"
+  with_dict: "{{ dict_new_host_keys }}"
+  register: dict_new_keys_list_with_ip_rsa_node
+
+- name: REGISTER | Set result merge array with known_hosts on whole group DSA
+  debug:
+    msg: "{% set node_address = hostvars[item.key]['ansible_default_ipv4']['address'] %}{{ item.key }},{{ node_address }} {{ item.value }}"
+  with_dict: "{{ dict_new_host_keys_dsa }}"
+  register: dict_new_keys_list_with_ip_dsa_node
+
+- name: REGISTER | Set result merge array with known_hosts on whole group ECDSA
+  debug:
+    msg: "{% set node_address = hostvars[item.key]['ansible_default_ipv4']['address'] %}{{ item.key }},{{ node_address }} {{ item.value }}"
+  with_dict: "{{ dict_new_host_keys_ecdsa }}"
+  register: dict_new_keys_list_with_ip_ecdsa_node
+
+- name: REGISTER | Set result merge array with authorized_keys on whole group RSA
+  debug:
+    msg: "{{ item.value }}"
+  with_dict: "{{ dict_new_host_keys }}"
+  register: dict_new_keys_list_without_ip_rsa_host
+
+- name: REGISTER | Set result merge array with authorized_keys on whole group DSA
+  debug:
+    msg: "{{ item.value }}"
+  with_dict: "{{ dict_new_host_keys_dsa }}"
+  register: dict_new_keys_list_without_ip_dsa_host
+
+- name: REGISTER | Set result merge array with authorized_keys on whole group ECDSA
+  debug:
+    msg: "{{ item.value }}"
+  with_dict: "{{ dict_new_host_keys_ecdsa }}"
+  register: dict_new_keys_list_without_ip_ecdsa_host
+
+- name: FILL the result host known_hosts file public_keys_list to authorized_keys RSA/DSA/ECDSA
+  lineinfile:
+    dest: /root/.ssh/known_hosts
+    create: yes
+    state: present
+    line: "{{ item.msg }}"
+  with_items: 
+    - "{{ dict_new_keys_list_with_ip_rsa_node.results }}"
+    - "{{ dict_new_keys_list_with_ip_dsa_node.results }}"
+    - "{{ dict_new_keys_list_with_ip_ecdsa_node.results }}"
+  when: full_clean is defined
+
+- name: FILL the result host authorized file public_keys_list to authorized_keys RSA/DSA/ECDSA
+  lineinfile:
+    dest: /root/.ssh/authorized_keys
+    create: yes
+    state: present
+    line: "{{ item.msg }}"
+  with_items: 
+    - "{{ dict_new_keys_list_without_ip_rsa_host.results }}"
+    - "{{ dict_new_keys_list_without_ip_dsa_host.results }}"
+    - "{{ dict_new_keys_list_without_ip_ecdsa_host.results }}"
+  when: full_clean is defined
+
+- name: UPDATE KEYS | Move machine private keys to /etc/ssh/
+  copy:
+    src: /wrk/ssh_keys/{{ item }}
+    dest: /etc/ssh/{{ item }}
+    mode: 0600
+    remote_src: yes
+  with_items:
+    - ssh_host_dsa_key
+    - ssh_host_ecdsa_key
+    - ssh_host_rsa_key
+
+- name: UPDATE KEYS | Move machine public keys to /etc/ssh/
+  copy:
+    src: /wrk/ssh_keys/{{ item }}
+    dest: /etc/ssh/{{ item }}
+    mode: 0644
+    remote_src: yes
+  with_items:
+    - ssh_host_rsa_key.pub
+    - ssh_host_dsa_key.pub
+    - ssh_host_ecdsa_key.pub

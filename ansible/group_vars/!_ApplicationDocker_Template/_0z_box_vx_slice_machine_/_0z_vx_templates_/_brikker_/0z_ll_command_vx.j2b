@@ -1,0 +1,4 @@
+{% block 0z_ll_command_vx %}{% if value['command'] is defined %}{% raw %}
+      command: "{% endraw %}{{ value['command'] }}{% raw %}"
+{% endraw %}
+{% endif %}{% endblock %}

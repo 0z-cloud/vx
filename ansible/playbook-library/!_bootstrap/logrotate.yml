@@ -1,0 +1,5 @@
+- name: Setup logrotate
+  hosts: "all"
+  roles:
+  - name: Run logrotate service role
+    role: ./!_bootstrap/logrotate

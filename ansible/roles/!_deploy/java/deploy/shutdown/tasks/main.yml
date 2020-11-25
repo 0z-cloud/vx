@@ -1,0 +1,47 @@
+- name: Generate re/start scripts
+  template:
+    src: "{{ item }}"
+    dest: "/etc/init.d/"
+    mode: 0777
+  with_fileglob:
+    - templates/init.d/*
+  tags: restart
+
+# we are using tomcat-respawn service to start tomcat11 on boot etc.
+# - name: Generate default tomcat11 configuration scripts
+#   template:
+#     src: "{{ item }}"
+#     dest: "/etc/default/"
+#     mode: 0777
+#   with_fileglob:
+#     - templates/default/*
+#   tags: restart
+
+- name: Tomcat kill
+  command: killall -9 java
+  ignore_errors: true
+  tags: restart
+
+- name: Stop tomcat11 via respawn service
+  service:
+    name: tomcat-respawn
+    state: stopped
+  tags: restart
+
+- name: Shell stop tomcat11 via respawn service
+  shell: /etc/init.d/tomcat-respawn stop
+
+- name: Wait 30 seconds for port 8080 closed
+  wait_for:
+    host: "{{ hostvars[inventory_hostname].k_node_settings_backend_ip }}"
+    port: "{{ k_cd_settings.backends.port }}"
+    state: stopped
+    timeout: 30
+    
+- name: Check by pgrep -x java
+  shell: pgrep -x java
+  register: output_pid_result
+  changed_when: 
+    - "output_pid_result.rc != 0"
+  failed_when: 
+    - "output_pid_result.rc == 0"

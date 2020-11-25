@@ -1,0 +1,6 @@
+- name: Nagios Client Configure Playbook
+  become: true
+  hosts: "{{ HOSTS | default('linux-hosts') }}"
+  roles:
+    - name: Nagios Client Configure Role
+      role: ./!_monitoring/nagios/client

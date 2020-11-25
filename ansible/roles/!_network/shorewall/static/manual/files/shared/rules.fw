@@ -1,0 +1,28 @@
+# For information on the settings in this file, type "man shorewall-rules"
+######################################################################################################################################################################################################
+#ACTION		SOURCE		                                DEST			                    PROTO	    DEST	SOURCE		ORIGINAL	RATE		USER/	MARK	CONNLIMIT	TIME		HEADERS		SWITCH		HELPER
+
+# DISABLED. MAINTANANCE SWITCH MANAGEMENT ONLY
+# ACCEPT    fw                                      ipmi:10.110.1.240,10.110.1.250          tcp     22
+
+# NTP 194.190.168.1 ntp.ix.ru
+ACCEPT		fw		                                    wan			                        udp	        ntp
+
+# DNS
+ACCEPT      fw                                          else:10.16.131.51                    udp         53
+
+# GET UPDATE FROM vortex-REPO-01
+ACCEPT      fw                                          else:10.16.131.110                   tcp         80
+
+#### ACCEPT FROM ROUTER TO ALL PING
+ACCEPT	    fw		                                    all                                 icmp
+#
+
+# ROUTERS INTERCONNECT
+ACCEPT		fw		                                    iscsi:10.91.91.101,10.91.91.102,10.91.91.103    vrrp
+ACCEPT      fw                                          iscsi:10.91.91.101,10.91.91.102,10.91.91.103    vrrp
+
+# VPN SERVICE FOR CONNECT TO BUILT-IN VPN DB
+ACCEPT		fw:10.91.91.101	                            iscsi:10.91.91.102,10.91.91.103,10.91.91.101    tcp	27017
+ACCEPT		fw:10.91.91.102	                            iscsi:10.91.91.102,10.91.91.103,10.91.91.101    tcp	27017
+ACCEPT		fw:10.91.91.103	                            iscsi:10.91.91.102,10.91.91.103,10.91.91.101    tcp	27017

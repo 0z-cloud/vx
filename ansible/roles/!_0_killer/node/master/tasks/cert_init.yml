@@ -1,0 +1,28 @@
+- name: Init first master
+  shell: kubeadm init phase certs etcd-ca
+  register: init_etcd_ca_result
+  when: inventory_hostname in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Debug init_etcd_ca_result
+  debug:
+    msg: "{{ init_etcd_ca_result.stdout_lines }}"
+  when: debug_playbook_stdout is defined and inventory_hostname in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Get etcd-ca first master result
+  shell: ls /etc/kubernetes/pki/etcd/
+  register: etcd_ca_first_master_result
+  when: inventory_hostname in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Debug etcd_ca_first_master_result
+  debug:
+    msg: "{{ etcd_ca_first_master_result.stdout_lines }}"
+  when: debug_playbook_stdout is defined and inventory_hostname in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Create the directories for each node certificates configuration
+  file:
+    path: "/opt/ca/{{ hostvars[item].ansible_nodename }}/"
+    state: directory
+    mode: 0750
+  with_items: "{{ groups['kubernetes-master'] }}"
+  when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+  tags: [configuration,ca]

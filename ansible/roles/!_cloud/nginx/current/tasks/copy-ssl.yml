@@ -1,0 +1,111 @@
+---
+
+
+  - name: Remove password file
+    shell: rm -rf /etc/nginx/.htpasswd
+    tags: [passwordfile]
+
+  - name: Create encrypted password
+    shell: htpasswd -cib /etc/nginx/.htpasswd root asd819hr1br12br18qQ
+    tags: [passwordfile]
+
+  - name: Create directory if not exist
+    file:
+      path: /core_root/raw_core/etc/letsencrypt
+      state: directory
+
+  - name: Create ssl_cert_bot_dir directory if not exist
+    file:
+      path: "{{ ssl_cert_bot_dir }}"
+      state: directory
+
+  - name: Upload Certificates
+    become: true
+    copy:
+      src: "{{ item }}"
+      dest: "{{ ssl_cert_bot_dir }}/"
+      directory_mode: yes
+    with_fileglob:
+      - files/certs/*
+    run_once: true
+    
+    # notify:
+    #   - restart nginx
+    # tags: [nginx, setup, woinc, ssl]
+
+  - name: Get the SHA of the template certs
+    shell: "sha256sum {{ ssl_cert_bot_dir }}/cert_bot.crt | awk '{print $1}'"
+    when: cert_bot_sites is defined and cert_bot_sites != ""
+    register: template_certificate_sha_sum
+    tags: [certbot,debug]
+
+  - name: Check certificates for cert_bot_sites exists
+    shell: "find {{ ssl_cert_bot_dir }}/{{ item }} -maxdepth 1 -type f | xargs -I ID sha256sum ID | awk '{print $1}'"
+    register: certs_instanceresult
+    when: cert_bot_sites is defined and cert_bot_sites != ""
+    with_items: |
+      {% raw %}[ {% endraw %} {% for dict_item in cert_bot_sites %}
+         {% for key, value in dict_item.items() %}
+         {% raw %}"{% endraw %}{{ value }}{% raw %}" {% endraw %}
+         {% endfor %}{% if not loop.last %}, {% endif %}
+      {% endfor %}    {% raw %} ]{% endraw %}
+    tags: [certbot,debug]
+
+  - name: Get Status from cert_bot certificates
+    set_fact: 
+        monster: "{{ item }}"
+    with_items: |
+      {% raw %}[{{% endraw %}
+      {% set navigation = template_certificate_sha_sum.stdout_lines | join %}
+      {% for dict_item in certs_instanceresult.results %}{% for key, value in dict_item.items() %}{% if key == 'stdout' %}{% if value is defined and value != '' and value == navigation %}{% set sha_value_navigation = value %}{% for key, value in dict_item.items() %}
+      {% if key == 'item' %}"{{ value }}": { "state": "temporary","sha": "{{ sha_value_navigation }}", "name": "{{ value }}" }{% if not loop.last %}, {% endif %}{% endif %}{% endfor %}
+      {% else %}{% if value is defined and value != '' and value != navigation %}{% set sha_value_navigation = value %}{% for key, value in dict_item.items() %}{% if key == 'item' %}"{{ value }}": { "state": "good", "sha": "{{ sha_value_navigation }}", "name": "{{ value }}"}{% if not loop.last %}, {% endif %}{% endif %}{% endfor %}
+      {% else %}{% for key, value in dict_item.items() %}{% if key == 'item' %}"{{ value }}": { "state": "fail", "sha": "fail", "name": "{{ value }}" }{% if not loop.last %}, {% endif %}{% endif %}{% endfor %}{% endif %}{% endif %}{% endif %}
+      {% endfor %}{% endfor %}{% raw %}}]{% endraw %}
+    when: cert_bot_sites is defined and cert_bot_sites != ""
+    tags: [certbot,debug]
+
+  - name: Register Failed SSL
+    set_fact: 
+        certs_with_failed_state: "{{ item }}"
+    with_items: |
+      {% raw %}[{{% endraw %}
+      {% for key, value in monster.items() %}
+        {% if value['state'] == 'fail' %}
+        {% for dict_item2 in cert_bot_sites %}
+        {% for key2, value2 in dict_item2.items() %} {% if value['name'] == value2 %}
+        "{{ key2 }}": "{{ value['name']}}"{% endif %}{% endfor %}{% endfor %}{% if not loop.last %}, {% endif %}
+      {% endif %}{% endfor %}
+      {% raw %}}]{% endraw %}
+    when: cert_bot_sites is defined and cert_bot_sites != ""
+    tags: [certbot,debug]
+
+  - name: Ensure Failed SSL Certificate have a directory
+    file:
+      path: "{{ ssl_cert_bot_dir }}/{{ item }}"
+      state: directory
+    with_items: "{{ certs_with_failed_state }}"
+    when: cert_bot_sites is defined and cert_bot_sites != "" and certs_with_failed_state != ""
+    tags: [certbot,debug]
+
+  - name: Copy Failed SSL Certificate
+    shell: "cp {{ ssl_cert_bot_dir }}/cert_bot.crt {{ ssl_cert_bot_dir }}/{{ item }}/fullchain.pem"
+    with_items: "{{ certs_with_failed_state }}"
+    when: cert_bot_sites is defined and cert_bot_sites != "" and certs_with_failed_state != ""
+    tags: [certbot]
+
+  - name: Copy Failed SSL Key
+    shell: "cp {{ ssl_cert_bot_dir }}/cert_bot.rsa {{ ssl_cert_bot_dir }}/{{ item }}/privkey.pem"
+    with_items: "{{ certs_with_failed_state }}"
+    when: cert_bot_sites is defined and cert_bot_sites != "" and certs_with_failed_state != ""
+    tags: [certbot]
+
+  - name: get stat for dhparam file
+    stat:
+      path: "{{ nginx_dhparam_path }}"
+    register: s
+
+  - name: generate dhparam file if it's not exists
+    become: true
+    shell: "openssl dhparam -out {{ nginx_dhparam_path }} 2048"
+    when: s.stat.exists == False

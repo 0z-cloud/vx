@@ -1,0 +1,785 @@
+# Merged Dynamic Template Array
+# spec 0.1 pre alfa beta gamma zetta otto nuovo diece
+
+- name: Create empty objects
+  set_fact:
+    cloud_array_group_array: {}
+# #### #### #### #### ### ####
+
+- name: Create empty objects
+  set_fact:
+    vx_gss_array: {}
+
+# - name: 1 Debug the main template, show contents
+#   debug:
+#     msg: "{{ item.value.primary_mac }}"
+#   # register: create_instance_result
+#   when: "'GENERATED' in item.value.primary_mac"
+#   with_dict: "{{ cloud_bootstrap.servers }}"
+
+- name: 2 Debug the main template, show contents
+  debug:
+    msg: |
+      {% raw %}{ "{% endraw %}{{ item.value.name }}{% raw %}":  {
+      "{% endraw %}{{ item.value.ip }}{% raw %}": { "{% endraw %}{{ item.value.primary_mac }}{% raw %}",
+      "{% endraw %}{{ item.value.primary_mac }}{% raw %}": "{% endraw %}{{ lookup('random_mac') }}{% raw %}",
+      "{% endraw %}{{ item.value.ansible_inventory_vars.second_ip }}{% raw %}": "{% endraw %}{{ item.value.ansible_inventory_vars.second_mac }}{% raw %}",
+      "{% endraw %}{{ item.value.ansible_inventory_vars.second_mac }}{% raw %}": "{% endraw %}{{ lookup('random_mac') }}{% raw %}",
+      },
+      }, {% endraw %}
+  register: GENERATED_MACS
+  when: "('GENERATED' in item.value.primary_mac or 'GENERATED' in item.value.ansible_inventory_vars.second_mac )"
+  with_dict: "{{ cloud_bootstrap.servers }}"
+
+# - name: 3 Debug the main template, show contents
+#   debug:
+#     msg: "{{ item.value }}"
+#   when: "'msg' in item.key"
+#   with_dict: "{{ GENERATED_MACS.results }}"
+
+- name: Set fact dict the main template, show contents
+  set_fact: |
+      {% raw %}{ "{% endraw %}{{ item.value.name | join | replace('-','_')  }}{% raw %}": {
+      "{% endraw %}{% raw %}instance_name": "{% endraw %}{{ item.value.name }}{% raw %}",
+      "{% endraw %}{{ item.value.ip }}{% raw %}": "{% endraw %}{{ item.value.primary_mac }}{% raw %}",
+      "{% endraw %}{{ item.value.primary_mac }}{% raw %}": "{% endraw %}{{ lookup('random_mac') }}{% raw %}",
+      "{% endraw %}{{ item.value.ansible_inventory_vars.second_ip }}{% raw %}": "{% endraw %}{{ item.value.ansible_inventory_vars.second_mac }}{% raw %}",
+      "{% endraw %}{{ item.value.ansible_inventory_vars.second_mac }}{% raw %}": "{% endraw %}{{ lookup('random_mac') }}{% raw %}",
+      },
+      },
+      {% endraw %}
+  register: re_GENERATED_MACS
+  when: "('GENERATED' in item.value.primary_mac or 'GENERATED' in item.value.ansible_inventory_vars.second_mac )"
+  with_dict: "{{ cloud_bootstrap.servers }}"
+
+- name: Set fact dict the main template, show contents
+  debug:
+    msg: |
+      {% raw %}{ "{% endraw %}{{ item.value.name | join | replace('-','_')  }}{% raw %}": {
+      "{% endraw %}{% raw %}instance_name": "{% endraw %}{{ item.value.name }}{% raw %}",
+      "{% endraw %}{{ item.value.ip }}{% raw %}": "{% endraw %}{{ item.value.primary_mac }}{% raw %}",
+      "{% endraw %}{{ item.value.primary_mac }}{% raw %}": "{% endraw %}{{ lookup('random_mac') }}{% raw %}",
+      "{% endraw %}{{ item.value.ansible_inventory_vars.second_ip }}{% raw %}": "{% endraw %}{{ item.value.ansible_inventory_vars.second_mac }}{% raw %}",
+      "{% endraw %}{{ item.value.ansible_inventory_vars.second_mac }}{% raw %}": "{% endraw %}{{ lookup('random_mac') }}{% raw %}",
+      },
+      },
+      {% endraw %}
+  register: pre_GENERATED_MACS
+  when: "('GENERATED' in item.value.primary_mac or 'GENERATED' in item.value.ansible_inventory_vars.second_mac )"
+  with_dict: "{{ cloud_bootstrap.servers }}"
+
+- name: Set fact dict the main template, show contents
+  set_fact:
+    results: |
+      {% raw %}{ "key": "{% endraw %}{{ item.value.name | join | replace('-','_')  }}{% raw %}",
+          "value": {
+      "{% endraw %}{% raw %}instance_name": "{% endraw %}{{ item.value.name }}{% raw %}",
+      "{% endraw %}{{ item.value.ip }}{% raw %}": "{% endraw %}{{ item.value.primary_mac }}{% raw %}",
+      "{% endraw %}{{ item.value.primary_mac }}{% raw %}": "{% endraw %}{{ lookup('random_mac') }}{% raw %}",
+      "{% endraw %}{{ item.value.ansible_inventory_vars.second_ip }}{% raw %}": "{% endraw %}{{ item.value.ansible_inventory_vars.second_mac }}{% raw %}",
+      "{% endraw %}{{ item.value.ansible_inventory_vars.second_mac }}{% raw %}": "{% endraw %}{{ lookup('random_mac') }}{% raw %}",
+      },
+      },
+      {% endraw %}
+  register: cloud_bootstrap
+  when: "('GENERATED' in item.value.primary_mac or 'GENERATED' in item.value.ansible_inventory_vars.second_mac )"
+  with_dict: "{{ cloud_bootstrap.servers }}"
+
+# - name: print all the keys in the object1.params variable
+#   debug:
+#     msg: "{{ cloud_bootstrap['servers'].keys() | list }}"
+
+# - name: print all the keys in the object1.params variable
+#   debug:v"{{ cloud_bootstrap['servers'] | combine({item[0].key: item[1].key}) }}"
+#     msg: "{{ cloud_bootstrap['results'].keys() | list }}"
+
+# Print all the keys in the object1.params variable {# item['value']._raw_params #} in Merged Dynamic Template Array
+# cloud_bootstrap['servers'] | default({})) + {}
+#  merged_list: "{{ cloud_bootstrap.servers |default([]) + [ item[0] | combine(item[1]) ] }}"
+- name: Populate genders
+  set_fact:
+    cloud_bootstrap:
+      servers: "{{ cloud_bootstrap.servers|default({}) | combine(item, item.value['results']) }}"
+  with_dict: "{{ cloud_bootstrap.results }}"
+  when: "'ansible_facts' in item.key"
+
+# - name: print all the keys in the object1.params variable
+#   debug:
+#     msg: "{{  cloud_bootstrap['servers']  }}"
+
+# - name: print all the keys in the object1.params variable
+#   debug:
+#     msg: "{{ item }}"
+#   with_items: "{{ cloud_bootstrap['servers'] }}"
+
+# - name: print all the keys in the object1.params variable
+#   debug:
+#     msg: "{{ item }}"
+#   with_dict: "{{ cloud_bootstrap['servers'] }}"
+
+- name: Vx anyCloud | Merge a cloud with generated networks/links/adapters/zones/etc cloud places
+  set_fact:
+    vx_cloud_bootstrap:
+      servers: "{{ cloud_bootstrap.servers|default({}) | combine(item, item.value) }}"
+  with_dict: "{{ cloud_bootstrap.servers }}"
+  when: "'value' in item.key and 'key' not in item.key"
+
+# - name: print all the keys in the object1.params variable
+#   debug:
+#     msg: "{{ item }}"
+#   with_dict: "{{ vx_cloud_bootstrap['servers'] }}"
+
+# - name: DEBUG | First interface generate stub on-fly current exec process networks subnets object
+#   debug:
+#     # possible be are like meta - we not only have one place for start Vx
+#     msg: "{{ item }}"
+#   with_dict: "{{ vx_cloud_bootstrap['servers'] }}"
+
+# - name: First interface generate stub on-fly current exec process networks subnets object
+#   set_fact:
+#     # possible be are like meta - we not only have one place for start Vx
+#     anycloud_primary_subnet_network_adapter_data: "{{ item }}"
+#   with_dict: "{{ vx_cloud_bootstrap['servers'] }}"
+
+# - name: Second interface generate stub on-fly current exec process networks subnets object
+#   set_fact:
+#     # possible be are like meta - we not only have one place for start Vx
+#     anycloud_secondary_subnet_network_adapter_data: "{{ item }}"
+#   with_dict: "{{ vx_cloud_bootstrap['servers'] }}"
+#   when: "'GENERATED' in item.key"
+
+- name: Show all variables for debug
+  debug:
+    msg: "{{ item }}"
+  with_items:
+    - "anycloud_adapter_api_user: {{ anycloud_adapter_api_user }}"
+    - "anycloud_adapter_api_password: {{ anycloud_adapter_api_password }}"
+    - "anycloud_adapter_virtual_organization: {{ anycloud_adapter_virtual_organization }}"
+    - "anycloud_defaults_virtual_datacenter: {{ anycloud_defaults_virtual_datacenter }}"
+    - "anycloud_defaults_virtual_cloud_application_box_sector: {{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+    - "anycloud_adapter_virtual_datacenter: {{ anycloud_adapter_virtual_datacenter }}"
+    - "anycloud_defaults_virtual_organization: {{ anycloud_defaults_virtual_organization }}"
+    - "anycloud_defaults_api_url_endpoint: {{ anycloud_defaults_api_url_endpoint }}"
+    - "anycloud_adapter_api_url_endpoint: {{ anycloud_adapter_api_url_endpoint }}"
+    - "datacenter: {{ anycloud_adapter_api_datacenter }}"
+    - "cluster: {{ anycloud_hypervisor_cluster.lower() }}"
+    - "ansible_resource_pool: {{ anycloud_hypervisor_cluster }}"
+
+# - name: Gather facts about tag categories
+#   community.vmware.vmware_category_facts:
+#     hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+#     username: "{{ anycloud_adapter_api_user }}"
+#     password: "{{ anycloud_adapter_api_password }}"
+#     validate_certs: no
+#   register: all_tag_category_facts
+
+# - name: Gather category id from given tag category
+#   community.vmware.vmware_category_facts:
+#     hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+#     username: "{{ anycloud_adapter_api_user }}"
+#     password: "{{ anycloud_adapter_api_password }}"
+#     validate_certs: no
+#   register: tag_category_results
+
+
+# - name: Gather facts about tag categories
+#   community.vmware.vmware_category_facts:
+#     hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+#     username: "{{ anycloud_adapter_api_user }}"
+#     password: "{{ anycloud_adapter_api_password }}"
+#     validate_certs: no
+#   # delegate_to: localhost
+#   register: all_tag_category_facts
+
+# - name: Gather category id from given tag category
+#   community.vmware.vmware_category_facts:
+#     hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+#     username: "{{ anycloud_adapter_api_user }}"
+#     password: "{{ anycloud_adapter_api_password }}"
+#     validate_certs: no
+#   # delegate_to: localhost
+#   register: tag_category_results
+
+
+# - debug:
+#     msg: "{{ tag_category_results }}"
+#   register: debug_set
+
+# - debug:
+#     msg: "{{ all_tag_category_facts }}"
+#   register: debug_set
+
+
+# - debug: msg=all_tag_category_facts
+#   register: debug_set_all
+
+
+#regex_search('x64.AppImage$')
+
+# - set_fact:
+#     category_id: "{{ item.category_id }}"
+#   loop: "{{ tag_category_results.tag_category_facts|json_query(query) }}"
+#   vars:
+#     query: "[?category_name==`vSANDirectStorage`]"
+
+
+
+
+# - debug: var=category_id
+
+# - debug: var=category_id
+#   register: debug_set
+
+# - name: debug set
+#   debug:
+#     msg: "{{ debug_set }}"
+#   register: debug_set
+# - name: Debug set 2
+#   debug:
+#     msg: "{{ debug_set }}"
+
+
+# - name: Create a category for Sector
+#   community.vmware.vmware_category:
+#     hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+#     username: "{{ anycloud_adapter_api_user }}"
+#     password: "{{ anycloud_adapter_api_password }}"
+#     validate_certs: "no"
+#     category_name: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+#     new_category_name: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+#     category_cardinality: 'multiple'
+#     state: present
+
+# - name: Rename category
+#   community.vmware.vmware_category:
+#     hostname: "{{ vcenter_server }}"
+#     username: "{{ vcenter_user }}"
+#     password: "{{ vcenter_pass }}"
+#     category_name: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+#     new_category_name: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+#     state: present
+
+# - name: Update category description
+#   community.vmware.vmware_category:
+#     hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+#     username: "{{ anycloud_adapter_api_user }}"
+#     password: "{{ anycloud_adapter_api_password }}"
+#     validate_certs: "no"
+#     category_name: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+#     new_category_name: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+#     state: present
+
+
+# - name: Create category with 2 associable object types
+#   community.vmware.vmware_category:
+#     hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+#     username: "{{ anycloud_adapter_api_user }}"
+#     password: "{{ anycloud_adapter_api_password }}"
+#     validate_certs: False
+#     category_name: '_{{ anycloud_defaults_virtual_cloud_application_box_sector }}'
+#     category_description: 'sample _{{ anycloud_defaults_virtual_cloud_application_box_sector }}'
+#     associable_object_types:
+#     - Datastore
+#     - Cluster
+#     state: present
+
+# - name: Update category description
+#   community.vmware.vmware_category:
+#     hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+#     username: "{{ anycloud_adapter_api_user }}"
+#     password: "{{ anycloud_adapter_api_password }}"
+#     validate_certs: "no"
+#     category_name:  "KEY_{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+#     category_description: "VALUES_{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+#     state: present
+
+# - name: Use as is what are a possible
+#   community.vmware.vmware_object_role_permission:
+#     hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+#     username: "{{ anycloud_adapter_api_user }}"
+#     password: "{{ anycloud_adapter_api_password }}"
+#     validate_certs: "no"
+#     # datacenter_name: "{{ anycloud_adapter_api_datacenter }}"
+#     role: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+#     principal: "KEY_{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+#     object_name: "VALUES_{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+#     state: present
+#   delegate_to: localhost
+
+
+- name: Create a VM folder on given datacenter
+  community.vmware.vcenter_folder:
+    hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+    username: "{{ anycloud_adapter_api_user }}"
+    password: "{{ anycloud_adapter_api_password }}"
+    validate_certs: "no"
+    datacenter_name: "lf-vx-z1e-vcd"
+    folder_name: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+    folder_type: vm
+    state: present
+  register: vm_folder_creation_result
+  delegate_to: localhost
+
+# - name: Specify tag and category as dict
+#   community.vmware.vmware_tag_manager:
+#     hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+#     username: "{{ anycloud_adapter_api_user }}"
+#     password: "{{ anycloud_adapter_api_password }}"
+#     validate_certs: "no"
+#     tag_names:
+#       - tag: "tag_{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+#         category: "category_{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+#       - tag: "sec_{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+#         category: "zone_{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+#     object_name: "{{ anycloud_defaults_virtual_cloud_application_box_sector }}"
+#     object_type: Folder
+#     state: present
+#   delegate_to: localhost
+
+
+# - name: Delete category
+#   community.vmware.vmware_category:
+#     hostname: "{{ vcenter_server }}"
+#     username: "{{ vcenter_user }}"
+#     password: "{{ vcenter_pass }}"
+#     category_name: Sample_Category_0002
+#     state: absent
+
+# - name: Create category with 2 associable object types
+#   community.vmware.vmware_category:
+#     hostname: '{{ vcenter_hostname }}'
+#     username: '{{ vcenter_username }}'
+#     password: '{{ vcenter_password }}'
+#     validate_certs: False
+#     category_name: 'Sample_Category_0003'
+#     category_description: 'sample description'
+#     associable_object_types:
+#     - Datastore
+#     - Cluster
+#     state: present
+
+
+
+- name: re/Create a tag and check metadata
+  community.vmware.vmware_tag_manager:
+    hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+    username: "{{ anycloud_adapter_api_user }}"
+    password: "{{ anycloud_adapter_api_password }}"
+    validate_certs: no
+    # category_id: "{{ category_id }}"
+    tag_name: "{{ anycloud_defaults_virtual_cloud_application_box_sector | replace('-','_') }}"
+    tag_description: "vx_cloud_bootstrap"
+    state: present
+  register: adding_tag_result
+
+- name: Show Getted status after calling API vCenter
+  debug:
+    msg: "{{ adding_tag_result }}"
+
+
+
+#  with_dict: "{{ vx_cloud_bootstrap['servers'] }}"
+# - name: Add CataliX Vx and ArtistA devices to the array
+#   debug:
+#     msg: |
+#       "{{  | combine({ item }) }}"| combine({item[0].key: item[1].key})
+#   with_dict: "{{ cloud_bootstrap.results }}"
+#   when: "'ansible_facts' in item.key"
+
+# - name: UNO! VX BOX PACK ONE DVA TSHETIRE -
+#   debug:
+#     msg: "{{ item['value']._raw_params }}"
+#   with_dict: "{{ cloud_bootstrap['results'] }}"
+#   when: "'ansible_facts' in item.key"
+
+# when: "'item' in item.key and 'ansible_facts' not in item.key"
+
+# item[0].key
+# use case III: appending more keys DICT variable in a "batch":
+# # use case IV: appending keys DICT variable one by one from tuples
+#       - name: setup list of tuples (for 2.4.x and up
+#         set_fact:
+#           lot: >
+#             [('key1', 'value1',), ('key2', 'value2',), ..., ('keyN', 'valueN',)],
+#       - name: my appender
+#         set_fact:
+#           my_dict_var: '{{my_dict_var|combine({item[0]: item[1]})}}'
+#         with_items: '{{ lot }}'
+# # use case V: appending keys DICT variable one by one from list of dicts (thanks to @ssc)
+#   - name: add new key / value pairs to dict
+#     set_fact:
+#       my_dict_var: "{{ my_dict_var | combine({item.key: item.value}) }}"
+#     with_items:
+#     - { key: 'key01', value: 'value 01' }
+#     - { key: 'key02', value: 'value 03' }
+#     - { key: 'key03', value: 'value 04' }
+# - set_facts:
+#     user_name: "{{ (user_name | default({})) + {item.name} }}"
+#   loop: "{{ my_array }}"
+# - name: Add CataliX Vx and ArtistA devices to the array
+#   set_fact:
+#     cloud_bootstrap:
+#       servers: "{{ cloud_bootstrap['servers'] | default({})) + {item.['value']._raw_params} }}"
+#   when: "'ansible_facts' in item[1].key"
+#   loop: "{{ cloud_bootstrap['results'] }}"
+
+#     "{{ cloud_bootstrap['servers'] | combine({item[0].key: item[1].key}) }}"
+# when: "item[0].key == item[1].['value']._raw_params and ('item' in item[0].key and 'ansible_facts' in item[1].key)"
+# with_items:
+#   - "{{ cloud_bootstrap['servers'] }}"
+#   - "{{ cloud_bootstrap['results'] }}"
+
+# loop: "{{ query('dict', cloud_bootstrap['servers'] , cloud_bootstrap['results'] ) }}"
+# - name: merge lists
+#   set_fact:
+#     cloud_bootstrap:
+#       servers: "{{ cloud_bootstrap.servers | default([]) + [{ 'name': item[0].key, 'guid': item[0].guid, 'ipaddress': item[1].ipaddress }] }}"
+#   when: "item[0].guid == item[1].guid and 'item' in item.key or 'ansible_facts' in item.key)"
+
+# ###
+
+# "('ansible_facts' in item.key) or
+
+#   when: item.stat | default(false) and item.stat.exists
+
+# - name: print results
+#   debug:
+#     var: merged_list
+
+# - name: print all the keys in the object1.params variable
+#   debug:
+#     msg: "{{ item.ansible_facts._raw_params }} "
+#   with_dict: "{{ cloud_bootstrap['results'].items() |  }}"
+# item.ansible_facts._raw_params
+#   with_
+# - name: for each key, merge from the 2 variables
+#   set_fact:
+#     cloud_bootstrap: "{{ cloud_bootstrap|default({}) | combine({item: object1['params'][item] | union(object2['params'][item]) }) }}"
+#   with_items:
+#     - "{{ object1['params'].keys() | list }}"
+
+# - name: print final result
+#   debug:
+#     var: mergedobj
+
+#######
+
+# - name: 4 RESULTS cloud_bootstrap Debug the main template, show contents
+#   debug:
+#     msg: "{{ ansible_facts }}"
+#   when: "'item' in item.key"
+#   with_dict: "{{ cloud_bootstrap.results }}"
+
+# - name: 4 cloud_bootstrap Debug the main template, show contents
+#   debug:
+#     msg: "{{ cloud_bootstrap }}"
+
+# - name: 4 RESULTS cloud_bootstrap Debug the main template, show contents
+#   debug:
+#     msg: "{{ cloud_bootstrap.results }}"
+
+# - name: 4 MSG cloud_bootstrap Debug the main template, show contents
+#   debug:
+#     msg: "{{ cloud_bootstrap.results.msg }}"
+
+# - name: 4 MSG cloud_bootstrap Debug the main template, show contents
+#   debug:
+#     msg: "{{ cloud_bootstrap.results.item }}"
+
+# - name: 4 145151 Debug the main template, show contents
+#   debug:
+#     msg: "{{ pre_GENERATED_MACS }}"
+
+# - name: 4 145151 Debug the main template, show contents
+#   debug:
+#     msg: "{{ item }}"
+#   with_items: "{{ pre_GENERATED_MACS.results }}"
+
+# - name: item 4 145151 Debug the main template, show contents
+#   debug:
+#     msg: "{{ item.results }}"
+#   with_dict: "{{ pre_GENERATED_MACS.results }}"
+
+# - name: Build a list of all the security group names.
+#   set_fact:
+#     cloud_array_group_array: "{{ cloud_array_group_array }} + '{{ item.ansible_facts._raw_params }}'"
+#   with_items: "{{ re_GENERATED_MACS.results }}"
+
+# - name: Build a list of all the security group names.
+#   set_fact:
+#     vx_gss_array: "{{ vx_gss_array }} + '{{ item.item.value }}'"
+#   with_items: "{{ re_GENERATED_MACS.results }}"
+
+# - name: 4 145151 Debug the main template, show contents
+#   debug:
+#     msg: "{{ cloud_array_group_array }}"
+
+# - name: 4 145151 Debug the main template, show contents
+#   debug:
+#     msg: "{{ item }}"
+#   with_items:
+#     - "{{ cloud_array_group_array }}"
+
+# - name: 4 Debug the main template, show contents
+#   debug:
+#     msg: "{{ re_GENERATED_MACS.results }}"
+
+# - name: 4444 Debug the main template, show contents !!!
+#   set_fact:
+#     full_array: |
+#       "
+#       {{ item['item'].value }},
+#       {{ item['ansible_facts'] }}
+#       "
+#   with_items:
+#     - "{{ re_GENERATED_MACS.results }}"
+
+# - name: 3.123243 full_array the main template, show contents
+#   debug:
+#     msg: "{{ item }}"
+#   with_dict: "{{ full_array }}"
+
+# - name: 4 Debug the main template, show contents !!!
+#   debug:
+#     msg: |
+#       "
+#       {{ item['item'].value }},
+#       {{ item['ansible_facts'] }}
+#       "
+#   with_items:
+#     - "{{ re_GENERATED_MACS.results }}"
+
+# - name: 77 set_fact the main template, show contents
+#   set_fact:
+#     depacked_array: "{{ re_GENERATED_MACS.results }}"
+
+# - name: 3.1457 Debug the main template, show contents
+#   debug:
+#     msg: "{{ depacked_array }}"
+
+# - name: 1.16157 Debug the main template, show contents
+#   debug:
+#     msg: "{{ item.key['ansible_facts'] }}"
+#   with_dict: "{{ depacked_array | items2dict }}"
+
+# - name: 5 Debug the main template, show contents
+#   debug:
+#     msg: "{{ re_GENERATED_MACS }}"
+
+# - name: 6 Debug the main template, show contents
+#   debug:
+#     msg: "{{ item.item }}"
+#   with_dict: "{{ re_GENERATED_MACS.results }}"
+
+# # - name: With dictansible_facts
+# #   debug:
+# #     msg: "{{ item.value[re_GENERATED_MACS] }}"
+# #   when: "'ansible_facts' in item.key"
+# #   with_dict: "{{ re_GENERATED_MACS.results }}"
+
+# # - name: "[FETCH STAGE] Populate Special Groups returned list"
+# #   set_fact:
+# #     Oz_vx_gss: {}
+
+# # - name: "[FETCH STAGE] Populate Special Groups returned list"
+# #   set_fact:
+# #     O1z_vx_gss: {}
+# #     O2z_vx_gss: {}
+
+# # – set_fact:
+# # my_dicts: “{{ my_dicts + [ { ‘name’: ‘fred’, ‘age’: computed_age } ] }}”
+
+# - name: "[FETCH STAGE] Populate Special O2z_vx_gss returned list"
+#   set_fact:
+#     O2z_vx_gss: "{{ O2z_vx_gss|default([]) + [ { item.item.key: item.item} ] }}"
+#     #"{{ O2z_vx_gss + item.value}}"
+#     #O1z_vx_gss: "{{ item.value }}"
+#   when: "'item' in item.key"
+#   with_dict: "{{ re_GENERATED_MACS.results }}"
+
+# - name: 7 Debug the main template, show contents
+#   debug:
+#     msg: "{{ O2z_vx_gss }}"
+
+# - name: "[FETCH STAGE] Populate Special O1z_vx_gss returned list"
+#   set_fact:
+#     O1z_vx_gss: "{{ O1z_vx_gss + item }}"
+
+#     #O1z_vx_gss: "{{ item.value }}"
+#   when: "'ansible_facts' in item.key"
+#   with_dict: "{{ re_GENERATED_MACS.results }}"
+
+# # - name: With dict
+
+# # - name: "[89:FETCH STAGE] Populate Special Groups returned list"
+# #   set_fact:
+# #     0z_vx_gss: "{{ 0z_vx_gss | | combine( {item['name']: item['name'] } ) }}"
+# #   with_dict: "{{ re_GENERATED_MACS.results }}"
+# #   when: "'item' in item.key or 'ansible_facts' in item.key"
+# #   #when: item.value in network_types_list and item.value in ansible_datacenter and item.value in ansible_product and debug_log is defined
+
+# # - name: With dict
+# #   set_fact:
+# #     : "{{ item.value }}"
+# #   when: "'item' in item.key or 'ansible_facts' in item.key"
+# #   with_dict: "{{ re_GENERATED_MACS.results }}"
+
+# # - name: With dict
+# #   debug:
+# #     msg: "{{ item.value }}"
+# #   when: "'item' in item.key or 'ansible_facts' in item.key"
+# #   with_dict: "{{ re_GENERATED_MACS.results }}"
+
+# # - name: Debug the main template, show contents
+# #   debug:
+# #     msg: |
+# #       {% raw %}[ {% endraw %}
+# #         {% for dict_item in cloud_bootstrap.servers %}
+# #         {% if 'GENERATED' in dict_item.primary_mac %}
+# #         {% raw %}"{% endraw %}{{ dict_item.value | replace('\n', '') }}_{{ ansible_environment | replace('\n', '') }}{% raw %}"{% endraw %}
+# #         {% endif %}
+# #         {% endfor %}{% if not loop.last %}, {% endif %}
+# #       {% raw %} ]{% endraw %}
+# #   register: create_instance_result
+# #   with_dict: "{{ cloud_bootstrap.servers }}"
+
+# # - name: Set fact newlist item from create_instance_result.results
+# #   set_fact:
+# #     newlist: "{{ item }}"
+# #   with_items: |
+# #     "{% for dict_item in cloud_bootstrap.servers %}
+# #      {% for key,value in dict_item %}
+# #     {% if 'GENERATED' in value['primary_mac'] %}{{ key }}
+# #     {% endif %}
+
+# #     {% endfor %}
+# #     {% endfor %}"
+# #     {% if 'GENERATED' in value.√.second_mac %}
+# #     {{ value.ansible_inventory_vars.second_mac }}
+# #     {% endif %}
+
+# #   when: destroy_instances is not defined
+
+# # - name: VM Deployment
+# #   vmware_guest:
+# #     hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+# #     username: "{{ anycloud_adapter_api_user }}"
+# #     password: "{{ anycloud_adapter_api_password }}"
+# #     validate_certs: no
+# #     datacenter: "{{ anycloud_adapter_api_datacenter }}"
+
+# #     # cluster: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+# #     resource_pool: "{{ item.value.ansible_resource_pool | default('non_prod') }}"
+# #     wait_for_customization: yes
+# #     wait_for_customization_timeout: 600
+# #     wait_for_ip_address: yes
+# #     wait_for_ip_address_timeout: 600
+# #     folder: "{{ vsphere_folder }}"
+# #     name: "{{ item.value.name }}"
+# #     template: "{{ item.value.anycloud_vm_template_name }}"
+# #     state: poweredon
+# #     networks:
+# #     - name: "{{ item.value.network_name }}"
+# #       label: "public"
+# #       ip: "{{ item.value.ip }}"
+# #       netmask: "{{ item.value.network_subnet }}"
+# #       gateway: "{{ item.value.gw }}"
+# #       mac: "{{ lookup('random_mac') }}"
+# #       domain: "{{ anycloud_domain_result }}"
+# #       dns_servers: "{{ anycloud_results_vpc_zone_virtual_abstract.dns_servers }}"
+# #       start_connected: True
+# #       type: static
+# #     - name: "{{ item.value.ansible_inventory_vars }}
+
+# #     [second_network] }}-private"
+# #       ip: "{{ cloud_bootstrap.servers.[item].[ansible_inventory_vars][second_ip] }}"
+# #       netmask: "{{ cloud_bootstrap.servers.[item].[ansible_inventory_vars][second_network_subnet] }}"
+# #       mac: "{{ lookup('random_mac') }}"
+# #       label: "private"
+# #       start_connected: True
+# #       type: static
+# #       mac: "{{ lookup('random_mac') }}"
+# #     customization:
+# #       dns_servers:
+# #       - "{{ guest_dns_server }}"
+# #       domain: "{{ consul_public_domain }}"
+# #       hostname: "{{ item.value.name }}"
+# #   register: deploy_vm
+# #   with_dict: "{{ cloud_bootstrap.servers }}"
+
+# - name: Include pre.cloud.run changes when DHCP are generated
+#   include_tasks: 0z-dhcp.yml
+# # - name: Set fact newlist item from create_instance_result.results
+# #   set_fact:
+# #     newlist: "{{ item }}"
+# #   with_items: |
+# #     "{% for dict_item in create_instance_result.results %}{% for k,v in dict_item.items() %}{% if k == 'instances' %}{{ v }}{% endif %}{% endfor %}{% endfor %}"
+# #   when: destroy_instances is not defined
+
+# # - name: set_fact newlist
+# #   set_fact:
+# #     new_pre: "{{ newlist | replace('\"[', '') | replace(']\"', '') | replace('\\u', '') }}"
+# #   when: destroy_instances is not defined
+
+# # - name: Debug new_pre
+# #   debug:
+# #     msg: "{{ new_pre | replace('\\u', '') }}"
+# #   when: destroy_instances is not defined
+
+# # - name: set_fact new_p
+# #   set_fact:
+# #     new_p: "{{ new_pre | replace('\\u', '') }}"
+# #   when: destroy_instances is not defined
+
+# # - name: Debug new_p
+# #   set_fact:
+# #     new_pp: "{{ new_p | replace('][', ', ') }}"
+# #   when: destroy_instances is not defined
+
+# # - name: Debug new_pp
+# #   debug:
+# #     msg: "{{ new_pp }}"
+# #   when: destroy_instances is not defined
+
+# # - name: Set authorized ssh key, extracting just that data from 'users'
+# #   debug:
+# #     msg: "{{ item.host_name }} {{ item.public_ip_address }} {{ item.private_ip_address }}"
+# #   with_items:
+# #       - "{{ new_pp }}"
+# #   when: destroy_instances is not defined
+
+# # - name: Copy 0z inventory to work ignored copy for generate the local inventory
+# #   copy:
+# #     src: "inventories/0z-cloud/products/types/!_alicloud/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+# #     dest: "inventories/0z-cloud/products/types/!_alicloud/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/.alicloud.cloud.run.yml"
+# #   when: destroy_instances is not defined
+
+# # - name: Line public_ip_address in file change for dynamic inventory
+# #   lineinfile:
+# #     path: inventories/0z-cloud/products/types/!_alicloud/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/.alicloud.cloud.run.yml
+# #     regexp: '^(.*\ip: "{{ item.host_name }}_public_ip_address_REPLACED")'
+# #     line: '        ip: "{{ item.public_ip_address }}"'
+# #   with_items:
+# #        - "{{ new_pp }}"
+# #   when: destroy_instances is not defined
+
+# # - name: Line private_ip_address in file change for dynamic inventory
+# #   lineinfile:
+# #     path: inventories/0z-cloud/products/types/!_alicloud/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/.alicloud.cloud.run.yml
+# #     regexp: '^(.*\_ip: "{{ item.host_name }}_private_ip_address_REPLACED")'
+# #     line: '            second_ip: "{{ item.private_ip_address }}"'
+# #   with_items:
+# #        - "{{ new_pp }}"
+# #   when: destroy_instances is not defined
+# # any_{{ item.value.name | join | replace('-','_')  }}: |
+# #   {% raw %}{ "{% endraw %}{{ item.value.name | join | replace('-','_')  }}{% raw %}": {
+
+# #   "{% endraw %}{% raw %}instance_name": "{% endraw %}{{ item.value.name }}{% raw %}",
+
+# #   "{% endraw %}{{ item.value.ip }}{% raw %}": "{% endraw %}{{ item.value.primary_mac }}{% raw %}",
+# #   "{% endraw %}{{ item.value.primary_mac }}{% raw %}": "{% endraw %}{{ lookup('random_mac') }}{% raw %}",
+# #   "{% endraw %}{{ item.value.ansible_inventory_vars.second_ip }}{% raw %}": "{% endraw %}{{ item.value.ansible_inventory_vars.second_mac }}{% raw %}",
+# #   "{% endraw %}{{ item.value.ansible_inventory_vars.second_mac }}{% raw %}": "{% endraw %}{{ lookup('random_mac') }}{% raw %}",
+# #   },
+# #   },
+# #   {% endraw %}

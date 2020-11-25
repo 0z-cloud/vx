@@ -1,0 +1,41 @@
+cluster.name: logging
+node.name: log-es-cl-{{ ansible_environment }}-{{ inventory_hostname }}
+path.data: /var/data/elasticsearch
+path.logs: /var/log/elasticsearch
+network.host: 0.0.0.0
+discovery.seed_hosts: [{% for host in groups['logging-elasticsearch-cluster'] %}"{{ hostvars[host]['second_ip'] | safe }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+
+{% for host in groups['logging-elasticsearch-cluster'] %}
+{% if host == logging_cluster_es_master and logging_cluster_es_master == inventory_hostname  %}
+cluster.initial_master_nodes: ["{{ hostvars[host]['second_ip'] | safe }}"]
+node.master: true
+{% endif %}
+{% endfor %}
+
+{% for host in groups['logging-elasticsearch-cluster'] %}
+{% if host != logging_cluster_es_master and host == inventory_hostname  %}
+cluster.initial_master_nodes: ["{{ hostvars[host]['second_ip'] | safe }}"]
+{% endif %}
+{% endfor %}
+
+# log-es-cl-{{ ansible_environment }}-{{ hostvars[host].inventory_hostname }}
+
+################################################
+# # first
+# cluster.name: paris
+# node.name: parisx
+# path.data: /var/lib/elasticsearch
+# path.logs: /var/log/elasticsearch
+# network.host: 172.31.46.15
+# discovery.seed_hosts: ["172.31.46.15", "172.31.47.43"]
+# cluster.initial_master_nodes: ["172.31.46.15"]
+# node.master: true
+
+# # other
+# cluster.name: paris
+# node.name: paris2x
+# path.data: /var/lib/elasticsearch
+# path.logs: /var/log/elasticsearch
+# network.host: 172.31.47.43
+# discovery.seed_hosts: ["172.31.47.43","172.31.46.15"]
+# cluster.initial_master_nodes: ["172.31.46.15"]

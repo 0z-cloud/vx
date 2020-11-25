@@ -1,0 +1,35 @@
+replicaCount: 1
+
+image:
+  image_name: metabase-setup
+  tag: dev-1
+  pullPolicy: Always
+
+container:
+  port: 5060
+
+service:
+  type: ClusterIP
+  port: 5060
+  targetPort: 5060
+
+env:
+  METABASE_URL: https://metabase.dev.rocketho.me
+  METABASE_BNAME: business
+  METABASE_CNAME: core
+  METABASE_HOST: postgres
+  METABASE_PORT: "5432"
+  METABASE_DBNAME_BUSINESS: reactivepay_business_production
+  METABASE_DBNAME_CORE: reactivepay_core_production
+  METABASE_USERNAME: postgres
+  USER_FNAME: Test
+  USER_LNAME: Test
+  USER_EMAIL: adm1n@admin.admin
+  USER_PASSWORD: adm1n@admin.admin
+  USER_COMPANY: ReactivePay
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

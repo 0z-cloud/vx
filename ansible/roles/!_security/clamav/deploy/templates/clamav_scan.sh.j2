@@ -1,0 +1,550 @@
+#!/bin/bash
+# {{ ansible_managed }}
+
+START_TIME=`date +%Y-%m-%d`
+EXEC_TIMESTAMP=`date +%s`
+
+CLAMAVUPDATER="{{ clamav_settings.directories.bin }}/clamupdater.pl"
+CLAMSELFUPDATE="freshclam"
+CLAMBINARY="clamscan"
+CURRENT_HOSTNAME=`hostname`
+WORKING_DIR="{{ clamav_settings.directories.workplace }}"
+
+LOG_FILE="${WORKING_DIR}/clamav_scanning.log"
+TIMESTAMP_FILE="${WORKING_DIR}/clamav_timestamp.conf"
+FILES_TO_CURRENT_SCAN="${WORKING_DIR}/clamav_files_to_scan.db"
+INFECTED_FILES_LIST="${WORKING_DIR}/clamav_infected.db"
+
+LOG_FILE_GZ="${WORKING_DIR}/clamav_scanning.log.gz"
+TIMESTAMP_FILE_GZ="${WORKING_DIR}/clamav_timestamp.conf.gz"
+FILES_TO_CURRENT_SCAN_GZ="${WORKING_DIR}/clamav_files_to_scan.db.gz"
+INFECTED_FILES_LIST_GZ="${WORKING_DIR}/clamav_infected.db.gz"
+
+HTML_MESSAGE_BODY="${WORKING_DIR}/mail_data.txt"
+
+MAILING_USER="{{ CLAMAV_MAILING_USER }}"
+MAILING_HOSTNAME_URI="{{ CLAMAV_MAILING_HOSTNAME_URI }}"
+MAILING_DESTINATION="{{ CLAMAV_MAILING_DESTINATION }}"
+MAILING_PASSWORD="{{ CLAMAV_MAILING_PASSWORD }}"
+
+#MAILING_CREDS="${MAILING_USER}:${MAILING_PASSWORD}"
+
+logit()
+{
+    echo "[${USER}][`date`] - ${*}" >> ${LOG_FILE}
+}
+
+### FIRST CLEAN LOG
+
+if [ ! -f "$LOG_FILE" ]; then
+  echo "FILE: no $LOG_FILE exists"
+  logit "FILE: no $LOG_FILE exists"
+else
+  rm $LOG_FILE
+  echo "FILE: Recreated $LOG_FILE"
+  logit "FILE: Recreated $LOG_FILE"
+fi
+
+### START CHECK FOR WORKING DIRECTORY IS PRESENT
+
+if [ ! -d "$WORKING_DIR" ]; then
+  mkdir ${WORKING_DIR}
+fi
+
+###
+
+echo "START: scanning script"
+logit "START: scanning script"
+
+{% for host in groups['clamav-repository-mirror'] %}
+{% if host == inventory_hostname %}
+
+### SECTION PRESENT ONLY ON REPO
+
+logit "start initial update the local private ClamAV Database"
+
+{% if hostvars[inventory_hostname].ansible_distribution == "Ubuntu" %}
+
+$CLAMAVUPDATER
+
+{% else %}
+
+freshclam
+
+{% endif %}
+
+logit "update database for scanning completed"
+
+{% endif %}{% endfor %}
+
+### SECTION UPDATE LOCAL DATABASE
+
+logit "Start: kill all freshclam processes if them presented"
+
+{% if hostvars[inventory_hostname].ansible_distribution == "Ubuntu" %}
+
+freshclam_pid=`ps -aux | grep /usr/bin/freshclam | grep clamav | awk '{print $2}'`
+
+{% else %}
+
+freshclam_pid=`ps -a | grep /usr/bin/freshclam | grep clamav | awk '{print $2}'`
+
+{% endif %}
+
+if [ -z "$freshclam_pid" ]
+then
+      logit "INFO: freshclam_pid is empty, nothing to do"
+else
+      logit "WARN: freshclam_pid is $freshclam_pid and not empty, go kill the process"
+      kill -9 $freshclam_pid
+      logit "WARN: freshclam_pid send the kill signal"
+fi
+
+logit "Done: kill all freshclam processes if them presented"
+
+logit "Preserve restart freshclam service for preventing fail getting the updates"
+
+{% if hostvars[inventory_hostname].ansible_distribution == "Ubuntu" %}
+
+/etc/init.d/clamav-freshclam restart
+
+{% endif %}
+
+logit "Waing service restart - about 10 sec..."
+
+sleep 10
+
+logit "start initial update the local ClamAV Database"
+
+$CLAMSELFUPDATE
+
+logit "done initial update the local ClamAV Database"
+
+### STARTING CLEAN GZ FILES
+
+if [ ! -f "$LOG_FILE_GZ" ]; then
+  echo "FILE: no $LOG_FILE_GZ exists"
+  logit "FILE: no $LOG_FILE_GZ exists"
+else
+  echo "FILE: $LOG_FILE_GZ exists, go remove"
+  logit "FILE: $LOG_FILE_GZ exists, go remove"
+  rm ${LOG_FILE_GZ}
+  echo "FILE: $LOG_FILE_GZ removed"
+  logit "FILE: $LOG_FILE_GZ removed"
+fi
+
+if [ ! -f "$TIMESTAMP_FILE_GZ" ]; then
+  echo "FILE: no $TIMESTAMP_FILE_GZ exists"
+  logit "FILE: no $TIMESTAMP_FILE_GZ exists"
+else
+  echo "FILE: $TIMESTAMP_FILE_GZ exists, go remove"
+  logit "FILE: $TIMESTAMP_FILE_GZ exists, go remove"
+  rm ${TIMESTAMP_FILE_GZ}
+  echo "FILE: $TIMESTAMP_FILE_GZ removed"
+  logit "FILE: $TIMESTAMP_FILE_GZ removed"
+fi
+
+if [ ! -f "$FILES_TO_CURRENT_SCAN_GZ" ]; then
+  echo "FILE: no $FILES_TO_CURRENT_SCAN_GZ exists"
+  logit "FILE: no $FILES_TO_CURRENT_SCAN_GZ exists"
+else
+  echo "FILE: $FILES_TO_CURRENT_SCAN_GZ exists, go remove"
+  logit "FILE: $FILES_TO_CURRENT_SCAN_GZ exists, go remove"
+  rm ${FILES_TO_CURRENT_SCAN_GZ}
+  echo "FILE: $FILES_TO_CURRENT_SCAN_GZ removed"
+  logit "FILE: $FILES_TO_CURRENT_SCAN_GZ removed"
+fi
+
+if [ ! -f "$INFECTED_FILES_LIST_GZ" ]; then
+  echo "FILE: no $INFECTED_FILES_LIST_GZ exists"
+  logit "FILE: no $INFECTED_FILES_LIST_GZ exists"
+else
+  echo "FILE: $INFECTED_FILES_LIST_GZ exists, go remove"
+  logit "FILE: $INFECTED_FILES_LIST_GZ exists, go remove"
+  rm ${INFECTED_FILES_LIST_GZ}
+  echo "FILE: $INFECTED_FILES_LIST_GZ removed"
+  logit "FILE: $INFECTED_FILES_LIST_GZ removed"
+fi
+
+if [ ! -f "$HTML_MESSAGE_BODY" ]; then
+  echo "FILE: no $HTML_MESSAGE_BODY exists"
+  logit "FILE: no $HTML_MESSAGE_BODY exists"
+else
+  echo "FILE: $HTML_MESSAGE_BODY exists, go remove"
+  logit "FILE: $HTML_MESSAGE_BODY exists, go remove"
+  rm ${HTML_MESSAGE_BODY}
+  echo "FILE: $HTML_MESSAGE_BODY removed"
+  logit "FILE: $HTML_MESSAGE_BODY removed"
+fi
+
+### STARTING CHECKING PRESENTED TIMESTAMP FROM PAST RUNNIGNS
+logit "STARTING CHECKING PRESENTED EXEC_TIMESTAMP FROM PAST RUNNIGNS"
+#
+
+if [ ! -f "$TIMESTAMP_FILE" ]; then
+  CURRENT_TIMESTAMP="0"
+  echo ${EXEC_TIMESTAMP} >> ${TIMESTAMP_FILE}
+else
+  CURRENT_TIMESTAMP=`cat ${TIMESTAMP_FILE}`
+  rm ${TIMESTAMP_FILE}
+  echo ${EXEC_TIMESTAMP} >> ${TIMESTAMP_FILE}
+fi
+
+logit "EXEC_TIMESTAMP IS: ${EXEC_TIMESTAMP}"
+logit "CURRENT_TIMESTAMP IS: ${CURRENT_TIMESTAMP}"
+logit "DONE CHECKING PRESENTED TIMESTAMP FROM PAST RUNNIGNS"
+
+### CLEAN DATABASE FILES FOR SCAN IF PRESENTED
+
+if [ ! -f "$FILES_TO_CURRENT_SCAN" ]; then
+  echo "IT'S FIRST RUN"
+else
+  echo "IT'S RUN IN ${CURRENT_TIMESTAMP}"
+  rm ${FILES_TO_CURRENT_SCAN}
+fi
+
+if [ ! -f "$INFECTED_FILES_LIST" ]; then
+  echo "INFECTED_FILES_LIST NOT PRESENTED"
+else
+  echo "INFECTED_FILES_LIST PRESENTED, REMOVE THEM"
+  rm ${INFECTED_FILES_LIST}
+fi
+
+### PERFORM APT AUTOREMOVE
+
+logit "START AUTOREMOVE OLD PACKAGES"
+
+{% if hostvars[inventory_hostname].ansible_distribution == "Ubuntu" %}
+
+auto_clean_run=`(apt-get autoremove -y)`
+
+{% endif %}
+
+logit "$auto_clean_run"
+
+logit "DONE AUTOREMOVE OLD PACKAGES"
+
+# {{ ansible_environment }}
+
+logit "START FIND ALL FILES"
+
+# Set internal field separator to newline
+IFS='
+'
+
+{% for host in play_hosts %}
+{% if host == inventory_hostname %}
+{% if hostvars[host].ansible_distribution == "Ubuntu" %}
+{% if hostvars[host].clamav_mysql_cluster_exclude is defined %}
+all_files_paths=`(find /* -type f ! -path "/run/*" ! -path "/proc/*" ! -path "/dev/*" ! -path "/sys/*" ! -path "/var/lib/mysql/*" -printf '%p\n' | sed 's/ /\\ /g')`
+{% elif hostvars[host].clamav_logs_data_cluster_exclude is defined %}
+all_files_paths=`(find /* -type f ! -path "/run/*" ! -path "/proc/*" ! -path "/dev/*" ! -path "/sys/*" ! -path "{{ clamav_logs_data_cluster_exclude_path | join }}/*" -printf '%p\n' | sed 's/ /\\ /g')`
+{% else %}
+all_files_paths=`(find /* -type f ! -path "/run/*" ! -path "/proc/*" ! -path "/dev/*" ! -path "/sys/*" -printf '%p\n' | sed 's/ /\\ /g')`
+{% endif %}
+{% else %}
+all_files_paths=`(find /* -type f ! -path "/run/*" ! -path "/proc/*" ! -path "/dev/*" ! -path "/sys/*" | sed 's/ /\\ /g')`
+{% endif %}
+{% endif %}
+{% endfor %}
+
+logit "DONE FIND ALL FILES"
+
+#TEST
+#all_files_paths=`(find /bin/* -type f ! -path "/proc/*" ! -path "/sys/*" -printf '%p\n')`
+#all_files_paths=`(find /bin -type f -printf '%p\n')`
+
+for i in ${all_files_paths}; do
+
+    # UBUNTU
+    #stat --format %Y
+    # MAC OS X
+    #stat --format %m
+
+    {% if hostvars[inventory_hostname].ansible_distribution == "Ubuntu" %}
+    current_file_modified_tampstamp=`(stat -c%Y $i)`
+    {% else %}
+    current_file_modified_tampstamp=`(stat -f %m $i)`
+    {% endif %}
+
+    current_file_path=$i
+
+    if [ "$current_file_modified_tampstamp" -gt "$CURRENT_TIMESTAMP" ]; then
+       logit "FILE $i TIMESTAMP: $current_file_modified_tampstamp SEND TO SCAN DATABASE"
+       echo ${current_file_path} >> ${FILES_TO_CURRENT_SCAN}
+    else
+       logit "FILE $i TIMESTAMP: $current_file_modified_tampstamp NO SEND TO SCAN DATABASE"
+    fi
+done
+
+# Set internal field separator to defaults
+IFS=''
+
+## HARD REMOVE
+
+## START SCANNING
+
+echo "START: clamscan binary"
+logit "START: clamscan binary"
+
+if [ ! -f "$FILES_TO_CURRENT_SCAN" ]; then
+  echo "NO FILES TO SCAN FROM PREVIOUS SCAN"
+  CHANGE_BODY_OF_EMAIL_MESSAGE="<p>No files to scan from past run!</p>"
+else
+  echo "IT'S RUN IN SCAN ON ${FILES_TO_CURRENT_SCAN}"
+  clamscan -i -f "$FILES_TO_CURRENT_SCAN" >> "$INFECTED_FILES_LIST"
+fi
+
+if [ ! -f "$INFECTED_FILES_LIST" ]; then
+   
+   echo "No infected file presented after scan, all right"
+   
+else
+
+   echo "Infected file list presented after scan, check content to possible zero lines..."
+   CONTENTS_INFECTED_CHECK=`cat ${INFECTED_FILES_LIST} | wc -l`
+   
+   if [ $CONTENTS_INFECTED_CHECK -gt 0 ]; then
+   
+      SCAN_OVERALL_FAIL_RESULT="! PASSED RUN OK !"
+      echo "Lines count is $CONTENTS_INFECTED_CHECK"
+     
+   else
+      SCAN_OVERALL_FAIL_RESULT="! FAIL TO RUN !"
+      echo "We have file but file no have a content, remove them now"
+      
+   fi
+
+fi
+
+echo "DONE: clamscan binary"
+logit "DONE: clamscan binary"
+
+## SENDING REPORT
+
+echo "START: creating mail message"
+logit "START: creating mail message"
+
+## CALCULATE RUNTIME
+
+END_TIME=`date +%Y-%m-%d-%r`
+END_EXEC_TIMESTAMP=`date +%s`
+
+TOTAL_EXEC_TIME_SECS=`expr $END_EXEC_TIMESTAMP - $EXEC_TIMESTAMP`
+
+TOTAL_EXEC_TIME_MINS=`expr $TOTAL_EXEC_TIME_SECS / 60`
+
+echo "START TIME: $START_TIME"
+logit "START TIME: $START_TIME"
+echo "END TIME: $END_TIME"
+logit "END TIME: $END_TIME"
+echo "TOTAL in mins: $TOTAL_EXEC_TIME_MINS ; TOTAL in secs: $TOTAL_EXEC_TIME_SECS"
+logit "TOTAL in mins: $TOTAL_EXEC_TIME_MINS ; TOTAL in secs: $TOTAL_EXEC_TIME_SECS"
+
+## CALCULATE COUNT OF INFECTED FILES
+
+if [ ! -f "$INFECTED_FILES_LIST" ]; then
+
+    SCAN_OVERALL_RESULT="SCAN FAILED"
+
+else
+
+    INFECTED_FILES_COUNT=`cat ${INFECTED_FILES_LIST} | grep Infected | awk '{print $3}'`
+
+    if [ "$INFECTED_FILES_COUNT" -eq "0" ]; then
+       SCAN_OVERALL_RESULT="OK"
+    else
+       SCAN_OVERALL_RESULT="FAIL"
+    fi
+    
+fi
+# html message to send
+
+if [ -z "$CHANGE_BODY_OF_EMAIL_MESSAGE" ]; then
+    echo "<html>
+    <body>
+        <div>
+            <p>-----------------------------------------------</p>
+            <p>       Hello, Admins! Scan completed,          </p>
+            <p>     Please look to logs files attached!       </p>
+            <p>-----------------------------------------------</p>
+            <p> SCAN STATUS: $SCAN_OVERALL_RESULT             </p>
+            <p>-----------------------------------------------</p>
+            <p>-----------------------------------------------</p>
+            <p> CLAMAV SELF STATUS: $SCAN_OVERALL_FAIL_RESULT </p>
+            <p>-----------------------------------------------</p>
+            <p>-----------------------------------------------</p>
+            <p> START TIME: $START_TIME                       </p>
+            <p>-----------------------------------------------</p>
+            <p> END TIME: $END_TIME                           </p>
+            <p>-----------------------------------------------</p>
+            <p> TOTAL in mins: $TOTAL_EXEC_TIME_MINS          </p>
+            <p> TOTAL in secs: $TOTAL_EXEC_TIME_SECS          </p>
+            <p>-----------------------------------------------</p>
+            <p>             Have a nice day!                  </p>
+            <p>-----------------------------------------------</p>
+            <p>                            With best regards, </p>
+            <p>                              ClamAV Cron Job  </p>
+            <p>-----------------------------------------------</p>
+        </div>
+    </body>
+    </html>" > message.html
+else
+    echo "<html>
+    <body>
+        <div>
+            <p>Hello, Admins! Scan not running at this time, </p>
+            <p>Please look to the logs files attached</p>
+            ${CHANGE_BODY_OF_EMAIL_MESSAGE}
+            <p>Have a nice day!</p>
+            <p>With best regards,</p>
+            <p>ClamAV Cron Job</p>
+        </div>
+    </body>
+    </html>" > message.html
+fi
+
+mail_from="ClamAV Autoscanner <$MAILING_USER>"
+mail_to="Admins vortex <$MAILING_DESTINATION>"
+mail_subject="ClamAV Scanner Log from $CURRENT_HOSTNAME"
+mail_reply_to="Admins vortex <$MAILING_USER>"
+mail_cc=""
+
+function add_file {
+    echo "Content-Type: $1
+Content-Transfer-Encoding: base64" >> "$HTML_MESSAGE_BODY"
+
+    if [ ! -z "$2" ]; then
+        echo "Content-Disposition: inline
+Content-Id: <$2>" >> "$HTML_MESSAGE_BODY"
+    else
+        echo "Content-Disposition: attachment; filename=\"$4\"
+" >> "$HTML_MESSAGE_BODY"
+    fi
+    echo "$3
+
+" >> "$HTML_MESSAGE_BODY"
+}
+
+message_base64=$(cat message.html | base64)
+
+echo "From: $mail_from
+To: $mail_to
+Subject: $mail_subject
+Reply-To: $mail_reply_to
+Cc: $mail_cc
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary=\"MULTIPART-MIXED-BOUNDARY\"
+
+--MULTIPART-MIXED-BOUNDARY
+Content-Type: multipart/alternative; boundary=\"MULTIPART-ALTERNATIVE-BOUNDARY\"
+
+--MULTIPART-ALTERNATIVE-BOUNDARY
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+$message_base64
+--MULTIPART-ALTERNATIVE-BOUNDARY--" > "$HTML_MESSAGE_BODY"
+
+echo "START: packing to archive logs files and sending mail message"
+logit "START: packing to archive logs files and sending mail message"
+
+if [ ! -f "$LOG_FILE" ]; then
+  echo "FILE: no $LOG_FILE exists"
+  logit "FILE: no $LOG_FILE exists"
+
+else
+  echo "FILE: $LOG_FILE exists, go gzip and attach"
+  logit "FILE: $LOG_FILE exists, go gzip and attach"
+  gzip -k -- ${LOG_FILE}
+  LOG_FILE_MD5=`md5sum $LOG_FILE_GZ | awk '{print $1}'`
+  LOG_FILE_64=$(cat ${LOG_FILE_GZ} | base64)
+  echo "--MULTIPART-MIXED-BOUNDARY" >> "$HTML_MESSAGE_BODY"
+  echo "Content-Type: multipart/mixed; boundary=\"${LOG_FILE_MD5}\"" >> "$HTML_MESSAGE_BODY"
+  echo "
+  
+  " >> "$HTML_MESSAGE_BODY"
+  echo "--${LOG_FILE_MD5}" >> "$HTML_MESSAGE_BODY"
+  add_file "application/zip" "" "$LOG_FILE_64" "LOG_FILE_GZ.gz"
+  echo "--${LOG_FILE_MD5}--" >> "$HTML_MESSAGE_BODY"
+  echo "FILE: $LOG_FILE added and compressed"
+  logit "FILE: $LOG_FILE added and compressed"
+fi
+
+if [ ! -f "$TIMESTAMP_FILE" ]; then
+  echo "FILE: no $TIMESTAMP_FILE exists"
+  logit "FILE: no $TIMESTAMP_FILE exists"
+
+else
+  echo "FILE: $TIMESTAMP_FILE exists, go gzip and attach"
+  logit "FILE: $TIMESTAMP_FILE exists, go gzip and attach"
+  gzip -k -- ${TIMESTAMP_FILE}
+  TIMESTAMP_FILE_MD5=`md5sum $TIMESTAMP_FILE_GZ | awk '{print $1}'`
+  echo "--MULTIPART-MIXED-BOUNDARY" >> "$HTML_MESSAGE_BODY"
+  echo "Content-Type: multipart/alternative; boundary=\"${TIMESTAMP_FILE_MD5}\"" >> "$HTML_MESSAGE_BODY"
+  echo "
+             " >> "$HTML_MESSAGE_BODY"
+  echo "--${TIMESTAMP_FILE_MD5}" >> "$HTML_MESSAGE_BODY"
+  TIMESTAMP_FILE_64=$(cat ${TIMESTAMP_FILE_GZ} | base64)
+  add_file "application/zip" "" "$TIMESTAMP_FILE_64" "TIMESTAMP_FILE_GZ.gz"
+  echo "--${TIMESTAMP_FILE_MD5}--" >> "$HTML_MESSAGE_BODY"
+  echo "FILE: $TIMESTAMP_FILE added and compressed"
+  logit "FILE: $TIMESTAMP_FILE added and compressed"
+fi
+
+if [ ! -f "$FILES_TO_CURRENT_SCAN" ]; then
+  echo "FILE: no $FILES_TO_CURRENT_SCAN exists"
+  logit "FILE: no $FILES_TO_CURRENT_SCAN exists"
+
+else
+  echo "FILE: $FILES_TO_CURRENT_SCAN exists, go gzip and attach"
+  logit "FILE: $FILES_TO_CURRENT_SCAN exists, go gzip and attach"
+  gzip -k -- ${FILES_TO_CURRENT_SCAN}
+  FILES_TO_CURRENT_SCAN_MD5=`md5sum $FILES_TO_CURRENT_SCAN_GZ | awk '{print $1}'`
+  echo "--MULTIPART-MIXED-BOUNDARY" >> "$HTML_MESSAGE_BODY"
+  echo "Content-Type: multipart/alternative; boundary=\"${FILES_TO_CURRENT_SCAN_MD5}\"" >> "$HTML_MESSAGE_BODY"
+    echo "
+             " >> "$HTML_MESSAGE_BODY"
+  echo "--${FILES_TO_CURRENT_SCAN_MD5}" >> "$HTML_MESSAGE_BODY"
+  FILES_TO_CURRENT_SCAN_64=$(cat ${FILES_TO_CURRENT_SCAN_GZ} | base64)
+  add_file "application/zip" "" "$FILES_TO_CURRENT_SCAN_64" "FILES_TO_CURRENT_SCAN_GZ.gz"
+  echo "--${FILES_TO_CURRENT_SCAN_MD5}--" >> "$HTML_MESSAGE_BODY"
+  echo "FILE: $FILES_TO_CURRENT_SCAN added and compressed"
+  logit "FILE: $FILES_TO_CURRENT_SCAN added and compressed"
+fi
+
+if [ ! -f "$INFECTED_FILES_LIST" ]; then
+  echo "FILE: no $INFECTED_FILES_LIST exists"
+  logit "FILE: no $INFECTED_FILES_LIST exists"
+
+else
+  echo "FILE: $INFECTED_FILES_LIST exists, go gzip and attach"
+  logit "FILE: $INFECTED_FILES_LIST exists, go gzip and attach"
+  gzip -k -- ${INFECTED_FILES_LIST}
+  INFECTED_FILES_LIST_MD5=`md5sum $INFECTED_FILES_LIST_GZ | awk '{print $1}'`
+  echo "--MULTIPART-MIXED-BOUNDARY" >> "$HTML_MESSAGE_BODY"
+  echo "Content-Type: multipart/alternative; boundary=\"${INFECTED_FILES_LIST_MD5}\"" >> "$HTML_MESSAGE_BODY"
+  INFECTED_FILES_LIST_64=$(cat ${INFECTED_FILES_LIST_GZ} | base64)
+  echo "
+             " >> "$HTML_MESSAGE_BODY"
+  echo "--${INFECTED_FILES_LIST_MD5}" >> "$HTML_MESSAGE_BODY"
+  add_file "application/zip" "" "$INFECTED_FILES_LIST_64" "INFECTED_FILES_LIST_GZ.gz"
+  echo "--${INFECTED_FILES_LIST_MD5}--" >> "$HTML_MESSAGE_BODY"
+  echo "FILE: $INFECTED_FILES_LIST added and compressed"
+  logit "FILE: $INFECTED_FILES_LIST added and compressed"
+fi
+
+echo "--MULTIPART-MIXED-BOUNDARY--" >> "$HTML_MESSAGE_BODY"
+
+curl -s "$MAILING_HOSTNAME_URI" \
+     --mail-from "$MAILING_USER" \
+     --mail-rcpt "$MAILING_DESTINATION" \
+     --ssl \
+     -T "$HTML_MESSAGE_BODY" -k --anyauth
+res=$?
+if test "$res" != "0"; then
+   echo "sending failed with: $res"
+else
+   echo "OK"
+fi

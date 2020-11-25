@@ -1,0 +1,60 @@
+### INIT
+
+# RESET ALL CLUSTER
+- name: Conditional role reset
+  include_role:
+    name: ./!_kubernetes/reset
+  when: reset_cluster is defined
+
+# # INIT CA MASTER
+# - name: Conditional ca init
+#   include_role:
+#     name: ./!_cloud/kubernetes/ca
+#   when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+# # INIT ETCD CLUSTER
+# - name: Conditional role etcd
+#   include_role:
+#     name: ./!_cloud/kubernetes/etcd
+#   when: inventory_hostname in groups['kubernetes-master']
+
+# # SETUP MASTERS
+# - name: Conditional role init kubernetes masters
+#   include_role:
+#     name: ./!_cloud/kubernetes/node/master
+#   when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+# # SETUP WORKERS
+# - name: Conditional role worker
+#   include_role:
+#     name: ./!_cloud/kubernetes/node/worker
+#   when: inventory_hostname not in groups['kubernetes-master'] and inventory_hostname in groups['kubernetes-worker']
+
+# # SETUP CNI
+# - name: Conditional role cni
+#   include_role:
+#     name: ./!_cloud/kubernetes/cni
+#   when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+# # SETUP HELM
+# - name: Conditional role helm
+#   include_role:
+#     name: ./!_cloud/kubernetes/helm
+#   when: inventory_hostname in groups['kubernetes-master']
+
+# # SETUP DASHBOARD
+# - name: DASHBOARD | Include dashboard init role
+#   include_role:
+#     name: ./!_cloud/kubernetes/dashboard
+
+# # SETUP METALB
+# - name: Conditional role metalb
+#   include_role:
+#     name: ./!_cloud/k8/metalb
+#   when: inventory_hostname in groups['kubernetes-master']
+
+# # SETUP HEALTHCHECK
+# - name: Conditional role healthcheck
+#   include_role:
+#     name: ./!_cloud/k8/healthcheck
+#   when: inventory_hostname in groups['kubernetes-master']

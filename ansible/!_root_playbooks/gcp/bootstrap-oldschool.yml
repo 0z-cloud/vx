@@ -1,0 +1,33 @@
+- name: Starting the instance bootstrap and check
+  hosts: localhost
+  tasks:
+
+      - name: Load groupvars/product global shared settings
+        include_vars: group_vars/products/{{ ansible_product }}/{{ item }}.yml
+        with_items:
+          - gcp
+          - main
+
+      - name: Load groupvars/product global shared settings
+        include_vars: group_vars/products/{{ ansible_product }}/{{ ansible_environment }}/{{ item }}.yml
+        with_items:
+          - attached
+          - main
+
+      - name: Template a GCP Credentials Settings Json for Auth to API Cloud Interface
+        template:
+          src: google.json.j2
+          dest: "~/{{ item }}"
+        with_items:
+          - google-key.json
+          - google.json
+
+- name: Starting the instance bootstrap and check
+  hosts: localhost
+  roles:
+
+      - name: Include role VPC Zone maintain
+        role: ./!_cloud/dc_integration/gcp/vpc
+
+      - name: Include role vSwitch Zone maintain
+        role: ./!_cloud/dc_integration/gcp/vswitch

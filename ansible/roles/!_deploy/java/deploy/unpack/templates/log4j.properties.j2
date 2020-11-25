@@ -1,0 +1,3 @@
+{% for item in LOG4J_PROPERTIES %}
+{{ item.name }}{% raw %}={% endraw %}{{ item.value }}
+{% endfor %}

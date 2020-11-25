@@ -1,0 +1,4 @@
+files_to_fetch:
+  path: /var/lib/tomcat11/webapps/tele2_reestr/WEB-INF/reestr/
+  files: 
+    - 21.02.2018.zip

@@ -1,0 +1,71 @@
+- name: GitLab | Add to hosts
+  lineinfile:
+    dest: /etc/hosts
+    line: 172.16.312.39   gitlab.vortex.ru
+
+- name: GitLab | Install unzip
+  apt:
+    name: unzip
+
+- name: GitLab | Get job artifacts
+  get_url:
+    url: "{{ GITLAB_URL }}/api/v4/projects/{{ GITLAB_PROJECT | regex_replace('/', '%2F') }}/jobs/{{ GITLAB_JOB }}/artifacts"
+    headers: 'PRIVATE-TOKEN: {{ GITLAB_TOKEN }}'
+    dest: "/tmp/artifacts_{{ GITLAB_JOB }}.zip"
+  register: GITLAB_ARTIFACTS_FILE
+
+- name: Remove properties and application
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - "{{ APLICATION_SYMLINK_DESTINATION_WEB_DEST }}/log4j.properties"
+    - "{{ APLICATION_SYMLINK_DESTINATION_WEB_DEST }}/{{ APPLICATION_SETTINGS_PREFIX }}.properties"
+    - "{{ APLICATION_SYMLINK_DESTINATION_WEB_DEST }}/{{ JAVA_SETTINGS_PREFIX }}"
+  ignore_errors: true
+ 
+- name: GitLab | Extract artifacts
+  unarchive:
+    remote_src: yes
+    src: "{{ GITLAB_ARTIFACTS_FILE.dest }}"
+    dest: "{{ RELEASE_DIRECTORY }}"
+    owner: "{{ RELEASE_OWNER }}"
+    group: "{{ RELEASE_GROUP }}" 
+
+- name: Local Action | Copy RELEASE FILES TO WEBAPP
+  shell: cp -R {{ RELEASE_DIRECTORY }}/* {{ APLICATION_SYMLINK_DESTINATION }}
+  
+- name: Generate properties configurations
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ APPLICATION_DISTANATION_LINK_CLASSES }}/{{ item.dest }}"
+    owner: "{{ RELEASE_OWNER }}"
+    group: "{{ RELEASE_GROUP }}"
+  with_items:
+    - { dest: "{{ APPLICATION_SETTINGS_PREFIX }}.properties", src: "vortex.properties.j2" }
+    - { dest: "log4j.properties", src: "log4j.properties.j2" }
+
+
+
+# - name: Local Action | Chmod files in JAVA
+#   shell: chmod -R 664 {{ RELEASE_DIRECTORY }}/build/*
+
+# - name: Local Action | Chmod files in JAVA
+#   shell: "find {{ RELEASE_DIRECTORY }}/build/ -type f -exec chmod 0664 {} \\;"
+
+# - name: Local Action | Chmod folders in JAVA
+#   shell: "find {{ RELEASE_DIRECTORY }}/build/ -type d -exec chmod 0755 {} \\;"
+
+- name: Shell give rights to release directory
+  shell: "chown -R {{ RELEASE_OWNER }}:{{ RELEASE_GROUP }} {{ APLICATION_SYMLINK_DESTINATION }}/*"
+
+- name: Local Action | Chmod files in JAVA
+  shell: "find {{ APLICATION_SYMLINK_DESTINATION }}/* -type f -exec chmod 0664 {} \\;"
+
+- name: Local Action | Chmod files in JAVA
+  shell: "find {{ APLICATION_SYMLINK_DESTINATION }}/* -type d -exec chmod 0755 {} \\;"
+
+- name: GitLab | Clean
+  file:
+    path: "{{ GITLAB_ARTIFACTS_FILE.dest }}"
+    state: absent

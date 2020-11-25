@@ -1,0 +1,27 @@
+FROM alpine:edge
+# ADAM 4 EVE AND EDEN VX SECOND EDGE EVE PLACEMENT TO ITSELF 
+
+RUN apk update && apk add alpine-conf
+RUN setup-apkrepos -d && apk update && apk upgrade
+RUN apk add git make busybox-extras squashfs-tools qemu-img qemu-system-x86_64 go docker-cli
+
+RUN mkdir -p /_vx_edge
+WORKDIR /_vx_edge/
+COPY ./_vx_edge/. /_vx_edge/
+RUN ls -la /_vx_edge/
+
+# qemu-system-aarch64 
+
+# RUN /bin/clone_git_api.sh 'github.com/lf-edge/eden.git' '/opt'
+# RUN mkdir -p /opt/adam-edge-sync
+
+# RUN export DOCKER_HOST=/var/run/docker.sock
+
+# RUN mkdir -p /opt/eden-edge-sync
+
+# && make build-tools && make live
+# 
+
+# TO DO ENTRYPOINT WITH PASSING ENV TO EVE
+# RUN make run in docker-entrypoint.sh
+

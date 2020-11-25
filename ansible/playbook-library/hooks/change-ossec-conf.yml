@@ -1,0 +1,8 @@
+- name: Run the change ossec conf role on all hosts
+  become: true
+  hosts: "{{ HOSTS | default('linux-hosts') }}"
+  roles:
+    - name: Run the change ossec conf role
+      role: ./!_security/ossec-change-config
+  tags: 
+    - ossec-change-config

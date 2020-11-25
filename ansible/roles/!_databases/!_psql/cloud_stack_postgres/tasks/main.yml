@@ -1,0 +1,85 @@
+---
+
+---
+
+- name: Create bootstrap primary hostname group
+  add_host: 
+    name: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
+    hostname: "{{ hostvars[item]['ansible_hostname'] }}"
+    groups: POSTGRES_CLUSTER_BOOTSTRAP
+  delegate_to: "{{ item }}"
+  with_items: "{{ ansible_play_hosts }}"
+
+- name: Create full hostnames group
+  add_host: 
+    name: "{{ hostvars[item]['ansible_default_ipv4']['address'] }}"
+    hostname: "{{ hostvars[item]['ansible_hostname'] }}"
+    groups: POSTGRES_CLUSTER_FULL
+  delegate_to: "{{ item }}"
+  with_items: "{{ ansible_play_hosts }}"
+
+- name: Debug new group POSTGRES_CLUSTER_FULL
+  debug:
+    msg: "{{ hostvars[item]['ansible_hostname'] }}"
+  with_items: "{{ groups['POSTGRES_CLUSTER_FULL'] }}"
+  when: inventory_hostname in groups['POSTGRES_CLUSTER_FULL']
+
+- name: Debug new group POSTGRES_CLUSTER_BOOTSTRAP
+  debug:
+    msg: "{{ hostvars[item]['ansible_hostname'] }}"
+  with_items: "{{ groups['POSTGRES_CLUSTER_BOOTSTRAP'] }}"
+  when: inventory_hostname in groups['POSTGRES_CLUSTER_BOOTSTRAP']
+
+- name: Inject and merge defaults settings with postgres_cluster_settings
+  set_fact:
+    postgres_cluster_settings: "{{ postgres_cluster_settings_defaults | combine(postgres_cluster_settings) }}"
+  tags: [always]
+
+- name: Create "postgres" group
+  group:
+    name: postgres
+    state: present
+
+- name: Create postgres User
+  user: 
+    name: postgres
+    shell: /bin/bash
+    groups: postgres
+    append: yes
+
+- name: Create the directories
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0755
+    owner: postgres
+    group: root
+  with_dict: "{{ postgres_cluster_settings.directories | default({}) }}"
+
+- name: Create hosts file from template for container
+  template:
+     src: hosts.j2 
+     dest: "{{ postgres_cluster_settings.directories.config_path }}/hosts"
+
+# PREPARE
+- name: re/Create a First Postgres Cluster Service docker container
+  docker_container:
+      name: "{{ datastore_container_name }}-{{ ansible_environment }}-{{ ansible_hostname }}"
+      image: "postgres:9.5.15"
+      hostname: "{{ ansible_hostname }}"
+      volumes:
+        - "{{ postgres_cluster_settings.directories.data_path }}:/var/lib/postgresql/data:rw"
+        - "{{ postgres_cluster_settings.directories.config_path }}/hosts:/etc/hosts"
+      ports:
+        - "{{ postgres_cluster_settings.pg_public_port }}:{{ postgres_cluster_settings.pg_port }}"
+      env:
+        POSTGRES_PASSWORD: "{{ postgres_cluster_settings.root_password }}"
+        POSTGRES_USER: "{{ postgres_cluster_settings.postgres_user }}"
+      privileged: yes
+      restart_policy: always
+      detach: True
+      recreate: yes
+      state: started
+      network_mode: host
+      user: root
+  when: inventory_hostname in groups['POSTGRES_CLUSTER_BOOTSTRAP'][0]

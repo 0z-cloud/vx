@@ -1,0 +1,16 @@
+- name: Run the auditd role on linux-hosts
+  become: true
+  hosts: "{{ HOSTS | default('linux-hosts') }}"
+  tasks:
+    - lineinfile:
+        path: /etc/audit/auditd.conf
+        regexp: '^log_group = root'
+        line: 'log_group = adm'
+
+    - shell: sudo chown -R root:adm /var/log/audit
+
+    - shell: sudo chmod 750 /var/log/audit
+
+    - shell: /etc/init.d/auditd restart
+    
+    - shell: /etc/init.d/auditd status

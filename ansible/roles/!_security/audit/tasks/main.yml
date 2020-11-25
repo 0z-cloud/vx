@@ -1,0 +1,36 @@
+- name: Install packages for audit
+  apt:
+    name: "{{ item }}"
+    update_cache: yes
+    state: latest
+  with_items: "{{ auditd_settings_defaults.packages }}"
+
+- name: Creating config
+  template:
+    src: auditd.conf
+    dest: /etc/audit/auditd.conf
+    
+- name: Configuring rules
+  template:
+    src: audit.rules
+    dest: /etc/audit/audit.rules
+
+- name: Configuring 11.rules
+  template:
+    src: 11.rules
+    dest: /etc/audit/rules.d/11.rules
+
+- name: Enabling the auditd service
+  service: 
+    name: auditd
+    enabled: yes
+
+- name: Checking service auditd started
+  service:
+    name: auditd
+    state: started
+
+- name: Restart auditd service started
+  service:
+    name: rsyslog
+    state: restarted

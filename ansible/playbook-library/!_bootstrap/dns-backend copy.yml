@@ -1,0 +1,53 @@
+
+- hosts: localhost
+  gather_facts: true 
+  become: false
+  vars_files:
+    - "group_vars/products/{{ ansible_product }}/{{ ansible_cloud_type }}.yml"
+    - "group_vars/products/{{ ansible_product }}/shared.yml"
+    - "group_vars/!_anyCloud/anyCloud.yml"
+    - "group_vars/all.yml"
+    - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/dns/{{ REPLACE_HOSTS | default('master-bind-master-backend') }}/{{ REPLACE_HOSTS | default('master-bind-master-backend') }}.yml"
+    - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+    - "inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+  tasks: 
+
+    - name: Load default inventory group_vars
+      include_vars: "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+
+    - name: Template 0z-cloud configuration state to all nodes
+      template:
+        src: inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml
+        dest: /tmp/cloud_info.yml
+      delegate_to: localhost
+
+    - name: Load Zero Cloud configuration for current environment, product, and cloud type
+      vars:
+        zero_cloud_load: "{{ lookup('file', '/tmp/cloud_info.yml') | from_yaml }}"
+      set_fact:
+        zero_cloud: "{{ zero_cloud_load }}"
+
+- name: Delegate tasks for gathering facts
+  hosts: "{{ REPLACE_HOSTS | default('master-bind-master-backend') }}"
+  vars_files:
+    - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/dns/{{ REPLACE_HOSTS | default('master-bind-master-backend') }}/{{ REPLACE_HOSTS | default('master-bind-master-backend') }}.yml"
+  tasks:
+    - name: Gather facts from master-bind-master-backend servers
+      setup:
+      delegate_to: "{{ item }}"
+      delegate_facts: True
+      loop: "{{ groups['master-bind-master-backend'] }}"
+    - name: Gather facts from master-bind-master-backend servers
+      setup:
+      delegate_to: "{{ item }}"
+      delegate_facts: True
+      loop: "{{ groups['all'] }}"
+
+- name: Setup dns backend service for run specific tasks
+  vars_files:
+    - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/dns/{{ REPLACE_HOSTS | default('master-bind-master-backend') }}/{{ REPLACE_HOSTS | default('master-bind-master-backend') }}.yml"
+  hosts: "{{ REPLACE_HOSTS | default('master-bind-master-backend') }}:all"
+  roles:
+    - name: Run dns service role
+      role: ./!_bootstrap/dns-backend
+  serial: 1

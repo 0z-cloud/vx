@@ -1,0 +1,13 @@
+---
+
+- name: Fact gathering
+  hosts: vortex-ossec-hosts:vortex-ossec-server
+  tasks: []
+  tags: [get_facts, always]
+
+- name: Ossec Agent Configuration Playbook
+  become: true
+  hosts: "{{ HOSTS | default('vortex-ossec-hosts:vortex-ossec-server') }}"
+  roles:
+    - name: Ossec Agent
+      role: ./!_security/ossec/agent

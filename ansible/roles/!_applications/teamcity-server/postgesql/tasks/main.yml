@@ -1,0 +1,43 @@
+- name: Inject defaults
+  set_fact:
+    postgresql_settings: "{{ postgresql_settings_defaults | combine(postgresql_settings) }}"
+
+- name: Debug ept
+  debug: var=postgresql_settings
+
+- name: Create PostgreSQL directories for env specific configurations
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0755
+  with_dict: "{{ postgresql_settings.directories | default({}) }}"
+
+- name: Create init-user-db.sh file from template init-user-db.sh.j2 for container
+  template:
+     src: init-user-db.sh.j2
+     dest: "{{ postgresql_settings.directories.config_path }}/init-user-db.sh"
+
+- name: Download DB ODBC Driver file
+  get_url:
+    url: "{{ postgresql_settings.database_jar_url }}"
+    dest: "{{ postgresql_settings.driver_full_path }}"
+
+- name: re/Create a PostgreSQL Service docker container
+  docker_container:
+      name: "PostgreSQL-{{ ansible_environment }}-{{ ansible_nodename }}"
+      image: "postgres"
+      hostname: "postgres-{{ ansible_environment }}-{{ ansible_nodename }}"
+      volumes:
+        - "{{ postgresql_settings.directories.data_dir }}:/var/lib/postgresql/data/pgdata"
+        - "{{ postgresql_settings.directories.config_path }}:/docker-entrypoint-initdb.d"
+      privileged: yes
+      pull: true
+      restart_policy: unless-stopped
+      ports: 
+        - "{{ postgresql_settings.port }}:{{ postgresql_settings.port }}"
+      env:
+        PGDATA: "/var/lib/postgresql/data/pgdata"
+        POSTGRES_PASSWORD: "{{ TEAMCITY_POSTGRES_PASSWORD }}"
+      detach: True
+      recreate: yes 
+      state: started

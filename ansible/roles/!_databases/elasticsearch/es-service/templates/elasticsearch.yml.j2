@@ -1,0 +1,47 @@
+
+cluster:
+  name: {{ elasticsearch_settings.elasticsearch_cluster_name }}
+
+node:
+  name: {{ ansible_hostname }}-{{ es_swarm.containers_prefix }}
+
+http.port: 9300
+bootstrap.memory_lock: false
+transport.profiles.default.port: 9500
+transport.profiles.default.bind_host: {{ swarm_overlay_network_ip }}
+
+# IF YOU NEED TO PUBLISH TO BOTH NETWORKS ( PUBLIC & PRIVATE SWARM )
+# transport.profiles.client.bind_host: magic
+# transport.profiles.client.publish_host: magic
+
+transport.profiles.client.port: 9400
+transport.profiles.client.bind_host: {{ swarm_overlay_network_ip }}
+transport.profiles.client.publish_port: 9600
+transport.profiles.client.publish_host: {{ swarm_overlay_network_ip }}
+
+#transport.profiles.dmz.port: 9700
+#transport.profiles.dmz.bind_host: {{ swarm_overlay_network_ip }}
+transport.profiles.dmz.publish_port: 9200
+transport.profiles.dmz.publish_host: {{ swarm_overlay_network_ip }}
+
+network.host: {{ swarm_overlay_network_ip }}
+network.publish_host: {{ swarm_overlay_network_ip }}
+
+path.logs: /var/log/elasticsearch
+
+discovery.zen.ping.unicast.hosts: [{% for host in groups['es-cluster-execute'] %}{% if hostvars[host]['swarm_overlay_network_ip'] != hostvars[inventory_hostname]['swarm_overlay_network_ip'] %}"{{ hostvars[host]['swarm_overlay_network_ip'] }}"{% if not loop.last %}, {% endif %}{% endif %}{% endfor %}]
+
+discovery.zen.minimum_master_nodes: {{ elasticsearch_settings.elasticsearch_discovery_minimum_master_nodes }}
+# cluster.routing.allocation.disk.threshold_enabled: true
+# cluster.routing.allocation.disk.watermark.low: 1gb
+# cluster.routing.allocation.disk.watermark.high: 500mb
+
+cluster.routing.allocation.disk.watermark.low": "100gb",
+cluster.routing.allocation.disk.watermark.high": "50gb",
+cluster.routing.allocation.disk.watermark.flood_stage": "10gb",
+cluster.info.update.interval": "1m"
+
+http.cors.allow-origin: "*"
+http.cors.enabled: true
+http.host: 0
+http.compression: true

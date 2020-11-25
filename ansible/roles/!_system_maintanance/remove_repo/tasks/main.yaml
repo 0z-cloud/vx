@@ -1,0 +1,7 @@
+- name: Apt remove specified repository from sources list
+  apt_repository:
+    repo: "{{ item }}"
+    state: absent
+  with_items: "{{ apt_remove_repo }}"
+  tags:
+    - apt_remove_repo

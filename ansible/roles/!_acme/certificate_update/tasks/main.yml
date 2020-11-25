@@ -1,0 +1,184 @@
+- name: Show inventory variables
+  debug:
+    msg: "{{ item }}"
+  with_items:
+    - "{{ ansible_environment }}"
+    - "{{ ansible_product }}"
+    - "{{ certificate_year }}"
+    - "{{ certificate_name }}"
+
+- name: Show certificates names variables
+  debug:
+    msg: "{{ item }}"
+  with_items:
+    - "{{ old_ssl_certificate }}"
+    - "{{ new_ssl_certificate }}"
+
+- name: Upload new key to certificate path
+  copy:
+    src: "{{ role_path }}/files/{{ ansible_product }}/{{ certificate_year }}/{{ certificate_name }}.{{ item }}"
+    dest: "{{ new_ssl_certificate }}.{{ item }}"
+  with_items:
+    - pem
+    - key
+
+- name: Debug uploaded certificate and key
+  raw: "ls -la {{ new_ssl_certificate }}.*"
+  register: upload_result
+
+- name: Show upload new certificate result
+  debug:
+    msg: "{{ upload_result }}"
+
+- name: Include tasks for apache2 webserver
+  include_tasks: apache2.yml
+  when: webserver  == "apache2"
+
+- name: Include tasks for nginx webserver
+  include_tasks: nginx.yml
+  when: webserver  == "nginx"
+
+- name: Create backup folder variable with new path
+  set_fact:
+     backup_path: "/wrk/backup/{{ ansible_date_time.date }}"
+
+- name: Show backup_path
+  debug:
+    msg: "{{ backup_path }}"
+
+- name: Create new backup folder 
+  file:
+    path: "{{ backup_path }}"
+    state: directory
+    mode: 0755
+    group: root
+    owner: root
+
+- name: Create full backup webserver directory
+  shell: "cp -R /etc/{{ webserver }} {{ backup_path }}"
+
+- name: Chmod 
+  shell: "chmod -R 777 {{ backup_path }}"
+
+- name: Chown 
+  shell: "chown -R root:root {{ backup_path }}"
+
+- name: Check backup inplace
+  raw: "ls -la {{ backup_path }}"
+  register: backup_path_inplace
+
+- name: Show backup_path_inplace
+  debug:
+    msg: "{{ backup_path_inplace }}"
+
+- name: Find configs
+  find:
+    paths: "{{ backup_path }}/{{ webserver }}/sites-enabled"
+    recurse: yes
+    follow: yes
+  register: find_configs
+
+- name: List configs files
+  debug: 
+    msg: "{{ item.path }}"
+  with_items: "{{ find_configs.files }}"
+
+- name: Remove certs with the new name in
+  lineinfile: 
+    dest: "{{ item.path }}"
+    backup: yes 
+    state: absent
+    regexp: "^(.*)SSLCertificateFile(.*)$" 
+    backrefs: yes
+    line: "        SSLCertificateFile      {{ old_ssl_certificate }}.pem"
+  with_items: "{{ find_configs.files }}"
+  when: webserver == "apache2"
+  tags: update-cert
+
+- name: Remove privkey with the new name in 
+  lineinfile: 
+    dest: "{{ item.path }}"
+    backup: yes 
+    state: absent
+    regexp: "^(.*)SSLCertificateKeyFile(.*)$" 
+    backrefs: yes
+    line: "        SSLCertificateKeyFile      {{ old_ssl_certificate }}.key"
+  with_items: "{{ find_configs.files }}"
+  when: webserver == "apache2"
+
+- name: Update certs with the new name in 
+  lineinfile: 
+    dest: "{{ item.path }}"
+    backup: yes 
+    state: present 
+    insertafter: "SSLCompression.*" 
+    line: "  SSLCertificateFile      {{ new_ssl_certificate }}.pem"
+  with_items: "{{ find_configs.files }}"
+  when: webserver == "apache2"
+  tags: update-cert
+
+- name: Update privkey with the new name in
+  lineinfile: 
+    dest: "{{ item.path }}"
+    backup: yes 
+    state: present 
+    insertafter: "SSLCompression.*" 
+    line: "        SSLCertificateKeyFile   {{ new_ssl_certificate }}.key"
+  with_items: "{{ find_configs.files }}"
+  when: webserver == "apache2"
+
+- name: Remove certs with the new name in
+  lineinfile: 
+    dest: "{{ item.path }}"
+    backup: yes 
+    state: absent 
+    regexp: "^(.*)ssl_certificate(.*)$" 
+    backrefs: yes
+    #insertafter: "^  ssl_certificate" 
+    line: "  ssl_certificate      {{ old_ssl_certificate }}.pem;"
+  with_items: "{{ find_configs.files }}"
+  when: webserver == "nginx"
+
+- name: Remove privkey with the new name in *conf (NGINX)
+  lineinfile: 
+    dest: "{{ item.path }}"
+    backup: yes 
+    state: absent 
+    regexp: "^(.*)ssl_certificate_key(.*)$" 
+    backrefs: yes
+    #insertafter: "^  ssl_certificate_key" 
+    line: "  ssl_certificate_key      {{ old_ssl_certificate }}.key;"
+  with_items: "{{ find_configs.files }}"
+  when: webserver == "nginx"
+
+- name: Update certs with the new name in *conf (NGINX)
+  lineinfile: 
+    dest: "{{ item.path }}"
+    backup: yes 
+    state: present 
+    #regexp: "^(.*)ssl_certificate(.*)$" 
+    #backrefs: yes
+    insertafter: "ssl on;" 
+    line: "    ssl_certificate      {{ new_ssl_certificate }}.pem;"
+  with_items: "{{ find_configs.files }}"
+  when: webserver == "nginx"
+  tags: update-cert
+
+- name: Update privkey with the new name in *conf (NGINX)
+  lineinfile: 
+    dest: "{{ item.path }}"
+    backup: yes 
+    state: present 
+    #regexp: "^(.*)ssl_certificate_key(.*)$" 
+    #backrefs: yes
+    insertafter: "ssl on;" 
+    line: "    ssl_certificate_key      {{ new_ssl_certificate }}.key;"
+  with_items: "{{ find_configs.files }}"
+  when: webserver == "nginx"
+  tags: update-cert
+
+# # - name: Change configs with old certificate path recursive in backup folder as test
+# #   raw: 'find {{ backup_path }}/{{ webserver }}/sites-enabled/* -type f -exec sed -i ‘s/{{ old_ssl_certificate }}.{{ item }}/{{ new_ssl_certificate }}.{{ item }}/’ {} \;'
+# #   with_items:
+# #     - pem
+# #     - key

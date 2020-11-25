@@ -1,0 +1,10 @@
+clamav_settings_defaults:
+  directories:
+    main: /wrk/clamav
+    bin: /wrk/clamav/bin
+    database: /wrk/clamav/database
+    workplace: /wrk/clamav/exec
+  logs:
+    update_log: /wrk/clamav/logs
+  security:
+    linux_username: clamav

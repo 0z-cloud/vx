@@ -1,0 +1,28 @@
+- name: GitLab | Add to hosts
+  lineinfile:
+    dest: /etc/hosts
+    line: "{{ GITLAB_IP | default('172.16.31.110') }}   gitlab.vortex.ru"
+
+- name: GitLab | Install unzip
+  apt:
+    name: unzip
+
+- name: GitLab | Get job artifacts
+  get_url:
+    url: "{{ GITLAB_URL }}/api/v4/projects/{{ GITLAB_PROJECT | regex_replace('/', '%2F') }}/jobs/{{ GITLAB_JOB }}/artifacts"
+    headers: 'PRIVATE-TOKEN: {{ GITLAB_TOKEN }}'
+    dest: "/tmp/artifacts_{{ GITLAB_JOB }}.zip"
+  register: GITLAB_ARTIFACTS_FILE
+
+- name: GitLab | Extract artifacts
+  unarchive:
+    remote_src: yes
+    src: "{{ GITLAB_ARTIFACTS_FILE.dest }}"
+    dest: "{{ RELEASE_DIRECTORY }}"
+    owner: "{{ RELEASE_OWNER }}"
+    group: "{{ RELEASE_GROUP }}"
+
+- name: GitLab | Clean
+  file:
+    path: "{{ GITLAB_ARTIFACTS_FILE.dest }}"
+    state: absent

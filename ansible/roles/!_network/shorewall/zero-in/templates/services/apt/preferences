@@ -1,0 +1,7 @@
+Package: shorewall
+Pin: release o=Debian,a=buster,n=buster
+Pin-Priority: 990
+
+Package: shorewall-coree
+Pin: release o=Debian,a=buster,n=buster
+Pin-Priority: 990

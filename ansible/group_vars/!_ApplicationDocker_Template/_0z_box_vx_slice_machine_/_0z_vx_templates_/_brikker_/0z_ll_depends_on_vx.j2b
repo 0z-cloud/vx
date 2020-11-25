@@ -1,0 +1,8 @@
+{% block 0z_ll_depends_on_vx %}{% if value['depends_on'] is defined %}{% raw %}
+      depends_on: 
+{% endraw %}
+{% for depend in value['depends_on'] %}{% raw %}
+        - {% endraw %}{{ depend | join }}{% raw %}
+{% endraw %}
+{% endfor %}
+{% endif %}{% endblock %}

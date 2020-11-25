@@ -1,0 +1,27 @@
+
+# Default Kibana configuration for docker target
+server.name: kibana
+server.host: "0.0.0.0"
+server.port: 5601
+elasticsearch.hosts: 
+{% for host in groups['logging-elasticsearch-cluster'] %}
+  - http://log-es-cl-{{ ansible_environment }}-{{ hostvars[host].ansible_nodename }}:{{ logging_elasticsearch_cluster_listen_port }}
+{% endfor %}
+
+# elasticsearch.url: "http://logging-elasticsearch-cluster.{{ public_consul_domain }}:{{ logging_elasticsearch_cluster_listen_port }}"
+# elasticsearch.ssl.verify: false
+# elasticsearch.startupTimeout: 5000
+# elasticsearch.requestTimeout: 60000
+
+# xpack.monitoring.ui.container.elasticsearch.enabled: true
+# xpack features
+# xpack.apm.ui.enabled: true
+# xpack.grokdebugger.enabled: true
+# xpack.searchprofiler.enabled: true
+# xpack.ml.enabled: true
+# xpack.canvas.enabled: true
+# xpack.infra.enabled: true
+# xpack.monitoring.enabled: true
+# console.enabled: true
+# elasticsearch.ssl.verify: false
+# pid.file: /var/run/kibana.pid

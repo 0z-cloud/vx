@@ -1,0 +1,3 @@
+
+- name: Remove all old linux kernels
+  shell: dpkg --list | grep linux-image | awk '{ print $2 }' | sort -V | sed -n '/'`uname -r`'/q;p' | xargs sudo apt-get -y -qq purge

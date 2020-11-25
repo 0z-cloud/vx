@@ -1,0 +1,52 @@
+# WAN
+# For information on the settings in this file, type "man shorewall-rules"
+######################################################################################################################################################################################################
+#ACTION		        SOURCE		                                DEST		                    PROTO	    DEST	SOURCE		ORIGINAL	RATE		USER/	MARK	CONNLIMIT	TIME	HEADERS		SWITCH		HELPER
+#							                                    PORT	                        PORT(S)		    DEST		LIMIT		GROUP
+
+{% if inventory_hostname in groups['nginx-frontend'] %}
+
+### TEMP RULE
+
+# ACCEPT SSH FROM WAN TO NET
+ACCEPT              wan                                         net:{% for host in groups['nginx-frontend'] %}{{ hostvars[host]['second_ip'] }}{% if not loop.last %},{% endif %}{% endfor %}                            tcp         22
+
+# OUT TO INTERNET
+ACCEPT              net:{% for host in groups['nginx-frontend'] %}{{ hostvars[host]['second_ip'] }}{% if not loop.last %},{% endif %}{% endfor %}               wan                                                     icmp
+
+
+# BETWEEN
+ACCEPT              net:{% for host in groups['nginx-frontend'] %}{{ hostvars[host]['second_ip'] }}{% if not loop.last %},{% endif %}{% endfor %}               wan                                                     tcp         80
+ACCEPT              net:{% for host in groups['nginx-frontend'] %}{{ hostvars[host]['second_ip'] }}{% if not loop.last %},{% endif %}{% endfor %}               wan                                                     tcp         443
+
+# DOCKER PORTs
+ACCEPT              net:{% for host in groups['nginx-frontend'] %}{{ hostvars[host]['second_ip'] }}{% if not loop.last %},{% endif %}{% endfor %}               wan                                                     tcp         80
+ACCEPT              net:{% for host in groups['nginx-frontend'] %}{{ hostvars[host]['second_ip'] }}{% if not loop.last %},{% endif %}{% endfor %}               wan                                                     tcp         443
+
+### PCI INCOMING RULES 
+# ACCEPT DNS FROM WAN TO NET
+ACCEPT              wan                                         net:{% for host in groups['nginx-frontend'] %}{{ hostvars[host]['second_ip'] }}{% if not loop.last %},{% endif %}{% endfor %}                            tcp         53
+# ACCEPT HTTP FROM WAN TO NET
+ACCEPT              wan                                         net:{% for host in groups['nginx-frontend'] %}{{ hostvars[host]['second_ip'] }}{% if not loop.last %},{% endif %}{% endfor %}                            tcp         80
+# ACCEPT HTTPS FROM WAN TO NET
+ACCEPT              wan                                         net:{% for host in groups['nginx-frontend'] %}{{ hostvars[host]['second_ip'] }}{% if not loop.last %},{% endif %}{% endfor %}                            tcp         443
+# ACCEPT VPN FROM WAN TO NET
+ACCEPT              wan                                         net:{% for host in groups['nginx-frontend'] %}{{ hostvars[host]['second_ip'] }}{% if not loop.last %},{% endif %}{% endfor %}                            tcp         1194
+
+{% endif %}
+
+########################
+# block local ip from wan
+# DEFAULT DROP FROM WAN LAN_IP SUBNETS
+DROP		        wan:$LAN_IP	                                fw
+
+########################
+# Dummy - ping, drop telnet, accept traceroute from wan to fw
+Ping(ACCEPT)	    wan		                                    fw		-	-	-		-		s:2/sec
+# anti ping flood
+ACCEPT		        wan		                                    fw		                        icmp	    0,3/4,8,11
+# ping response
+ACCEPT		        wan		                                    fw		                        udp	        33434:33529
+# for traceroute
+DROP		        wan		                                    fw		                        tcp	        23
+# block telnet

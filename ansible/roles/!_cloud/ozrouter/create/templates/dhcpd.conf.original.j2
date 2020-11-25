@@ -1,0 +1,9 @@
+default-lease-time 7200;
+max-lease-time 43200;
+
+subnet {{ VPN_SUBNET_PRIVATE }} netmask 255.255.255.0 {
+ range {{ VPN_SUBNET_PRIVATE_START }} {{ VPN_SUBNET_PRIVATE_END }};
+ option routers {{ VPN_SUBNET_PRIVATE_ROUTER }};
+ option domain-name-servers {{ VPN_SUBNET_PRIVATE_DNS_SERVER }};
+}
+

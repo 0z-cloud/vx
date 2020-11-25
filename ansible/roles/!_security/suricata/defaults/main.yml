@@ -1,0 +1,8 @@
+# Suricata default settings
+
+suricata_defaults:
+    master_key: "anykey="
+    directories:
+        etc: /etc/suricata/
+        rules: /etc/suricata/rules/
+        logs: /var/log/suricata/

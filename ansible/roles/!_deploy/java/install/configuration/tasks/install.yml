@@ -1,0 +1,28 @@
+- name: Install necessary packages
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - debconf-utils
+    - software-properties-common
+
+# - name: Add apt repository for java
+#   apt_repository:
+#     repo: 'ppa:webupd8team/java'
+#     state: present
+#     update_cache: yes
+
+- name: Generate install script from template for auto-answer java question...
+  template:
+    src: install.sh.j2
+    dest: "{{ java_settings.directories.scritps_dir }}/oracle-java8-installer-ansible.sh"
+    mode: 0755
+
+- name: Raw install silent... oracle-java8-installer with auto answer
+  raw: "/bin/bash -c {{ java_settings.directories.scritps_dir }}/oracle-java8-installer-ansible.sh"
+
+- name: Install packages from dict list
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ java_settings.packages }}"

@@ -1,0 +1,11 @@
+- name: CHECK NECESSARY FOR TEMPLATING DIRS | Check dirs
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items: "{{ necessary_dirs_for_templating }}"
+
+- name: TEMPLATE CONFIGS BY ARRAY LIST | Template configs
+  template:
+    src: "{{ item.source }}"
+    dest: "{{ item.destination }}"
+  with_items: "{{ updated_configs_array }}"

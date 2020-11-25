@@ -1,0 +1,29 @@
+---
+
+- name: Ensure log level is set
+  ldap_attr:
+    dn:     'cn=config'
+    state:  exact
+    name:   olcLogLevel
+    values: "{{ slapd_log_level }}"
+
+- name: Ensure log directory exists
+  file: state=directory path="{{ slapd_log_dir }}" owner="{{ slapd_user }}" group="{{ slapd_user }}" mode=0755
+
+- name: Ensure path for debug log is set
+  ldap_attr:
+    dn:     'cn=config'
+    state:  exact
+    name:   olcLogFile
+    values: "{{ slapd_log_dir }}/debug.log"
+
+- name: Ensure syslog configuration is set
+  template: src=syslog.conf.j2 dest="{{ slapd_syslog_dir }}/slapd.conf" owner=root group=root mode=0644
+  tags: [syslog]
+  notify:
+    - restart syslog
+
+- name: Ensure logrotate configuration is set
+  template: src=logrotate.conf.j2 dest="{{ slapd_logrotate_dir }}/slapd.conf" owner=root group=root mode=0644
+  tags: [logrotate]
+  

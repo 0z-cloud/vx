@@ -1,0 +1,12 @@
+- name: Looks like standalone on host install redis playbook
+  hosts: "{{ HOSTS }}"
+  become: true
+
+  tasks:
+    - name: Calling external repository (cannot use that for production, roles must be placed inside repository)
+      apt_repository:
+        repo: 'ppa:chris-lea/redis-server'
+    - name: Installing redis server package
+      apt:
+        name: redis-server
+        update_cache: yes

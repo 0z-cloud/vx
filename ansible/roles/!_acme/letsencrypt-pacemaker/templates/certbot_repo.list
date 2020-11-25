@@ -1,0 +1,6 @@
+# deb https://ppa.launchpad.net/certbot/certbot/ubuntu {{ ansible_lsb.codename }} main 
+# deb-src https://ppa.launchpad.net/certbot/certbot/ubuntu {{ ansible_lsb.codename }} main 
+
+# people say about current focal ppa must be 18.04
+deb http://ppa.launchpad.net/certbot/certbot/ubuntu bionic main 
+deb-src http://ppa.launchpad.net/certbot/certbot/ubuntu bionic main 

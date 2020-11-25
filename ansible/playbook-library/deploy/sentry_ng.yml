@@ -1,0 +1,161 @@
+- name: Sentry Playbook
+  hosts: "{{ HOSTS }}"
+  vars:
+    HOSTS: sentry-web-swarm-masters
+    GLUSTERFS_CLUSTER_HOSTS: sentry-web-swarm-masters
+
+  tasks:
+    - include_vars:
+        file: "group_vars/!_Cache_Services/redis/main.yml"
+
+    - include_vars:
+        file: "group_vars/!_GlusterFS/main.yml"
+
+    - include_vars:
+        file: "{{ inventory_dir }}/group_vars/!_Databases/postgres/sentry-postgres-cluster/sentry-postgres-cluster.yml"
+
+    - name: remove old docker python extensions
+      pip:
+        name: ['docker', 'docker-py']
+        state: absent
+
+    - name: install python extensions
+      pip:
+        name: ['docker', 'psycopg2', 'pexpect']
+        state: forcereinstall
+
+    - postgresql_db:
+        name: "{{ sentry_db_name }}"
+        encoding: UTF-8
+        login_host: "{{ sentry_db_host }}"
+        login_user: "{{ postgres_cluster_settings.postgres_user }}"
+        login_password: "{{ postgres_cluster_settings.root_password }}"
+
+    - postgresql_user:
+        db: "{{ sentry_db_name }}"
+        name: "{{ sentry_db_user }}"
+        password: "{{ sentry_db_password }}"
+        role_attr_flags: SUPERUSER
+        login_host: "{{ sentry_db_host }}"
+        login_user: "{{ postgres_cluster_settings.postgres_user }}"
+        login_password: "{{ postgres_cluster_settings.root_password }}"
+
+    - name: create network for containers
+      shell: "docker network create --attachable --driver=overlay sentry_network"
+      ignore_errors: yes
+
+    - name: create folder for sentry data
+      file:
+        path: "{{ glusterfs_settings.directories.cloud_dir }}/sentry/data"
+        state: directory
+
+    - set_fact:
+        sentry_env:
+          - "SENTRY_SECRET_KEY={{ sentry_secret_key }}"
+          - "SENTRY_POSTGRES_HOST={{ sentry_db_host }}"
+          - "SENTRY_DB_NAME={{ sentry_db_name }}"
+          - "SENTRY_DB_USER={{ sentry_db_user }}"
+          - "SENTRY_DB_PASSWORD={{ sentry_db_password }}"
+          - "SENTRY_REDIS_HOST={{ sentry_redis_host }}"
+    #          - "SENTRY_REDIS_PASSWORD={{ redis_io_service_settings.password }}"
+
+    - name: run migrations
+      docker_container:
+        name: sentry_migrations
+        image: "sentry:{{ sentry_version }}"
+        command: upgrade
+        interactive: yes
+        detach: no
+        cleanup: yes
+        networks:
+          - name: sentry_network
+        env:
+          SENTRY_SECRET_KEY: "{{ sentry_secret_key }}"
+          SENTRY_POSTGRES_HOST: "{{ sentry_db_host }}"
+          SENTRY_DB_NAME: "{{ sentry_db_name }}"
+          SENTRY_DB_USER: "{{ sentry_db_user }}"
+          SENTRY_DB_PASSWORD: "{{ sentry_db_password }}"
+          SENTRY_REDIS_HOST: "{{ sentry_redis_host }}"
+      async: 1200
+      poll: 10
+      register: migrations_sleeper
+
+    - async_status:
+        jid: "{{ migrations_sleeper.ansible_job_id }}"
+      register: migrations_result
+      until: migrations_result.finished
+      retries: 120
+
+    - name: create user
+      expect:
+        command: |
+          docker run -ti
+          --rm --network sentry_network
+          -e SENTRY_SECRET_KEY={{ sentry_secret_key }}
+          -e SENTRY_POSTGRES_HOST={{ sentry_db_host }}
+          -e SENTRY_DB_NAME={{ sentry_db_name }}
+          -e SENTRY_DB_USER={{ sentry_db_user }}
+          -e SENTRY_DB_PASSWORD={{ sentry_db_password }}
+          -e SENTRY_REDIS_HOST={{ sentry_redis_host }}
+          sentry:{{ sentry_version }} createuser
+        responses:
+          Email: "{{ sentry_admin_email }}"
+          Password: "{{ sentry_admin_password }}"
+          "Repeat for confirmation": "{{ sentry_admin_password }}"
+          "Should this user be a superuser": "y"
+
+    - name: start web container
+      docker_swarm_service:
+        name: sentry_web
+        image: "sentry:{{ sentry_version }}"
+        restart_policy: any
+        replicas: 1
+        state: present
+        env: "{{ sentry_env }}"
+        networks:
+          - "sentry_network"
+        publish:
+          - { published_port: "9000", target_port: "{{ sentry_target_port }}" }
+        mounts:
+          - source: "{{ glusterfs_settings.directories.cloud_dir }}/sentry/data"
+            target: /var/lib/sentry/files
+            type: bind
+
+    - name: start cron container
+      docker_swarm_service:
+        name: sentry_cron
+        image: "sentry:{{ sentry_version }}"
+        args:
+          - "run"
+          - "cron"
+        restart_policy: any
+        replicas: 1
+        state: present
+        env: "{{ sentry_env }}"
+        networks:
+          - "sentry_network"
+        mounts:
+          - source: "{{ glusterfs_settings.directories.cloud_dir }}/sentry/data"
+            target: /var/lib/sentry/files
+            type: bind
+
+    - name: start worker container
+      docker_swarm_service:
+        name: sentry_worker
+        image: "sentry:{{ sentry_version }}"
+        args:
+          - "run"
+          - "worker"
+        restart_policy: any
+        replicas: 1
+        state: present
+        env: "{{ sentry_env }}"
+        networks:
+          - "sentry_network"
+        mounts:
+          - source: "{{ glusterfs_settings.directories.cloud_dir }}/sentry/data"
+            target: /var/lib/sentry/files
+            type: bind
+
+    - include_role:
+        name: ./!_cloud/consul/magic-join

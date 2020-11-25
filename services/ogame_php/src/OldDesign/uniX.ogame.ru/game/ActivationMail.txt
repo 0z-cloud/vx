@@ -1,0 +1,48 @@
+From bounce@gfsrv.net Fri Dec 12 14:49:05 2008
+Return-path: <bounce@gfsrv.net>
+Received: from [79.110.86.164] (port=37670 helo=smx05.gfsrv.net)
+    by mx46.mail.ru with esmtp 
+    id 1LB6W1-0000Ts-00
+    for strimer_og@mail.ru; Fri, 12 Dec 2008 14:49:05 +0300
+Received-SPF: pass (mx46.mail.ru: domain of gfsrv.net designates 79.110.86.164 as permitted sender) client-ip=79.110.86.164; envelope-from=bounce@gfsrv.net; helo=smx05.gfsrv.net;
+X-Mru-PTR: smx05.gfsrv.net
+X-Mru-NR: 1
+X-Mru-OF: unknown (ethernet/modem)
+X-Mru-RC: DE
+To: strimer_og@mail.ru
+Subject: =?koi8-r?B?5M/C0s8g0M/WwczP18HU2CDXIO/nxcrN?=
+From: OGame Uni ru 15 <noreply@mmogame.com>
+MIME-Version: 1.0
+Content-type: text/plain; charset="koi8-r"
+X-GF-PlayerHash: c3RyaW1lcl9vZ0BtYWlsLnJ1
+X-GF-GameServer: ogame_ru_15
+X-GF-PlayerID: 122739
+X-GF-ClientIP: 213.171.53.90
+Message-Id: <20081212114904.7ABB11634057@s15280550.onlinehome-server.info>
+Date: Fri, 12 Dec 2008 12:49:04 +0100 (CET)
+X-Spam: Not detected
+X-Mras: OK
+Content-Transfer-Encoding: binary
+
+������������ Strimer,
+
+�� ������ ������� ���� ������� � 15-� ��������� ������!
+
+������� �� ��� ������ ��� ��������� ������ ��������:
+http://uni15.ogame.ru/game/validate.php?ack=90da90eef57dd576419377e78b09fdf
+https://ogame.woinc.space/game/validate.php?ack=fac18f07c20f9b9e77eed39c3833c67e
+efc731d15270d0e9cb623b71dc12f260
+
+���� ������� ������:
+������� ���: Strimer
+������: ***
+���������: 15
+
+
+���� ��� ����������� ������ ��� ����� ������ �����������, �� �� ��� �� ������� ����� �� ����� ������ (http://board.ogame.ru).
+
+����� (http://tutorial.ogame.ru) ������� ��� ����������, ��������� �������� � ������� ������� ��� ����, ����� ������ �������� ��� ����� ������� ����������� � ����.
+
+������ ������� � ���������� ������� � ����� � ����������� ����!
+
+���� ������� ������

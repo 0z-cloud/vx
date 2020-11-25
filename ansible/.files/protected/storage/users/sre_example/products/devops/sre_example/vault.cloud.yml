@@ -1,0 +1,176 @@
+---
+# Westsouthnight Current
+# This crendentials for push images to docker registry
+initial_shared_runners_registration_token: "MDgzNjk1MTA4MzE2Oh61mcKNxdzlRY1QnK03MYTTHaBz"
+initial_shared_runners_registration_username: "rolitvinov"
+# Settings which getted from anycloud web console for your account
+anycloud_adapter_virtual_cloud_application_box_sector: "{{ ansible_product }}{% raw %}-{% endraw %}{{ ansible_environment }}{% raw %}-{% endraw %}{{ ansible_datacenter }}{% raw %}-{% endraw %}{{ ansible_datacenter_location }}"
+
+# adam-eve
+anycloud_adapter_api_url_verify_ssl: true
+anycloud_adapter_api_url_version: '31.0'
+anycloud_adapter_api_datacenter: adam-eve_DEV_VDC01
+anycloud_adapter_api_url_http_uri: "https://vcd.local.cloud.eve.vortice.eden/tenant/adam-eve_DEV/"
+anycloud_adapter_api_url_endpoint: "vcd.local.cloud.eve.vortice.eden"
+anycloud_adapter_api_user: "romanolitvinov"
+anycloud_adapter_api_password: '2I5Dc11u5522Qasdas23fe'
+anycloud_api_secret_key: "{{ anycloud_api_access_key }}"
+anycloud_vm_access_pass: "7539148620cloud777"
+anycloud_vm_template: Ubuntu_server_20_04_64_bit_Vortice_Template
+anycloud_vapp_template_name: U_Server_2004_64_Vortice_Template
+anycloud_virtual_machine_default_hard_disk_template_source_name: "{{ anycloud_vapp_template_name }}"
+
+##########################################################################################################################################################################################################################################
+# AnyCloud ZONE: Cloud Virtual Sector/Section/Zone Primary Security Group
+##########################################################################################################################################################################################################################################
+# {{ anycloud_region }}-{{ anycloud_zone }}-{{ ansible_datacenter }}
+anycloud_region: worldwide
+anycloud_zone: earth
+anycloud_zone_sector_section_primary_security_group: "SG_{{ ansible_environment }}"
+anycloud_zone_sector_section_primary_security_group_name: "Security_Group_{{ ansible_environment }}"
+anycloud_zone_sector_section_primary_security_group_description: "Security Group resource environment: {{ ansible_environment }} region: {{ anycloud_landscape_region }}"
+
+
+anycloud_adapter_virtual_cloud_cidr: '172.16.0.0/24'
+anycloud_defaults_virtual_cloud_primary_network_virtual_communication_cidr: "192.168.103.1/24"
+anycloud_defaults_virtual_cloud_primary_network_virtual_communication_cidr_static_range: 
+ - "192.168.103.5-192.168.103.10"
+ - "192.168.103.15-192.168.103.20"
+anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_dns_suffix: "dn"
+anycloud_virtual_cloud_name: "anycloud_in_{{ anycloud_region }}-{{ anycloud_zone }}-{{ ansible_datacenter }}_{{ ansible_product }}_{{ ansible_environment }}"
+anycloud_virtual_cloud_description: "vZone_{{ anycloud_zone }}_Sector_Network_{{ anycloud_region }}_Exchgange_{{ ansible_product }}_zone_{{ ansible_environment }}"
+anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_description: "Virtual Primary Cloud Network Communication Device On Environment - {{ ansible_environment }}"
+ 
+anycloud_allocate_public_ip: True
+anycloud_adapter_global_virtual_cloud_cidr: "192.168.0.0/16"
+anycloud_adapter_domain_fqdn: "devops.zina.local.cloud.eve.vortice.eden"
+anycloud_adapter_virtual_datacenter: adam-eve_DEV_VDC01
+anycloud_adapter_virtual_organization: adam-eve_DEV
+anycloud_adapter_virtual_application_box_sector: vapp_{{ ansible_environment }}_{{ ansible_product }}_sector
+
+#########################################################################################################################################################################################################################################
+# AnyCloud: Merge and Get any possible and all minimal needed as necessary variables and settings for configfurate the VM Instance by Template
+#
+# AnyCloud INFO: VARS FOR SEGMENT/ZONE/SECTOR/SECTION of LAYOUT in SCOPE
+#
+#########################################################################################################################################################################################################################################
+#
+ssh_connect_type_self: ""
+ssh_connect_type_via: "ansible_ssh_common_args='-o ProxyCommand=\"ssh -W %h:%p %r@REPLACED_BY_BASTION_DMZ_MACHINE_IP\"'"
+anycloud_template_name: "{{ anycloud_adapter_vm_template | default('vortex-project-node-template-01') }}"
+anycloud_template_root_folder: "{{ anycloud_template_adapter_root_folder | default(anycloud_template_default_root_folder) }}"
+anycloud_template_default_root_folder: "/"
+anycloud_domain_result: "{{ anycloud_adapter_domain_fqdn | default(anycloud_domain_default) }}"
+anycloud_domain_default: "dev.web-vault.cloud.eve.vortice.eden"
+
+################################
+# Create AnyCloud Instance parameters
+#
+image_id: "U_Server_1804_64_Vortice_Template"
+# instance_name: "Instance_From_Ansible"
+instance_description: "Product: {{ ansible_product }} - VM {{ ansible_environment }}"
+# host_name: "my-instance-from-ansible"
+password: "{{ anycloud_vm_access_pass }}"
+instance_type: "ecs.c5.large"
+extended_instance_type: "ecs.c5.xlarge"
+
+# common parameters
+alicloud_region: "{{ anycloud_landscape_region }}"
+alicloud_zone: "eu-west-1a"
+
+# create vpc parameters
+vpc_cidr: "172.16.0.0/12"
+vpc_name: "VPC_{{ ansible_environment }}"
+vpc_description: "Create a new VPC resource {{ ansible_environment }}"
+
+# create vswitch parameters
+vswitch_cidr: '172.16.0.0/24'
+vswitch_name: "vSwitch_{{ ansible_environment }}"
+vswitch_description: "Virtual AliCloud vSwitch for {{ ansible_environment }}"
+
+sg_name: "SG_{{ ansible_environment }}"
+
+# create security parameters
+group_name: "Security_Group_{{ ansible_environment }}"
+group_description: "Create a new security group resource {{ ansible_environment }}"
+
+#  - ip_protocol: tcp
+#    port_range: 22/22
+#    source_cidr_ip: 0.0.0.0/0
+#    priority: 1
+
+group_inboundRules:
+  - ip_protocol: tcp
+    port_range: 53/53
+    source_cidr_ip: 0.0.0.0/0
+    priority: 1
+  - ip_protocol: udp
+    port_range: 53/53
+    source_cidr_ip: 0.0.0.0/0
+    priority: 1
+  - ip_protocol: tcp
+    port_range: 80/80
+    source_cidr_ip: 0.0.0.0/0
+    priority: 1
+  - ip_protocol: tcp
+    port_range: 443/443
+    source_cidr_ip: 0.0.0.0/0
+    priority: 1
+  - ip_protocol: tcp
+    port_range: 1195/1195
+    source_cidr_ip: 0.0.0.0/0
+    priority: 1
+group_outboundRules:
+  - ip_protocol: tcp
+    port_range: 80/80
+    dest_cidr_ip: 0.0.0.0/0
+    priority: 1
+  - ip_protocol: tcp
+    port_range: 443/443
+    dest_cidr_ip: 10.0.0.0/0
+    priority: 1
+
+
+allocate_public_ip: True
+internet_charge_type: "PayByBandwidth"
+max_bandwidth_in: 200
+max_bandwidth_out: 50
+instance_tags: {created_by: "{{ ansible_product }}-cloud-{{ ansible_environment }}",created_from: "{{ ansible_product }}-ecs-vpc-{{ ansible_environment }}"}
+
+system_disk_category: "cloud_ssd"
+system_disk_size: 50
+
+number_of_instances: 2
+
+# create ECS disk parameters
+disk_name: "cloud_disk"
+disk_category: "cloud_ssd"
+disk_description: "Description - {{ ansible_product }} host {{ ansible_environment }}"
+data_disk_size: 80
+disk_tags: [{tag_key: "created_by", tag_value: "{{ ansible_product }}-cloud-{{ ansible_environment }}"}, {tag_key: "created_from", tag_value: "{{ ansible_product }}-ecs-vpc-{{ ansible_environment }}"}]
+delete_with_instance: 
+
+
+##########################################################################################################################################################################################################################################
+# AnyCloud VM: Instance disk parameters
+##########################################################################################################################################################################################################################################
+#
+#anycloud_defaults_storage_profile: Silver
+anycloud_instance_system_disk_category: "cloud_ssd"
+anycloud_instance_system_disk_size: 50
+anycloud_one_instance_duplicates_count: 2
+anycloud_instance_cloud_disk_name: "cloud_disk"
+anycloud_instance_cloud_disk_category: "cloud_ssd"
+anycloud_instance_cloud_disk_description: "Description - {{ ansible_product }} host {{ ansible_environment }}"
+anycloud_instance_cloud_data_disk_size: 80
+anycloud_instance_cloud_disk_tags: [{tag_key: "created_by", tag_value: "{{ ansible_product }}-cloud-{{ ansible_environment }}"}, {tag_key: "created_from", tag_value: "{{ ansible_product }}-ecs-vpc-{{ ansible_environment }}"}]
+anycloud_instance_cloud_delete_with_instance: False
+
+##########################################################################################################################################################################################################################################
+# AnyCloud Meta: Adding metadata information to VM instance meta tags
+##########################################################################################################################################################################################################################################
+#
+anycloud_instance_extra_metadata_and_tags: {
+  created_by: "{{ ansible_product }}-cloud-{{ ansible_environment }}",
+  created_from: "{{ ansible_product }}-ecs-vpc-{{ ansible_environment }}"
+  }

@@ -1,0 +1,45 @@
+# FROM alpine:stable
+#
+FROM neurodebian:nd18.04
+# EDEN 4 ADAM'S WITH EVE'S AT EDGE 
+# FROM registry lf-e/eve:0.0.0-snapshot-master-1ab423f8
+
+# RUN apk update && apk add alpine-conf
+# RUN setup-apkrepos -d && apk update && apk upgrade
+# RUN apk add git make busybox-extras squashfs-tools qemu-img qemu-system-x86_64 go docker-cli
+
+RUN mkdir -p /devlana_space
+
+WORKDIR /devlana_space/
+ADD _vx_edge /devlana_space/
+RUN ls -la /devlana_space/
+RUN apt update -yy 
+RUN apt install git -yy
+RUN apt install make -yy
+
+RUN apt install -yy \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    gnupg-agent \
+    software-properties-common 
+
+# RUN add-apt-repository \
+#    "deb [arch=amd64] https://download.docker.com/linux/debian \
+#    $(lsb_release -cs) \
+#    stable"
+
+RUN add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
+
+#make busybox-extras squashfs-tools qemu-img qemu-system-x86_64 go-lang docker-io
+# sudo apt-get install gcc-arm-linux-gnueabihf libc6-dev-armhf-cross qemu-user-static
+RUN export DOCKER_HOST="tcp://127.0.0.1:2376"
+
+RUN docker ps -a
+
+
+#10 56.06 E: Unable to locate package busybox-extras
+#10 56.06 E: Unable to locate package qemu-img
+#10 56.06 E: Unable to locate package qemu-system-x86_64
+#10 56.06 E: Unable to locate package go
+#10 56.06 E: Unable to locate package docker-cli

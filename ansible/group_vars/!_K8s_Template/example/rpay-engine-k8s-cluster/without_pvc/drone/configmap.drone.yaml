@@ -1,0 +1,43 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  data:
+    DRONE_LOGS_DEBUG: "true"
+    DRONE_RPC_SERVER: http://drone-server
+    DRONE_RUNNER_CAPACITY: "2"
+    DRONE_RUNNER_NAME: worker
+  kind: ConfigMap
+  metadata:
+    annotations:
+      field.cattle.io/creatorId: user-rxbgq
+    creationTimestamp: "2019-07-02T09:43:22Z"
+    labels:
+      cattle.io/creator: norman
+    name: drone-agent-config
+    namespace: drone
+- apiVersion: v1
+  data:
+    DRONE_AGENTS_ENABLED: "true"
+    DRONE_GIT_ALWAYS_AUTH: "false"
+    DRONE_GITLAB_CLIENT_ID: e9ed5edc33c891f4d841a4fe0e2824cf8940de85519270faed4086218865df16
+    DRONE_GITLAB_CLIENT_SECRET: 360ef23a5a57bd45732328d68b34e94770ab96368197d088dc35e2d6c4242384
+    DRONE_GITLAB_SERVER: https://gitlab.com
+    DRONE_LOGS_DEBUG: "true"
+    DRONE_RUNNER_CAPACITY: "0"
+    DRONE_SERVER_HOST: drone.rocketho.me
+    DRONE_SERVER_PROTO: https
+    DRONE_TLS_AUTOCERT: "false"
+    DRONE_USER_CREATE: username:sfinx26,admin:true
+  kind: ConfigMap
+  metadata:
+    annotations:
+      field.cattle.io/creatorId: user-rxbgq
+    creationTimestamp: "2019-07-01T09:14:46Z"
+    labels:
+      cattle.io/creator: norman
+    name: drone-server-config
+    namespace: drone
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""

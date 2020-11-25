@@ -1,0 +1,348 @@
+
+- name: CNI TEMPORARY REMOVE NETWORK | Removing weave-kube
+  shell: "{{ item }}"
+  with_items:
+      - kubectl get rolebindings -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep weave | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete clusterrolebindings -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get replicaset.apps -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep weave | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete replicaset.apps -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get clusterrolebindings -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep weave | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete clusterrolebindings -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get rs -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep weave | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete rs -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get pods -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep 'weave-net' | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete pod --grace-period=0 --force -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      # - kubectl delete clusterroles -n kube-system weave-net --kubeconfig /etc/kubernetes/admin.conf
+      # - kubectl delete ds -n kube-system weave-net --kubeconfig /etc/kubernetes/admin.conf
+      # - kubectl delete roles -n kube-system weave-net --kubeconfig /etc/kubernetes/admin.conf
+      # - kubectl delete svc -n kube-system weave-net --kubeconfig /etc/kubernetes/admin.conf
+      # - kubectl delete serviceaccounts -n kube-system weave-net --kubeconfig /etc/kubernetes/admin.conf
+      # - kubectl delete deployments -n kube-system weave-net --kubeconfig /etc/kubernetes/admin.conf
+      # - kubectl delete configmaps -n kube-system weave-net --kubeconfig /etc/kubernetes/admin.conf
+  register: clear_weaver_net
+  ignore_errors: true
+
+- name: CLEAR CALICO | Removing possible k8 configurations
+  shell: "{{ item }}"
+  with_items:
+      - kubectl get configmaps -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep calico | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete configmaps -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get configmaps -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep canal | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete configmaps -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get clusterrolebindings -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep calico | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete clusterrolebindings -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get clusterrolebindings -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep canal | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete clusterrolebindings -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get replicaset.apps -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep 'calico-kube-controllers' | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete replicaset.apps -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get replicaset.apps -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep calico | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete replicaset.apps --force -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get replicaset.apps -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep canal | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete replicaset.apps --force -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get rs -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep calico | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete rs -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get rs -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep canal | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete rs -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get clusterroles -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep canal | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete clusterroles -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get clusterroles -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep calico | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete clusterroles -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get configmaps -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep calico | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete configmaps -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get configmaps -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep canal | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete configmaps -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get deployments -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep canal | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete deployments -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get deployments -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep calico | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete deployments -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get ds -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep calico | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete ds -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get ds -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep canal | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete ds -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get serviceaccounts -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep canal | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete serviceaccounts -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get serviceaccounts -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep calico | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete serviceaccounts -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get secrets -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep calico | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete secret -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get secrets -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep canal | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete secret -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get jobs -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep canal | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete jobs -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get jobs -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep calico | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete jobs -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      # - kubectl delete clusterroles -n kube-system calico-node --kubeconfig /etc/kubernetes/admin.conf
+      # - kubectl delete clusterroles -n kube-system calico-kube-controllers --kubeconfig /etc/kubernetes/admin.conf
+      # - kubectl delete clusterroles -n kube-system flannel --kubeconfig /etc/kubernetes/admin.conf
+      # - kubectl delete configmaps -n kube-system calico-config --kubeconfig /etc/kubernetes/admin.conf
+      # - kubectl delete deployments -n kube-system calico-kube-controllers --kubeconfig /etc/kubernetes/admin.conf
+      # - kubectl delete ds -n kube-system calico-node --kubeconfig /etc/kubernetes/admin.conf
+      # - kubectl delete ds -n kube-system canal --kubeconfig /etc/kubernetes/admin.conf
+      # - kubectl delete serviceaccounts -n kube-system calico-node --kubeconfig /etc/kubernetes/admin.conf
+      # - kubectl delete serviceaccounts -n kube-system canal --kubeconfig /etc/kubernetes/admin.conf
+      # - kubectl delete serviceaccounts -n kube-system calico-kube-controllers --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get pods -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep calico | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete pod --grace-period=0 --force -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+      - kubectl get pods -n kube-system --kubeconfig /etc/kubernetes/admin.conf | grep canal | awk '{print $1}' | grep -v '/var/mail/root' | xargs -I ID kubectl delete pod --grace-period=0 --force -n kube-system ID --kubeconfig /etc/kubernetes/admin.conf
+  register: clear_calico_net
+  ignore_errors: true
+
+- name: INFORMATION! ATTENTION!
+  vars:
+     MESSAGE_IN: "COMMAND: {{ item.cmd }}"
+     STD_ERROR: "{% if '' not in item.stderr %}STD_ERROR: {{ item.stderr | trim }}{% endif %}{% if '' not in item.stderr_lines %}STD_ERROR_LINES: {{ item.stderr_lines | join | trim }}{% endif %}"
+     STD_OUT: "{% if '' not in item.stdout %}STD_OUT: {{ item.stdout | trim }}{% endif %}{% if '' not in item.stdout_lines %}STD_OUT_LINES: {{ item.stdout_lines | join | trim }}{% endif %}"
+  debug: 
+    msg: "{{ attention_phase_2.split('\n') }}"
+  when: debug_playbook_stdout is defined
+  with_items: 
+    # - "{{ clear_weaver_net.results }}"
+    - "{{ clear_calico_net.results }}"
+
+- name: CNI TEMPORARY CREATE CONFIGS DIR | Create cni configs dir
+  file:
+    path: /opt/ca/kube/cni
+    state: directory
+
+- name: GET BASE64 STRINGS FROM ETCD CERTS | etcd-key
+  shell: base64 /etc/etcd/kubernetes-key.pem -w 0 | xargs -I ID echo ID
+  register: kubernetes_key_pem_base64
+
+- name: GET BASE64 STRINGS FROM ETCD CERTS | etcd-cert
+  shell: base64 /etc/etcd/kubernetes.pem -w 0 | xargs -I ID echo ID
+  register: kubernetes_cert_pem_base64
+
+- name: GET BASE64 STRINGS FROM ETCD CERTS | etcd-ca
+  shell: base64 /etc/etcd/ca.pem -w 0 | xargs -I ID echo ID
+  register: kubernetes_ca_pem_base64
+
+- name: GET KUBE ADMIN.CONF TO BASE64
+  shell: cat /etc/kubernetes/admin.conf | base64 -w 0 | grep -v '/var/mail/root' | xargs -I ID echo ID
+  register: kubernetes_admin_conf_base64
+
+- name: DEBUG SHOW BASE64 STRINGS | Show results
+  debug:
+    msg: "{{ item.stdout | join }}"
+  with_items: 
+    - "{{ kubernetes_ca_pem_base64 }}"
+    - "{{ kubernetes_cert_pem_base64 }}"
+    - "{{ kubernetes_key_pem_base64 }}"
+    - "{{ kubernetes_admin_conf_base64 }}"
+
+- name: "CNI GENERATE CONFIGS | Template {{ K8S_NETWORK_TYPE }} YAML files"
+  template:
+    src: "{{ item }}"
+    dest: "/opt/ca/kube/cni/{{ item | basename | regex_replace('\\.j2','') }}"
+  with_fileglob:
+    - ../templates/main/{{ K8S_NETWORK_TYPE }}*.j2
+
+- name: "CNI GET STATE | Check {{ K8S_NETWORK_TYPE }} daemonset is working"
+  shell: kubectl get ds --all-namespaces --kubeconfig /etc/kubernetes/admin.conf | grep {{ K8S_NETWORK_TYPE }}
+  delegate_to: "{{ groups['kubernetes-master'][0] }}"
+  run_once: true
+  register: check_net
+  ignore_errors: true
+  changed_when: false
+
+- name: "CNI APPLY CALICO CRDS | Apply {{ K8S_NETWORK_TYPE }} config calico-crds"
+  when: check_net is failed or calico_redeploy is defined
+  command: kubectl apply -f /opt/ca/kube/cni/calico-crds.yml --kubeconfig /etc/kubernetes/admin.conf
+  ignore_errors: true
+
+# - name: "CNI APPLY CALICO MAIN | Apply {{ K8S_NETWORK_TYPE }} config calico-main"
+#   when: check_net is failed or calico_redeploy is defined
+#   command: kubectl apply -f /opt/ca/kube/cni/calico-main.yml --kubeconfig /etc/kubernetes/admin.conf
+#   ignore_errors: true
+
+- name: "CNI APPLY CALICO ETCD | Apply {{ K8S_NETWORK_TYPE }} config calico-etcd"
+  when: check_net is failed or calico_redeploy is defined
+  command: kubectl apply -f /opt/ca/kube/cni/calico-etcd.yml --kubeconfig /etc/kubernetes/admin.conf
+  ignore_errors: true
+
+# - name: "CNI APPLY CANAL | Apply {{ K8S_NETWORK_TYPE }} config calico-canal"
+#   when: check_net is failed or calico_redeploy is defined
+#   command: kubectl apply -f /opt/ca/kube/cni/calico-canal.yml --kubeconfig /etc/kubernetes/admin.conf
+#   ignore_errors: true
+
+- name: "CNI APPLY CANAL-ETCD | Apply {{ K8S_NETWORK_TYPE }} config calico-canal-etcd"
+  when: check_net is failed or calico_redeploy is defined
+  command: kubectl apply -f /opt/ca/kube/cni/calico-canal-etcd.yml --kubeconfig /etc/kubernetes/admin.conf
+  ignore_errors: true
+
+- name: Add Environment Calico variables for future works
+  lineinfile:
+    path: ~/.bashrc
+    line: "{{ item }}"
+    insertbefore: '# enable programmable*'
+  with_items:
+    - "export KUBECONFIG=/etc/kubernetes/admin.conf"
+    - "export DATASTORE_TYPE=etcdv3"
+    - "export ETCD_ENDPOINTS={% for host in groups['kubernetes-master'] %}{% raw %}https://{% endraw %}{{ hostvars[host]['second_ip'] }}{% raw %}:{% endraw %}{{ K8S_CLUSTER_LISTEN_PORT_2379 }}{% if not loop.last %},{% endif %}{% endfor %}{% raw %}"
+    - "export ETCD_CERT_FILE=/etc/etcd/kubernetes.pem"
+    - "export ETCD_CA_CERT_FILE=/etc/etcd/ca.pem"
+    - "export ETCD_KEY_FILE=/etc/etcd/kubernetes-key.pem"
+
+- name: Install calicoctl to masters
+  shell: "{{ item }}"
+  with_items: 
+    - wget https://github.com/projectcalico/calicoctl/releases/download/v3.8.0/calicoctl -O /usr/local/bin/calicoctl
+    - chmod +x /usr/local/bin/calicoctl
+
+- name: Remove currnet Calico IPPool
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+    DATASTORE_TYPE: etcdv3
+    ETCD_ENDPOINTS: "{% for host in groups['kubernetes-master'] %}https://{{ hostvars[host]['second_ip'] }}:{{ K8S_CLUSTER_LISTEN_PORT_2379 }}{% if not loop.last %},{% endif %}{% endfor %}"
+    ETCD_CERT_FILE: /etc/etcd/kubernetes.pem
+    ETCD_CA_CERT_FILE: /etc/etcd/ca.pem
+    ETCD_KEY_FILE: /etc/etcd/kubernetes-key.pem
+  shell: "calicoctl delete ipPool {{ item.name }}"
+  with_items: "{{ CALICO_NETWORKS_ARRAY }}"
+  ignore_errors: true
+
+- name: Test call to cluster by calicoctl
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+    DATASTORE_TYPE: etcdv3
+    ETCD_ENDPOINTS: "{% for host in groups['kubernetes-master'] %}https://{{ hostvars[host]['second_ip'] }}:{{ K8S_CLUSTER_LISTEN_PORT_2379 }}{% if not loop.last %},{% endif %}{% endfor %}"
+    ETCD_CERT_FILE: /etc/etcd/kubernetes.pem
+    ETCD_CA_CERT_FILE: /etc/etcd/ca.pem
+    ETCD_KEY_FILE: /etc/etcd/kubernetes-key.pem
+  shell: calicoctl get nodes
+  register: calicoctl_get_nodes
+
+- name: DEBUG CNI CALICOCTL | Get status of calicoctl get nodes
+  debug:
+    msg: "{{ calicoctl_get_nodes }}"
+
+- name: "CNI APPLY CALICO IP POOLS | Apply {{ K8S_NETWORK_TYPE }} config calico-ip-pools"
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+    DATASTORE_TYPE: etcdv3
+    ETCD_ENDPOINTS: "{% for host in groups['kubernetes-master'] %}https://{{ hostvars[host]['second_ip'] }}:{{ K8S_CLUSTER_LISTEN_PORT_2379 }}{% if not loop.last %},{% endif %}{% endfor %}"
+    ETCD_CERT_FILE: /etc/etcd/kubernetes.pem
+    ETCD_CA_CERT_FILE: /etc/etcd/ca.pem
+    ETCD_KEY_FILE: /etc/etcd/kubernetes-key.pem
+  command: calicoctl create -f /opt/ca/kube/cni/calico-ip-pools.yml
+
+- name: Test call to cluster by calicoctl for get pools
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+    DATASTORE_TYPE: etcdv3
+    ETCD_ENDPOINTS: "{% for host in groups['kubernetes-master'] %}https://{{ hostvars[host]['second_ip'] }}:{{ K8S_CLUSTER_LISTEN_PORT_2379 }}{% if not loop.last %},{% endif %}{% endfor %}"
+    ETCD_CERT_FILE: /etc/etcd/kubernetes.pem
+    ETCD_CA_CERT_FILE: /etc/etcd/ca.pem
+    ETCD_KEY_FILE: /etc/etcd/kubernetes-key.pem
+  shell: calicoctl get ippools
+  register: calicoctl_created_ippools
+
+- name: DEBUG CNI CALICOCTL IP-POOLS | Show status of calicoctl get ippools
+  debug:
+    msg: "{{ calicoctl_created_ippools }}"
+
+- name: Create a cni certificate request
+  shell: openssl req -newkey rsa:4096 -keyout /opt/ca/pki/cni.key -nodes -out /opt/ca/pki/cni.csr -subj "/CN=calico-cni"
+
+- name: Sign the cni certificate request by Kubernetes internal keys
+  shell: sudo openssl x509 -req -in /opt/ca/pki/cni.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -CAcreateserial -out /opt/ca/pki/cni.crt -days 365
+
+- name: Register cluster network endpoint
+  shell: kubectl config view -o jsonpath='{.clusters[0].cluster.server}' | xargs -I ID echo ID
+  register: vip_api_k8_endpoint
+
+- name: Debug api connection string
+  debug:
+    msg: "{{ vip_api_k8_endpoint.stdout | trim }}"
+
+- name: Create kubeconfig for cni
+  shell: "{{ item }}"
+  with_items:
+    - kubectl config set-cluster kubernetes --certificate-authority=/etc/kubernetes/pki/ca.crt --embed-certs=true --server={{ vip_api_k8_endpoint.stdout | trim }} --kubeconfig=/opt/ca/kube/cni.kubeconfig
+    - kubectl config set-credentials calico-cni --client-certificate=/opt/ca/pki/cni.crt --client-key=/opt/ca/pki/cni.key --embed-certs=true --kubeconfig=/opt/ca/kube/cni.kubeconfig
+    - kubectl config set-context default --cluster=kubernetes --user=calico-cni --kubeconfig=/opt/ca/kube/cni.kubeconfig
+    - kubectl config use-context default --kubeconfig=/opt/ca/kube/cni.kubeconfig
+
+- name: Apply calico-rbac
+  shell: "{{ item }}"
+  with_items:
+    - kubectl apply -f /opt/ca/kube/cni/calico-rbac.yml
+    - kubectl create clusterrolebinding calico-cni --clusterrole=calico-cni --user=calico-cni
+
+- name: PHASE 1 | Download necessary calico tools and etc tasks
+  shell: "{{ item }}"
+  with_items:
+    - curl -L -o /opt/cni/bin/calico https://github.com/projectcalico/cni-plugin/releases/download/v3.8.0/calico-amd64
+    - chmod 755 /opt/cni/bin/calico
+    - curl -L -o /opt/cni/bin/calico-ipam https://github.com/projectcalico/cni-plugin/releases/download/v3.8.0/calico-ipam-amd64
+    - chmod 755 /opt/cni/bin/calico-ipam
+    - mkdir -p /etc/cni/net.d/
+    - cp /opt/ca/kube/cni.kubeconfig /etc/cni/net.d/calico-kubeconfig
+    - chmod 600 /etc/cni/net.d/calico-kubeconfig
+    - cp /opt/ca/kube/cni/calico-10.yml /etc/cni/net.d/10-calico.conflist
+
+- name: PHASE 2 | Typha configuration
+  shell: "{{ item }}"
+  with_items:
+    - openssl req -x509 -newkey rsa:4096 -keyout /opt/ca/pki/typhaca.key -nodes -out /opt/ca/pki/typhaca.crt -subj "/CN=Calico Typha CA" -days 365
+    - kubectl create configmap -n kube-system calico-typha-ca --from-file=/opt/ca/pki/typhaca.crt
+    - openssl req -newkey rsa:4096 -keyout /opt/ca/pki/typha.key -nodes -out /opt/ca/pki/typha.csr -subj "/CN=calico-typha"
+    - openssl x509 -req -in /opt/ca/pki/typha.csr -CA /opt/ca/pki/typhaca.crt -CAkey /opt/ca/pki/typhaca.key -CAcreateserial -out /opt/ca/pki/typha.crt -days 365
+    - kubectl create secret generic -n kube-system calico-typha-certs --from-file=/opt/ca/pki/typha.key --from-file=/opt/ca/pki/typha.crt
+    - kubectl create serviceaccount -n kube-system calico-typha
+    - kubectl apply -f /opt/ca/kube/cni/calico-typha.yml
+    - kubectl create clusterrolebinding calico-typha --clusterrole=calico-typha --serviceaccount=kube-system:calico-typha
+    - kubectl apply -f /opt/ca/kube/cni/calico-deploy.yml
+
+- name: PHASE 3 | Get pods by typha configuration
+  shell: "kubectl get pods -l k8s-app=calico-typha -n kube-system"
+  register: typha_get_pods_result
+
+- name: Debug typha_get_pods_result
+  debug:
+    msg: "{{ typha_get_pods_result.stdout | trim }}"
+
+- name: APPLY CONFIG CALICO-NODE | Create service typha
+  shell: "kubectl apply -f /opt/ca/kube/cni/calico-node.yml"
+  register: typha_get_pods_result
+
+- name: Register typha service endpoint
+  shell: kubectl get svc -n kube-system calico-typha -o jsonpath='{.spec.clusterIP}'
+  register: typha_endpoint_5473
+
+- name: Debug typha_endpoint_5473
+  debug:
+    msg: "{{ typha_endpoint_5473.stdout | join }}"
+
+- name: Set as fact typha connection string
+  set_fact:
+    typha_api_connection_string: "https://{{ typha_endpoint_5473.stdout | join }}:{{ TYPHA_API_LISTEN_PORT }}"
+
+- name: Check and rebuild typha service
+  shell: "curl {{ typha_api_connection_string }} -v --cacert /opt/ca/pki/typhaca.crt"
+  register: get_typha_status_from_api
+  ignore_errors: true
+
+- name: Debug get_typha_status_from_api
+  debug:
+    msg: "{{ get_typha_status_from_api.stdout | join }}"
+  ignore_errors: true
+
+- name: Init last part of RBAC
+  shell: "{{ item }}"
+  with_items:
+    - openssl req -newkey rsa:4096 -keyout /opt/ca/pki/calico-node.key -nodes -out /opt/ca/pki/calico-node.csr -subj "/CN=calico-node"
+    - openssl x509 -req -in /opt/ca/pki/calico-node.csr -CA /opt/ca/pki/typhaca.crt -CAkey /opt/ca/pki/typhaca.key -CAcreateserial -out /opt/ca/pki/calico-node.crt -days 365
+    - kubectl create secret generic -n kube-system calico-node-certs --from-file=/opt/ca/pki/calico-node.key --from-file=/opt/ca/pki/calico-node.crt
+    - kubectl delete serviceaccount -n kube-system calico-node
+    - kubectl create serviceaccount -n kube-system calico-node
+    - kubectl apply -f /opt/ca/kube/cni/calico-node-serviceaccount.yml
+    - kubectl delete clusterrolebindings -n kube-system calico-node
+    - kubectl create clusterrolebinding calico-node --clusterrole=calico-node --serviceaccount=kube-system:calico-node
+    - kubectl apply -f /opt/ca/kube/cni/calico-daemonset.yml
+
+- name: Get status of kubectl get pod -l k8s-app=calico-node -n kube-system
+  shell: kubectl get pod -l k8s-app=calico-node -n kube-system
+  register: get_pod_calico_node
+
+- name: Debug get_pod_calico_node
+  debug:
+    msg: "{{ get_pod_calico_node.stdout | join }}"
+
+
+  # delegate_to: "{{ groups['kubernetes-master'][0] }}"
+  # run_once: true
+
+
+
+
+
+
+
+# - name: CNI TEMPORARY BOOTSTRAP NETWORK | Installing weave-kube
+#   shell: kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.6.2/weave-daemonset-k8s-1.11.yaml
+#   register: weave_kube_install_result
+
+# - name: DEBUG CNI BOOTSTRAP | Get status of applying the module configuration
+#   debug:
+#     msg: "{{ weave_kube_install_result }}"
+
+# - name: GET CLUSTER STATE | Calling kubectl get pods -n kube-system
+#   shell: kubectl get pods -n kube-system
+#   register: master_get_pods_status
+#   retries: 15
+#   until: master_get_pods_status.stdout_lines | reject('search','^weave-net+\d*.*Running') | list | count == 0
+
+# - name: DEBUG CLUSTER NETWORK BOOTSTRAP | Get status of pods
+#   debug:
+#     msg: "{{ master_get_pods_status }}"

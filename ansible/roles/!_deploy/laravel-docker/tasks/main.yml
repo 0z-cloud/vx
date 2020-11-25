@@ -1,0 +1,16 @@
+- name: create docker stacks directory
+  file:
+    path: "{{ glusterfs_settings.directories.cloud_dir }}/docker-stacks-laravel"
+    state: directory
+
+#- set_fact:
+#    laravel_application: "{{ hostvars[ansible_host] | json_query(application_filter) | first }}"
+#  vars:
+#    application_filter: "laravel_applications[?name == '{{ application_name }}']"
+
+- include: "prepare.yml"
+
+- include: "deploy.yml"
+  run_once: true
+
+

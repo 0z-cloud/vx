@@ -1,0 +1,16 @@
+- name: Merge user variables
+  merge_vars:
+    suffix_to_merge: removeuser__to_merge
+    merged_var_name: remove_ssh_users
+    expected_type: 'list'
+  tags:
+    - remove_user
+
+- name: Remove users
+  user:
+    name: "{{ item.name }}"
+    state: absent
+    remove: yes
+  with_items: "{{ remove_ssh_users }}"
+  tags:
+    - remove_user

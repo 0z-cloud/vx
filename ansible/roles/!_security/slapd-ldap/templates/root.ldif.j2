@@ -1,0 +1,18 @@
+# Adam Admin
+dn: uid=admin,ou=People,dc=vortex,dc=co
+objectClass: top
+objectClass: account
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: Admin
+uid: admin
+uidNumber: 16759
+gidNumber: 1000
+# mail: adam.admin@example.com
+homeDirectory: /home/admin
+loginShell: /bin/bash
+gecos: admin
+userPassword: {{ default_password.stdout }}
+shadowLastChange: 0
+shadowMax: 0
+shadowWarning: 0

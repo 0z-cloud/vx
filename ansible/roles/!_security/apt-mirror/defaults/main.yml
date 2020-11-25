@@ -1,0 +1,4 @@
+apt_mirror_settings_defaults:
+  directories:
+    main: /apt_mirror
+  website_repo_path: /mirror/archive.ubuntu.com/

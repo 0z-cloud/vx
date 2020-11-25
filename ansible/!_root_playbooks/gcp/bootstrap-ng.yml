@@ -1,0 +1,96 @@
+- name: Starting the instance bootstrap and check
+  hosts: localhost
+  tasks:
+    - name: Load groupvars/product global shared settings
+      include_vars: group_vars/products/{{ ansible_product }}/{{ item }}.yml
+      with_items:
+        - gcp
+        - main
+
+    - name: Load groupvars/product global shared settings
+      include_vars: group_vars/products/{{ ansible_product }}/{{ ansible_environment }}/{{ item }}.yml
+      with_items:
+        - attached
+        - main
+
+    - name: Copy a GCP Credentials Settings Json for Auth to API Cloud Interface to creds files
+      copy:
+        content: "{{ google_cloud_account_file | join }}"
+        dest: "~/{{ item }}"
+      with_items:
+        - google.json
+
+    - name: Copy a GCP Credentials Key File Settings for Auth to API Cloud Interface to creds files
+      copy:
+        content: "{{ google_gcp_private_creds_api_token_access_key }}"
+        dest: "~/{{ item }}"
+      with_items:
+        - google-key.json
+
+    - name: Template a GCP Credentials Settings Json for Auth to API Cloud Interface
+      template:
+        src: google.json.j2
+        dest: "~/{{ item }}"
+      with_items:
+        - google-key.json
+        - google.json
+
+- name: Starting the instance bootstrap and check
+  hosts: localhost
+  gather_facts: True
+  vars_files:
+    - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+    - "group_vars/products/{{ ansible_product }}/main.yml"
+    - "group_vars/products/{{ ansible_product }}/shared.yml"
+    - "group_vars/products/{{ ansible_product }}/{{ ansible_cloud_type }}.yml"
+    - "inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+    - "group_vars/!_anyCloud/anyCloud.yml"
+    - "group_vars/all.yml"
+  environment:
+    env_user: "{{ anycloud_adapter_api_user }}"
+    env_password: "{{ anycloud_adapter_api_password }}"
+    env_host: "{{ anycloud_adapter_api_url_endpoint }}"
+    env_org: "{{ anycloud_defaults_virtual_organization }}"
+    env_api_version: "{{ anycloud_adapter_api_url_version }}"
+    env_verify_ssl_certs: "{{ anycloud_adapter_api_url_verify_ssl }}"
+    api_version: "{{ anycloud_adapter_api_url_version }}"
+    gce_zone: "{{ anycloud_zone }}"
+    gce_name: "{{ ansible_environment }}"
+    gce_tag_Role: "{{ ansible_environment }}"
+    GCE_PROJECT: "{{ ansible_product }}-{{ ansible_environment }}"
+    GCE_EMAIL: "{{ google_gcp_private_creds_client_email }}"
+    GCE_CREDENTIALS_FILE_PATH: "~/google.json"
+    gcp_project: "{{ ansible_product }}"
+  vars:
+    env_user: "{{ anycloud_adapter_api_user }}"
+    env_password: "{{ anycloud_adapter_api_password }}"
+    env_host: "{{ anycloud_adapter_api_url_endpoint }}"
+    env_org: "{{ anycloud_defaults_virtual_organization }}"
+    env_api_version: "{{ anycloud_adapter_api_url_version }}"
+    env_verify_ssl_certs: "{{ anycloud_adapter_api_url_verify_ssl }}"
+    api_version: "{{ anycloud_adapter_api_url_version }}"
+    gce_zone: "{{ anycloud_zone }}"
+    gce_name: "{{ ansible_environment }}"
+    gce_tag_Role: "{{ ansible_environment }}"
+    GCE_PROJECT: "{{ ansible_product }}-{{ ansible_environment }}"
+    GCE_EMAIL: "{{ google_gcp_private_creds_client_email }}"
+    GCE_CREDENTIALS_FILE_PATH: "~/google.json"
+    gcp_project: "{{ ansible_product }}"
+  roles:
+    - name: After reloader 3-way untrasted connection prevention by Vx.
+      role: ./!_cloud/_Eve_at_EDGE_vx_ACL_/any2any/init
+
+    - name: Include role for re/initiate a project group for this product application_set playout
+      role: ./!_cloud/dc_integration/gcp/project_manage
+
+    - name: Include role VPC Virtual IP maintain
+      role: ./!_cloud/dc_integration/gcp/vpc
+
+    # - name: Include role VPC Virtual IP maintain
+    #   role: ./!_cloud/dc_integration/gcp/vip
+
+    # - name: Include role VPC Zone maintain
+    #   role: ./!_cloud/dc_integration/gcp/raw
+
+    # - name: Include role vSwitch Zone maintain
+    #   role: ./!_cloud/dc_integration/gcp/vswitch

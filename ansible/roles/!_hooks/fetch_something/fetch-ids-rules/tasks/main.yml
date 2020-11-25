@@ -1,0 +1,20 @@
+- name: Remote ls for get all Shorewall rules
+  raw: ls -la /etc/shorewall | awk 'NR > 3 { print }' | awk '{print $9}'
+  register: ls_list
+
+- name: Debug recieved list of files in /etc/shorewall
+  debug:
+   msg: "{{ ls_list.stdout_lines }}"
+
+- name: Fething the all files in /etc/shorewall
+  fetch:
+    src: /etc/shorewall/{{ item }}
+    dest: /tmp/shorewall/{{ item }}
+    flat: yes
+  with_items: "{{ ls_list.stdout_lines }}"
+
+- name: Fething the current IPSec configuration | ipsec.conf
+  fetch:
+    src: /etc/ipsec.conf
+    dest: /tmp/shorewall/ipsec.conf
+    flat: yes

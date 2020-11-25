@@ -1,0 +1,7 @@
+gitlab_defaults:
+  directories:
+    maindir: "/opt/gitlab/{{ ansible_environment }}"
+    confdir: "/opt/gitlab/{{ ansible_environment }}/conf"
+    datadir: "/opt/gitlab/{{ ansible_environment }}/data"
+    optdir: "/opt/gitlab/{{ ansible_environment }}/opt"
+    storage: "/opt/gitlab/{{ ansible_environment }}/storage"

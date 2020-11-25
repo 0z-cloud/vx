@@ -1,0 +1,29 @@
+
+- name: Show file main.j2 before changes
+  shell: cat ./templates/main.j2
+  register: raw_main_j2_result
+
+- name: Show the stout cointain of raw_main_j2_result
+  debug:
+    msg: "{{ raw_main_j2_result.stdout_lines }}"
+
+- name: Show file test.j2 before changes
+  shell: cat ./templates/main.j2
+  register: raw_test_j2_result
+
+- name: Show the stout cointain of raw_test_j2_result
+  debug:
+    msg: "{{ raw_test_j2_result.stdout_lines }}"
+
+- name: Template the Dynamic Template from Base Template
+  template:
+    src: test.j2
+    dest: test
+
+- name: Show file test after changes
+  shell: cat test
+  register: raw_test_result
+
+- name: Show the stout cointain of raw_test_result
+  debug:
+    msg: "{{ raw_test_result.stdout_lines }}"

@@ -1,0 +1,39 @@
+#### SET CLIENTS GROUP NAME
+
+- name: SET FACT | Declare variable with full group name which contain a swarm clients nodes
+  set_fact:
+    docker_swarm_cluster_clients_group: "groups['{{ swarm_clients_name }}']|default([])"
+
+- name: DEBUG | Show and register variable with workers nodes names
+  debug:
+    var: "{{ docker_swarm_cluster_clients_group }}"
+  register: docker_swarm_cluster_clients_group_result
+
+#### SET PRIMARY MANAGER NODENAME
+
+- name: SET FACT | Declare variable with full group name which contain a first node in group swarm_cluster
+  set_fact:
+    docker_swarm_cluster_name_now_first_host: "groups['{{ swarm_cluster_name }}'][0]"
+
+- name: DEBUG | Register var docker_swarm_cluster_name_now_first_host_result
+  debug:
+    var: "{{ docker_swarm_cluster_name_now_first_host }}"
+  register: docker_swarm_cluster_name_now_first_host_result
+
+- name: DEBUG | Set fact item
+  debug:
+    msg: "{{ item.value }}"
+  with_dict: "{{ docker_swarm_cluster_name_now_first_host_result }}"
+  when: item.key == docker_swarm_cluster_name_now_first_host
+
+- name: SET FACT | Declare result variable with primary swarm cluster nodename
+  set_fact:
+    primary_swarm_hostname: "{{ item.value }}"
+  with_dict: "{{ docker_swarm_cluster_name_now_first_host_result }}"
+  when: item.key == docker_swarm_cluster_name_now_first_host
+
+- name: DEBUG | After set fact show primary_swarm_hostname
+  debug:
+    msg: "{{ primary_swarm_hostname }}"
+
+####

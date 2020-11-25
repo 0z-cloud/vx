@@ -1,0 +1,58 @@
+#########################################################################################################################################################################################################################################
+# AnyCloud User Adapter Vault Sercters Out
+#
+# 0z-cloud is stilling stay in...       zen...
+#########################################################################################################################################################################################################################################
+# AnyCloud:                             Default Settings Configuration 
+#########################################################################################################################################################################################################################################
+# Version:                              v.1.2.0-devops
+# VCS Group:                            cicd
+# Product:                              service_devops_zone 
+# Repository:                           eden-vortice
+# user:                                 template 
+# current:                              integration
+# salt:                                 ci/cd/qa/dev
+# vector:                               01.07.2020.01.21
+# timeto:                               zen...io
+# Environment:                          production
+# Usage:                                anycloud
+# Infrastructure is in want target:     production
+#########################################################################################################################################################################################################################################
+# PRIMARY TEMPLATE !
+##########################################################################################################################################################################################################################################
+
+# TEMPLATE PARAMS 
+anycloud_adapter_vm_template: Ubuntu_server_20_04_64_bit_Vortice_Template
+anycloud_adapter_vm_vapp_box_name: U_Server_1804_64_Vortice_Template
+anycloud_template_adapter_root_folder: "/"
+anycloud_adapter_vm_access_pass: 12345
+
+ssh_connect_type_self: "default"
+ssh_connect_type_via: "ansible_ssh_common_args='-o ProxyCommand=\"ssh -W %h:%p %r@REPLACED_BY_BASTION_DMZ_MACHINE_IP\"'"
+
+##########################################################################################################################################################################################################################################
+# AnyCloud VM: Instance disk parameters
+##########################################################################################################################################################################################################################################
+
+anycloud_defaults_storage_profile: Silver
+anycloud_instance_system_disk_category: "cloud_ssd"
+anycloud_instance_system_disk_size: 50
+anycloud_one_instance_duplicates_count: 2
+anycloud_instance_cloud_disk_name: "cloud_disk"
+anycloud_instance_cloud_disk_category: "cloud_ssd"
+anycloud_instance_cloud_disk_description: "Description - {{ ansible_product }} host {{ ansible_environment }}"
+anycloud_instance_cloud_data_disk_size: 80
+anycloud_instance_cloud_delete_with_instance: False
+anycloud_virtual_machine_resources_middle_type: size_of_instance_profile
+# anycloud_instance_cloud_disk_tags: [{tag_key: "created_by", tag_value: "{{ ansible_product }}-cloud-{{ ansible_environment }}"}, {tag_key: "created_from", tag_value: "{{ ansible_product }}-ecs-vpc-{{ ansible_environment }}"}]
+
+### STORAGE RETURN RESULTS
+
+anycloud_vm_storage_configuration: "{{ anycloud_defaults_storage_profile }}"
+anycloud_vm_performance_configuration: "{{ anycloud_virtual_machine_resources_middle_type }}"
+
+## VORTEX DEFAULT EXAMPLE
+# anycloud_api_user_login: "cloud_robot_man_admin"
+# anycloud_api_access_key: "LTAI18PoV9VdqhK7!"
+# anycloud_api_secret_key: "UXQ6BBASSOBRIgVZjA7ZioDoCQrzjm"
+# anycloud_vm_access_pass: "12345"

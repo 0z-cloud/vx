@@ -1,0 +1,46 @@
+cloud_bootstrap:
+
+  routers:
+
+    {{ ansible_product }}_router_{{ template_wants_node_id }}:
+        name: "{{ ansible_product }}-router-{{ template_wants_node_id }}"
+        networks:
+            vx_vlan_7_pub_non_production:
+                ip4: "10.16.131.3"
+                gw4: "noipsp"
+                vip: ""
+            vx_vlan_10_keyserver_mgmt_net:
+                ip: "10.16.131.3"
+                gw4: "noipsp"
+                vip: ""
+            vx_vlan_9_database:
+                ip: "10.16.131.3"
+                gw4: "noipsp"
+                vip: ""
+            vx_vlan_5_www_apps_net:
+                ip: "10.16.131.3"
+                gw4: "noipsp"
+                vip: ""
+            vx_vlan_2_storage_iscsi_net:
+                ip: "10.16.131.3"
+                gw4: "noipsp"
+                vip: ""
+            vx_vlan_1_mgmt_ipmi_net:
+                ip: "10.16.131.3"
+                gw4: "noipsp"
+                vip: ""
+            vx_vlan_12_hypervisor_net:
+                ip: "10.16.131.3"
+                gw4: "noipsp"
+                vip: ""
+            vx_vlan_99_internet_provider_1:
+                ip: "10.16.131.3"
+                gw: "10.16.131.1"
+        ssh: "ansible_ssh_common_args='-o ProxyCommand=\"ssh -W %h:%p %r@10.16.131.250\"'"
+        memory_size_mb: 8192
+        cpu_count: 6
+        ansible_inventory_groups:
+            - vx_vlan_all
+            - vortex-pci-test
+            - vortex-cloud-router
+            - vortex-after-bastion

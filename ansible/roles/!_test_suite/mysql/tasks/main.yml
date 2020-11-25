@@ -1,0 +1,38 @@
+# - name: re/Create a Percona Service Without Swarm
+#   docker_container:
+#       name: percona-server
+#       image: "percona/percona-server:latest"
+#       ports:
+#         - "{{ percona_service_listnen_port }}:3306"
+#       privileged: yes
+#       restart_policy: always
+#       detach: True
+#       recreate: yes
+#       state: started
+#       env:
+#           MYSQL_ROOT_PASSWORD: "{{ percona_root_password }}"
+#   when: swarm_disabled_inventory is defined
+
+- name: Create a Percona Docker container for list of databases percona_mysql_exporter_databases
+  become: true
+  docker_container:
+      name: percona-server-{{ ansible_environment }}-{{ inventory_hostname }}-{% for key, value in item.items() %}{{ value.data_dir | replace('\n', '') }}{% endfor %}
+      image: percona/percona-server:latest
+      restart_policy: always
+      privileged: true
+      recreate: yes 
+      # volumes:
+      #   - "{% for key, value in item.items() %}{{ tarantool_directories.tarantool_mnt_path_data }}/{{ value.data_dir | replace('\n', '') }}{% endfor %}:/var/lib/tarantool"
+      #   - "{{ tarantool_directories.tarantool_mnt_new_data_schema_data }}/main:/usr/local/share/tarantool/"
+      #   - "{% for key, value in item.items() %}{{ tarantool_directories.tarantool_mnt_new_data_schema_data }}/current_migrations/{{ value.data_dir | replace('\n', '') }}{% endfor %}:/usr/local/share/tarantool/current_migrations"
+      ports:
+        - "{% for key, value in item.items() %}{% for host in groups['percona-cluster'] %}{% if host == inventory_hostname %}{{ value.port }}{% endif %}{% endfor %}{% endfor %}:3306"
+        # - "{% for key, value in item.items() %}{% for host in groups['percona-cluster'] %}{% if host == inventory_hostname %}{{ [value.metrics_port] | join }}{% endif %}{% endfor %}{% endfor %}:8080"
+      detach: True
+      state: started
+      env:
+          MYSQL_ROOT_PASSWORD: "{{ percona_root_password }}"
+          MYSQL_DATABASE: "{% for key, value in item.items() %}{% for host in groups['percona-cluster'] %}{% if host == inventory_hostname %}{{ key }}{% endif %}{% endfor %}{% endfor %}"
+  with_items:
+     - "{{ percona_mysql_exporter_databases }}"
+  when: inventory_hostname in groups['percona-cluster']

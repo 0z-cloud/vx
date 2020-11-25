@@ -1,0 +1,23 @@
+options {
+  listen-on port 5353 { {{ hostvars[inventory_hostname].ansible_default_ipv4.address }}; };
+  directory       "/etc/bind";
+  dump-file       "/etc/bind/data/cache_dump.db";
+  statistics-file "/etc/bind/data/named_stats.txt";
+  memstatistics-file "/etc/bind/data/named_mem_stats.txt";
+  forwarders {
+          8.8.8.8;
+          8.8.4.4;
+        };
+  allow-query { any; };
+  recursion yes;
+  dnssec-enable no;
+  dnssec-validation no;
+
+  auth-nxdomain no; 
+
+  /* Path to ISC DLV key */
+  bindkeys-file "/etc/named.iscdlv.key";
+
+  managed-keys-directory "/etc/bind/dynamic";
+
+};

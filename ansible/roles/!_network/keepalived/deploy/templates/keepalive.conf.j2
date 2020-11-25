@@ -1,0 +1,176 @@
+global_defs {
+   notification_email {
+        {{ unificated_keepalive_services.shared_settings.notification_email }}
+   }
+   notification_email_from {{ unificated_keepalive_services.shared_settings.notification_email }}
+   smtp_server {{ unificated_keepalive_services.shared_settings.smtp_server }}
+   smtp_connect_timeout {{ unificated_keepalive_services.shared_settings.smtp_connect_timeout }}
+   script_user root
+   # enable_script_security
+   router_id k8_{{ lb_router_name }}_{{ hostvars[inventory_hostname]['ansible_nodename'] }}
+   #lvs_id {{ hostvars[inventory_hostname]['ansible_nodename'] }}_{{ lb_router_name }}
+   #lvs_sync_daemon {{ lb_interface_02 }} GATEWAY
+
+}
+{% set global_config_catch_on_run = [] %}
+{% set global_script_catch_on_run = [] %}
+
+{% if unificated_keepalive_services.vrrp_script_services is defined %}
+
+        {% for dict_item in unificated_keepalive_services.vrrp_script_services %}
+
+                {% for key,value in dict_item.items() %}
+
+
+                        vrrp_script {{ key }}{% raw %} { 
+
+                                {% endraw %}
+
+                                {% if value['script'] is defined %}{% set global_script_catch_on_run = global_config_catch_on_run.append(value['script']) %}{% raw %}
+                                script "/etc/keepalived/{% endraw %}{{ value['script'] }}"
+                                {% endif %}
+
+                                {% if value['interval'] is defined %}
+                                interval {{ value['interval'] }}
+                                {% endif %}
+
+                                {% if value['timeout'] is defined %}
+                                timeout {{ value['timeout'] }}
+                                {% endif %}
+
+                                {% if value['fall'] is defined %}
+                                fall {{ value['fall'] }}
+                                {% endif %}
+
+                                {% if value['rise'] is defined %}
+                                rise {{ value['rise'] }}
+                                {% endif %}
+
+                                {% if value['weight'] is defined %}
+                                weight {{ value['weight'] }}
+                                {% endif %}
+
+
+                                {% raw %}
+                                }
+                                {% endraw %}
+                {% endfor %}
+
+        {% endfor %}
+
+{% endif %}
+# global_script_catch_on_run: {{ global_script_catch_on_run | join }}
+# global_config_catch_on_runl: {{ global_config_catch_on_run | join }}
+
+{% for dict_item in unificated_keepalive_services.vrrp_sync_group %}
+{% for k,v in dict_item.items() %}
+vrrp_sync_group {{ k }} {
+        group {  
+        {% for group_name in v %}
+        {{ group_name }}
+        {% endfor %}
+        }
+}
+{% endfor %}
+{% endfor %}
+
+{% for dict_item in unificated_keepalive_services.vrrp_sync_group %}
+{% for k,v in dict_item.items() %}
+{% for group_name in v %}
+vrrp_instance {{ group_name }} {
+        state {{ lb_router_role }}
+        # use_vmac
+        # vrrp_garp_master_delay 1
+{% for key, value in v.items() %}
+{% if key in group_name %}
+        interface {{ value['interface'] }}
+        lvs_sync_daemon {{ value['interface'] }} {{ group_name }}
+{% if value['lvs_sync_daemon_inteface'] == 'enabled' %}
+        # lvs_sync_daemon_inteface {{ value['interface'] }}
+        unicast_src_ip {{ hostvars[inventory_hostname].second_ip }}
+        unicast_peer { 
+        {% for host in ansible_play_hosts %}{% if host != inventory_hostname %}
+        {{ hostvars[host].second_ip }}
+        {% endif %}{% endfor %}{% raw %}
+        }
+        {% endraw %}{% endif %}{% if value['nopreempt'] == 'enabled' %}{% raw %}
+        nopreempt        
+{% endraw %}
+{% endif %}
+        virtual_router_id {{ value['virtual_router_id'] }}
+        priority {{ lb_router_priority }}
+        advert_int {{ lb_advert_int }}
+{% if value['smtp_alert'] == 'enabled' %}
+        smtp_alert
+{% endif %}{% raw %}
+        authentication {
+                auth_type PASS
+                auth_pass {% endraw %}{{ value['auth_pass'] }}{% raw %}
+        }
+{% endraw %}
+{% raw %}
+{% endraw %}{% if value['track_script'] is not defined %}{% raw %}
+        track_interface {
+                # interfaces to monitor
+                {% endraw %}{{ value['interface'] }}{% raw %} weight -2         
+                # eth1 weight -2
+        }
+        track_script {{% endraw %}{% raw %}
+                {% endraw %}{{ value['track_script'] }}{% raw %}
+        }{% endraw %}
+{% endif %}
+{% raw %}
+        virtual_ipaddress {
+{% endraw %}
+{% if value['virtual_ipaddress'] != 'get_by_backend_services' %}
+                {{ value['virtual_ipaddress'] }} dev {{ value['interface'] }}
+{% else %}
+{% for dict_item in unificated_keepalive_services.backend_services %}
+{% for a,b in dict_item|dictsort(['virtual_server']) if loop.changed(b['virtual_server']['ip']) %}
+{% if value['virtual_router_id'] == b['virtual_router_id'] %}
+                {{ b['virtual_server']['ipv4ws'] }}
+{% endif %}
+{% endfor %}{% endfor %}{% endif %}
+{% raw %}       }{% endraw %}{% endif %}
+
+{% endfor %}{% raw %}
+}
+{% endraw %}
+
+{% endfor %}                
+{% endfor %}
+{% endfor %}
+
+{% for dict_item in unificated_keepalive_services.backend_services %}
+{% for k,v in dict_item.items() %}
+# VirtialServer service: {{ k }}
+virtual_server {{ v['virtual_server']['ip'] }} {{ v['virtual_server']['port'] }} {% raw %}{
+{% endraw %}
+{% if v['delay_loop']['enabled'] == 'true' %}
+        delay_loop {{ v['delay_loop']['delay_loop'] }}
+{% endif %}
+        protocol {{ v['protocol'] }}
+        #lvs_sched {{ v['lvs_sched'] }}
+        lb_algo {{ v['lvs_sched'] }}
+        lb_kind {{ v['lb_kind'] }}
+{% if v['persistence_timeout']['enabled'] == 'true' %}
+        persistence_timeout {{ v['persistence_timeout']['persistence_timeout'] }}
+{% endif %}
+{% for host in groups[v['backend_server']['group']] %}
+        real_server {% if v['network_zone_publication_type'] == "private" %}{{ hostvars[host]['second_ip'] | safe }}{% else %}{% if v['network_zone_publication_type'] == "public" %}{{ hostvars[host]['ansible_default_ipv4']['address'] | safe }}{% endif %}{% endif %} {{ v['virtual_server']['port'] }} {% raw %}{
+{% endraw %}{% if v['virtual_server']['weight'] is defined %}{% raw %}
+                weight {% endraw %}{{ v['virtual_server']['weight'] }}
+{% endif %}
+                {{ v['virtual_server']['check'] }} {% raw %}{
+{% endraw %}
+                        connect_timeout {{ v['backend_server']['connect_timeout'] }}
+                        connect_port {{ v['backend_server']['connect_port'] }}
+                {% raw %}}{% endraw %}        
+        {% raw %}}
+{% endraw %}
+{% endfor %}
+{% raw %}}
+{% endraw %}
+
+{% endfor %}
+{% endfor %}

@@ -1,0 +1,32 @@
+<VirtualHost 10.1.1.231:443>
+  ServerName gateway.vortex.co
+
+    SSLEngine on
+    SSLCompression off
+    SSLCipherSuite "HIGH:!aNULL:!MD5:!3DES:!CAMELLIA:!AES128"
+    SSLHonorCipherOrder on
+    SSLProtocol TLSv1.1 TLSv1.2
+    SSLCertificateFile /etc/apache2/ssl/2015/new/server.crt
+    SSLCertificateKeyFile /etc/apache2/ssl/2015/new/server.key
+
+    ErrorLog /var/log/apache2/gateway.vortex.com-error.log
+    CustomLog /var/log/apache2/gateway.vortex.com-access.log combined
+    CustomLog /var/log/apache2/access_ssl.log sslaccesslog
+
+#RewriteRule ^/(.+)$ http://10.1.0.3:8080/front_web/gate/$1 [P]
+
+#  ProxyRequests Off
+#  ProxyPreserveHost On
+
+ProxyPreserveHost On
+  <Proxy *>
+    Order deny,allow
+    Allow from all
+  </Proxy>
+
+ProxyPass / http://10.1.0.3:8080/front_web/gate
+ProxyPassReverse / http://10.1.0.3:8080/front_web/gate
+ProxyPassReverseCookiePath / http://10.1.0.3:8080/front_web/gate
+
+
+</VirtualHost>

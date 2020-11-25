@@ -1,0 +1,235 @@
+version: '3.4'
+x-restart-policy: &restart_policy
+  restart: unless-stopped
+x-sentry-defaults: &sentry_defaults
+  << : *restart_policy
+  build:
+    context: ./sentry
+    args:
+      - SENTRY_IMAGE
+  image: sentry-onpremise-local
+  depends_on:
+    - redis
+    - postgres
+    - memcached
+    - smtp
+    - snuba-api
+    - snuba-consumer
+    - snuba-replacer
+    - symbolicator
+    - kafka
+  environment:
+    SNUBA: 'http://snuba-api:1218'
+  volumes:
+    - '/cloud_storage/cloud-bind-frontend-dns-glusterfs-storage/sentry/sentry-data:/data'
+x-snuba-defaults: &snuba_defaults
+  << : *restart_policy
+  depends_on:
+    - redis
+    - clickhouse
+    - kafka
+  image: 'getsentry/snuba:latest'
+  environment:
+    SNUBA_SETTINGS: docker
+    CLICKHOUSE_HOST: clickhouse
+    DEFAULT_BROKERS: 'kafka:9092'
+    REDIS_HOST: redis
+    # TODO: Remove these after getsentry/snuba#353
+    UWSGI_MAX_REQUESTS: '10000'
+    UWSGI_DISABLE_LOGGING: 'true'
+    UWSGI_ENABLE_THREADS: 'true'
+    UWSGI_DIE_ON_TERM: 'true'
+    UWSGI_NEED_APP: 'true'
+    UWSGI_IGNORE_SIGPIPE: 'true'
+    UWSGI_IGNORE_WRITE_ERRORS: 'true'
+    UWSGI_DISABLE_WRITE_EXCEPTION:  'true'
+services:
+  smtp:
+    << : *restart_policy
+    image: tianon/exim4
+    volumes:
+      - '/cloud_storage/cloud-bind-frontend-dns-glusterfs-storage/sentry/sentry-smtp:/var/spool/exim4'
+      - '/cloud_storage/cloud-bind-frontend-dns-glusterfs-storage/sentry/sentry-smtp-log:/var/log/exim4'
+  memcached:
+    << : *restart_policy
+    image: 'memcached:1.5-alpine'
+  redis:
+    << : *restart_policy
+    image: 'redis:5.0-alpine'
+    volumes:
+      - '/cloud_storage/cloud-bind-frontend-dns-glusterfs-storage/sentry/sentry-redis:/data'
+  postgres:
+    << : *restart_policy
+    image: 'postgres:9.6'
+    volumes:
+      - '/cloud_storage/cloud-bind-frontend-dns-glusterfs-storage/sentry/sentry-postgres:/var/lib/postgresql/data'
+  zookeeper:
+    << : *restart_policy
+    image: 'confluentinc/cp-zookeeper:5.1.2'
+    environment:
+      ZOOKEEPER_CLIENT_PORT: '2181'
+      CONFLUENT_SUPPORT_METRICS_ENABLE: 'false'
+      ZOOKEEPER_LOG4J_ROOT_LOGLEVEL: 'WARN'
+      ZOOKEEPER_TOOLS_LOG4J_LOGLEVEL: 'WARN'
+    volumes:
+      - '/cloud_storage/cloud-bind-frontend-dns-glusterfs-storage/sentry/sentry-zookeeper:/var/lib/zookeeper/data'
+      - '/cloud_storage/cloud-bind-frontend-dns-glusterfs-storage/sentry/sentry-zookeeper-log:/var/lib/zookeeper/log'
+      - '/cloud_storage/cloud-bind-frontend-dns-glusterfs-storage/sentry/sentry-secrets:/etc/zookeeper/secrets'
+  kafka:
+    << : *restart_policy
+    depends_on:
+      - zookeeper
+    image: 'confluentinc/cp-kafka:5.1.2'
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:9092'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: '1'
+      CONFLUENT_SUPPORT_METRICS_ENABLE: 'false'
+      KAFKA_LOG4J_LOGGERS: 'kafka.cluster=WARN,kafka.controller=WARN,kafka.coordinator=WARN,kafka.log=WARN,kafka.server=WARN,kafka.zookeeper=WARN,state.change.logger=WARN'
+      KAFKA_LOG4J_ROOT_LOGLEVEL: 'WARN'
+      KAFKA_TOOLS_LOG4J_LOGLEVEL: 'WARN'
+    volumes:
+      - '/cloud_storage/cloud-bind-frontend-dns-glusterfs-storage/sentry/sentry-kafka:/var/lib/kafka/data'
+      - '/cloud_storage/cloud-bind-frontend-dns-glusterfs-storage/sentry/sentry-kafka-log:/var/lib/kafka/log'
+      - '/cloud_storage/cloud-bind-frontend-dns-glusterfs-storage/sentry/sentry-secrets:/etc/kafka/secrets'
+  clickhouse:
+    << : *restart_policy
+    image: 'yandex/clickhouse-server:19.11'
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    volumes:
+      - '/cloud_storage/cloud-bind-frontend-dns-glusterfs-storage/sentry/sentry-clickhouse:/var/lib/clickhouse'
+  snuba-api:
+    << : *snuba_defaults
+  snuba-consumer:
+    << : *snuba_defaults
+    command: consumer --auto-offset-reset=latest --max-batch-time-ms 750
+  snuba-replacer:
+    << : *snuba_defaults
+    command: replacer --auto-offset-reset=latest --max-batch-size 3
+  snuba-cleanup:
+    << : *snuba_defaults
+    image: snuba-cleanup-onpremise-local
+    build:
+      context: ./cron
+      args:
+        BASE_IMAGE: 'getsentry/snuba:latest'
+    command: '"*/5 * * * * gosu snuba snuba cleanup --dry-run False"'
+  symbolicator:
+    << : *restart_policy
+    image: 'getsentry/symbolicator:latest'
+    volumes:
+      - '/cloud_storage/cloud-bind-frontend-dns-glusterfs-storage/sentry/sentry-symbolicator:/data'
+    command: run
+  symbolicator-cleanup:
+    image: symbolicator-cleanup-onpremise-local
+    build:
+      context: ./cron
+      args:
+        BASE_IMAGE: 'getsentry/symbolicator:latest'
+    command: '"55 23 * * * gosu symbolicator symbolicator cleanup"'
+    volumes:
+      - '/cloud_storage/cloud-bind-frontend-dns-glusterfs-storage/sentry/sentry-symbolicator:/data'
+  web:
+    << : *sentry_defaults
+    ports:
+      - '14231:9000/tcp'
+    environment:
+      SENTRY_REDIS_HOST: redis
+      SENTRY_SECRET_KEY: a-really-lonvaluesadqqDQADAFASFASCCVaAADg-secret-valuesadqqDQADAFASFASCCVaAAD
+      SENTRY_POSTGRES_HOST: postgres
+      SENTRY_POSTGRES_PORT: 5432
+      SENTRY_MEMCACHED_HOST: memcached
+      SENTRY_DB_NAME: sentry
+      SENTRY_DB_USER: postgres
+      SENTRY_DB_PASSWORD: postgres
+      #  SENTRY_RABBITMQ_HOST
+      #  SENTRY_RABBITMQ_USERNAME
+      #  SENTRY_RABBITMQ_PASSWORD
+      #  SENTRY_RABBITMQ_VHOST
+      #  SENTRY_REDIS_HOST
+      #  SENTRY_REDIS_PASSWORD
+      #  SENTRY_REDIS_PORT
+      #  SENTRY_REDIS_DB
+      #  SENTRY_MEMCACHED_PORT
+      #  SENTRY_FILESTORE_DIR
+      #  SENTRY_SERVER_EMAIL
+      #  SENTRY_EMAIL_HOST
+      #  SENTRY_EMAIL_PORT
+      #  SENTRY_EMAIL_USER
+      #  SENTRY_EMAIL_PASSWORD
+      #  SENTRY_EMAIL_USE_TLS
+      #  SENTRY_ENABLE_EMAIL_REPLIES
+      #  SENTRY_SMTP_HOSTNAME
+      #  SENTRY_MAILGUN_API_KEY
+      #  SENTRY_SINGLE_ORGANIZATION
+      #  SENTRY_SECRET_KEY
+  cron:
+    << : *sentry_defaults
+    command: run cron
+    environment:
+      SENTRY_REDIS_HOST: redis
+      SENTRY_SECRET_KEY: a-really-lonvaluesadqqDQADAFASFASCCVaAADg-secret-valuesadqqDQADAFASFASCCVaAAD
+      SENTRY_POSTGRES_HOST: postgres
+      SENTRY_POSTGRES_PORT: 5432
+      SENTRY_MEMCACHED_HOST: memcached
+      SENTRY_DB_NAME: sentry
+      SENTRY_DB_USER: postgres
+      SENTRY_DB_PASSWORD: postgres
+      C_FORCE_ROOT: enabled
+  worker:
+    << : *sentry_defaults
+    command: run worker
+    environment:
+      SENTRY_REDIS_HOST: redis
+      SENTRY_SECRET_KEY: a-really-lonvaluesadqqDQADAFASFASCCVaAADg-secret-valuesadqqDQADAFASFASCCVaAAD
+      SENTRY_POSTGRES_HOST: postgres
+      SENTRY_POSTGRES_PORT: 5432
+      SENTRY_MEMCACHED_HOST: memcached
+      SENTRY_DB_NAME: sentry
+      SENTRY_DB_USER: postgres
+      SENTRY_DB_PASSWORD: postgres
+      C_FORCE_ROOT: enabled
+  post-process-forwarder:
+    << : *sentry_defaults
+    # Increase `--commit-batch-size 1` below to deal with high-load environments.
+    command: run post-process-forwarder --commit-batch-size 1
+    environment:
+      SENTRY_REDIS_HOST: redis
+      SENTRY_SECRET_KEY: a-really-lonvaluesadqqDQADAFASFASCCVaAADg-secret-valuesadqqDQADAFASFASCCVaAAD
+      SENTRY_POSTGRES_HOST: postgres
+      SENTRY_POSTGRES_PORT: 5432
+      SENTRY_MEMCACHED_HOST: memcached
+      SENTRY_DB_NAME: sentry
+      SENTRY_DB_USER: postgres
+      SENTRY_DB_PASSWORD: postgres
+  sentry-cleanup:
+    << : *sentry_defaults
+    image: sentry-cleanup-onpremise-local
+    build:
+      context: ./cron
+      args:
+        BASE_IMAGE: 'sentry-onpremise-local'
+    command: '"0 0 * * * gosu sentry sentry cleanup --days 60"'
+volumes:
+  sentry-data:
+    external: true
+  sentry-postgres:
+    external: true
+  sentry-redis:
+    external: true
+  sentry-zookeeper:
+    external: true
+  sentry-kafka:
+    external: true
+  sentry-clickhouse:
+    external: true
+  sentry-symbolicator:
+    external: true
+  sentry-secrets:
+  sentry-smtp:
+  sentry-zookeeper-log:
+  sentry-kafka-log:
+  sentry-smtp-log:

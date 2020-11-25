@@ -1,0 +1,243 @@
+    - name: Login into vCenter and get cookies
+      uri:
+        url: "{{ anycloud_adapter_api_url_http_uri }}/rest/com/vmware/cis/session"
+        force_basic_auth: yes
+        validate_certs: no
+        method: POST
+        user: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+      register: login
+
+    - name: Get all hosts from vCenter using cookies from last task
+      uri:
+        url: "{{ anycloud_adapter_api_url_http_uri }}/rest/vcenter/host"
+        force_basic_auth: yes
+        validate_certs: no
+        headers:
+          Cookie: "{{ login.set_cookie }}"
+      register: vchosts
+
+    - name: Debug dataset cluster_uuid
+      debug:
+        msg: "{{ vchosts.json.value }}"
+
+    - name: Change Log level configuration of the given hostsystem
+      vmware_host_config_manager:
+        hostname: "{{ vcenter_server }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_pass }}"
+        esxi_hostname: "{{ item.name }}"
+        options:
+          'Config.HostAgent.log.level': 'error'
+        validate_certs: no
+      loop: "{{ vchosts.json.value }}"
+      register: host_config_results
+
+    # - name: Get VSAN Cluster UUID from host facts
+    #   community.vmware.vmware_host_facts:
+    #     hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+    #     username: "{{ anycloud_adapter_api_user }}"
+    #     password: "{{ anycloud_adapter_api_password }}"
+    #     # datacenter: "{{ anycloud_adapter_api_datacenter }}"
+    #     # esxi_hostname: "{{ anycloud_adapter_api_datacenter }}"
+    #     esxi_hostname: "{{ anycloud_adapter_api_datacenter }}"
+    #     validate_certs: no
+    #   register: host_facts
+
+    # - name: Register cluster VSAN UUID
+    #   set_fact:
+    #     cluster_uuid: "{{ host_facts['ansible_facts']['vsan_cluster_uuid'] }}"
+
+
+    # - name: Debug dataset cluster_uuid
+    #   debug:
+    #     msg: "{{ cluster_uuid }}"
+
+
+    - name: Gather info about vCenter Extensions
+      community.vmware.vcenter_extension_info:
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        validate_certs: no
+      register: ext_info
+      delegate_to: localhost
+
+
+    - name: Gather cluster info from given datacenter
+      community.vmware.vmware_cluster_info:
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        datacenter: "{{ anycloud_adapter_api_datacenter }}"
+        validate_certs: no
+        schema: vsphere
+      register: cluster_info
+
+    - name: Debug dataset cluster_info
+      debug:
+        msg: "{{ cluster_info }}"
+
+    - name: Make the folder on vCenter vSphere
+      vcenter_folder:
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        validate_certs: "no"
+        datacenter: "{{ anycloud_adapter_api_datacenter }}"
+        folder_name: "{{ vsphere_folder }}"
+        folder_type: vm
+        state: present
+      # delegate_to: localhost
+      register: vm_folder_creation_result
+
+
+
+    - name: Debug dataset
+      debug:
+        msg: "{{ item.value.vsphere }}"
+      when: "'hypervisor' in item.key"
+      with_dict: "{{ cloud_bootstrap.clusters }}"
+
+    - name: Set the cluster variable by set_fact  
+      set_fact:
+        anycloud_hypervisor_cluster: "{{ item.value.vsphere }}"
+      when: "'hypervisor' in item.key"
+      with_dict: "{{ cloud_bootstrap.clusters }}"
+
+    - name: Create Cluster
+      community.vmware.vmware_cluster:
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        validate_certs: no
+        datacenter_name: "{{ anycloud_adapter_api_datacenter }}"
+        cluster_name: "{{ anycloud_hypervisor_cluster.lower() }}"
+        enable_ha: yes
+        enable_drs: yes
+        enable_vsan: yes
+      when: "'hypervisor' in item.key"
+      with_dict: "{{ cloud_bootstrap.clusters }}"
+
+    - name: Create a Resource Pool
+      vmware_resource_pool:
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        validate_certs: no
+        datacenter: "{{ anycloud_adapter_api_datacenter }}"
+        cluster: "{{ anycloud_hypervisor_cluster.lower() }}"
+        resource_pool: "{{ vsphere_resourcepool | default('non_prod') }}"
+        mem_shares: normal
+        mem_limit: -1
+        mem_reservation: 0
+        mem_expandable_reservations: yes
+        cpu_shares: normal
+        cpu_limit: -1
+        cpu_reservation: 0
+        cpu_expandable_reservations: yes
+        state: present
+      register: vm_rp_creation_result
+      when: "'hypervisor' in item.key"
+      with_dict: "{{ cloud_bootstrap.clusters }}"
+
+    - name: Debug dataset
+      debug:
+        msg: "{{ item.value['vsphere'] }}"
+      when: "'hypervisor' in item.key"
+      with_dict: "{{ cloud_bootstrap.clusters }}"
+
+    - name: Debug dataset
+      debug:
+        msg: "{{ item.value['vsphere'] }}"
+      when: "'ansible_inventory_vars' in item.key"
+      with_dict: "{{ cloud_bootstrap.servers }}"
+
+
+
+    # - name: Debug dataset
+    #   debug:
+    #     msg: "{{ item.value['vsphere'] }}"
+    #   when: "'ansible_inventory_vars' in item.value"
+    #   with_dict: "{{ cloud_bootstrap.clusters }}"
+    # {{ lookup('vars', 'passed_ci_docker_tag_' + app) }}
+  
+    - name: VM Deployment
+      vmware_guest:
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        validate_certs: no
+        datacenter: "{{ anycloud_adapter_api_datacenter }}"
+        
+        # cluster: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        resource_pool: "{{ item.value.ansible_resource_pool | default('non_prod') }}"
+        wait_for_customization: yes
+        wait_for_customization_timeout: 600
+        wait_for_ip_address: yes
+        wait_for_ip_address_timeout: 600
+        folder: "{{ vsphere_folder }}"
+        name: "{{ item.value.name }}"
+        template: "{{ item.value.anycloud_vm_template_name }}"
+        state: poweredon
+        networks:
+        - name: "{{ item.value.network_name }}"
+          label: "public"
+          ip: "{{ item.value.ip }}"
+          netmask: "{{ item.value.network_subnet }}"
+          gateway: "{{ item.value.gw }}"
+          mac: "{{ lookup('random_mac') }}"
+          domain: "{{ anycloud_domain_result }}"
+          dns_servers: "{{ anycloud_results_vpc_zone_virtual_abstract.dns_servers }}"
+          start_connected: True
+          type: static
+        - name: "{{ item.value.ansible_inventory_vars }}
+        
+        
+        
+        [second_network] }}-private"
+          ip: "{{ cloud_bootstrap.servers.[item].[ansible_inventory_vars][second_ip] }}"
+          netmask: "{{ cloud_bootstrap.servers.[item].[ansible_inventory_vars][second_network_subnet] }}"
+          mac: "{{ lookup('random_mac') }}"
+          label: "private"
+          start_connected: True
+          type: static
+          mac: "{{ lookup('random_mac') }}"
+        customization:
+          dns_servers:
+          - "{{ guest_dns_server }}"
+          domain: "{{ consul_public_domain }}"
+          hostname: "{{ item.value.name }}"
+      register: deploy_vm
+      with_dict: "{{ cloud_bootstrap.servers }}"
+
+
+
+    - vsphere_guest:
+        vcenter_hostname: emea-esx-s18t.sddc-hwl-family.net
+        username: root
+        password: HWL-sddc
+        guest: newvm001
+        state: powered_off
+        vm_extra_config:
+          vcpu.hotadd: yes
+          mem.hotadd:  yes
+          notes: This is a test VM
+        vm_disk:
+          disk1:
+            size_gb: 10
+            type: thin
+            datastore: gmh-040-data-esx-sddc
+        vm_nic:
+          nic1:
+            type: vmxnet3
+            network: VM Network
+            network_type: standard
+        vm_hardware:
+          memory_mb: 4096
+          num_cpus: 4
+          osid: windows7Server64Guest
+          scsi: paravirtual
+        esxi:
+          datacenter: MyDatacenter
+          hostname: esx-s18t.sddc-hwl-family.net

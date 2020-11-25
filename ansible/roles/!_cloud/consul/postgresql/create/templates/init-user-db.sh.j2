@@ -1,0 +1,139 @@
+#!/bin/bash
+
+set -e
+#### Setup POWERDNS DB
+
+{% for item in powerdns_postgresql_settings.database %}
+
+if psql --username={{ powerdns_postgresql_settings.user }} -lqt | cut -d \| -f 1 | grep -qw {{ item }}; then
+    echo "true"
+    echo "Database {{ item }} already exists"
+    echo "Start flush database security settings"
+    psql -v ON_ERROR_STOP=1 --username "{{ powerdns_postgresql_settings.user }}" <<-EOSQL
+        \c {{ item }}
+        GRANT ALL PRIVILEGES ON DATABASE {{ item }} TO {{ powerdns_postgresql_settings.user }};
+EOSQL
+    echo "Check DB Done - {{ item }}"
+else
+    psql -v ON_ERROR_STOP=1 --username "{{ powerdns_postgresql_settings.user }}" <<-EOSQL
+        CREATE DATABASE {{ item }};
+        \c {{ item }}
+        GRANT ALL PRIVILEGES ON DATABASE {{ item }} TO {{ powerdns_postgresql_settings.user }};
+EOSQL
+    echo "Create DB Done - {{ item }}"
+    echo "Go create tables..."
+    psql -v ON_ERROR_STOP=1 --username "{{ powerdns_postgresql_settings.user }}" --dbname "{{ item }}" <<-EOSQL
+    GRANT ALL PRIVILEGES ON DATABASE {{ item }} TO {{ powerdns_postgresql_settings.user }};
+    \c {{ item }}
+    CREATE TABLE domains (
+      id                    SERIAL PRIMARY KEY,
+      name                  VARCHAR(255) NOT NULL,
+      master                VARCHAR(128) DEFAULT NULL,
+      last_check            INT DEFAULT NULL,
+      type                  VARCHAR(6) NOT NULL,
+      notified_serial       INT DEFAULT NULL,
+      account               VARCHAR(40) DEFAULT NULL,
+      CONSTRAINT c_lowercase_name CHECK (((name)::TEXT = LOWER((name)::TEXT)))
+    );
+    CREATE UNIQUE INDEX name_index ON domains(name);
+    CREATE TABLE records (
+      id                    SERIAL PRIMARY KEY,
+      domain_id             INT DEFAULT NULL,
+      name                  VARCHAR(255) DEFAULT NULL,
+      type                  VARCHAR(10) DEFAULT NULL,
+      content               VARCHAR(65535) DEFAULT NULL,
+      ttl                   INT DEFAULT NULL,
+      prio                  INT DEFAULT NULL,
+      change_date           INT DEFAULT NULL,
+      disabled              BOOL DEFAULT 'f',
+      ordername             VARCHAR(255),
+      auth                  BOOL DEFAULT 't',
+      CONSTRAINT domain_exists
+      FOREIGN KEY(domain_id) REFERENCES domains(id)
+      ON DELETE CASCADE,
+      CONSTRAINT c_lowercase_name CHECK (((name)::TEXT = LOWER((name)::TEXT)))
+    );
+    CREATE INDEX rec_name_index ON records(name);
+    CREATE INDEX nametype_index ON records(name,type);
+    CREATE INDEX domain_id ON records(domain_id);
+    CREATE INDEX recordorder ON records (domain_id, ordername text_pattern_ops);
+    CREATE TABLE supermasters (
+      ip                    INET NOT NULL,
+      nameserver            VARCHAR(255) NOT NULL,
+      account               VARCHAR(40) NOT NULL,
+      PRIMARY KEY(ip, nameserver)
+    );
+    CREATE TABLE comments (
+      id                    SERIAL PRIMARY KEY,
+      domain_id             INT NOT NULL,
+      name                  VARCHAR(255) NOT NULL,
+      type                  VARCHAR(10) NOT NULL,
+      modified_at           INT NOT NULL,
+      account               VARCHAR(40) DEFAULT NULL,
+      comment               VARCHAR(65535) NOT NULL,
+      CONSTRAINT domain_exists
+      FOREIGN KEY(domain_id) REFERENCES domains(id)
+      ON DELETE CASCADE,
+      CONSTRAINT c_lowercase_name CHECK (((name)::TEXT = LOWER((name)::TEXT)))
+    );
+    CREATE INDEX comments_domain_id_idx ON comments (domain_id);
+    CREATE INDEX comments_name_type_idx ON comments (name, type);
+    CREATE INDEX comments_order_idx ON comments (domain_id, modified_at);
+    CREATE TABLE domainmetadata (
+      id                    SERIAL PRIMARY KEY,
+      domain_id             INT REFERENCES domains(id) ON DELETE CASCADE,
+      kind                  VARCHAR(32),
+      content               TEXT
+    );
+    CREATE INDEX domainidmetaindex ON domainmetadata(domain_id);
+    CREATE TABLE cryptokeys (
+      id                    SERIAL PRIMARY KEY,
+      domain_id             INT REFERENCES domains(id) ON DELETE CASCADE,
+      flags                 INT NOT NULL,
+      active                BOOL,
+      content               TEXT
+    );
+    CREATE INDEX domainidindex ON cryptokeys(domain_id);
+    CREATE TABLE tsigkeys (
+      id                    SERIAL PRIMARY KEY,
+      name                  VARCHAR(255),
+      algorithm             VARCHAR(50),
+      secret                VARCHAR(255),
+      CONSTRAINT c_lowercase_name CHECK (((name)::TEXT = LOWER((name)::TEXT)))
+    );
+    CREATE UNIQUE INDEX namealgoindex ON tsigkeys(name, algorithm);
+    INSERT INTO domains (name, type) VALUES ('{{ merge_consul_domain }}', 'MASTER');
+EOSQL
+    echo "Create Tables in PowerDNS DB Done"
+fi
+
+{% endfor %}
+
+#### Setup POWERDNS ADMINS DB
+
+{% for item in powerdns_postgresql_settings.web_ui_db %}
+
+## SETUP DB NAME {{ item }};
+
+if psql --username={{ powerdns_postgresql_settings.user }} -lqt | cut -d \| -f 1 | grep -qw {{ item }}; then
+    echo "true"
+    echo "Database {{ item }} already exists"
+    echo "Start flush database security settings"
+    psql -v ON_ERROR_STOP=1 --username "{{ powerdns_postgresql_settings.user }}" <<-EOSQL
+        \c {{ item }}
+        GRANT ALL PRIVILEGES ON DATABASE {{ item }} TO {{ powerdns_postgresql_settings.user }};
+EOSQL
+    echo "Check DB Done - {{ item }}"
+else
+    psql -v ON_ERROR_STOP=1 --username "{{ powerdns_postgresql_settings.user }}" <<-EOSQL
+        CREATE DATABASE {{ item }};
+        \c {{ item }}
+        GRANT ALL PRIVILEGES ON DATABASE {{ item }} TO {{ powerdns_postgresql_settings.user }};
+EOSQL
+    echo "Create DB Complete - {{ item }}"
+fi
+
+{% endfor %}
+
+rm -r /var/lib/postgresql/data/pgdata/postgresql.conf
+cp /quake/postgresql.conf /var/lib/postgresql/data/pgdata/postgresql.conf

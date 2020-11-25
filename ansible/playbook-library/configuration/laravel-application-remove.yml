@@ -1,0 +1,40 @@
+- name: Removing laravel application packages playbook
+  hosts: "{{ HOSTS }}"
+  become: true
+
+  tasks:
+    - name: "Remove Supervisor"
+      apt:
+        name: supervisor
+        state: absent
+
+    - name: "Remove PHP packages"
+      apt:
+        name: "{{ packages }}"
+        state: absent
+        purge: yes
+      vars:
+        packages:
+        - libapache2-mod-php7.2
+        - php-common
+        - php-igbinary
+        - php-imagick
+        - php-memcached
+        - php-msgpack
+        - php7.2
+        - php7.2-bcmath
+        - php7.2-cli
+        - php7.2-common
+        - php7.2-curl
+        - php7.2-gd
+        - php7.2-imap
+        - php7.2-intl
+        - php7.2-json
+        - php7.2-mbstring
+        - php7.2-mysql
+        - php7.2-opcache
+        - php7.2-readline
+        - php7.2-soap
+        - php7.2-sqlite3
+        - php7.2-xml
+        - php7.2-zip

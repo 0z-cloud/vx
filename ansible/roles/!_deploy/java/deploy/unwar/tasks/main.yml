@@ -1,0 +1,133 @@
+- name: Debug j_jar_name
+  debug:
+    msg: "{{ j_jar_name }}"
+
+- name: Unwar artifacts contents
+  unarchive:
+    src: "{{ RELEASE_DIRECTORY }}/{{ j_jar_name }}"
+    dest: "{{ RELEASE_DIRECTORY }}"
+    remote_src: yes
+  when: configuration_update_only is not defined
+
+- name: Remove war after extracts
+  shell: "rm {{ RELEASE_DIRECTORY }}/{{ j_jar_name }}" 
+  when: configuration_update_only is not defined
+
+- name: Debug j_app_processing_properties
+  debug:
+    msg: "{{ j_app_processing_properties }}"
+  when: j_app_processing_properties is defined
+
+- name: Debug 3DS_MPI_UPLOAD
+  debug:
+    msg: "{{ THREE_DS_MPI_UPLOAD }}"
+  when: THREE_DS_MPI_UPLOAD is defined
+
+- name: Debug j_p_app_processing_properties
+  debug:
+    msg: "{{ j_p_app_processing_properties }}"
+  when: j_p_app_processing_properties is defined
+
+- name: Debug l_app_processing_properties
+  debug:
+    msg: "{{ l_app_processing_properties }}"
+  when: l_app_processing_properties is defined
+
+- name: Debug w_app_processing_properties
+  debug:
+    msg: "{{ w_app_processing_properties }}"
+  when: w_app_processing_properties is defined
+
+- name: Debug c_app_processing_properties
+  debug:
+    msg: "{{ c_app_processing_properties }}"
+  when: c_app_processing_properties is defined
+
+- name: Debug j_vortex_app_processing_properties
+  debug:
+    msg: "{{ j_vortex_app_processing_properties }}"
+  when: j_vortex_app_processing_properties is defined
+
+- name: Generate the context.xml
+  template:
+    src: context.xml.j2
+    dest: "{{ RELEASE_DIRECTORY }}/META-INF/context.xml"
+  when: c_app_processing_properties is defined
+  
+- name: Generate the web.xml
+  template:
+    src: web.xml.j2
+    dest: "{{ RELEASE_DIRECTORY }}/WEB-INF/web.xml"
+  when: w_app_processing_properties is defined
+
+- name: Generate the log4j.properties
+  template:
+    src: log4j.xml.j2
+    dest: "{{ RELEASE_DIRECTORY }}/WEB-INF/classes/log4j.properties"
+  when: l_app_processing_properties is defined
+  
+- name: Generate the processing.properties
+  template:
+    src: processing.properties.j2
+    dest: "{{ RELEASE_DIRECTORY }}/WEB-INF/classes/processing.properties"
+  when: j_p_app_processing_properties is defined
+
+- name: Generate the vortex.properties
+  template:
+    src: vortex.properties.j2
+    dest: "{{ RELEASE_DIRECTORY }}/WEB-INF/classes/vortex.properties"
+  when: j_vortex_app_processing_properties is defined
+
+# 3DS MPI UPLOAD LICENSE
+
+- name: Remove unwanted filese from release
+  file:
+    path: "{{ RELEASE_DIRECTORY }}/WEB-INF/lib/{{ item }}"
+    state: absent
+  with_items: "{{ THREE_DS_MPI_UNWANTED_FILES }}"
+  when: THREE_DS_MPI_UPLOAD is defined
+
+- name: Copy 3DS MPI License files for application
+  copy:
+      src: "{{ item }}"
+      dest: "{{ RELEASE_DIRECTORY }}/WEB-INF/lib/"
+      owner: tomcat11
+      group: tomcat11
+      mode: 0755
+  with_fileglob:
+    - "files/libs/{{ j_application_name }}/{{ hostvars[inventory_hostname].java_logs_node_prefix }}/*"
+  when: THREE_DS_MPI_UPLOAD is defined
+
+#
+
+- name: Delete shared directories from tomcat
+  file:
+    path: "{{ JAVA_TARGET_DIRECTORY }}"
+    state: absent
+  when: configuration_update_only is not defined
+
+- name: Symlink shared directories
+  file:
+    src: "{{ RELEASE_DIRECTORY }}"
+    dest: "{{ JAVA_TARGET_DIRECTORY }}"
+    owner: "{{ RELEASE_OWNER }}"
+    group: "{{ RELEASE_GROUP }}"
+    state: link
+    mode: 0775
+  when: configuration_update_only is not defined
+
+- name: Chown raw
+  raw: "chown -R {{ RELEASE_OWNER }}:{{ RELEASE_GROUP }} {{ JAVA_TARGET_DIRECTORY}}/*"
+  when: configuration_update_only is not defined
+
+## Certificates upload
+
+- name: Copy cert files for application
+  copy:
+      src: "{{ item }}"
+      dest: "{{ j_target_cert_path }}/"
+      owner: tomcat11
+      group: tomcat11
+      mode: 0755
+  with_fileglob:
+    - "files/certs/{{ j_application_name }}/*"

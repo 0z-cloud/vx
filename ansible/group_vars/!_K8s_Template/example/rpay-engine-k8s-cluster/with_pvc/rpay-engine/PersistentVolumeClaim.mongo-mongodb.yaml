@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    pv.kubernetes.io/bind-completed: "yes"
+    pv.kubernetes.io/bound-by-controller: "yes"
+    volume.beta.kubernetes.io/storage-provisioner: openebs.io/local
+    volume.kubernetes.io/selected-node: worker1
+  creationTimestamp: null
+  finalizers:
+  - kubernetes.io/pvc-protection
+  labels:
+    app: mongodb
+    chart: mongodb-5.0.0
+    heritage: Tiller
+    io.cattle.field/appId: mongo
+    release: mongo
+  name: mongo-mongodb
+  selfLink: /api/v1/namespaces/rpay-engine/persistentvolumeclaims/mongo-mongodb
+spec:
+  accessModes:
+  - ReadWriteOnce
+  dataSource: null
+  resources:
+    requests:
+      storage: 8Gi
+  storageClassName: openebs-hostpath
+  volumeMode: Filesystem
+  volumeName: pvc-6ba1dd2d-a01a-11e9-890b-b42e994820d9
+status: {}

@@ -1,0 +1,103 @@
+---
+
+#
+# Installation
+#
+pla_packages:
+  - git
+  - php5-ldap
+
+pla_repo:     "https://github.com/leenooks/phpLDAPadmin"
+pla_dir:      /var/www/ldap.vortex.com/current/public/
+pla_tmp_dir:  /var/www/ldap.vortex.com/current/public/tmp
+
+pla_user: www-data
+pla_group: www-data
+
+#
+# Localization
+#
+
+pla_language: auto
+pla_timezone: ~ # Leave blank for UTC.
+
+#
+# Appearance
+#
+pla_minimal_mode: false
+
+
+#
+# User-friendly attributes
+#
+
+#
+# Hidden attributes
+#
+
+#
+# Readonly behavior
+#
+pla_readonly: false
+
+#
+# Group attributes
+#
+
+#
+# Performance
+#
+pla_timelimit: 30
+
+
+#
+# LDAP Server
+#
+pla_server_name: "My LDAP Server"
+pla_server_host: "127.0.0.1"
+pla_server_port: 389
+pla_server_use_tls: false
+
+
+#
+# Login Security
+#
+pla_auth_type: session          # one of: cookie, session, http, config, sasl
+pla_blowfish_passphrase: false      # set to long, random string if using pla_auth_type 'cookie'
+
+# Login ID & password are used to bind to LDAP *before* the end-user
+# has logged in.  If you intend to use anonymous bind here, then leave
+# these both blank.
+pla_login_id: ~
+pla_login_password: ~
+pla_login_attr: dn              # Attribute to search for login IDs.  Only if pla_auth_type is 'cookie' or 'session'
+pla_login_classes: ~            # Array of objectClass values to search for logins.
+pla_login_fallback_dn: false    # Fallback to DN if original login attribute not found.
+
+pla_hash_method: ~          # one of: md5, ssha, sha, md5crypt, smd5, blowfish, crypt.  Leave blank for default.
+
+pla_login_timeout: 30           # minutes
+
+pla_allow_anon_bind: false
+
+#
+# UIDs
+#
+pla_uid_method: search          # one of: search, uidpool
+pla_uid_search_base: 'ou=People,dc=vortex,dc=co' # used when searching
+pla_uid_search_min_uid: 1000
+pla_uid_search_min_gid: 500
+pla_uid_login_id: ~
+pla_uid_login_password: ~
+
+#
+# Unique attributes
+#
+pla_unique_attributes: [mail, uid, uidNumber]
+pla_unique_login_id: ~
+pla_unique_login_password: ~
+
+#
+# Custom
+#
+pla_custom_config: ~

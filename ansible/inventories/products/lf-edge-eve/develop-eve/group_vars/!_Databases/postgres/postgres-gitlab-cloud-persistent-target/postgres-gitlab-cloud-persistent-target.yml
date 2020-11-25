@@ -1,0 +1,14 @@
+postgres_cluster_settings:
+    directories:
+        main_path: "{{ cloud_dir }}/postgres-datastore-gitlab-persistent/"
+        data_path: "{{ cloud_dir }}/postgres-datastore-gitlab-persistent/data"
+        config_path: "{{ cloud_dir }}/postgres-datastore-gitlab-persistent/configuration"
+    use_datastore_container: true
+    datastore_container_name: "postgres-datastore-gitlab-persistent"
+    postgres_docker_tag: ""
+    postgres_container_name: "postgres-datastore-gitlab-persistent"
+    postgres_docker_env: []
+    expose_host_port: 0
+    root_password: 9entry_postgresa9u12
+    postgres_user: sentry_postgres
+    pg_public_port: 5437

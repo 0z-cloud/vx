@@ -1,0 +1,18 @@
+- name: Install apt pip3 package
+  apt:
+    name: python3-pip
+    state: latest
+
+- name: Install docker python extension for ansible module execute
+  pip:
+    name: docker
+    executable: pip3
+
+- name: Check Docker Networks are a present
+  include_tasks: "docker-swarm.yml"
+  when: "'cloud-bind-frontend-dns' in group_names or get_swarm is defined or cloud_cluster_type == 'swarm'"
+
+- name: Setup CoreDNS with configuration
+  include_tasks: "server.yml"
+  when: "'cloud-bind-frontend-dns' in group_names"
+  tags: recreate

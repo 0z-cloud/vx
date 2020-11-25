@@ -1,0 +1,25 @@
+---
+# tasks file for roles/redis
+- name: install redis from chris lea ppa
+  include: install.yml
+
+- name: fill defaults
+  redis_defaults:
+    instance: "{{ redis_instance }}"
+    default: "{{ redis_default_instance }}"
+  register: filled_redis_instance
+
+- name: Debug current settings
+  debug:
+    msg: "REDIS PORT : {{ redis_service_listen_port }}"
+  tags: debug
+
+- name: simplifying code
+  set_fact:
+    instance: "{{ filled_redis_instance.instance }}"
+
+- name: "create user, group and folders"
+  include: system.yml
+
+- name: "create, configure and run service"
+  include: service.yml

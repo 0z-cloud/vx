@@ -1,0 +1,5 @@
+
+- include_tasks: "server.yml"
+  tags: netplan
+
+  #when: "'cloud-bind-frontend-dns' in group_names"

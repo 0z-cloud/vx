@@ -1,0 +1,78 @@
+- name: Removing laravel application packages playbook
+  hosts: "{{ HOSTS }}"
+  
+  tasks:
+    - name: Please, use new playbook - laravel-app-install.yaml!!!
+      debug:
+        msg: "*** Please, use new playbook - laravel-app-install.yaml!!! ***"
+
+- hosts: "{{ HOSTS }}"
+  become: true
+
+  roles:
+    - name: Install supervisor
+      role: supervisor/install
+      tags:
+        - install_supervisor
+
+  tasks:
+    - name: "Install PHP packages"
+      apt:
+        name: "{{ packages }}"
+        state: present
+      vars:
+        packages:
+        - libapache2-mod-php7.2
+        - php-common
+        - php-igbinary
+        - php-imagick
+        - php-memcached
+        - php-msgpack
+        - php7.2
+        - php7.2-bcmath
+        - php7.2-cli
+        - php7.2-common
+        - php7.2-curl
+        - php7.2-gd
+        - php7.2-imap
+        - php7.2-intl
+        - php7.2-json
+        - php7.2-mbstring
+        - php7.2-mysql
+        - php7.2-opcache
+        - php7.2-readline
+        - php7.2-soap
+        - php7.2-sqlite3
+        - php7.2-xml
+        - php7.2-zip
+      tags:
+        - install_php72
+
+    - name: Check that the /etc/cron.allow exists
+      stat:
+        path: /etc/cron.allow
+      register: stat_result
+      tags:
+        - allow_crontab_www-data
+
+    - name: Allow crontab for www-data user
+      lineinfile:
+        path: /etc/cron.allow
+        line: 'www-data'
+      when: stat_result.stat.exists
+      tags:
+        - allow_crontab_www-data
+
+    - name: Enable Apache mod_rewrite module
+      apache2_module:
+        state: present
+        name: rewrite
+      tags:
+        - enable_mod_rewrite
+
+    - name: Restart apache2 after enable mod_rewrite
+      systemd:
+        state: restarted
+        name: apache2
+      tags:
+        - enable_mod_rewrite

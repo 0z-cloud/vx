@@ -1,0 +1,19 @@
+- name: Install necessary packages DNS
+  include_tasks: "packages_install.yml"
+  when: "'master-bind-master-backend' in group_names"
+
+- name: Create directories necessary needed for DNS daemon configuration
+  include_tasks: "create_dirs.yml"
+  when: "'master-bind-master-backend' in group_names"
+
+- name: MAIN | Template configurations by templates step 1
+  include_tasks: "configuration.yml"
+  when: "'master-bind-master-backend' in group_names"
+
+- name: MAIN | Searching other environments domain special zones - step 2
+  include_tasks: "special_env.yml"
+  when: "'master-bind-master-backend' in group_names"
+
+- name: MAIN | reEnable/Reset named and bind9 all system services and configurations - step 3
+  include_tasks: "systemctl_daemon_reset.yml"
+  when: "'master-bind-master-backend' in group_names"

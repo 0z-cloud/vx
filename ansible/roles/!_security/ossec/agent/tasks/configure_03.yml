@@ -1,0 +1,48 @@
+---
+- name: DELEGATE | Generate template which will add client agent to ossec
+  template:
+    src: 'add_agent'
+    dest: '/var/ossec/add_agent'
+  delegate_to: "{{ item }}"
+  delegate_facts: true
+  with_items: "{{ groups['vortex-ossec-server'] }}"
+  when: ({{ current_ossec_server_client_present.results | map(attribute='msg') | list }} == "NODATA" and ossec_managed_server is not defined )
+
+- name: DELEGATE | Add agents from template to ossec server
+  shell: /var/ossec/bin/manage_agents -f /add_agent
+  delegate_to: "{{ item }}"
+  delegate_facts: true
+  with_items: "{{ groups['vortex-ossec-server'] }}"
+  when: ({{ current_ossec_server_client_present.results | map(attribute='msg') | list }} == "NODATA" and ossec_managed_server is not defined )
+  register: adding_agent_result
+  
+### Grep sha from generated server clients.conf
+
+# TODO
+
+
+
+
+####
+
+- name: GET INFO CLIENT | get current rows count
+  raw: cat /var/ossec/etc/client.keys | grep {{ inventory_hostname }}
+  when: ossec_managed_server is not defined
+  register: local_current_ossec_server_client_present
+  ignore_errors: true
+  
+  ############################
+  
+- name: SERVER | Set flag if host already presents in clients.file
+  debug:
+    msg: "EXISTS"
+  when: "{{ item }} != 1 and ossec_managed_server is not defined"
+  with_items: "{{ current_ossec_server_client_present.results | map(attribute='rc') | list }}"
+  register: current_host_presents_on_ossec_server
+
+- name: SERVER | Set flag if host already presents in clients.file
+  debug:
+    msg: "NODATA"
+  when: "{{ item }} != 0 and ossec_managed_server is not defined"
+  with_items: "{{ current_ossec_server_client_present.results | map(attribute='rc') | list }}"
+  register: current_host_presents_on_ossec_server

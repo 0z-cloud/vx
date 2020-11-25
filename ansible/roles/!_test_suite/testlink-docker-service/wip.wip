@@ -1,0 +1,2 @@
+docker run -d --name mariadb -e ALLOW_EMPTY_PASSWORD=yes  --net testlink-tier --restart always  --volume /bitnami/mysql:/bitnami  bitnami/mariadb:latest
+docker run -d -p 8099:80 --name testlink --restart always  -e TESTLINK_PASSWORD=testlink  --net testlink-tier  --volume /bitnami/testlink:/bitnami/testlink  --volume /bitnami/apache:/bitnami/apache  --volume /bitnami/php:/bitnami/php  bitnami/testlink:latest

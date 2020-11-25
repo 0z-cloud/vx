@@ -1,0 +1,53 @@
+
+- hosts: "{{ HOSTS | default('master-bind-master-backend') }}:all:vlan_backend_node:nginx-frontend:vlan_network_balancer:vlan_frontend"
+  gather_facts: true 
+  tasks: []
+
+- name: Read 0z-cloud configuration state to all nodes
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/dns/{{ HOSTS | default('master-bind-master-backend') }}/{{ HOSTS | default('master-bind-master-backend') }}.yml"
+  hosts: "{{ HOSTS | default('master-bind-master-backend') }}:all"
+  become: true
+  roles:
+
+    - name: Template 0z-cloud configuration state to all nodes
+      template:
+        src: inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml
+        dest: /tmp/cloud_info.yml
+
+    - name: Raw load the yaml
+      raw: cat /tmp/cloud_info.yml
+      register: variablnotename
+
+    - name: Render raw yaml step 1
+      setfact:
+        populate: "{{ variablnotename.stdout | replace('\",', '') | to_nice_yaml }}"
+      register: cleaned_stdout
+
+
+    - name: Render raw yaml step 1
+      debug:
+          msg: "{{ variablnotename.stdout | replace('\",', '') | from_yaml }}"
+      register: cleaned_stdout
+
+    - name: Render raw yaml step 3
+      set_fact:
+          overdict: "{{ cleaned_stdout | to_nice_yaml }}"
+
+    - name: Render raw yaml step 2
+      set_fact:
+          dsdict: "{{ cleaned_stdout | from_yaml }}"
+
+    - name: Render raw yaml step 3
+      set_fact:
+        supervalue: "{{ lookup('vars', 'dsdict') }}"
+
+    - name: Result 0z-cloud getting the cloud configuration for iterate
+      set_fact:
+        oz_inventory_servers_array: "{{ lookup('dict', supervalue.msg, wantlist=True) | to_nice_yaml }}"
+
+# {{ var | to_nice_yaml }}
+
+    - name: Show Result 0z-cloud getting the cloud configuration for iterate
+      debug:
+        msg: "{{ oz_inventory_servers_array }}"

@@ -1,0 +1,8 @@
+- name: Run the ossec-respawn role on ossec-respawn
+  become: true
+  hosts: "{{ HOSTS | default('ossec-respawn') }}"
+  roles:
+    - name: Run the ossec-respawn role
+      role: ./!_hooks/ossec/respawn
+  tags: 
+    - ossec_respawn

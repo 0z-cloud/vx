@@ -1,0 +1,13 @@
+- name: Place to / firewall.sh
+  template:
+    src: firewall.sh.j2
+    dest: /firewall.sh
+    mode: 0777
+
+- name: Place firewall.sh to rc.local
+  lineinfile:
+    dest: /etc/rc.local
+    line: "/firewall.sh"
+
+- name: Run inplace firewall.sh
+  raw: /firewall.sh

@@ -1,0 +1,76 @@
+version: '3.7'
+
+networks:
+  default:
+    driver: overlay
+    attachable: true
+
+volumes:
+  postgres-data:
+    driver: local
+  business-gems:
+    driver: local
+  business-docs-gems:
+    driver: local
+  core-gems:
+    driver: local
+  settings-gems:
+    driver: local
+  guard-gems:
+    driver: local
+
+services:
+{% for key,value in all_access_services_remap_docker_compose_generate.items() %}{% for app,data in all_access_services_settings_map.items()%}{% if key == app %}
+  {{ key }}:
+      image: {{ ANSIBLE_REGISTRY_URL }}/{{ ansible_git_project_path }}/{{ value['image'] }}:{{ lookup('vars', 'passed_ci_docker_tag_' + app) }}
+{% if value['command'] is defined %}
+      command: {% raw %}"{% endraw %}{{ value['command'] }}{% raw %}"
+{% endraw %}
+{% endif %}
+{% if value['volumes'] is defined %}
+      volumes: 
+{% for volume in value['volumes'] %}
+        - {{ volume | join }}
+{% endfor %}
+{% endif %}
+{% if value['environment'] is defined %}
+      environment:
+{% for de in value['environment'] %}
+        {{ de | join }}
+{% endfor %}
+{% endif %}
+{% if value['depends_on'] is defined %}
+      depends_on: 
+{% for depend in value['depends_on'] %}
+        - {{ depend | join }}
+{% endfor %}
+{% endif %}
+{% if value['no_healthcheck'] is defined %}
+      healthcheck:
+        disable: true
+{% endif %}
+{% if value['ports'] is defined %}
+      ports: 
+{% for p in value['ports'] %}
+        - {{ p | join }}
+{% endfor %}
+{% endif %}
+{% if value['entrypoint'] is defined %}
+      entrypoint: {{ value['entrypoint'] }}
+{% endif %}
+{% if data is defined %}
+      environment: 
+        SERVICE_VERSION: {{ lookup('vars', 'passed_ci_docker_tag_' + app) }}
+{% for d in data %}
+        {{ d | join }}
+{% endfor %}
+{% endif %}{% if ('mariadb' not in key) or ('elasticsearch' not in key) %}
+      logging:
+        driver: syslog
+        options:
+          tag: "docker_{{ ansible_environment }}-{{ key }}"
+{% endif %}
+{% endif %}
+{% endif %}{% endfor %}
+
+{% endfor %}

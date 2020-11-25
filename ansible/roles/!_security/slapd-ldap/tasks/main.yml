@@ -1,0 +1,63 @@
+---
+# tasks file for jpnewman.openldap-server
+
+- name: Set hosts
+  lineinfile:
+    path: /etc/hosts
+    line: '127.0.1.1 vortex-ldap-01.vortex.co vortex-ldap-01'
+
+- name: Generate default password
+  shell: slappasswd -h {SHA} -s {{ default_user_password }}
+  register: default_password
+
+- name: Config LDAP objects
+  template:
+    src: groups_gen.ldif.j2
+    dest: /tmp/groups_gen.ldif
+  #with_items: "{{ inventory_ldap }}"
+  tags: debug
+  
+- name: RAW CAT
+  raw: cat /tmp/groups_gen.ldif
+  register: cat_output
+  tags: debug
+  
+- name: Debug CAT
+  debug:
+    msg: "{{ cat_output }}"
+  tags: debug
+  
+- name: Config LDAP objects
+  template:
+    src: "{{ item }}"
+    dest: "/tmp/{{ (item | basename | splitext)[0] }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - dit.ldif.j2
+    - groups.ldif.j2
+    - users.ldif.j2
+    - root.ldif.j2
+
+- name: Adding LDIF objects
+  raw: ldapadd -x -D "cn=Manager,dc={{ openldap_server_domain_name.split('.')[0] }},dc={{ openldap_server_domain_name.split('.')[1] }}" -w {{ openldap_server_rootpw }} -f /tmp/{{ item }} && touch "{{ openldap_server_app_path }}/{{ (item | basename | splitext)[0] }}_created"
+  args:
+     creates: "{{ openldap_server_app_path }}/{{ (item | basename | splitext)[0] }}_created"
+  with_items:
+    - dit.ldif
+    - groups.ldif
+    - users.ldif
+    - root.ldif
+    - groups_gen.ldif
+    
+- name: Remove LDIF files
+  file:
+    path: "{{ item }}"
+    force: yes
+    state: absent
+  with_items:
+    - dit.ldif
+    - groups.ldif
+    - users.ldif
+    - root.ldif

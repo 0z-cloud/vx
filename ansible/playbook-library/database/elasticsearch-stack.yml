@@ -1,0 +1,9 @@
+- name: Elastic docker cluster swarm
+  hosts: "{{ HOSTS }}"
+  become: true
+  roles:
+
+    - name: Install and configure elasticsearch cluster on swarm shared
+      role: ./!_databases/elasticsearch/es-stack
+
+  tags: [elasticsearch-install]

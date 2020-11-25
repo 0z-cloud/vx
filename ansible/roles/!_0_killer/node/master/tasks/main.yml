@@ -1,0 +1,30 @@
+#
+
+# SETUP MASTERS PHASE 1
+
+
+
+# ###
+
+# - name: Disable swap
+#   shell: "{{ item }}"
+#   when: inventory_hostname in groups['kubernetes-cluster'] 
+#   with_items:
+#     - "sed -i 's/^.*swap/#&/' /etc/fstab"
+#     - "swapoff -a"
+
+# SETUP MASTERS PHASE 1
+- name: MASTERS | Include masters init tasks PHASE 1
+  include_tasks: phase_1.yml
+
+# SETUP MASTERS PHASE 2
+- name: MASTERS | Include masters init tasks PHASE 2
+  include_tasks: phase_2.yml
+
+# SETUP MASTERS PHASE 3
+- name: MASTERS | Include masters init tasks PHASE 3
+  include_tasks: phase_3.yml
+
+# SETUP LAST PHASE 
+- name: LAST | Include LAST
+  include_tasks: last.yml

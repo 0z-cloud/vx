@@ -1,0 +1,12 @@
+---
+# Installing Some Role for Some Hosts
+- name: Started Judah...
+  hosts: localhost
+  become: true
+  tasks:
+    - include_vars: ../ansible.yml
+    - name: print included vars
+      debug: msg="build_number - {{ build_number }}"
+    - name: message tc_build_id
+      debug: msg="tc_build_id - {{ tc_build_id }}"
+  tags: always

@@ -1,0 +1,11 @@
+[localhost]
+localhost ansible_connection=local
+
+[oz-primary-master-vpn-mesh-endpoint-host]
+oz-primary.local.cloud.eve.vortice.eden ansible_host=172.16.77.115 ansible_port=22
+
+[oz-primary-master-vpn-mesh-endpoint-host:vars]
+cluster_type="ozrouter"
+cluster_prefix_name="ozCloudRouter_"
+public_nat_ip="91.211.107.22"
+primary_oz_dns_name="oz.local.cloud.eve.vortice.eden"

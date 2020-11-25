@@ -1,0 +1,24 @@
+- name: get arguments for assigning
+  master_list:
+    map: "{{ generated_redis_io_service_cluster_map }}"
+  register: unparsed_master_list
+  tags: [assigner]
+
+- name: setting master_list
+  set_fact:
+    masters: "{{ unparsed_master_list.masters }}"
+  tags: [assigner]
+
+- name: Debug Masters
+  debug: var="masters"
+
+- name: Copy assigner
+  template:
+    src: slot_assigner.sh.j2
+    dest: "{{ redis_io_service_settings.directories.master_path_config }}/slot_assigner.sh"
+    mode: 777
+  tags: [assigner]
+
+- name: Slot assign Cluster Masters Node's
+  raw: "docker exec redis-{{ ansible_environment }}-{{ ansible_hostname }}-master /config/slot_assigner.sh {{ masters }}"
+  tags: [assigner]

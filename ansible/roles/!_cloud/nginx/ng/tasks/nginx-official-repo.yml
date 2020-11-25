@@ -1,0 +1,20 @@
+---
+- name: Ensure APT official nginx key
+  apt_key:
+    url: http://nginx.org/keys/nginx_signing.key
+  environment: "{{ nginx_env }}"
+  tags: [packages,nginx]
+  when: ansible_os_family == 'Debian'
+
+- name: Ensure APT official nginx stable repository
+  apt_repository:
+    repo: "deb http://nginx.org/packages/{{ ansible_distribution|lower }}/ {{ ansible_distribution_release }} nginx"
+    state: 'present'
+    update_cache: yes
+  environment: "{{ nginx_env }}"
+  tags: [packages,nginx]
+  when: ansible_os_family == 'Debian'
+
+- name: Update apt only
+  apt:
+    update_cache: yes

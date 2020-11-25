@@ -1,0 +1,1 @@
+metricbeat_container_image: "docker.elastic.co/beats/metricbeat:6.6.1"

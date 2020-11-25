@@ -1,0 +1,67 @@
+apiServer:
+  certSANs:
+  - "10.32.27.100"
+  - "10.32.27.101"
+  - "10.32.27.102"
+  - "10.32.5.1"
+  - "185.40.28.115"
+  - "10.32.4.1"
+  - "185.40.28.126"
+  - "10.32.6.1"
+  - "185.40.28.91"
+  - "vortex-node-04-production"
+  - "vortex-node-05-production"
+  - "vortex-node-06-production"
+  - "vortex.vless.ru"
+  peerCertSANs:
+  - "10.32.27.100"
+  - "10.32.27.101"
+  - "10.32.27.102"
+  - "10.32.5.1"
+  - "185.40.28.115"
+  - "10.32.4.1"
+  - "185.40.28.126"
+  - "10.32.6.1"
+  - "185.40.28.91"
+  - "vortex-node-04-production"
+  - "vortex-node-05-production"
+  - "vortex-node-06-production"
+  - "vortex.vless.ru"
+  extraArgs:
+    advertise-address: 10.32.27.101
+    anonymous-auth: "false"
+    enable-admission-plugins: AlwaysPullImages,DefaultStorageClass
+    audit-log-path: /var/log/k8-audit.log
+    authorization-mode: Node,RBAC
+apiVersion: kubeadm.k8s.io/v1beta2
+certificatesDir: /opt/ca/pki
+clusterName: main_k8_cluster
+controllerManager:
+  extraArgs:
+    bind-address: 10.32.27.101
+    cluster-signing-key-file: /opt/ca/pki/ca.key
+    deployment-controller-sync-period: "50s"
+apiVersion: kubeadm.k8s.io/v1beta2
+certificatesDir: /opt/ca/pki
+clusterName: main_k8_cluster
+controlPlaneEndpoint: ""
+controllerManager: {}
+dns:
+  type: CoreDNS
+etcd:
+  external:
+    caFile: /opt/ca/pki/ca.pem
+    certFile: /opt/ca/pki/etcd.pem
+    endpoints:
+    - https://10.32.5.1:2379
+    - https://10.32.6.1:2379
+    - https://10.32.4.1:2379
+    keyFile: /opt/ca/pki/etcd-key.pem
+imageRepository: k8s.gcr.io
+kind: ClusterConfiguration
+kubernetesVersion: v1.18
+networking:
+  dnsDomain: vless.ru
+  podSubnet: 10.0.0.0/11
+  serviceSubnet: 10.32.0.0/16
+scheduler: {}

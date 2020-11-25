@@ -1,0 +1,14 @@
+apiVersion: v1
+data:
+  BASE_URL: https://demo.dev.rocketho.me
+  BUSINESS_APP_PRIVATE_TOKEN: 846033ed8492b96ca457
+  BUSINESS_APP_URL: https://business.dev.rocketho.me/
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  labels:
+    app: demo
+    chart: demo-0.1.0
+    io.cattle.field/appId: rpay-engine
+  name: demo-env
+  selfLink: /api/v1/namespaces/rpay-engine/configmaps/demo-env

@@ -1,0 +1,143 @@
+
+- name: System Reread Configs for systemd
+  systemd:
+    daemon_reload: yes
+
+- name: Reload etcd service
+  systemd:
+    state: stopeed
+    daemon_reload: yes
+    name: etcd
+
+- name: Restart kubelet service
+  systemd:
+    state: stopeed
+    daemon_reload: yes
+    name: kubelet
+
+- name: Template client_init_one.yaml.j2 main global config bootstrap
+  template:
+    src: backup/no_need/client_init_one.yaml.j2
+    dest: /etc/kubernetes/client_init_one.yaml
+    mode: 0640
+  when: inventory_hostname in groups['kubernetes-master'][0]
+  # when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Template master-config.yaml.j2 main global config bootstrap
+  template:
+    src: kubectl/master-config.yaml.j2
+    dest: /etc/kubernetes/master_no_need_config.yaml
+    mode: 0640
+  when: inventory_hostname in groups['kubernetes-master'][0]
+  # when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Template apiserver.yaml.j2 main global config bootstrap
+  template:
+    src: kubectl/apiserver.yaml.j2
+    dest: /etc/kubernetes/apiserver.yaml
+    mode: 0640
+  when: inventory_hostname in groups['kubernetes-master'][0]
+  # when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Template cluster_config.yaml.conf main global config bootstrap
+  template:
+    src: backup/no_need/cluster_config.yaml.conf
+    dest: /etc/kubernetes/cluster_config.yaml.conf
+    mode: 0640
+  when: inventory_hostname in groups['kubernetes-master'][0]
+  # when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Template test.v0.yaml.j2 main global config bootstrap
+  template:
+    src: kubectl/test.v0.yaml.j2
+    dest: /etc/kubernetes/test.v0-kubeadm-config.yaml
+    mode: 0640
+  when: inventory_hostname in groups['kubernetes-master'][0]
+  # when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Template test.v0.yaml.j2 main global config bootstrap
+  template:
+    src: kubectl/test.v0.yaml.j2
+    dest: /etc/kubernetes/kubeadm-config.yml
+    mode: 0640
+  when: inventory_hostname in groups['kubernetes-master'][0]
+  # when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Shell init first master
+  shell: kubeadm init --ignore-preflight-errors=FileAvailable--etc-kubernetes-manifests-etcd.yaml,ExternalEtcdVersion --config /etc/kubernetes/kubeadm-config.yaml
+  regitster: kube_init_result
+  when: inventory_hostname in groups['kubernetes-master'][0]
+
+- name: kube_init_result | Show the init first master phase result
+  debug:
+    msg: "{{ kube_init_result }}"
+  when: inventory_hostname in groups['kubernetes-master'][0]
+
+- name: Shell 500
+  shell: sleep 500
+
+# - name: Remove etcd manifest
+#   file:
+#     path: /etc/kubernetes/manifests/etcd.yaml
+#     state: absent
+
+# - name: Apply kubeadm init --config kubeadm-config.yaml on all masters
+#   shell: kubeadm init --ignore-preflight-errors=FileAvailable--etc-kubernetes-manifests-etcd.yaml,ExternalEtcdVersion --config /etc/kubernetes/apiserver.yaml
+#   when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+# - name: Apply kubeadm init --config kubeadm-config.yaml on all masters
+#   shell: kubeadm init --ignore-preflight-errors=FileAvailable--etc-kubernetes-manifests-etcd.yaml,ExternalEtcdVersion --config /etc/kubernetes/kubeadm-config.yaml
+#   when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+
+# - name: Apply kubeadm init --config kubeadm-config.yaml on first master
+#   shell: kubeadm init --config /etc/kubernetes/kubeadm-config.yaml --ignore-preflight-errors=all --upload-certs
+#   when: inventory_hostname in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+#   register: first_master_init_phase_result
+#   ignore_errors: true
+
+# - name: Show the init first master phase result
+#   debug:
+#     msg: "{{ first_master_init_phase_result }}"
+
+# - name: Create kube-flannel default network
+#   shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml --kubeconfig /etc/kubernetes/admin.conf
+#   when: inventory_hostname in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+
+# - name: Apply kubeadm init --config kubeadm-config.yaml on other masters
+#   shell: kubeadm init --config /etc/kubernetes/kubeadm-config.yaml --ignore-preflight-errors=all --upload-certs
+#   when: inventory_hostname not in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+#   ignore_errors: true
+
+# - name: Apply kubeadm init --config kubeadm-config.yaml on other masters
+#   shell: kubeadm init --config /etc/kubernetes/kubeadm-config.yaml --ignore-preflight-errors=all --upload-certs
+#   when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+#   ignore_errors: true
+
+# - name: Create weawe-cni default network
+#   shell: kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')" --kubeconfig /etc/kubernetes/admin.conf
+#   when: inventory_hostname in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+
+# - name: Apply kubeadm init --config kubeadm-config.yaml on first master
+#   shell: kubeadm init --ignore-preflight-errors=FileAvailable--etc-kubernetes-manifests-etcd.yaml,ExternalEtcdVersion --config /etc/kubernetes/kubeadm-config.yaml
+#   when: inventory_hostname in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Copy result config to root home dir for able to manage the cluster
+  command: "{{ item }}"
+  with_items:
+    - mkdir -p /root/.kube
+    - cp -i /etc/kubernetes/admin.conf /root/.kube/config
+  when: inventory_hostname in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']
+  # when: inventory_hostname in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Copy kube pki dir to kubernetes kube dir
+  shell: cp -R /etc/kubernetes/pki/* {{ k8s_service_settings.directories.kube }}
+  when: inventory_hostname in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+  ignore_errors: true
+
+# - name: Apply kubeadm init --config apiserver.yaml on all masters
+#   shell: kubectl apply -f /etc/kubernetes/apiserver.yaml
+#   when: inventory_hostname in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+
+# # SETUP MASTERS GET TOKEN
+# - name: GET TOKEN | Include get_token
+#   include_tasks: get_token.yml

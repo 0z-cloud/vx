@@ -1,0 +1,50 @@
+
+cluster:
+  name: {{ es_swarm.elasticsearch_cluster_name }}
+
+node:
+  name: {{ ansible_hostname }}-{{ es_swarm.containers_prefix }}
+
+http.port: {{ es_swarm.elasticsearch_default_http_port }}
+bootstrap.memory_lock: false
+transport.profiles.default.port: {{ es_swarm.elasticsearch_client_port }}
+transport.profiles.default.bind_host: 0.0.0.0
+
+# IF YOU NEED TO PUBLISH TO BOTH NETWORKS ( PUBLIC & PRIVATE SWARM )
+# transport.profiles.client.bind_host: magic
+# transport.profiles.client.publish_host: magic
+
+transport.profiles.client.port: {{ es_swarm.elasticsearch_default_node_port }}
+transport.profiles.client.bind_host: 0.0.0.0
+#transport.profiles.client.publish_port: 9600
+#transport.profiles.client.publish_host: 0.0.0.0
+
+#transport.profiles.client.publish_port: {{ es_swarm.elasticsearch_default_node_port }}
+transport.profiles.client.publish_host: {{ hostvars[inventory_hostname].ansible_default_ipv4.address }}
+
+#transport.profiles.client.port: 9500-9600
+#transport.profiles.client.bind_host: 192.168.0.1
+#transport.profiles.dmz.port: 9700-9800
+#transport.profiles.dmz.bind_host: 172.16.1.2
+
+#transport.profiles.dmz.port: 9700
+#transport.profiles.dmz.bind_host: 0.0.0.0
+#transport.profiles.dmz.publish_port: 9200
+#transport.profiles.dmz.publish_host: 0.0.0.0
+
+network.host: {{ hostvars[inventory_hostname].ansible_default_ipv4.address }}
+network.publish_host: {{ hostvars[inventory_hostname].ansible_default_ipv4.address }}
+
+path.logs: /var/log/elasticsearch
+
+discovery.zen.ping.unicast.hosts: [{% for host in groups['elasticsearch-cluster'] %}{% if hostvars[host].ansible_default_ipv4.address != hostvars[inventory_hostname].ansible_default_ipv4.address %}"{{ hostvars[host].ansible_default_ipv4.address }}:{{ es_swarm.elasticsearch_default_node_port }}"{% if not loop.last %}, {% endif %}{% endif %}{% endfor %}]
+
+discovery.zen.minimum_master_nodes: {{ es_swarm.elasticsearch_discovery_minimum_master_nodes }}
+cluster.routing.allocation.disk.threshold_enabled: true
+cluster.routing.allocation.disk.watermark.low: 20gb
+cluster.routing.allocation.disk.watermark.high: 10gb
+cluster.routing.allocation.disk.watermark.flood_stage: 2Gb
+http.cors.allow-origin: "*"
+http.cors.enabled: true
+http.host: 0
+http.compression: true

@@ -1,0 +1,8 @@
+#!/bin/bash
+set -e
+
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
+    CREATE USER {{ teamcity_settings.user }}{% raw %} PASSWORD '{% endraw %}{{ teamcity_settings.password }}{% raw %}'{% endraw %};
+    CREATE DATABASE {{ teamcity_settings.database }};
+    GRANT ALL PRIVILEGES ON DATABASE {{ teamcity_settings.database }} TO {{ teamcity_settings.user }};
+EOSQL

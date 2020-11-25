@@ -1,0 +1,1 @@
+## Space for Server Nagios Role

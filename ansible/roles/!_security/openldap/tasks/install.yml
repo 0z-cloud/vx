@@ -1,0 +1,88 @@
+---
+
+- name: install packages
+  apt:
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+    cache_valid_time: 3600
+  with_items:
+    - ldap-utils
+    - rsyslog
+
+- debconf:
+    name: slapd
+    question: "{{ item }}"
+    value: "{{ slapd_root_password }}"
+    vtype: "password"
+  with_items:
+    - slapd/root_password
+    - slapd/root_password_again
+    - slapd/internal/adminpw password
+    - slapd/internal/generated_adminpw
+    - slapd/password1
+    - slapd/password2
+
+- debconf:
+    name: slapd
+    question: slapd/domain
+    value: "{{ slapd_domain | default(ansible_fqdn) }}"
+    vtype: "string"
+
+- debconf:
+    name: slapd
+    question: slapd/organization
+    value: "{{ slapd_organization }}"
+    vtype: "string"
+
+- debconf:
+    name: slapd
+    question: slapd/backend
+    value: "MDB"
+    vtype: "string"
+
+- debconf:
+    name: slapd
+    question: slapd/purge_database
+    value: false
+    vtype: boolean
+
+- debconf:
+    name: slapd
+    question: slapd/allow_ldap_v2
+    value: false
+    vtype: boolean
+
+- debconf:
+    name: slapd
+    question: slapd/no_configuration
+    value: false
+    vtype: boolean
+
+- debconf:
+    name: slapd
+    question: slapd/move_old_database
+    value: true
+    vtype: boolean
+
+- debconf:
+    name: slapd
+    question: slapd/dump_database
+    value: 'when needed'
+    vtype: select
+
+- debconf:
+    name: slapd
+    question: slapd/dump_database_destdir
+    value: "/var/backups/slapd-VERSION"
+    vtype: string
+
+- name: install openldap
+  apt:
+    name: slapd
+    state: latest
+  register: _openldap_installed
+
+# - name: reconfigure slapd if it was previously installed
+#   shell: dpkg-reconfigure -f noninteractive slapd
+#   when: _openldap_installed.changed == false

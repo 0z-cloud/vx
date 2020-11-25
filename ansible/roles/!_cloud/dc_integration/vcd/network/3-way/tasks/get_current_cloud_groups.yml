@@ -1,0 +1,126 @@
+- name: Set list of network types 
+  set_fact:
+      network_types_list:
+            - "isolated"
+            - "routed"
+            - "direct"
+            - "vpnmesh"
+
+- name: '[FETCH STAGE][LOOK IT] Important! Get Special Groups in vCloud Instance with a message roles'
+  vcd_roles:
+    user: "{{ anycloud_adapter_api_user }}"
+    password: "{{ anycloud_adapter_api_password }}"
+    host: "{{ anycloud_adapter_api_url_endpoint }}"
+    org: "{{ anycloud_defaults_virtual_organization | default(anycloud_adapter_virtual_organization) }}"
+    api_version: 30.0
+    verify_ssl_certs: "{{ anycloud_adapter_api_url_verify_ssl }}"
+    operation: list_roles
+  register: vloud_special_groups_cloud_token_storage_result
+
+- name: "[one]:direct-way] Generate with vCloud Getted Routed networks anycloud_zone_extra_subnets_adapters_networks_get_on_fly_direct_subnet"
+  set_fact:
+    anycloud_zone_extra_subnets_adapters_networks_get_on_fly_direct_subnet: "{{ item.name | replace('Subnet: ', '')}}"
+    anycloud_zone_extra_subnets_adapters_networks_get_on_fly_direct_network_name: "{{ item['name'] }}"
+  with_items: "{{ vloud_special_groups_cloud_token_storage_result.msg }}"
+  when: "('Subnet:' in item['name']  and '_direct_' in item['name'] and ansible_datacenter in item['name'])"
+
+- name: "[two]:routed-way] Generate with vCloud Getted Routed network anycloud_zone_extra_subnets_adapters_networks_get_on_fly_routed_subnet"
+  set_fact:
+    anycloud_zone_extra_subnets_adapters_networks_get_on_fly_routed_subnet: "{{ item.name | replace('Subnet: ', '')}}"
+    anycloud_zone_extra_subnets_adapters_networks_get_on_fly_router_network_name: "{{ item['name'] }}"
+  with_items: "{{ vloud_special_groups_cloud_token_storage_result.msg }}"
+  when: "('Subnet:' in item['name']  and '_routed_' in item['name'] and ansible_datacenter in item['name'])"
+
+- name: "[three]:isolated-way] Generate with vCloud Getted Routed networks anycloud_zone_extra_subnets_adapters_networks_get_on_fly_isolated_subnet"
+  set_fact:
+    anycloud_zone_extra_subnets_adapters_networks_get_on_fly_isolated_subnet: "{{ item.name | replace('Subnet: ', '')}}"
+    anycloud_zone_extra_subnets_adapters_networks_get_on_fly_isolated_network_name: "{{ item['name'] }}"
+  with_items: "{{ vloud_special_groups_cloud_token_storage_result.msg }}"
+  when: "('Subnet:' in item['name']  and '_isolated_' in item['name'] and ansible_datacenter in item['name'])"
+
+- name: "[four]:site-to-site-way] Generate with vCloud Getted Site-To-Site networks anycloud_zone_extra_subnets_adapters_networks_get_on_fly_vpnmesh_subnet"
+  set_fact:
+    anycloud_zone_extra_subnets_adapters_networks_get_on_fly_vpnmesh_subnet: "{{ item.name | replace('Subnet: ', '')}}"
+    anycloud_zone_extra_subnets_adapters_networks_get_on_fly_vpnmesh_network_name: "{{ item['name'] }}"
+  with_items: "{{ vloud_special_groups_cloud_token_storage_result.msg }}"
+  when: "('Subnet:' in item['name']  and '_vpnmesh_' in item['name'] and ansible_datacenter in item['name'])"
+
+# - name: Populate genders
+#   set_fact:
+#     genders: "{{ genders|default({}) | combine( {item.item.name: item.stdout} ) }}"
+#   with_items: "{{ people.results }}"
+
+- name: 'SET RESULT OBJECT OS METADATA 53v [FETCH STAGE] Populate Special Groups returned list'
+  set_fact: 
+    vcloud_anycloud_zone_extra_subnets_adapters_networks: "{{ anycloud_zone_extra_subnets_metadata_storage_networks }}"
+
+# - name: 57 line - SHOW POPULATED LIST
+#   debug:
+#     msg: "{{ vcloud_anycloud_zone_extra_subnets_adapters_networks }}"
+#   when: debug_log is defined
+
+# - name: DEBUG ALL | SHOW vloud_special_groups_cloud_token_storage_result LIST
+#   debug:
+#     msg: "{{ item }}"
+#   with_dict: "{{ vloud_special_groups_cloud_token_storage_result.msg }}"
+#   when: debug_log is defined
+
+   # when: ansible_product in item['name'] and ansible_datacenter in item['name'] and item['name'] | join('') | search('network_types_list')
+
+# - name: SHOW vloud_special_groups_cloud_token_storage_result LIST
+#   debug:
+#     msg: "{{ item }}"
+#   with_dict: "{{ vloud_special_groups_cloud_token_storage_result.msg }}"
+
+- name: SHOW vloud_special_groups_cloud_token_storage_result LIST
+  debug:
+    msg: "{{ item }}"
+    #msg: "NAME: {{ vloud_special_groups_cloud_token_storage_result.msg[item]['name'] }} SUBNET: {{ vloud_special_groups_cloud_token_storage_result.msg[item]['subnet'] }}"
+  with_dict: "{{ vloud_special_groups_cloud_token_storage_result.msg }}"
+  when: item.value in network_types_list and item.value in ansible_datacenter and item.value in ansible_product
+  register: subnets_check_result_in_restricted_list
+
+  # when: ansible_product in vloud_special_groups_cloud_token_storage_result.msg[item]['name'] and ansible_datacenter in vloud_special_groups_cloud_token_storage_result.msg[item]['name'] and vloud_special_groups_cloud_token_storage_result.msg[item]['name'] | join('') | search('network_types_list')
+  # #when: ansible_product in vloud_special_groups_cloud_token_storage_result.msg[item]['name'] and ansible_datacenter in  vloud_special_groups_cloud_token_storage_result.msg[item]['name'] and item['name'] | join('') | search('network_types_list')
+  # register: subnets_check_result_in_restricted_list
+
+# # - name: '[FETCH STAGE] Populate Special Groups returned list'
+# #   set_fact:
+# #     vcloud_anycloud_zone_extra_subnets_adapters_networks: "{{ anycloud_zone_extra_subnets_metadata_storage_networks }}"
+
+# ########################################################################################################################
+
+# - name: '[FETCH STAGE] Populate Special Groups returned list'
+#   set_fact:
+#     vcloud_anycloud_zone_extra_subnets_adapters_networks: []
+
+- name: '[89:FETCH STAGE] Populate Special Groups returned list'
+  set_fact:
+    vcloud_anycloud_zone_extra_subnets_adapters_networks: "{{ vcloud_anycloud_zone_extra_subnets_adapters_networks | default({}) | combine( {item['name']: item['name'] } ) }}"
+  with_dict: "{{ vloud_special_groups_cloud_token_storage_result.msg }}"
+  when: item.value in network_types_list and item.value in ansible_datacenter and item.value in ansible_product and debug_log is defined
+ 
+# # when: "'direct' in item['name']"
+# when: "'reticulating splines' in output"
+
+  #when: "('Subnet:' in item['name']  and ansible_datacenter in item['name']) and (('vpnmesh' in item['name']) or ('routed' in item['name']) or ('isolated' in item['name']) or ('direct' in item['name']))"
+#  when: "('Subnet:' in item['name']  and  and ansible_datacenter in item['name']) ('_vpnmesh_' in item['name'] or '_routed_' in item['name'] or '_isolated_' in item['name'] or '_direct_' in item['name'])"
+
+# - name: '[DEBUG ZZZZOOONNEEE] vcloud_anycloud_zone_extra_subnets_adapters_networks'
+#   debug:
+#     msg: "{{ vcloud_anycloud_zone_extra_subnets_adapters_networks }}"
+
+- name: '[FETCH STAGE] Create dict based on following and stoted in Cloud from vCloud Groups Values'
+  set_fact: 
+    loud_zone_extra_subnets_: {"{{ item.key }}": "{{ item.value }}"}
+  with_dict: "{{ vloud_special_groups_cloud_token_storage_result.msg }}"
+  when: item.value in network_types_list and item.value in ansible_datacenter and item.value in ansible_product
+
+  # when: "('routed' in item.name or 'direct' in item.name or 'isolated' in item.name or 'vpnmesh' in item.name) and  "
+
+
+  # when: 'us-west-1' is matching '(us-east-1|ap-northeast-1)' or 'stage' is matching '(dev|stage)'
+
+
+
+########################################################################################################################

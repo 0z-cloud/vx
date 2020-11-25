@@ -1,0 +1,5 @@
+ansible_environment: sandbox
+test_variable_01: alicloud.yml
+ansible_product: do-dev
+getlocal_groups: inventories/products/do-dev/sandbox
+group_vars_path_my: inventories/products/types/!_alicloud/{{ ansible_product }}/{{ ansible_environment }}

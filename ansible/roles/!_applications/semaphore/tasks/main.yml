@@ -1,0 +1,96 @@
+
+- name: Inject defaults
+  set_fact:
+    semaphore_mysql_settings: "{{ semaphore_mysql_settings_defaults | combine(semaphore_mysql_settings) }}"
+
+- name: Inject defaults
+  set_fact:
+    semaphore_settings: "{{ semaphore_settings_defaults | combine(semaphore_settings) }}"
+
+- name: Create the directories 
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0777
+  with_dict: "{{ semaphore_mysql_settings.directories | default({}) }}"
+  tags: [configuration,mysql]
+
+- name: Create the directories 
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0777
+  with_dict: "{{ semaphore_settings.directories | default({}) }}"
+  tags: [configuration,mysql]
+
+- name: Create runner.sh.j2
+  template:
+     src: runner.sh.j2
+     dest: "{{ semaphore_mysql_settings.directories.sql_files }}/runner.sh"
+     mode: 0777
+
+- name: Create config.cnf.j2
+  template:
+     src: config.cnf.j2
+     dest: "{{ semaphore_mysql_settings.directories.sql_files }}/config.cnf"
+     mode: 0777
+
+- name: Create my.cnf.j2
+  template:
+     src: my.cnf.j2
+     dest: "{{ semaphore_mysql_settings.directories.sql_files }}/my.cnf"
+     mode: 0644
+
+- name: Create a Mysql DB semaphore Service docker container
+  docker_container:
+      name: "mysql-semaphore-{{ ansible_environment }}"
+      hostname: "mysql-semaphore-{{ ansible_environment }}"
+      image: mysql/mysql-server
+      restart_policy: unless-stopped
+      privileged: true
+      detach: True
+      volumes: 
+          - "{{ semaphore_mysql_settings.directories.data_dir }}:/var/lib/mysql" 
+          - "{{ semaphore_mysql_settings.directories.sql_files }}:/sql_files"
+          - "{{ semaphore_mysql_settings.directories.sql_files }}/my.cnf:/etc/my.cnf"
+      recreate: yes
+      env: 
+         MYSQL_ROOT_PASSWORD: "{{ semaphore_mysql_settings.user }}"
+         MYSQL_DATABASE: "{{ semaphore_mysql_settings.database }}"
+         MYSQL_USER: "{{ semaphore_mysql_settings.user }}"
+         MYSQL_PASSWORD: "{{ semaphore_mysql_settings.password }}"
+      ports: 
+        - "{{ semaphore_mysql_settings.port }}:{{ semaphore_mysql_settings.port }}"
+      state: started
+
+- name: RAW create restore runner.sh
+  raw: docker exec mysql-semaphore-{{ ansible_environment }} /sql_files/runner.sh &>/var/log/mysql-run.log
+  ignore_errors: yes
+
+- name: re/Create a semaphore Service docker container
+  docker_container:
+      name: "semaphore-{{ ansible_environment }}"
+      image: "castawaylabs/semaphore"
+      hostname: "semaphore-{{ ansible_environment }}"
+      volumes:
+        - "{{ semaphore_settings.directories.data_dir }}:/opt/semaphore/playbooks"
+      privileged: yes
+      pull: true
+      restart_policy: unless-stopped
+      ports: 
+        - "{{ semaphore_settings.port }}:{{ semaphore_settings.port }}"
+      detach: True
+      recreate: yes
+      env:
+        SEMAPHORE_DB_HOST: "{{ semaphore_settings.host }}"
+        SEMAPHORE_DB_PORT: "{{ semaphore_mysql_settings.port }}"
+        SEMAPHORE_DB_USER: "{{ semaphore_mysql_settings.user }}"
+        SEMAPHORE_DB_PASS: "{{ semaphore_mysql_settings.password }}"
+        SEMAPHORE_DB: "{{ semaphore_mysql_settings.database }}"
+        SEMAPHORE_ADMIN: "{{ semaphore_settings.user }}"
+        SEMAPHORE_ADMIN_NAME: "{{ semaphore_settings.user }}"
+        SEMAPHORE_ADMIN_PASSWORD: "{{ semaphore_settings.password }}"
+        SEMAPHORE_PLAYBOOK_PATH: "{{ semaphore_settings.directories.playbooks }}"
+      links:
+       - "mysql-semaphore-{{ ansible_environment }}:mysql-semaphore-{{ ansible_environment }}"
+      state: started

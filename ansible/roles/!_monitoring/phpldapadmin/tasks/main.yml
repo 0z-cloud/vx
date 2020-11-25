@@ -1,0 +1,18 @@
+---
+
+- name: Ensure packages are installed
+  apt: name="{{ item }}" state=present
+  tags: [pla]
+  with_items: "{{ pla_packages }}"
+    
+- name: Ensure latest release is cloned
+  git: dest="{{ pla_dir }}" repo="{{ pla_repo }}"
+  tags: [pla]
+
+- name: Ensure temporary directory exists
+  file: state=directory path="{{ pla_tmp_dir }}" owner="{{ pla_user }}" group="{{ pla_group }}" mode=0755
+  tags: [pla]
+  
+- name: Ensure configuration file is templated
+  template: src=templates/config.php.j2 dest="{{ pla_dir }}/config/config.php" owner=root group="{{ pla_group }}" mode=0640
+  tags: [pla, config]

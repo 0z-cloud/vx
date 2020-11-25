@@ -1,0 +1,27 @@
+apiVersion: v1
+data:
+  ANTIFRAUD_SERVICE_URL: http://guard:5000/guard
+  APP_CORE_HOST_URL: https://core.dev.rocketho.me/
+  APP_CORE_TOKEN: business
+  APP_DB_HOST_ENV: postgres
+  APP_DB_NAME_ENV: reactivepay_business_production
+  APP_DB_USERNAME_ENV: postgres
+  APP_IPINFO_URL: https://ipinfo.io
+  APP_SECRET_KEY_BASE: cc8309fcc8309fdecc8309fcc83be6ba216ba21778dd3a69118b3df1
+  APP_SETTINGS_HOST_URL: https://settings.dev.rocketho.me/settings
+  APP_URL_HOST: https://business.dev.rocketho.me/
+  APP_URL_PROTOCOL: https
+  APP_WEB_WALLET_HOST_URL: ""
+  IPSTACK_API_KEY: 09fcc6a688b3df121dd31e391ba3be77
+  RAILS_ENV: production
+  RAILS_LOG_TO_STDOUT: "true"
+  REACTIVEPAY_APPS_MERCHANT_PRIVATE_KEY: ""
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  labels:
+    app: business-when
+    chart: business-when-0.1.0
+    io.cattle.field/appId: rpay-engine
+  name: business-when-env
+  selfLink: /api/v1/namespaces/rpay-engine/configmaps/business-when-env

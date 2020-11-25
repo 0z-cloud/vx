@@ -1,0 +1,44 @@
+{% raw %}
+{ "service": {
+          "name": "{% endraw %}{% for key, value in item.items() %}{{ key | replace('\n', '') }}{% endfor %}{% raw %}",
+          
+          "tags": ["{% endraw %}{% for key, value in item.items() %}{{ value.target | replace('\n', '') }}{% endfor %}{% raw %}"],
+          "port": {% endraw %}{% for key, value in item.items() %}{{ value.listen_port | replace('\n', '') }}{% endfor %}{% raw %},
+          {% endraw %} 
+          {% for key, value in item.items() %}{% if value.check_type is equalto "script" %}{% raw %}
+          "check": {
+                
+                "args": ["{% endraw %}{% for key, value in item.items() %}{{ value.exec_bin | replace('\n', '') }}{% endfor %}{% raw %}", "{% endraw %}{% for key, value in item.items() %}{{ value.script_check | replace('\n', '') }}{% endfor %}{% raw %}"],
+                "interval": "3s",
+                "timeout": "1s"
+          }
+{% endraw %}
+{% else %}
+{% endif %}
+{% endfor %}
+
+          {% for key, value in item.items() %}{% if value.check_type is equalto "tcp" %}{% raw %}
+          "check": {
+                "tcp": "{% endraw %}{% for key, value in item.items() %}{{ value.script_check | replace('\n', '') }}{% endfor %}{% raw %}",
+                "interval": "3s",
+                "timeout": "1s"
+          }
+{% endraw %}
+{% else %}
+{% endif %}
+{% endfor %}
+
+          {% for key, value in item.items() %}{% if value.check_type is equalto "http" %}{% raw %}
+          "check": {
+                "http": "{% endraw %}{% for key, value in item.items() %}{{ value.script_check | replace('\n', '') }}{% endfor %}{% raw %}",
+                "interval": "3s",
+                "timeout": "1s"
+          }
+{% endraw %}
+{% else %}
+{% endif %}
+{% endfor %}
+          
+          }
+}
+

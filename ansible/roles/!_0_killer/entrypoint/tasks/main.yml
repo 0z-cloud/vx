@@ -1,0 +1,79 @@
+
+# INFO GET
+- name: GET CURRENT NODES STATES | Conditional info get when reset
+  include_role:
+    name: ./!_0_killer/init
+  when: debug_playbook_stdout is defined and reset_cluster is defined and reset_cluster_im_sure is defined 
+
+# RESET ALL CLUSTER
+- name: RESET ALL CLUSTER | Conditional role reset
+  include_role:
+    name: ./!_0_killer/reset
+  # when: reset_cluster is defined
+  when: reset_cluster is defined and inventory_hostname in groups['kubernetes-master'] and reset_cluster_im_sure is defined 
+
+# INSTLALL AND CHECK ALL SOFTWARE ON CLUSTER
+- name: SOFTWARE INSTALL AND CHECK | Conditional install soft when reset
+  include_role:
+    name: ./!_0_killer/install_soft
+  when: reset_cluster is defined and reset_cluster_im_sure is defined 
+
+# DIRECTORIES PREPARE AND CHECK
+- name: DIRECTORIES PREPARE AND CHECK | Creating and validating directories for certificates and etcd 
+  include_role:
+    name: ./!_0_killer/all_dirs_check
+  when: reset_cluster is defined and reset_cluster_im_sure is defined 
+
+# DOWNLOAD CFSSL AND ETCD
+- name: APPLICATIONS DOWNLOAD PART | Include add applications role tasks for etcd and cfssl install
+  include_role: 
+    name: ./!_0_killer/add_applications
+  when: reset_cluster is defined and reset_cluster_im_sure is defined 
+
+# INIT CA MASTER
+- name: CERTIFICATE AUTHORITY INIT | Creating certificates and bootstrap etcd k/v storage
+  include_role:
+    name: ./!_0_killer/ca
+  when: reset_cluster is defined and reset_cluster_im_sure is defined 
+
+# ETCD CA INIT BY RUN THE
+- name: CA ETCD INIT | Include etcd role 
+  include_role:
+    name: ./!_0_killer/etcd
+  when: reset_cluster is defined and reset_cluster_im_sure is defined 
+
+# KUBERNETES MASTERS INIT
+- name: CA BOOTSTRAP MASTERS INIT | Include bootstrap-master's init tasks
+  include_role:
+    name: ./!_0_killer/node/bootstrap-masters
+  when: reset_cluster is defined and reset_cluster_im_sure is defined 
+
+# SETUP WORKERS
+- name: JOIN WORKER NODES | Conditional role worker
+  include_role:
+    name: ./!_0_killer/node/worker
+  when: reset_cluster is defined and reset_cluster_im_sure is defined 
+
+# BOOTSTRAPED ONY CNI
+- name: BOOTSTRAPED ONY CNI | Conditional role cni/bootstrap_network
+  include_role:
+    name: ./!_0_killer/cni/bootstrap_network
+  when: inventory_hostname in groups['kubernetes-master'][0]
+
+# UPDATE SPEC COREDNS
+- name: UPDATE SPEC COREDNS | Conditional role cni/coredns
+  include_role:
+    name: ./!_0_killer/cni/coredns
+  when: inventory_hostname in groups['kubernetes-master'][0]
+
+# SETUP UPDATE KUBELET
+- name: UPDATE KUBELET | Conditional role node/after-init-reload-kubelet
+  include_role:
+    name: ./!_0_killer/node/after-init-reload-kubelet
+  when: inventory_hostname in groups['kubernetes-master']
+
+# SETUP DASHBOARD
+- name: CREATE DASHBOARD | Conditional role party_apps/dashboard
+  include_role:
+    name: ./!_0_killer/party_apps/dashboard
+  when: inventory_hostname in groups['kubernetes-master'][0]

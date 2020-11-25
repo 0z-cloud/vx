@@ -1,0 +1,4 @@
+files_to_fetch:
+  path: /var/www/transfers-alfabank/releases/20171020160416/res/
+  files: 
+    - keystore.jks

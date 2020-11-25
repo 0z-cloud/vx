@@ -1,0 +1,67 @@
+- name: Fact gathering
+  hosts: "{{ HOSTS }}"
+  tasks: []
+  tags: [get-facts, always]
+
+- name: Install and configure mysql percona docker cluster
+  hosts: "{{ HOSTS }}"
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/!_Databases/percona/{{ HOSTS }}/{{ HOSTS }}.yml"
+  become: true
+  roles:
+
+    - name: Install and configure mysql percona cluster
+      role: ./!_databases/percona-cluster
+
+    - include_role: Publish service to Service Discovery Cluster
+      name: ./!_cloud/consul/magic-join
+      tags: magic-join
+
+- name: Create random host & users
+  hosts: "{{ HOSTS }}"
+  tasks:
+    - name: Create a random host for run
+      add_host:
+          name: "{{ item }}"
+          groups: elected_leader
+      with_random_choice: "{{ ansible_play_hosts }}"
+
+- name: Create databases & users
+  hosts: elected_leader
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/!_Databases/percona/{{ HOSTS }}/{{ HOSTS }}.yml"
+  tasks:
+    - name: install PyMySQL python extension
+      pip:
+        name: PyMySQL
+        state: forcereinstall
+    - name: Create databases
+      mysql_db:
+        name: "{{ item }}"
+        login_user: root
+        login_password: "{{ percona_settings.root_password }}"
+        state: present
+      with_items:
+        - "{{ percona_settings.percona_databases }}"
+
+    - name: Temp WIP waiting for bootstrap
+      shell: sleep 120
+
+    - name: Create users
+      mysql_user:
+        name: "{{ item.name }}"
+        password: "{{ item.password }}"
+        priv: "{{ item.privileges }}"
+        host: "{{ item.host | default('%') }}"
+        login_user: root
+        login_password: "{{ percona_settings.root_password }}"
+        state: present
+      with_items:
+        - "{{ percona_settings.percona_users }}"
+
+- name: Install and configure mysql percona docker cluster 
+  hosts: "{{ HOSTS | default([]) }}"
+  become: true
+  tasks:
+    - name: Install and configure mysql percona cluster 
+      shell: echo 1

@@ -1,0 +1,41 @@
+# For information about entries in this file, type "man shorewall-masq"
+################################################################################################################
+#INTERFACE:DEST		                    SOURCE		        ADDRESS		PROTO	PORT(S)	IPSEC	MARK	USER/	SWITCH	ORIGINAL
+
+# Bank Of Moscow IPsec for DSZN Project
+$WAN:172.100.100.7,172.100.100.5        10.16.211.34          172.31.64.121
+$WAN:172.100.100.7,172.100.100.5        10.16.211.35          172.31.64.121
+
+# TOMCAT TO WORLD (VTB OUT)
+$WAN                                    10.16.211.34          77.243.80.72
+$WAN                                    10.16.211.35          77.243.80.72
+
+# TOMCAT BRS PROC TO WORLD
+$WAN			                        10.16.211.101	        77.243.80.72
+
+# Private Services Application topup-gsm-gate go to:
+# https://spp.tele2.ru:1443/mpterminal/work.html
+# ftp.tele2.ru:990
+$WAN			                        10.16.131.250        77.243.80.69
+$WAN			                        10.16.211.161	        77.243.80.69
+
+# Mobicom out
+$WAN                                    10.16.211.171         77.243.80.69
+
+# DNS to Internet
+$WAN			                        10.16.131.51	        77.243.80.68
+
+# WEB Zone default masq nat to internet
+$WAN			                        10.16.211.0/24	    77.243.80.68
+
+# vortex-repo-01 to internet
+$WAN                                    10.16.131.110        77.243.80.68
+
+# Bootstrap VM to internet on updates in template
+# $WAN                                    10.16.131.71       77.243.80.68
+
+# vortex-ossim-01 to internet to get updates
+$WAN                                    10.16.128.252         77.243.80.68
+
+# VCSA OUT
+$WAN                                    10.16.128.254         77.243.80.68

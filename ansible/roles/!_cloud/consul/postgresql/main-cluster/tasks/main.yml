@@ -1,0 +1,25 @@
+- name: Create PostgreSQL directories for env specific configurations
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0755
+  with_dict: "{{ postgres_main_cluster.directories | default({}) }}"
+
+- name: "re/Create a PostgreSQL Service docker container"
+  docker_container:
+      name: "pMain-Cluster-PostgreSQL-{{ ansible_environment }}"
+      image: "postgres"
+      hostname: "Main-Cluster-PostgreSQL-{{ ansible_environment }}"
+      ports:
+        - "{{ postgres_main_cluster.port }}:5432"
+      volumes:
+        - "{{ postgres_main_cluster.directories.data_dir }}:/var/lib/postgresql/data/pgdata"
+      env:
+        PGDATA: "/var/lib/postgresql/data/pgdata"
+        POSTGRES_PASSWORD: "{{ postgres_main_cluster.password }}"
+      privileged: yes
+      pull: true
+      restart_policy: unless-stopped
+      recreate: yes 
+      state: started
+      memory: "{{ default_container_memory }}"

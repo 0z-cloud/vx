@@ -1,0 +1,14 @@
+- hosts: source-base-host
+  become: true
+
+  tasks:
+  -  docker_container:
+      name: verdaccio
+      docker_host: unix://var/run/docker.sock
+      image: "verdaccio/verdaccio"
+      pull: yes
+      recreate: yes
+      published_ports:
+        - 0.0.0.0:4873:4873
+      volumes:
+        - verdaccio:/var/www/verdaccio

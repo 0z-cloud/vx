@@ -1,0 +1,62 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "3"
+    field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":443,"protocol":"HTTPS","serviceName":"rpay-engine:metabase","ingressName":"rpay-engine:metabase","hostname":"metabase.dev.rocketho.me","path":"/","allNodes":true}]'
+  creationTimestamp: null
+  generation: 1
+  labels:
+    app: metabase
+    chart: metabase-0.1.0
+    heritage: Tiller
+    io.cattle.field/appId: rpay-engine
+    release: rpay-engine
+  name: metabase
+  selfLink: /apis/extensions/v1beta1/namespaces/rpay-engine/deployments/metabase
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: metabase
+      release: rpay-engine
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        cattle.io/timestamp: "2019-07-03T13:36:07Z"
+        field.cattle.io/ports: '[[{"containerPort":3000,"dnsName":"metabase-","name":"metabase","protocol":"TCP","sourcePort":0}]]'
+      creationTimestamp: null
+      labels:
+        app: metabase
+        release: rpay-engine
+    spec:
+      containers:
+      - envFrom:
+        - configMapRef:
+            name: metabase-env
+            optional: false
+        image: metabase/metabase:v0.30.4
+        imagePullPolicy: Always
+        name: metabase
+        ports:
+        - containerPort: 3000
+          name: metabase
+          protocol: TCP
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+      - name: rpay-key-reg
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+status: {}

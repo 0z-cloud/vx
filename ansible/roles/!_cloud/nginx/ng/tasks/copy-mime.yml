@@ -1,0 +1,9 @@
+---
+  - name: Upload MIME.TYPES
+    become: true
+    copy:
+       src: "{{ item }}"
+       dest: "{{ nginx_conf_dir }}/{{ item }}"
+    with_items:
+      - mime.types
+    tags: [nginx, setup, mimetypes]

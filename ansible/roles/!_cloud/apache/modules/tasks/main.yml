@@ -1,0 +1,26 @@
+- name: Enable Apache2 necessary modules
+  apache2_module:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ enable_apache2_mods }}"
+  register: enable_apache2_mods_result
+  tags:
+    - enable_apache2_mods
+
+- name: Disable Apache2 necessary modules
+  apache2_module:
+    name: "{{ item }}"
+    state: absent
+  with_items: "{{ disable_apache2_mods }}"
+  register: disable_apache2_mods_result
+  tags:
+    - disable_apache2_mods
+
+- name: Service apache2 restarted
+  service:
+    name: apache2
+    state: restarted
+  when: (enable_apache2_mods_result is defined and enable_apache2_mods_result.changed) or (disable_apache2_mods_result is defined and disable_apache2_mods_result.changed)
+  tags:
+    - enable_apache2_mods
+    - disable_apache2_mods

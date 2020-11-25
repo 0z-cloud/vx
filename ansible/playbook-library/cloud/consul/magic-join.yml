@@ -1,0 +1,13 @@
+---
+- name: Fact gathering
+  hosts: all
+  tasks: []
+  tags: [get-facts, always]
+    
+- name: Consul magic JOIN DNS step... Unix work...
+  become: true
+  hosts: consul-masters
+  roles:
+    - name: Consul magic do...
+      role: ./!_cloud/consul/magic-join
+  tags: [consul-dns-join]

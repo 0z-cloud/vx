@@ -1,0 +1,35 @@
+replicaCount: 1
+
+image:
+  image_name: demo
+  tag: dev-1
+  pullPolicy: Always
+
+container:
+  port: 8000
+
+service:
+  type: ClusterIP
+  port: 8000
+  targetPort: 8000
+
+ingress:
+  hosts:
+    - host: demo.dev.gbunker.org
+      paths:
+        - /
+  tls:
+   - secretName: letsencrypt-demo
+     hosts:
+       - demo.dev.gbunker.org
+
+env:
+  BUSINESS_APP_PRIVATE_TOKEN: 846033ed8492b96ca457
+  BUSINESS_APP_URL: https://business.dev.rocketho.me/
+  BASE_URL: https://demo.dev.rocketho.me
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

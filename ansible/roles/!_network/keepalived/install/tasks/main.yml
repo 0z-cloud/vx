@@ -1,0 +1,14 @@
+- name: Install keepalived
+  apt:
+    name: keepalived
+    state: present
+  tags:
+    - install_keepalived
+
+- name: Create default configuration file /etc/keepalived/keepalived.conf if not exist
+  file:
+    path: /etc/keepalived/keepalived.conf
+    state: touch
+    mode: 0640
+  tags:
+    - install_keepalived

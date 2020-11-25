@@ -1,0 +1,13 @@
+- name: Fact gathering
+  hosts: all
+  vars_files:
+    - "group_vars/all.yml"
+  tasks: []
+  tags: [get-facts, always]
+    
+- name: INIT ALL DATABASES AND PERFORM MIGRATIONS PLAYBOOK
+  become: true
+  hosts: "{{ HOSTS }}"
+  roles:
+    - name: Calling the init DBs role
+      role: ./!_databases/!_psql/database_init_standalone

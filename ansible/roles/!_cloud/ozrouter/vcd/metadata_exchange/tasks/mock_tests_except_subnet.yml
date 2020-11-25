@@ -1,0 +1,14 @@
+- name: SUBNETS | DEBUG TEST ADD retry_to_re_read
+  set_fact:
+    debug_additional_subnets: []
+
+- name: SUBNETS | DEBUG TEST ADD retry_to_re_read
+  set_fact:
+    debug_additional_subnets: "{{ debug_additional_subnets + [ anycloud_zone_extra_subnets_adapters_vpn_ozrouter_subnets[item]['subnet'] | join ] }}"
+  with_items: "{{ oz_anycloud_zone_extra_subnets_adapters_vpn_ozrouter_subnets.keys() | list }}"
+
+- name: SUBNETS | Register restricted subnets merge add debug_additional_subnets
+  set_fact:
+    restricted_subnets_list: "{{ restricted_subnets_list + [ item | join ] }}"
+  with_items: 
+    - "{{ debug_additional_subnets }}"

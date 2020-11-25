@@ -1,0 +1,27 @@
+hostname {{ ansible_hostname }}
+
+log file /var/log/quagga/zebra.log
+log monitor
+log stdout
+log syslog
+
+password Quagga
+enable password Quagga
+
+ip forwarding
+ipv6 forwarding
+# ip[v6] route <Prefix Notation> <Egress Interface> 1
+#       In a congruent network the only static routes needed are those at the periphery of the network where they are used as a hint to the location of an adjacent multihop EBGP neighbour
+
+
+{% for key,value in transport_vlans_for_each_zone[_location_prefix_transport_vlans].items() %}
+
+# TRANSPORT vlan NAME: {{ key }}
+
+!2
+interface {{ value.interface }}
+ ip address {{ value.ip }}/{{ value.mask }}
+ 
+# {{ value.network }}
+
+{% endfor %}

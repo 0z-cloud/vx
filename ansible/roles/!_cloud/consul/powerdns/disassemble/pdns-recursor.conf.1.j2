@@ -1,0 +1,67 @@
+server:
+        verbosity: 0
+        #statistics-interval: 300
+        num-threads: 4
+        interface: {{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}
+        port: 5353
+        private-domain: {{ internal_consul_domain }}
+        domain-insecure: {{ merge_consul_domain }}
+        outgoing-range: 512
+        num-queries-per-thread: 1024
+
+        msg-cache-size: 16m
+        rrset-cache-size: 32m
+        #key-cache-size: 10m
+
+        msg-cache-slabs: 4
+        rrset-cache-slabs: 4
+        infra-cache-slabs: 4
+        #key-cache-slabs: 4
+
+        cache-max-ttl: 86400
+        infra-host-ttl: 60
+        infra-lame-ttl: 120
+
+        infra-cache-numhosts: 10000
+        infra-cache-lame-size: 10k
+
+        do-ip4: yes
+        do-ip6: no
+        do-udp: yes
+        do-tcp: yes
+        do-daemonize: yes
+
+        access-control: 0.0.0.0/0 allow
+        access-control: 192.168.1.0/24 allow
+        access-control: 127.0.0.0/8 allow
+
+        chroot: "/usr/local/etc/unbound"
+        username: "unbound"
+        directory: "/usr/local/etc/unbound"
+        logfile: "/usr/local/etc/unbound/unbound.log"
+        use-syslog: no
+        pidfile: "/usr/local/etc/unbound/unbound.pid"
+        root-hints: "/usr/local/etc/unbound/named.cache"
+
+        identity: "DNS"
+        version: "1.0"
+        hide-identity: yes
+        hide-version: yes
+        harden-glue: yes
+        do-not-query-address: 127.0.0.1/8
+        do-not-query-localhost: yes
+        module-config: "iterator"
+
+        #extended-statistics: yes
+
+#local-zone: "mail.ru." transparent
+#       local-data: "www.mail.ru. 300 IN A 10.10.10.10"
+#       local-data: "ftp.mail.ru. 300 IN A 172.16.1.2"
+
+#stub-zone:
+#       name: "times.lv."
+#       stub-addr: 193.108.185.34
+
+forward-zone:
+       name: ".woinc.space"
+       forward-addr: {{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}@{{ dns_consul_service_listen_port }}

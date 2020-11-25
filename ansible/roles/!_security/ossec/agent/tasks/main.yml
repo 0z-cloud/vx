@@ -1,0 +1,41 @@
+---
+# Tasks file for ossec-agent
+
+- name: DEBUG | Vars
+  debug:
+    msg: "{{ ossec_server_name }} ansible_fqdn: {{ ansible_fqdn }} ansible_nodename: {{ ansible_nodename }} ansible_hostname: {{ ansible_hostname }}"
+
+- name: Debian/Ubuntu | Installing repository key
+  apt_key: 
+    url: http://ossec.wazuh.com/repos/apt/conf/ossec-key.gpg.key
+  when: ossec_managed_server is undefined
+
+- name: Debian/Ubuntu | Installing repository
+  apt_repository: 
+    repo: "deb http://ossec.wazuh.com/repos/apt/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} main" 
+    state: present
+  when: ossec_managed_server is undefined
+
+- name: Debian/Ubuntu | Install ossec-hids-agent
+  apt: 
+    pkg: ossec-hids-agent
+    state: present
+  when: ossec_managed_server is undefined
+
+- name: "Configuring part 1"
+  include: "configure_01.yml"
+
+- name: "Debug part 1"
+  include: "debug_01.yml"
+  
+- name: "Configuring part 2"
+  include: "configure_02.yml"
+
+- name: "Debug part 2"
+  include: "debug_02.yml"
+  
+- name: "Configuring part 3"
+  include: "configure_03.yml"
+
+- name: "Debug part 3"
+  include: "debug_03.yml"

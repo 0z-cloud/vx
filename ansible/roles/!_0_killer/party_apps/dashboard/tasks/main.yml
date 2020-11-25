@@ -1,0 +1,31 @@
+#
+- name: Template dashboard configuration file
+  template:
+    src: dashboard.yaml.j2
+    dest: /opt/ca/kube/dashboard.yaml
+
+- name: Deploy dashboard configuration
+  shell: kubectl apply -f /opt/ca/kube/dashboard.yaml
+  register: deploy_dashboard_result
+
+- name: Show deploy dashboard result
+  debug:
+    msg: "{{ deploy_dashboard_result.stdout_lines }}"
+
+- name: Shell run inline install all tasks
+  shell: "{{ item }}"
+  with_items:
+    - kubectl create serviceaccount dashboard-admin-sa
+    - kubectl create clusterrolebinding dashboard-admin-sa --clusterrole=cluster-admin --serviceaccount=default:dashboard-admin-sa
+    - kubectl create clusterrolebinding dashboard --clusterrole cluster-admin --serviceaccount=kube-system:dashboard
+    - kubectl -n kube-system create sa dashboard
+
+- name: Get admin credentials data for able to login to Web UI
+  shell: "kubectl get secrets | grep dashboard-admin-sa | awk '{print $1}' | xargs -I ID kubectl describe secrets ID | grep 'token:' | sed -e 's\\token:      \\\\g'"
+  register: dashboard_admin_sa_token
+
+- name: DASHBOARD CREATED! YOUR TOKEN FOR LOGGING CREATED SUCCESSFUL! AWESOME!
+  vars:
+     MESSAGE_IN: "{{ dashboard_admin_sa_token.stdout_lines }}"
+  debug: 
+    msg: "{{ attention_phase_ui.split('\n') }}"

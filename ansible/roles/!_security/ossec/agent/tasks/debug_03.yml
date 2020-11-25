@@ -1,0 +1,27 @@
+- name: DEBUG | local_current_ossec_server_client_present
+  debug:
+    msg: "adding_agent_result {{ local_current_ossec_server_client_present }}"
+  when: ossec_managed_server is undefined
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['vortex-ossec-server'] }}"
+
+- name: DEBUG | adding_agent_result
+  debug:
+    msg: "adding_agent_result {{ adding_agent_result }}"
+  when: ossec_managed_server is defined and current_host_presents_on_ossec_server == "EXISTS"
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['vortex-ossec-server'] }}"
+
+- name: CLIENT | Set flag if host already presents in ossec clients.file step 0
+  debug:
+    msg: "EXISTS"
+  when: "{{ item }} != 1 and ossec_managed_server is undefined"
+  with_items: "{{ local_current_ossec_server_client_present | map(attribute='rc') | list }}"
+  register: current_host_presents_on_ossec_client
+
+- name: CLIENT | Set flag if host already presents in ossec clients.file step 1
+  debug:
+    msg: "NODATA"
+  when: "{{ item }} == 1 and ossec_managed_server is undefined" 
+  with_items: "{{ local_current_ossec_server_client_present | map(attribute='rc') | list }}"
+  register: current_host_presents_on_ossec_client

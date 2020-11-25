@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    field.cattle.io/ipAddresses: "null"
+    field.cattle.io/targetDnsRecordIds: "null"
+    field.cattle.io/targetWorkloadIds: "null"
+  creationTimestamp: null
+  labels:
+    app: mongodb
+    chart: mongodb-5.0.0
+    heritage: Tiller
+    io.cattle.field/appId: mongo
+    release: mongo
+  name: mongo-mongodb
+  selfLink: /api/v1/namespaces/rpay-engine/services/mongo-mongodb
+spec:
+  ports:
+  - name: mongodb
+    port: 27017
+    protocol: TCP
+    targetPort: mongodb
+  selector:
+    app: mongodb
+    release: mongo
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}

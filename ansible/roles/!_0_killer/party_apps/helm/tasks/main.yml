@@ -1,0 +1,276 @@
+---
+# # HELM
+
+- name: Template helm for 1st Master
+  template:
+    src: helm.yaml.j2
+    dest: /etc/kubernetes/helm-rbac.yaml
+  tags: helm_config
+
+- name: Run Deploy Helm on 1st Master
+  command: "{{ item }}"
+  with_items:
+   - kubectl create -f /etc/kubernetes/helm-rbac.yaml
+  when: inventory_hostname in groups['kubernetes-master'][0]
+
+- name: Run Deploy Helm Binary on All Masters
+  command: "{{ item }}"
+  with_items:
+   - wget https://storage.googleapis.com/kubernetes-helm/helm-v2.9.1-linux-amd64.tar.gz
+   - tar -zxvf helm-v2.9.1-linux-amd64.tar.gz
+   - cp linux-amd64/helm /usr/local/bin/
+
+- name: Run Deploy Kube-System Service Account on 1st Master
+  command: "{{ item }}"
+  with_items:
+   - helm init --service-account tiller --tiller-namespace kube-system
+  when: inventory_hostname in groups['kubernetes-master'][0]
+
+
+
+
+
+
+# - name: Touch a bash_profile file, using symbolic modes to set the permissions (equivalent to 0644)
+#   file:
+#     path: ~/.bashrc 
+#     state: touch
+#     mode: u=rw,g=r,o=r
+
+# - name: Set main etc profile
+#   lineinfile:
+#     path: /etc/profile
+#     state: absent
+#     regexp: '^export'
+#     line: 'export PATH=\"${PATH}:${HOME}/.krew/bin\"'
+
+# - name: Set main etc profile
+#   lineinfile:
+#     path: ~/.bashrc
+#     state: absent
+#     regexp: '^export'
+#     line: 'export PATH=\"${PATH}:${HOME}/.krew/bin\"'
+
+
+
+# - name: Set main etc profile
+#   lineinfile:
+#     path: ~/.bash_profile
+#     state: absent
+#     regexp: '^export'
+#     line: 'export PATH=\"${PATH}:${HOME}/.krew/bin\"'
+
+# - name: Absent bin/krew
+#   file:
+#     path: /bin/krew
+#     state: absent
+
+# - name: Set PATH
+#   lineinfile:
+#     path: ~/.bashrc 
+#     state: present
+#     regexp: '^PATH'
+#     line: 'export PATH="${PATH}:${HOME}/.krew/bin"'
+
+
+- name: "Create tmp directory"
+  file:
+    path: "{{ tmp_dir }}"
+    state: directory
+    mode: 0755
+  tags: helm
+
+# - name: "Get Helm installer"
+#   get_url:
+#     url: https://raw.githubusercontent.com/helm/helm/master/scripts/get
+#     dest: "{{ tmp_dir }}/get_helm.sh"
+#     mode: 0755
+
+# - name: "Run get_helm.sh installer"
+#   shell: "{{ tmp_dir }}/get_helm.sh"
+#   register: helm_install_result
+
+# - name: Debug helm_install_result
+#   debug:
+#     msg: "{{ helm_install_result }}"
+
+# - name: "Init Helm"
+#   shell: "helm init --service-account tiller --kubeconfig /etc/kubernetes/admin.conf"
+#   tags: helm
+#   ignore_errors: true
+#   register: helm_init_raw
+
+# - name: Debug helm_init_raw
+#   debug:
+#     msg: "{{ helm_init_raw }}"
+
+# - name: "Update Helm repo"
+#   shell: "helm repo update"
+#   tags: helm
+
+# - name: "Create krew opt directory"
+#   file:
+#     path: "/opt/krew/arch"
+#     state: directory
+#     mode: 0755
+#   tags: helm
+
+# - name: "Get krew installer {tar.gz,yaml}"
+#   get_url:
+#     url: https://github.com/kubernetes-sigs/krew/releases/download/v0.3.4/krew.{{ item }}
+#     dest: "/opt/krew/"
+#     mode: 0755
+#   with_items:
+    # - yaml
+#     - tar.gz
+
+# - name: Copy krew Binary to /bin
+#   unarchive:
+#      src: "/opt/krew/krew.tar.gz"
+#      dest: "/opt/krew/arch"
+#      copy: no
+
+# # # - name: Copy Krew to bin
+# # #   shell: "cp -R /opt/krew/arch/krew-linux_amd64 /bin/krew"
+
+
+
+
+
+
+
+# # # # # - name: Run krew install
+# # # # #   shell: "/opt/krew/arch/krew-linux_amd64 install --manifest=/opt/krew/krew.yaml --archive=/opt/krew/krew.tar.gz"
+
+# # # # # - name: Touch a bash_profile file, using symbolic modes to set the permissions (equivalent to 0644)
+# # # # #   file:
+# # # # #     path: ~/.bash_profile 
+# # # # #     state: touch
+# # # # #     mode: u=rw,g=r,o=r
+
+# # # # # - name: Set main etc profile
+# # # # #   lineinfile:
+# # # # #     path: ~/.bash_profile
+# # # # #     state: present
+# # # # #     regexp: '^export'
+# # # # #     line: 'export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"'
+
+- name: Set main KUBECONFIG to profile
+  lineinfile:
+    path: ~/.bash_profile
+    state: present
+    regexp: '^export'
+    line: 'export KUBECONFIG="/etc/kubernetes/admin.conf"'
+
+# # # # # - name: Run krew update
+# # # # #   shell: 'export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH" && kubectl krew update'
+# # # # #   register: krew_update
+
+# # # # # - name: Show krew_update
+# # # # #   debug: 
+# # # # #     msg: "{{ krew_update }}"
+
+# # # # # - name: Run krew upgrade
+# # # # #   shell: 'export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH" && kubectl krew upgrade'
+# # # # #   register: krew_upgrade
+
+# # # # # - name: Show upgrade
+# # # # #   debug: 
+# # # # #     msg: "{{ krew_upgrade }}"
+
+# # # # # - name: "Install ingress nginx plugin from repo"
+# # # # #   shell: 'export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH" && kubectl krew install ingress-nginx'
+# # # # #   tags: ingress-nginx
+
+# # # # # - name: "Copy nginx-helm-chart-values.yml file"
+# # # # #   copy:
+# # # # #     src: "nginx-helm-chart-values.yml"
+# # # # #     dest: "/etc/kubernetes/nginx-helm-chart-values.yml"
+# # # # #     mode: 0644
+# # # # #   tags: helm
+
+# $ helm reset
+# $ kubectl create -f ./initialize_helm_rbac.yaml 
+# $ helm init --service-account tiller --upgrade --wait
+
+
+### kubectl get all --kubeconfig /etc/kubernetes/admin.conf
+### kubectl --kubeconfig /etc/kubernetes/admin.conf get nodes
+### kubectl get pods -n kube-system
+### kubectl get nodes
+
+# - name: "Update helm repo update"
+#   shell: helm repo update
+#   register: helm_repo_update
+
+# - name: Show helm_repo_update
+#   debug: 
+#     msg: "{{ helm_repo_update }}"
+
+- name: Create main namespace
+  shell: kubectl create namespace {{ ansible_product }}-{{ ansible_environment }} --kubeconfig /etc/kubernetes/admin.conf
+  ignore_errors: true 
+  when: inventory_hostname in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Create default namespace
+  shell: kubectl create namespace {{ ansible_product }}-{{ ansible_environment }}-default --kubeconfig /etc/kubernetes/admin.conf
+  ignore_errors: true 
+  when: inventory_hostname in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: "Copy rbac-clusterrole.yml file"
+  template:
+    src: "rbac-clusterrole.yml"
+    dest: "/etc/kubernetes/rbac-clusterrole.yml"
+    mode: 0644
+  tags: helm
+  
+- name: Create rbac clusterrole rights
+  shell: kubectl create -f /etc/kubernetes/rbac-clusterrole.yml --kubeconfig /etc/kubernetes/admin.conf
+  ignore_errors: true 
+
+- name: "Copy rbac-namespaces.yml file"
+  template:
+    src: "rbac-namespaces.yml"
+    dest: "/etc/kubernetes/rbac-namespaces.yml"
+    mode: 0644
+  tags: helm
+  
+- name: Create rbac namespaces rights
+  shell: kubectl apply -f /etc/kubernetes/rbac-namespaces.yml --kubeconfig /etc/kubernetes/admin.conf
+  ignore_errors: true 
+
+- name: "Copy rbac-config.yml file"
+  copy:
+    src: "rbac-config.yml"
+    dest: "/etc/kubernetes/rbac-config.yml"
+    mode: 0644
+  tags: helm
+
+- name: "Create tiller service account namespace install"
+  shell: 'kubectl apply -f /etc/kubernetes/rbac-config.yml --kubeconfig /etc/kubernetes/admin.conf'
+  when: inventory_hostname in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+  ignore_errors: true 
+
+- name: "Init tiller service account install"
+  shell: helm init --service-account tiller --upgrade --wait --kubeconfig /etc/kubernetes/admin.conf
+  ignore_errors: true 
+  when: inventory_hostname in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: sleep
+  shell: sleep 60
+
+- name: "Update nginx ingress install"
+  shell: helm upgrade nginx-ingress stable/nginx-ingress -f /etc/kubernetes/nginx-helm-chart-values.yml --kubeconfig /etc/kubernetes/admin.conf
+  tags: ingress-nginx
+
+
+- name: "RBAC configuration"
+  shell: "kubectl apply -f /etc/kubernetes/rbac-config.yml --kubeconfig /etc/kubernetes/admin.conf"
+  tags: helm
+
+- name: "Clean-up"
+  file:
+    path: "{{ tmp_dir }}"
+    state: absent
+  ignore_errors: yes
+  tags: helm

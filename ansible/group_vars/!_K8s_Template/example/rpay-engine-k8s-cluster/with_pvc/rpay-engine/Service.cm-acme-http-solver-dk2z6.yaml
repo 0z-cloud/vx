@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    auth.istio.io/8089: NONE
+    field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":32444,"protocol":"TCP","serviceName":"rpay-engine:cm-acme-http-solver-dk2z6","allNodes":true}]'
+  creationTimestamp: null
+  generateName: cm-acme-http-solver-
+  labels:
+    certmanager.k8s.io/acme-http-domain: "1998915948"
+    certmanager.k8s.io/acme-http-token: "992415373"
+  ownerReferences:
+  - apiVersion: certmanager.k8s.io/v1alpha1
+    blockOwnerDeletion: true
+    controller: true
+    kind: Certificate
+    name: letsencrypt-business
+    uid: e50abbc1-99a0-11e9-890b-b42e994820d9
+  selfLink: /api/v1/namespaces/rpay-engine/services/cm-acme-http-solver-dk2z6
+spec:
+  externalTrafficPolicy: Cluster
+  ports:
+  - name: http
+    port: 8089
+    protocol: TCP
+    targetPort: 8089
+  selector:
+    certmanager.k8s.io/acme-http-domain: "1998915948"
+    certmanager.k8s.io/acme-http-token: "992415373"
+  sessionAffinity: None
+  type: NodePort
+status:
+  loadBalancer: {}

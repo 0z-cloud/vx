@@ -1,0 +1,77 @@
+#### ERROR PAGES
+
+#################
+########### DEBUG
+- name: Debugging ansible_catalina_web_xml_error_pages
+  debug:
+    msg: "Debugging {{ item }}"
+  with_items: "{{ ansible_catalina_web_xml_error_pages }}"
+  tags: ansible_grep_error_pages_config_web_xml_all_positions
+  when: ansible_debug_run is defined
+########### DEBUG
+#################
+
+- name: Shell gets grep error pages from /conf/web.xml , if see error its good =)
+  shell: "grep '<error-code>{{ item }}' {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}/conf/web.xml"
+  register: ansible_grep_error_pages_config_web_xml_all_positions
+  with_items: "{{ ansible_catalina_web_xml_error_pages }}"
+  ignore_errors: true
+  tags: ansible_grep_error_pages_config_web_xml_all_positions
+
+#################
+########### DEBUG
+- name: Debug not compliant error pages mapping in ansible_grep_error_pages_config_web_xml_all_positions
+  debug:
+    msg: "{{ ansible_grep_error_pages_config_web_xml_all_positions.results }}"
+  tags: ansible_grep_error_pages_config_web_xml_all_positions
+  when: ansible_debug_run is defined
+########### DEBUG
+#################
+
+- name: Check not compliant error pages mapping in ansible_grep_error_pages_config_web_xml_all_positions, if PCI compliance ok, we ignore that and go next
+  fail:
+    msg: "Whoops! Web.xml not have <error-code> {{ item.1 }} error page mapping in File {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}/conf/server.xml conetent not PCI Compliant - please change set server error page for {{ item.1 }}"
+  when: "{{ item.0 }} != 0"
+  tags: ansible_grep_error_pages_config_web_xml_all_positions
+  with_together: 
+    - "{{ ansible_grep_error_pages_config_web_xml_all_positions.results | map(attribute='rc') | list }}"
+    - "{{ ansible_grep_error_pages_config_web_xml_all_positions.results | map(attribute='item') | list }}"
+
+#### EXCEPTION PAGES
+
+#################
+########### DEBUG
+- name: Debugging ansible_catalina_web_xml_exceptions_settings
+  debug:
+    msg: "Debugging {{ item }}"
+  with_items: "{{ ansible_catalina_web_xml_exceptions_settings }}"
+  tags: ansible_catalina_web_xml_ex_pages
+  when: ansible_debug_run is defined
+########### DEBUG
+#################
+
+- name: Shell gets grep exception pages from /conf/web.xml , if see error its good =)
+  shell: "grep '<exception-type>{{ item }}' {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}/conf/web.xml"
+  register: ansible_catalina_web_xml_exceptions_settings_positions
+  with_items: "{{ ansible_catalina_web_xml_exceptions_settings }}"
+  ignore_errors: true
+  tags: ansible_catalina_web_xml_ex_pages
+
+#################
+########### DEBUG
+- name: Debug not compliant exception pages mapping in ansible_catalina_web_xml_exceptions_settings_positions
+  debug:
+    msg: "{{ ansible_catalina_web_xml_exceptions_settings_positions.results }}"
+  tags: ansible_catalina_web_xml_ex_pages
+  when: ansible_debug_run is defined
+########### DEBUG
+#################
+
+- name: Check not compliant exception pages mapping in ansible_catalina_web_xml_exceptions_settings_positions, if PCI compliance ok, we ignore that and go next
+  fail:
+    msg: "Whoops! Web.xml not have {{ item.1 }} exception page mapping in File {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}/conf/server.xml conetent not PCI Compliant - please change set server exception page for {{ item.1 }}"
+  when: "{{ item.0 }} != 0"
+  tags: ansible_catalina_web_xml_ex_pages
+  with_together: 
+    - "{{ ansible_catalina_web_xml_exceptions_settings_positions.results | map(attribute='rc') | list }}"
+    - "{{ ansible_catalina_web_xml_exceptions_settings_positions.results | map(attribute='item') | list }}"

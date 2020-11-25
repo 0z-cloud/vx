@@ -1,0 +1,37 @@
+$TTL 3600
+@  IN  SOA  {{ hostvars[inventory_hostname].ansible_nodename }}.{{ consul_merge_domain_name }} hostmaster.{{ consul_merge_domain_name }} (
+              2016113001  ; serial
+              21600       ; refresh after 6 hours
+              3600        ; retry after 1 hour
+              604800      ; expire after 1 week
+              3600 )     ; minimum TTL of 1 day
+;
+@ IN NS  ns.{{ consul_merge_domain_name }}
+@ IN NS  ns.service.{{ consul_merge_domain_name }}
+
+{% for host in groups['consul-masters'] %}
+@ IN NS {{ hostvars[host].ansible_nodename }}.{{ consul_merge_domain_name }}{% raw %}
+{% endraw %}
+{% endfor %}
+;
+
+{% for host in groups['consul-masters'] %}
+@ IN A {{ hostvars[host].ansible_default_ipv4.address }}{% raw %}
+{% endraw %}
+{% endfor %}
+;
+
+{% for host in groups['consul-masters'] %}
+{{ hostvars[host].ansible_default_ipv4.address.split('.')[3] }} IN  PTR {{ hostvars[host].ansible_nodename }}.{{ consul_merge_domain_name }}{% raw %}
+{% endraw %}
+{% endfor %}
+;
+{% for host in groups['consul-masters'] %}
+{{ hostvars[host].ansible_default_ipv4.address.split('.')[3] }} IN  PTR ns.{{ consul_merge_domain_name }}{% raw %}
+{% endraw %}
+{% endfor %}
+{% for host in groups['consul-masters'] %}
+{{ hostvars[host].ansible_default_ipv4.address.split('.')[3] }} IN  PTR ns.service.{{ consul_merge_domain_name }}{% raw %}
+{% endraw %}
+{% endfor %}
+;

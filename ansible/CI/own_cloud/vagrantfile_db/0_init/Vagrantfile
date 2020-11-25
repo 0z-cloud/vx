@@ -1,0 +1,274 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+need_restart = false
+
+unless Vagrant.has_plugin?("vagrant-docker-compose")
+    system("vagrant plugin install vagrant-docker-compose")
+    need_restart = true
+end
+
+unless Vagrant.has_plugin?("vagrant-hostmanager")
+    system("vagrant plugin install vagrant-hostmanager")
+    need_restart = true
+end
+
+unless Vagrant.has_plugin?("vagrant-host-shell")
+    system("vagrant plugin install vagrant-host-shell")
+    need_restart = true
+end
+
+unless Vagrant.has_plugin?("vagrant-vbguest")
+    system("vagrant plugin install vagrant-vbguest")
+    need_restart = true
+end
+
+unless Vagrant.has_plugin?("vagrant-ansible_inventory")
+    system("vagrant plugin install vagrant-ansible_inventory")
+    need_restart = true
+end
+
+if need_restart
+    args = ARGV.join(' ')
+    puts "Dependencies installed, restarting VM to apply changes..."
+    exec "vagrant #{args}"
+end
+
+module OS
+    def OS.windows?
+        (/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM) != nil
+    end
+
+    def OS.mac?
+        (/darwin/ =~ RUBY_PLATFORM) != nil
+    end
+
+    def OS.unix?
+        !OS.windows?
+    end
+
+    def OS.linux?
+        OS.unix? and not OS.mac?
+    end
+end
+
+PROJECT_ROOT_PATH = "../.."
+VAGRANT_RELARED_PATH = "Environments/VagrantDockerCompose"
+PROJECT_ENVIRONMENTS_PATH = "#{PROJECT_ROOT_PATH}/Environments"
+VAGRANT_ROOT_PATH = "#{PROJECT_ROOT_PATH}/#{VAGRANT_RELARED_PATH}"
+CURRENT_PROVISION_PATH = "#{VAGRANT_ROOT_PATH}/provision"
+VAGRANT_EXPORT_ROOT_PATH = "/vagrant"
+
+VAGRANT_MACHINE_MEMORY = ENV["VAGRANT_MACHINE_MEMORY"]
+VAGRANT_MACHINE_CPUS = ENV["VAGRANT_MACHINE_CPUS"]
+VAGRANT_PROVISION_PATH = "#{VAGRANT_EXPORT_ROOT_PATH}/#{VAGRANT_RELARED_PATH}/provision"
+VAGRANT_ENVIRONMENTS_PATH = "#{VAGRANT_EXPORT_ROOT_PATH}/Environments"
+
+# All Vagrant configuration is done below. The "2" in Vagrant.configure
+# configures the configuration version (we support older styles for
+# backwards compatibility). Please don't change it unless you know what
+# you're doing.
+Vagrant.configure(2) do |config|
+  (1..16).each do |i|
+    config.vm.define "vortex-test-#{i}-#{ENV['USER']}" do |node|
+      node.vm.box = "ubuntu/trusty64"
+      node.vm.network "public_network",
+        use_dhcp_assigned_default_route: true
+      node.vm.provision "shell",
+        inline: "echo hello from node #{i}"
+    end
+  end
+
+  config.vm.define "vortex-control-#{ENV['USER']}", primary: true do |control|
+    control.vm.box = "ubuntu/trusty64"
+    control.vm.network "public_network",
+        use_dhcp_assigned_default_route: true
+    control.vm.provision "shell", binary: true, privileged: true, path: "scripts/install-ansible.sh"
+    control.vm.provision "ansible" do |ansible|
+      (1..16).each do |i|
+        config.vm.define "vortex-test-#{i}-#{ENV['USER']}" do |node|
+          node.vm.provision "shell",
+              inline: "echo hello from node #{i}"
+          end
+      end
+      ansible.playbook = "own_cloud/playbook_db/0_init/empty.yml"
+      ansible.limit = 'all'
+      ansible.groups = {
+
+        "keyserver-zone" => [
+          "vortex-test-9-#{ENV['USER']}", 
+          "vortex-test-10-#{ENV['USER']}"
+        ],
+
+        "web-servers" => [
+          "vortex-test-13-#{ENV['USER']}", 
+          "vortex-test-14-#{ENV['USER']}"
+        ],
+
+        "tomcat-servers" => [
+          "vortex-test-15-#{ENV['USER']}", 
+          "vortex-test-16-#{ENV['USER']}"
+        ],
+
+        "bastion-host" => [
+          "vortex-control-#{ENV['USER']}"
+        ],
+
+        "firewall-host" => [
+          "vortex-control-#{ENV['USER']}"
+        ],
+
+        "vortex-pansearch-hosts" => [
+          "vortex-test-1-#{ENV['USER']}", 
+          "vortex-test-2-#{ENV['USER']}"
+        ],
+
+        "laravel-web-servers" => [
+          "vortex-test-15-#{ENV['USER']}", 
+          "vortex-test-16-#{ENV['USER']}"
+        ],
+
+        "keepalived-servers-web" => [
+          "vortex-test-11-#{ENV['USER']}",
+          "vortex-test-12-#{ENV['USER']}"
+        ],
+
+        "keepalived-servers-pos" => [
+          "vortex-test-3-#{ENV['USER']}",
+          "vortex-test-4-#{ENV['USER']}"
+        ],
+
+        "secureweb-servers" => [
+          "vortex-test-1-#{ENV['USER']}", 
+          "vortex-test-2-#{ENV['USER']}"
+        ],
+
+        "adminweb-servers" => [
+          "vortex-test-1-#{ENV['USER']}", 
+          "vortex-test-2-#{ENV['USER']}"
+        ],
+        
+        "gateway-servers" => [
+          "vortex-test-5-#{ENV['USER']}", 
+          "vortex-test-6-#{ENV['USER']}"
+        ],
+
+        "clientweb-servers" => [
+          "vortex-test-1-#{ENV['USER']}", 
+          "vortex-test-2-#{ENV['USER']}"
+        ],
+
+        "percona-servers" =>  [
+          "vortex-test-7-#{ENV['USER']}", 
+          "vortex-test-8-#{ENV['USER']}" 
+        ],
+
+        "dns-servers" => [
+          "vortex-control-#{ENV['USER']}"
+        ],
+
+        "repo-servers" => [
+          "vortex-control-#{ENV['USER']}"
+        ],
+
+        "rsyslog-servers" => [
+          "vortex-control-#{ENV['USER']}"
+        ],
+
+        "vortex-after-bastion" => [
+          "vortex-control-#{ENV['USER']}"
+        ],
+
+        "public-web-servers" => [
+          "vortex-test-1-#{ENV['USER']}", 
+          "vortex-test-2-#{ENV['USER']}", 
+          "vortex-test-5-#{ENV['USER']}", 
+          "vortex-test-6-#{ENV['USER']}", 
+          "vortex-test-13-#{ENV['USER']}", 
+          "vortex-test-14-#{ENV['USER']}",
+          "vortex-control-#{ENV['USER']}"
+        ],
+
+        "keepalived-servers-group" => [
+          "vortex-test-3-#{ENV['USER']}", 
+          "vortex-test-4-#{ENV['USER']}", 
+          "vortex-test-11-#{ENV['USER']}",
+          "vortex-test-12-#{ENV['USER']}"
+        ],
+
+        "java-servers" => [
+          "vortex-test-9-#{ENV['USER']}", 
+          "vortex-test-10-#{ENV['USER']}", 
+          "vortex-test-15-#{ENV['USER']}", 
+          "vortex-test-16-#{ENV['USER']}",
+        ],
+
+        "all" => [
+          "vortex-test-1-#{ENV['USER']}", 
+          "vortex-test-2-#{ENV['USER']}", 
+          "vortex-test-3-#{ENV['USER']}", 
+          "vortex-test-4-#{ENV['USER']}", 
+          "vortex-test-5-#{ENV['USER']}", 
+          "vortex-test-6-#{ENV['USER']}", 
+          "vortex-test-7-#{ENV['USER']}", 
+          "vortex-test-8-#{ENV['USER']}", 
+          "vortex-test-9-#{ENV['USER']}", 
+          "vortex-test-10-#{ENV['USER']}",
+          "vortex-test-11-#{ENV['USER']}", 
+          "vortex-test-12-#{ENV['USER']}",
+          "vortex-test-13-#{ENV['USER']}", 
+          "vortex-test-14-#{ENV['USER']}",
+          "vortex-test-15-#{ENV['USER']}", 
+          "vortex-test-16-#{ENV['USER']}",
+          "vortex-control-#{ENV['USER']}"
+        ],
+
+        "vagrant" => [
+          "vortex-test-1-#{ENV['USER']}", 
+          "vortex-test-2-#{ENV['USER']}", 
+          "vortex-test-3-#{ENV['USER']}", 
+          "vortex-test-4-#{ENV['USER']}", 
+          "vortex-test-5-#{ENV['USER']}", 
+          "vortex-test-6-#{ENV['USER']}", 
+          "vortex-test-7-#{ENV['USER']}", 
+          "vortex-test-8-#{ENV['USER']}", 
+          "vortex-test-9-#{ENV['USER']}", 
+          "vortex-test-10-#{ENV['USER']}",
+          "vortex-test-11-#{ENV['USER']}", 
+          "vortex-test-12-#{ENV['USER']}",
+          "vortex-test-13-#{ENV['USER']}", 
+          "vortex-test-14-#{ENV['USER']}",
+          "vortex-test-15-#{ENV['USER']}", 
+          "vortex-test-16-#{ENV['USER']}",
+          "vortex-control-#{ENV['USER']}"
+        ],
+
+        "all:vars" => {
+          "foo" => "toto",
+          "bar" => "titi"
+        },
+
+        "vortex-test-3-#{ENV['USER']}:vars" => {
+          "MTS_HTTP_ENDPOINT_WEIGHT" => "100",
+          "BM_HTTP_ENDPOINT_WEIGHT" => "100"
+        },
+
+        "vortex-test-4-#{ENV['USER']}:vars" => {
+          "MTS_HTTP_ENDPOINT_WEIGHT" => "200",
+          "BM_HTTP_ENDPOINT_WEIGHT" => "200"
+        },
+
+        "vortex-test-11-#{ENV['USER']}:vars" => {
+          "MTS_HTTP_ENDPOINT_WEIGHT" => "100",
+          "BM_HTTP_ENDPOINT_WEIGHT" => "100"
+        },
+
+        "vortex-test-12-#{ENV['USER']}:vars" => {
+          "MTS_HTTP_ENDPOINT_WEIGHT" => "200",
+          "BM_HTTP_ENDPOINT_WEIGHT" => "200"
+        },
+        
+      }
+    end
+  end
+end

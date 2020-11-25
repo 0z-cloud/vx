@@ -1,0 +1,33 @@
+- name: Add Apt Repository
+  shell: curl -L https://toolbelt.treasuredata.com/sh/install-ubuntu-trusty-td-agent3.sh | sh
+
+- name: Make sure a td-agent is stopped
+  service:
+    name: td-agent
+    state: stopped
+
+- name: Install plugins
+  command: "td-agent-gem install {{ item }}"
+  loop: "{{ fluentd_plugins }}"
+  when: fluentd_plugins is defined
+
+- name: Apply hotfix for Gelf
+  lineinfile:
+    path: /opt/td-agent/embedded/lib/ruby/gems/2.4.0/gems/gelf-3.0.0/lib/gelf/notifier.rb
+    insertafter: "require 'gelf/transport/tcp_tls'"
+    line: "require 'yajl/json_gem'"
+
+- shell: /opt/td-agent/embedded/bin/gem install yajl
+
+- name: Create configuration
+  template:
+    src: td-agent.conf.j2
+    dest: /etc/td-agent/td-agent.conf
+  when: fluentd_matches is defined
+
+- name: Make sure a td-agent is started
+  service:
+    name: td-agent
+    state: started
+
+

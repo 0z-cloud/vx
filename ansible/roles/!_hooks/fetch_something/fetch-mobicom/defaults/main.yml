@@ -1,0 +1,4 @@
+files_to_fetch:
+  path: /var/www/mobicom/shared/storage/logs/
+  files: 
+    - laravel.log

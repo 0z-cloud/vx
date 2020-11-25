@@ -1,0 +1,63 @@
+{% raw %}
+ACCEPT      fw                                          fw
+ACCEPT      fw                                          all:127.0.0.53                          tcp,udp         53
+ACCEPT      fw                                          all                                 icmp
+{% endraw %}
+{% if inventory_hostname in groups['bastion-admin-host'] %}
+{% raw %}
+# ACCEPT SSH FROM bas TO ALL
+ACCEPT      fw                                          net                                  tcp         22
+ACCEPT      fw                                          cde                                  tcp         22
+ACCEPT      fw                                          vrrp                                 tcp         22
+ACCEPT      fw                                          nginx                                tcp         22
+ACCEPT      fw                                          repo                                 tcp         22
+
+### TEST
+ACCEPT      fw                                          vip                                  tcp         5432
+{% endraw %}
+{% else %}
+{%raw%}
+ACCEPT      bas                                     fw                                  icmp   
+ACCEPT      bas                                     fw                                  tcp         22   
+{% endraw %}
+{% endif %}
+{% raw %}
+ACCEPT      fw                                          repo                                 tcp         80,443
+ACCEPT      fw                                          vrrp                                 udp         53
+ACCEPT      fw                                          nginx                                udp         53
+{% endraw %}
+
+{% if inventory_hostname in groups['nginx-frontend'] %}
+{% raw %}
+ACCEPT      wan                                         fw                                  tcp         53,80,443,1194
+ACCEPT      fw                                          wan                                 tcp         80,443
+ACCEPT      fw                                          wan                                 udp	        ntp
+ACCEPT      fw                                          wan                                 udp         53
+ACCEPT      fw                                          nginx                               udp         53
+# ACCEPT      fw                                          fw                                  udp         53
+{% endraw %}
+{% endif %}
+
+{% if inventory_hostname in groups['network-balancer-stack'] %}
+{% raw %}
+# ICMP
+ACCEPT      fw                                          vrrp                                 icmp         
+ACCEPT      fw                                          vrrp                                 tcp         80,443,53
+ACCEPT      fw                                          vrrp                                 tcp         80,443
+ACCEPT      nginx                                       fw                                   tcp         53,80,443,5432,6379,27017
+ACCEPT      vrrp                                        cde                                  tcp         53,80,443,5432,6379,27017
+ACCEPT      cde                                         vrrp                                 tcp         53,80,443,5432,6379,27017
+{% endraw %}
+{% endif %}
+
+{% if inventory_hostname in groups['database-swarm-cluster'] %}
+{% raw %}
+# ICMP
+ACCEPT      fw                                          cde                                 icmp   
+ACCEPT      fw                                          vrrp                                icmp   
+
+ACCEPT      vrrp                                        fw                                  icmp   
+ACCEPT      vrrp                                        fw                                  tcp          22   
+ACCEPT      vrrp                                        fw                                  tcp          53,80,443,5432,6379,27017
+{% endraw %}
+{% endif %}

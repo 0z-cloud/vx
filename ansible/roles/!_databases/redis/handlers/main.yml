@@ -1,0 +1,7 @@
+---
+# handlers file for roles/redis
+
+- name: Restart redis
+  service:
+    name: "{{ instance.name }}"
+    state: restarted

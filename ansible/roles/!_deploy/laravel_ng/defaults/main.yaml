@@ -1,0 +1,11 @@
+LARAVEL_DB_MIGRATE: "no"
+LARAVEL_DB_SEED: "no"
+LARAVEL_MAINTENANCE: "no"
+LARAVEL_VAULT: "no"
+LARAVEL_LINK_STORAGE: "no"
+LARAVEL_HORIZON: "no"
+
+LARAVEL_OPTIMIZATION_COMMANDS:
+  - "clear-compiled"
+  - "config:cache"
+  - "route:cache"

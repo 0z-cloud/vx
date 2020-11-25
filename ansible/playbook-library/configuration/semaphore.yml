@@ -1,0 +1,7 @@
+- name: Run the semaphore role
+  become: true
+  hosts: bastion-host
+  roles:
+    - name: Run the semaphore role
+      role: ./!_applications/semaphore/semaphore
+  tags: [semaphore_install]

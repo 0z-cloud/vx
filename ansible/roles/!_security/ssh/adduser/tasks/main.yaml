@@ -1,0 +1,29 @@
+- name: Merge user variables
+  merge_vars:
+    suffix_to_merge: adduser__to_merge
+    merged_var_name: add_ssh_users
+    expected_type: 'list'
+  tags:
+    - add_user
+
+- name: Add users
+  user:
+    name: "{{ item.name }}"
+    shell: "{{ item.shell }}"
+    groups: "{{ item.groups }}"
+    password: "{{ ssh_default_password | password_hash('sha512') }}"
+    append: yes
+    update_password: on_create
+  with_items: "{{ add_ssh_users }}"
+  tags:
+    - add_user
+
+- name: Upload users ssh keys
+  authorized_key:
+    user: "{{ item.name }}"
+    state: present
+    key: "{{ lookup('file', './.files/ssh_keys/{{ item.key }}') }}"
+  when: item.key != ''
+  with_items: "{{ add_ssh_users }}"
+  tags:
+    - add_user

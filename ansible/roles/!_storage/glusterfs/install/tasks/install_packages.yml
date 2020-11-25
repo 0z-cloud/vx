@@ -1,0 +1,71 @@
+# - name: Add repository key
+#   apt_key:
+#     keyserver: keyserver.ubuntu.com
+#     id: "{{ item }}"
+#   with_items:
+#     - '13e01b7b3fe869a9'
+
+# - name: Raw update ca-certificates
+#   raw: update-ca-certificates
+
+# - name: Need to check ca-certificates
+#   apt:
+#     name: ca-certificates
+#     state: present
+
+# - name: Raw update ca-certificates
+#   raw: update-ca-certificates
+
+# - name: Enable universe repository
+#   apt_repository:
+#     repo: "{{ item }}"
+#   loop:
+#     - "deb http://archive.ubuntu.com/ubuntu/ {{ hostvars[inventory_hostname]['ansible_lsb'].codename | join }} universe"
+#     - "deb http://archive.ubuntu.com/ubuntu/ {{ hostvars[inventory_hostname]['ansible_lsb'].codename | join }}-updates universe"
+#     - "deb http://security.ubuntu.com/ubuntu/ {{ hostvars[inventory_hostname]['ansible_lsb'].codename | join }}-security universe"
+
+# - name: Remove file
+#   shell: rm /etc/apt/sources.list.d/glusterfs_repo_0z.list
+
+# - name: Remove all repository PPAs
+#   apt_repository: 
+#     repo: '{{ glusterfs_environment_past_version }}'
+#     state: absent
+#   with_items:
+#     - "{{ glusterfs_environment_past_version }}"
+#     - "{{ glusterfs_environment_middle_version }}"
+#     - "{{ glusterfs_environment_new_version }}"
+
+# - name: Add repository PPA latest
+#   apt_repository: 
+#     repo: '{{ glusterfs_environment_new_version }}'
+#     state: present
+
+# - name: Template apt source list configuration to /etc/apt
+#   template:
+#     src: glusterfs_repo.list
+#     dest: /etc/apt/sources.list.d/glusterfs_repo_0z.list
+
+# - name: Update APT cache
+#   apt:
+#     update_cache: true
+
+- name: -- GlusterFS Init Apt Full Sync - Aptitude full upgrade --
+  apt:
+    upgrade: full
+    force: true
+    update_cache: true
+
+### NEED TO EXTEND BY WAYS TO ESCAPE
+# - name: -- GlusterFS -- Purge Packages from system System
+#   apt:
+#     name: "{{ glusterfs_settings.packages }}"
+#     state: absent
+#     purge: yes
+
+- name: -- GlusterFS -- Install GlusterFS Apt Packages 
+  apt:
+    name: "{{ glusterfs_settings.packages }}"
+    state: present
+    update_cache: yes
+    force: true

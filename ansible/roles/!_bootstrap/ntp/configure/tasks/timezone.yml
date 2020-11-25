@@ -1,0 +1,7 @@
+- name: SET TIMEZONE | To UTC
+  template:
+    src: timezone
+    dest: /etc/timezone
+
+- name: RECONFIGURE TZDATA | To UTC
+  raw: dpkg-reconfigure -f noninteractive tzdata

@@ -1,0 +1,36 @@
+---
+
+- name: Ensure system packages are installed
+  apt: name="{{ item }}" state=present
+  with_items: "{{ slapd_system_packages }}"
+  tags: [slapd]
+
+- name: Update pip
+  pip:
+    name: pip
+    state: latest
+
+- name: Ensure Python packages are installed
+  pip: name="{{ item }}" state=present
+  with_items: "{{ slapd_python_packages }}"
+  tags: [slapd, python]
+
+- include: apparmor.yml
+  tags: [apparmor]
+  
+- name: Enable slapd service
+  tags: [slapd]
+  service: name=slapd state=started enabled=yes
+
+- include: move_default_database_directory.yml
+  when:    slapd_data_dir != slapd_default_data_dir
+  tags:    [slapd]
+
+- include: logging.yml
+  tags: [slapd, log]
+
+- include: schemas.yml
+  tags: [slapd, schemas]
+
+- include: security.yml
+  tags:    [slapd, security]

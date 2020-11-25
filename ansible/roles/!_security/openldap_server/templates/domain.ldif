@@ -1,0 +1,26 @@
+dn: dc={{ openldap_server_domain_name.split('.')[0] }},dc={{ openldap_server_domain_name.split('.')[1] }}
+objectClass: domain
+dc: {{ openldap_server_domain_name.split('.')[0] }}
+
+dn: cn=config
+replace: olcPasswordCryptSaltFormat
+olcPasswordCryptSaltFormat: $5$%.16s
+
+# default, Policies, nbldap.local
+dn: cn=default,ou=Policies,dc={{ openldap_server_domain_name.split('.')[0] }},dc={{ openldap_server_domain_name.split('.')[1] }}
+pwdAttribute: userPassword
+objectClass: pwdPolicy
+objectClass: top
+objectClass: person
+pwdGraceAuthNLimit: 0
+pwdLockoutDuration: 0
+pwdFailureCountInterval: 0
+pwdMinLength: 8
+sn: dummy value
+cn: default
+pwdMaxFailure: 3
+pwdCheckQuality: 1
+pwdAllowUserChange: TRUE
+pwdInHistory: 2
+pwdLockout: TRUE
+pwdMustChange: FALSE

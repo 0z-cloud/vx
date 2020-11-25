@@ -1,0 +1,18 @@
+---
+galaxy_info:
+  author: John Paul Newman
+  description: LDAP Server. Wraps 'bennojoy.openldap_server'. Used for testing role 'jpnewman.gerrit', via 'https://github.com/jpnewman/jpnewman_ansible_gerrit'.
+  license: license (BSD, MIT)
+  min_ansible_version: 2.0
+  platforms:
+  - name: Debian
+    versions:
+    - all
+  - name: Ubuntu
+    versions:
+    - all
+  galaxy_tags:
+    - ldap
+
+dependencies:
+  - openldap_server

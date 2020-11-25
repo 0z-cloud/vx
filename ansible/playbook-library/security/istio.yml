@@ -1,0 +1,7 @@
+- name: Run the istio install role on all servers
+  hosts: "{{ HOSTS | default('istio_service_group') }}"
+  roles:
+    - name: Running istio role
+      role: !_security/istio.yml
+      #role: '{{ playbook_dir }}'
+      istio_cleanup: True

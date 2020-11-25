@@ -1,0 +1,73 @@
+- name: Inject defaults
+  set_fact:
+    clamav_settings: "{{ clamav_settings_defaults | combine(clamav_settings) }}"
+  tags: [always]
+
+- name: Install the clamav and dependencies on Ubuntu
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  when: ansible_distribution == 'Ubuntu' 
+  with_items:
+    - clamav
+    - curl
+    - clamav-daemon
+
+- name: Generate Freshclam config on Ubuntu
+  template: 
+    src: freshclam.conf
+    dest: /etc/clamav/freshclam.conf
+
+- name: Create the directories
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0755
+  with_dict: "{{ clamav_settings.directories | default({}) }}"
+
+- name: Create the logs directory
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0755
+    owner: "{{ clamav_settings.security.linux_username }}"
+    group: "root"
+  with_dict: "{{ clamav_settings.logs | default({}) }}"
+
+- name: Generate clamav scanner script from template
+  template:
+    src: clamav_scan.sh.j2
+    dest: "{{ clamav_settings.directories.bin }}/clamav_scanner.sh"
+    mode: 0755
+
+- name: Install CPAN perl packages
+  command: "{{ item }}"
+  with_items:
+    - "cpan -i Net::DNS"
+  when: inventory_hostname in groups['clamav-repository-mirror']
+  ignore_errors: true
+
+- name: Generate Mirror server updater script from template
+  template:
+    src: clamupdater.pl.j2
+    dest: "{{ clamav_settings.directories.bin }}/clamupdater.pl"
+    mode: 0755
+  when: inventory_hostname in groups['clamav-repository-mirror']
+
+- name: Adding run to cron everyday scan task
+  cron:
+    name: "clamav scanner everyday task"
+    minute: "{{ clamav_startup_minutes }}"
+    hour: "{{ clamav_startup_hour }}"
+    job: "{{ clamav_settings.directories.bin }}/clamav_scanner.sh"
+    user: root
+
+- name: Adding run to cron everyday mirror server update task
+  cron:
+    name: "clamav scanner everyday mirror server update task"
+    minute: "{{ clamav_mirror_update_minutes }}"
+    hour: "{{ clamav_mirror_update_hour }}"
+    job: "{{ clamav_settings.directories.bin }}/clamupdater.pl"
+    user: root
+  when: inventory_hostname in groups['clamav-repository-mirror']

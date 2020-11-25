@@ -1,0 +1,3 @@
+{% block 0z_ll_build_dockerfile_context %}{% raw %}
+        dockerfile: "{% endraw %}{% if value['dockerfile_context'] is defined %}{{ value['dockerfile_context'] }}{% raw %}"{% endraw %}{% else %}{% raw %}Dockerfile"
+{% endraw %}{% endif %}{% endblock %}

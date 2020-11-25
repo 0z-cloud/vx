@@ -1,0 +1,16 @@
+apiVersion: v1
+{% if item.value['environment'] is defined %}
+data:
+{% for de in item.value['environment'] %}
+  {{ de | join }}
+{% endfor %}
+{% endif %}
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  labels:
+    app: {{ item.key }}
+    chart: {{ item.key }}-{{ lookup('vars', 'passed_ci_docker_tag_' + item.key) }}
+    io.cattle.field/appId: {{ ansible_product}}-{{ ansible_environment }}
+  name: {{ item.key }}
+  selfLink: /api/v1/namespaces/{{ ansible_product}}-{{ ansible_environment }}/configmaps/{{ item.key }}

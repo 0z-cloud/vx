@@ -1,0 +1,5 @@
+#!/bin/bash
+
+echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | debconf-set-selections
+echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 seen true" | debconf-set-selections
+apt-get install oracle-java8-installer -yqq

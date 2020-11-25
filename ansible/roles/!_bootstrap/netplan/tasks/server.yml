@@ -1,0 +1,13 @@
+
+- name: Remove default netplan /etc/netplan/99-netcfg.yaml
+  file:
+    path: /etc/netplan/99-netcfg.yaml
+    state: absent
+
+- name: Make netplan great again
+  template:
+    src: netplan.conf.j2
+    dest: /etc/netplan/99-netcfg-cloud.yaml
+
+# - name: Apply new netplan configuration
+#   shell: netplan apply

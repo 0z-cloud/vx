@@ -1,0 +1,89 @@
+- name: Installing and checking local python homebrew packages by Ansible
+  hosts: localhost
+  vars_files:
+      - "defaults/main.yml"
+  tasks:
+
+    # - name: Tap a Homebrew repository, state absent
+    #   community.general.homebrew_tap:
+    #     name: esolitos/ipa
+    #     state: present
+    #   when: ansible_os_family == "Darwin"
+
+    # - name: Check and validate homebrew packages
+    #   homebrew:
+    #     name: ['jq', 'go', 'make', 'sshpass', 'qemu', 'ext4fuse', 'socat']
+    #     state: latest
+    #     update_homebrew: yes
+    #   when: ansible_os_family == "Darwin"
+
+    # - name: Check and validate homebrew packages cask meta installers
+    #   homebrew_cask:
+    #     name: "{{ item }}"
+    #     state: latest
+    #     update_homebrew: yes
+    #   with_items:
+    #     # - osxfuse
+    #     # - vagrant
+    #     # - vagrant-manager
+    #     # - virtualbox WIP!
+    #   ignore_errors: true
+    #   when: ansible_os_family == "Darwin"
+
+    # ifconfig -a | grep ` netstat -nrt | grep default | head -n +1 | awk {'print $2'} | rev | cut -c 2- | rev` | awk '{ print $2}'
+  
+    - name: Get current localhost private temporare Docker API IP address where he is binded 
+      shell: ifconfig -a | grep ` netstat -nrt | grep default | head -n +1 | awk {'print $2'} | rev | cut -c 2- | rev` | awk '{ print $2}'
+      register: DOCKER_GATEWAY_LAN_API_ADDRESS
+
+    - name: Debug Docker Lan network
+      set_fact:
+        DOCKER_GATEWAY_INTERNALE_LAN: "{{ DOCKER_GATEWAY_LAN_API_ADDRESS.stdout | join }}"
+
+    - name: Get the Docker host network internal gw
+      shell: docker network inspect bridge | grep Gateway | sed 's/\"//g' | awk '{print $2}'
+      register: DOCKER_GATEWAY_HOST_NET_CONTAINER_GW
+
+    - name: Debug Docker Host network
+      set_fact:
+        DOCKER_GATEWAY_INTERNALE_DGE: "{{ DOCKER_GATEWAY_HOST_NET_CONTAINER_GW.stdout | join }}"
+
+    - name: Template the MAC OS X Docker internal Socat plist service
+      become: true
+      # which exposes api of docker on https port because have security restrictions for use by shared mounted socket by itself
+      template:
+        src: mac_os_x_docker_api_expose_to_http.plist.j2
+        dest: /Library/LaunchDaemons/docker.socat_listener.plist
+        mode: 0755
+        group: wheel
+        owner: root
+      when: ansible_os_family == "Darwin"
+
+    # copy plist file to LaunchDaemons folder
+    # cd /Library/LaunchDaemons
+    # sudo chown root:wheel docker.socat_listener.plist
+    # sudo launchctl load se.ivankrizsan.socat_launcher.plist
+    # verify service with url:  http://127.0.0.1:2377/version
+
+    # - name: Disable Socat Proxy Service for Docker API to HTTP
+    #   become: true
+    #   command: launchctl unload -w /Library/LaunchDaemons/com.docker.socat_launcher.plist
+    #   when: ansible_os_family == "Darwin"
+
+    # - name: Stop Socat Proxy Service for Docker API to HTTP
+    #   become: true
+    #   command: launchctl stop /Library/LaunchDaemons/com.docker.socat_launcher.plist
+    #   when: ansible_os_family == "Darwin"
+
+    - name: Enable Socat Proxy Service for Docker API to HTTP
+      become: true
+      command: launchctl load /Library/LaunchDaemons/docker.socat_listener.plist
+      when: ansible_os_family == "Darwin"
+
+    # - name: Start Socat Proxy Service 
+    #   become: true
+    #   command: launchctl start -w /Library/LaunchDaemons/docker.socat_listener.plist
+    #   when: ansible_os_family == "Darwin"
+
+    # export DOCKER_HOST=tcp://`routel | grep default | awk '{print $2}'`:2376
+

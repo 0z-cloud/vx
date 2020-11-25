@@ -1,0 +1,8 @@
+- name: Run the hooks etc groups
+  become: true
+  hosts: "{{ HOSTS }}"
+  roles:
+    - name: run the hooks etc groups role
+      role: ./!_hooks/replace_etc_group
+  tags: 
+    - hooks-groups

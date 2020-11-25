@@ -1,0 +1,79 @@
+{% raw %}# anycloud_virtual_machine_default_hard_disk_template_source_name: "ubuntu_18_04_64_20G_alibase_20181212.vhd"
+ansible_datacenter: "{% endraw %}{{ global_zone_datacenter_settings.datacenter }}{% raw %}"
+ansible_datacenter_location: "{% endraw %}{{ global_zone_datacenter_settings.zone }}{% raw %}"
+anycloud_allocate_public_ip: yes
+
+cloud_bootstrap:
+{% endraw %}
+{% for node_id in range(0,global_zone_datacenter_settings.land_topography.from_template.web) %}
+
+    {{ ansible_product }}{% raw %}_{% endraw %}{{ global_zone_datacenter_settings.zone_short }}{% raw %}_web_{% endraw %}{{ '%02d' | format(node_id|int) }}{% raw %}:
+        # Replaced after VMs bootstrapped in anycloud
+        network: "REPLACED"
+        ip: "{% endraw %}{{ ansible_product }}{% raw %}-{% endraw %}{{ global_zone_datacenter_settings.zone_short }}{% raw %}-web-{% endraw %}{{ '%02d' | format(node_id|int) }}{% raw %}-{% endraw %}{{ ansible_environment }}{% raw %}_public_ip_address_REPLACED"
+        gw: "REPLACED"
+        anycloud_vm_template_name: "{% endraw %}{{ anycloud_virtual_machine_default_hard_disk_template_source_name }}{% raw %}"
+        name: "{% endraw %}{{ ansible_product }}{% raw %}-{% endraw %}{{ global_zone_datacenter_settings.zone_short }}{% raw %}-web-{% endraw %}{{ '%02d' | format(node_id|int) }}{% raw %}"
+        anycloud_vm_performance_configuration: "{% endraw %}{{ anycloud_virtual_machine_resources_middle_type }}{% raw %}"
+        initial_only_dns_servers:
+            - "8.8.8.8"
+        ansible_inventory_groups:
+        # MAIN
+            - vx_vlan_all
+            - vlan_frontend
+        # MONITORING
+            - cadvisor-service
+            - node-exporter
+        # SECURITY
+            - wazuh-agent
+        # STORAGE
+            - web-frontend-dns
+            - web-glusterfs-storage
+        # CLUSTER SERVICE
+            - swarm-cluster
+        # WEB
+            - web-frontend
+        # SERVICES
+            - settings
+            - core
+            - business
+            - guard
+            - demo
+            - metabase
+            - docs
+        # SERVICE DISCOVERY
+            - consul-clients
+            - consul-cluster
+        # ACCESS SERVICES
+            - pritunl-stack
+        # KUBERNETES CLUSTER
+            - kubernetes-cluster
+            - kubernetes-worker
+        ansible_inventory_vars:
+            public_nat_ip: "REPLACED"
+            public_nat_gw: "REPLACED"
+            glusterfs_replica_count: "3"
+            cloud_ns_name: "ns{% endraw %}{{ '%2d' | format(node_id|int) }}{% raw %}-cloud"
+            swarm_node_type: "client"
+            consul_type: "client"
+            kubernetes_type: "worker"
+            second_network_type: "dmz"
+            second_network_zone: "cluster"
+            second_network_cluster_group: "web-frontend"
+            second_network: "REPLACED"
+            second_iface: "{% endraw %}{{ ansible_product }}{% raw %}-{% endraw %}{{ global_zone_datacenter_settings.zone_short }}{% raw %}-web-{% endraw %}{{ '%02d' | format(node_id|int) }}{% raw %}-{% endraw %}{{ ansible_environment }}{% raw %}_private_ip_iface_REPLACED"
+            second_ip: "{% endraw %}{{ ansible_product }}{% raw %}-{% endraw %}{{ global_zone_datacenter_settings.zone_short }}{% raw %}-web-{% endraw %}{{ '%02d' | format(node_id|int) }}{% raw %}-{% endraw %}{{ ansible_environment }}{% raw %}_private_ip_address_REPLACED"
+            second_network_subnet: "{% endraw %}{{ ansible_product }}{% raw %}-{% endraw %}{{ global_zone_datacenter_settings.zone_short }}{% raw %}-web-{% endraw %}{{ '%02d' | format(node_id|int) }}{% raw %}-{% endraw %}{{ ansible_environment }}{% raw %}_private_ip_subnet_REPLACED"
+            green_ip: "{% endraw %}{{ ansible_product }}{% raw %}-{% endraw %}{{ global_zone_datacenter_settings.zone_short }}{% raw %}-web-{% endraw %}{{ '%02d' | format(node_id|int) }}{% raw %}-{% endraw %}{{ ansible_environment }}{% raw %}_green_ip_address_REPLACED"
+            green_subnet: "{% endraw %}{{ ansible_product }}{% raw %}-{% endraw %}{{ global_zone_datacenter_settings.zone_short }}{% raw %}-web-{% endraw %}{{ '%02d' | format(node_id|int) }}{% raw %}-{% endraw %}{{ ansible_environment }}{% raw %}_green_ip_subnet_REPLACED"
+            ansible_python_interpreter: "python3"
+            clamav_startup_hour: "3"
+            clamav_startup_minutes: "30"
+            clamav_mirror_update_hour: "2"
+            clamav_mirror_update_minutes: "30"
+            apt_mirror_startup_minutes: "05"
+            apt_mirror_startup_hour: "3"
+            ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+{% endraw %}
+
+{% endfor %}

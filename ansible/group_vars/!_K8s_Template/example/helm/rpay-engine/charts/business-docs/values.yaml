@@ -1,0 +1,33 @@
+replicaCount: 1
+
+image:
+  image_name: business-doc
+  tag: dev-1
+  pullPolicy: Always
+
+container:
+  port: 80
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 80
+
+ingress:
+  hosts:
+    - host: business-docs.dev.gbunker.org
+      paths:
+        - /
+  tls:
+   - secretName: letsencrypt-business-docs
+     hosts:
+       - business-docs.dev.gbunker.org
+
+env:
+  RAILS_LOG_TO_STDOUT: "true"
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

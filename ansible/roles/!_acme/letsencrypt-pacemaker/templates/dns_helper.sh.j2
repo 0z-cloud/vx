@@ -1,0 +1,178 @@
+#!/usr/bin/env sh
+
+# Path to the directory where your nsupdate keys are stored (one for each domain,
+# named K_acme-challenge.domain.tld.+157+<...>.private)
+KEYPATH="/etc/letsencrypt.sh/nsupdate_keys"
+
+# DNS Server to update
+SERVER=""
+
+# Time To Live to set for the challenge
+TTL=10
+
+# Max time to try to check the challenge on all authoritative name servers for the domain
+CHECK_NS_TIMEOUT=10
+
+# ------- do not edit below this line -------
+
+ACME_STRING="_acme-challenge"
+reason="$1"
+HOST="$2"
+CHALLENGE="$4"
+
+# execute nsupdate update function
+update_dns() {
+	echo -n " + Updating DNS $SERVER: $reason for $HOST... " >&2
+	ERR="$(nsupdate -v -k "$KEYFILE" 2>&1 << \
+EOF
+server $SERVER
+$1
+send
+EOF
+	)"
+
+	if [ $? -ne 0 ]; then
+   		echo "$ERR" >&2
+   		exit 1
+	else
+		echo "ok." >&2
+	fi
+}
+
+
+# select nsupdate key and get its zone
+get_nsupdate_keyfile() {
+	ZONE="$HOST"
+	TLD="$(echo "$ZONE" | sed -e "s/^.*\.//")"
+
+	until [ "$ZONE" = "$TLD" ]; do
+		KEYFILE="$(ls -1 "${KEYPATH}/K${ACME_STRING}.${ZONE}.+157+"*.private 2>/dev/null)"
+		if [ $? -eq 0 ]; then break; fi
+		ZONE="$(echo "$ZONE" | sed -e "s/^[^.]*\.//")"
+	done
+	if [ $(echo "$KEYFILE" | wc -l) -gt 1 ]; then
+		echo " ERROR: Multiple nsupdate key files for $HOST found. Please correct!" >&2
+		exit 1
+	elif [ -z "$KEYFILE" ]; then
+		echo " ERROR: No nsupdate key file for zone $HOST found. Can't publish challenge without." >&2
+		exit 1
+	fi
+}
+
+
+# get all authoritative name servers
+get_auth_nameservers() {
+	nsservers="$(dig +noall +authority ${HOST})"
+	if [ -z "$nsservers" ]; then
+		# try to ask with the domain instead of the host
+		nsservers="$(dig +short ns ${ZONE})"
+	fi
+	if [ $(echo "$nsservers" | egrep -c "[ \t]*SOA[ \t]*") -eq 1 ]; then
+		# it seems the parent zone knows about the name servers
+		auth_zone="$(echo "$nsservers" | sed -e "s/[ \t]\+.*$//" -e "s/\.$//")"
+		nsservers="$(dig +noall +authority ${auth_zone})"
+	fi
+	nsservers="$(echo "$nsservers" | sed -e "s/^.*\t//g" -e "s/\.$//")"
+	
+	if [ -z "$nsservers" ]; then
+		echo "WARNING: No authoritative name servers for $ZONE found. Checks for published records do not work." >&2
+	fi
+}
+
+
+# ensure all NS got the challenge
+check_challenge_on_dns() {
+	ns_ok_cnt=0
+	ns_cnt=0
+	
+	# get all authoritative name servers
+	get_auth_nameservers
+
+	# test challenge on each name server
+	for ns in $nsservers; do
+		timestamp=$(date "+%s")
+		dig_result="failed."
+		echo -ne "\t+ Checking challenge on $ns.. " >&2
+		# try max. CHECK_NS_TIMEOUT seconds
+		while [ $(($(date "+%s")-$timestamp)) -lt $CHECK_NS_TIMEOUT ]; do
+			msg="$(dig +short "${ACME_STRING}.${HOST}" TXT @${ns} 2>&1)"
+			if [ $? -eq 0 -a "$msg" = "\"$CHALLENGE\"" ]; then
+				dig_result="ok."
+				ns_ok_cnt=$((ns_ok_cnt+1))
+				break;
+			elif [ $? -gt 0 -a -n "$msg" ]; then
+				dig_result="failed: $(echo "$msg" | sed -e "s/^;; //")"
+			fi
+			sleep 0.5
+		done
+		echo "$dig_result" >&2
+		ns_ok_cnt=$((ns_ok_cnt+1))
+	done
+	# if there was no answer or just errors from dig, exit non-zero
+	[ $ns_ok_cnt -eq 0 ] && echo -e "\tERROR: None of the name server(s) answer the challenge correctly." >&2 && exit 1
+	# Report some NS failed
+	[ $ns_ok_cnt -lt $ns_cnt ] && echo -e "\tWARNING: Only $ns_ok_cnt out of $ns_cnt name servers do answer the challenge correctly." >&2
+}
+
+
+# Check there is a DNS configured
+if [ -z "$SERVER" ]; then
+	echo -e "\tERROR: You must specify a DNS server name. Please edit the script $(basename "$0") and set the variable \"SERVER\" to point to your name server used to publish the acme-challenge." >&2
+	exit 1
+fi
+
+
+# Process command passed
+
+case "$reason" in
+
+	deploy_challenge)
+
+		# search the nsupdate key file
+		get_nsupdate_keyfile
+
+		# construct the line to update the dns zone with
+		update_data="${ACME_STRING}.${HOST}.	$TTL	IN	TXT	\"$CHALLENGE\""
+
+		# delete any previous challenge
+		old_challenges="$(dig +short ${ACME_STRING}.${HOST}. TXT)"
+		for old_challenge in $old_challenges; do
+			reason="deleting previous challenge"
+			update_dns "update delete ${ACME_STRING}.${HOST}.    $TTL    IN      TXT	$old_challenge"
+		done
+
+		# publish challenge
+		reason="publishing acme challenge"
+		update_dns "update add $update_data"
+		
+		# ensure all NS got the challenge
+		check_challenge_on_dns
+		;;
+
+
+	clean_challenge)
+		# search the nsupdate key file
+		get_nsupdate_keyfile
+
+		# construct the line to update the dns zone with
+		update_data="${ACME_STRING}.${HOST}."
+
+		# remove challenge from server
+		reason="removing acme challenge"
+		update_dns "update delete $update_data"
+		;;
+
+
+	deploy_cert|unchanged_cert|invalid_challenge|request_failure|startup_hook|exit_hook)
+		reason="nothing to do!"
+		;;
+
+
+	*)
+		echo "Unknown hook: $reason" >&2
+		exit 1
+		;;
+
+esac
+
+exit 0

@@ -1,0 +1,69 @@
+{% raw %}
+<ossec_config>
+    <global>
+    <email_notification>yes</email_notification>
+    <email_to>admin@ifsholding.com</email_to>
+    <smtp_server>10.10.0.50</smtp_server>
+    <email_from>ossec@ifsholding.com</email_from>
+    <email_maxperhour>100</email_maxperhour>
+  </global>
+
+  <client>
+  
+    <server-ip>{% endraw %}{% for host in groups['vortex-ossec-server'] %}{{ hostvars[host]['ansible_default_ipv4']['address'] }}{% endfor %}</server-ip>
+    <port>1514</port>
+  </client>
+ {% raw %}
+  <syscheck>
+    <!-- Frequency that syscheck is executed -- default every 2 hours -->
+    <frequency>21700</frequency>
+    <scan_on_start>yes</scan_on_start>
+
+    <!-- Directories to check  (perform all possible verifications) -->
+    <directories check_all="yes" realtime="yes">/etc,/usr/bin,/usr/sbin,/bin,/sbin,</directories>
+
+    <alert_new_files>yes</alert_new_files>
+
+    <!-- Files/directories to ignore -->
+    <ignore>/etc/mtab</ignore>
+    <ignore>/etc/hosts.deny</ignore>
+    <ignore>/etc/mail/statistics</ignore>
+    <ignore>/etc/random-seed</ignore>
+    <ignore>/etc/adjtime</ignore>
+    <ignore>/etc/httpd/logs</ignore>
+  </syscheck>
+
+  <rootcheck>
+    <rootkit_files>/var/ossec/etc/shared/rootkit_files.txt</rootkit_files>
+    <rootkit_trojans>/var/ossec/etc/shared/rootkit_trojans.txt</rootkit_trojans>
+    <system_audit>/var/ossec/etc/shared/system_audit_rcl.txt</system_audit>
+    <system_audit>/var/ossec/etc/shared/cis_debian_linux_rcl.txt</system_audit>
+  </rootcheck>
+
+  <localfile>
+    <log_format>syslog</log_format>
+    <location>/var/log/syslog</location>
+  </localfile>
+
+  <localfile>
+    <log_format>syslog</log_format>
+    <location>/var/log/auth.log</location>
+  </localfile>
+
+  <localfile>
+    <log_format>syslog</log_format>
+    <location>/var/log/dpkg.log</location>
+  </localfile>
+
+  <localfile>
+    <log_format>syslog</log_format>
+    <location>/var/log/kern.log</location>
+  </localfile>
+
+  <localfile>
+    <log_format>syslog</log_format>
+    <location>/var/log/mail.log</location>
+  </localfile>
+
+</ossec_config>
+{% endraw %}

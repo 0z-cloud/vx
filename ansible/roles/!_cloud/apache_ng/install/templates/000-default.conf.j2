@@ -1,0 +1,16 @@
+<VirtualHost _default_:80>
+	ServerName "{{ apache2_default_servername }}"
+	ServerAdmin webmaster@localhost
+	DocumentRoot /var/www/html
+
+	ErrorLog ${APACHE_LOG_DIR}/error.log
+	CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+	<Directory /var/www/html>
+		Options FollowSymLinks
+		AllowOverride None
+		Require all denied
+	</Directory>
+</VirtualHost>
+
+# vim: syntax=apache ts=4 sw=4 sts=4 sr noet

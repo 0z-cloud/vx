@@ -1,0 +1,32 @@
+#!/bin/bash
+
+set -e
+
+#### Setup POWERDNS ADMINS DB
+{% for database_name in powerdns_postgresql_settings.database %}
+#### database_name  {{ database_name }}
+
+{% for key, value in powerdns_postgresql_settings.primary_array.items() %}
+#### KEY  {{ key }}
+#### VALUE {{ value }}
+
+add_powerdns_superserver_{{ key }}_{{ database_name }} () {
+    #######################
+    echo "Add to DB NS SUPERSERVER {{ key }}.{{ merge_consul_domain }}"
+    #######################
+    psql -v ON_ERROR_STOP=1 --username "{{ powerdns_postgresql_settings.user }}" -qtA <<-EOSQL 
+    \c {{ database_name }};
+    INSERT INTO public.supermasters (ip, nameserver, account) VALUES
+('{{ value }}', '{{ key }}.{{ merge_consul_domain }}', 'master');
+EOSQL
+    #######################
+    echo "Completed adding SUPERSERVER NS to DB {{ key }}.{{ merge_consul_domain }}"
+    #######################
+   return $@
+}
+
+add_powerdns_superserver_{{ key }}_{{ database_name }};
+
+{% endfor %}
+
+{% endfor %}

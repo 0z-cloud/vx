@@ -1,0 +1,65 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "8"
+    field.cattle.io/creatorId: user-rxbgq
+    field.cattle.io/publicEndpoints: '[{"nodeName":"c-4rvhr:m-ebad64149cc7","addresses":["95.217.56.101"],"port":8081,"protocol":"TCP","podName":"rpay-engine:mongo-express-755f7f94cd-9v7z2","allNodes":false}]'
+  creationTimestamp: null
+  generation: 1
+  labels:
+    cattle.io/creator: norman
+    workload.user.cattle.io/workloadselector: deployment-rpay-engine-mongo-express
+  name: mongo-express
+  selfLink: /apis/extensions/v1beta1/namespaces/rpay-engine/deployments/mongo-express
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      workload.user.cattle.io/workloadselector: deployment-rpay-engine-mongo-express
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        cattle.io/timestamp: "2019-07-06T18:43:58Z"
+        field.cattle.io/ports: '[[{"containerPort":8081,"dnsName":"mongo-express-hostport","hostPort":8081,"kind":"HostPort","name":"8081tcp80810","protocol":"TCP","sourcePort":8081}]]'
+      creationTimestamp: null
+      labels:
+        workload.user.cattle.io/workloadselector: deployment-rpay-engine-mongo-express
+    spec:
+      containers:
+      - env:
+        - name: ME_CONFIG_MONGODB_SERVER
+          value: mongo
+        image: mongo-express:0.49.0
+        imagePullPolicy: Always
+        name: mongo-express
+        ports:
+        - containerPort: 8081
+          hostPort: 8081
+          name: 8081tcp80810
+          protocol: TCP
+        resources: {}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: {}
+          privileged: false
+          procMount: Default
+          readOnlyRootFilesystem: false
+          runAsNonRoot: false
+        stdin: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        tty: true
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+status: {}

@@ -1,0 +1,245 @@
+---
+
+ssl_cert_dir: /core_root/raw_core/etc/nginx/ssl
+ssl_cert_bot_dir: /core_root/raw_core/etc/letsencrypt/live
+ssl_root_dir: /core_root/raw_core/cloud/certificates/ca
+
+RAW_CORE_MIRROR_SSH_STORAGE: /core_root/raw_core/
+
+unification_upstreams: |
+    {% raw %}[ {% endraw %} 
+    {% for dict_item in unification_services %}
+       {% for key, value in dict_item.items() %}
+       {% if 'service_discovery' == value.target %}
+       {% raw %}"{% endraw %}upstream {{ key | replace('\n', '') }}_{{ ansible_environment | replace('\n', '') }} {% raw %}{ {% endraw %}{% raw %}least_conn; {% endraw %}{% raw %}keepalive 32; {% endraw %}
+          server {{ key | replace('\n', '') }}.{{ cloud_service_consul_cloud_fqdn }}:{{ value.listen_port | replace('\n', '') }};{% raw %}}" {% endraw %}
+       {% else %}
+       {% raw %}"{% endraw %}upstream {{ key | replace('\n', '') }}_{{ ansible_environment | replace('\n', '') }} {% raw %}{ {% endraw %}{% raw %}least_conn; {% endraw %}{% raw %}keepalive 32; {% endraw %}
+          {% for host in groups[value.target] -%} server {{ hostvars[host]['second_ip'] | replace('\n', '') }}:{{ value.listen_port | replace('\n', '') }};{% endfor %}
+          {% raw %}}" {% endraw %}
+       {% endif %}
+       {% endfor %}{% if not loop.last %}, {% endif %}
+    {% endfor %}
+    {% raw %} ]{% endraw %}
+
+unification_upstreams_remapping_external_fqdn: |
+    {% raw %}[ {% endraw %} 
+    {% for dict_item in unification_services_remapping_external_fqdn %}
+       {% for key, value in dict_item.items() %}
+       {% raw %}"{% endraw %}upstream {{ key | replace('\n', '') }}_{{ ansible_environment | replace('\n', '') }} {% raw %}{ {% endraw %}{% raw %}least_conn; {% endraw %}{% raw %}keepalive 32; {% endraw %}
+          server {{ value.upstream_prefix | replace('\n', '') }}.{{ cloud_service_consul_cloud_fqdn }}:{{ value.listen_port | replace('\n', '') }};{% raw %}}" {% endraw %}
+       {% endfor %}{% if not loop.last %}, {% endif %}
+    {% endfor %}
+    {% raw %} ]{% endraw %}
+
+#nginx_configs: "{{ nginx_configs_main |combine(nginx_configs_remapping_external_fqdn) }}"
+#nginx_configs: "{{ nginx_configs_main }}"
+
+nginx_ssl_dir: /etc/nginx/ssl
+
+nginx_official_repo: True
+
+keep_only_specified: False
+
+nginx_installation_type: "packages"
+nginx_binary_name: "nginx"
+nginx_service_name: "{{ nginx_binary_name }}"
+nginx_conf_dir: "/etc/nginx"
+nginx_dhparam_path: "/etc/nginx/ssl/dhparam2048.pem"
+
+nginx_user: "www-data"
+
+nginx_group: "{{ nginx_user }}"
+
+nginx_pid_file: '/run/{{ nginx_service_name }}.pid'
+
+nginx_worker_processes: "{% if ansible_processor_vcpus is defined %}{{ ansible_processor_vcpus }}{% else %}auto{% endif %}"
+nginx_worker_rlimit_nofile: 1024
+nginx_log_dir: "/var/log/nginx"
+nginx_sites_log_dir: "{{ ansible_environment }}"
+
+nginx_events_params:
+  - worker_connections {% if nginx_max_clients is defined %}{{nginx_max_clients}}{% else %}512{% endif %}
+
+nginx_http_params:
+  - server_names_hash_bucket_size 128
+  - sendfile "on"
+  - tcp_nopush "on"
+  - tcp_nodelay "on"
+  - keepalive_timeout "65"
+  - access_log "{{ nginx_log_dir }}/access.log"
+  - error_log "{{ nginx_log_dir }}/error.log"
+  - server_tokens off
+  - types_hash_max_size 2048
+  - ssl_dhparam {{ nginx_dhparam_path }}
+  - ssl_prefer_server_ciphers on
+  - ssl_ciphers 'kEECDH+ECDSA+AES128 kEECDH+ECDSA+AES256 kEECDH+AES128 kEECDH+AES256 kEDH+AES128 kEDH+AES256 DES-CBC3-SHA +SHA !aNULL !eNULL !LOW !kECDH !DSS !MD5 !EXP !PSK !SRP !CAMELLIA !SEED'
+  - ssl_protocols TLSv1.2
+  - log_format nginx_log_format '[$time_local] $remote_addr "$request_method" "$uri" "$args" "$request_uri" $server_protocol $status $request_length $bytes_sent "$http_referer" "$http_user_agent" "$upstream_addr" "$upstream_status" "$upstream_connect_time" "$upstream_response_length" "$upstream_response_time"'
+  - proxy_http_version 1.1
+  - proxy_set_header Connection ""
+  - proxy_ssl_server_name on
+  - proxy_set_header Host $http_host
+  - proxy_set_header X-Real-IP $remote_addr
+  - proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for
+  - proxy_set_header X-Frame-Options DENY
+  - proxy_set_header X-XSS-Protection 1
+  - proxy_set_header Strict-Transport-Security max-age=31536000
+  - proxy_set_header X-Content-Type-Options nosniff
+  - proxy_next_upstream error timeout http_502 http_503 http_504
+  - proxy_next_upstream_tries 1
+  - proxy_connect_timeout 300
+  - proxy_send_timeout 300
+  - proxy_read_timeout 300
+  - send_timeout 300
+  - proxy_buffer_size 128k
+  - proxy_buffers 4 256k
+  - proxy_busy_buffers_size 256k
+  - client_header_buffer_size 5120k
+  - large_client_header_buffers 16 5120k
+  - proxy_set_header X-Forwarded-Ssl on
+  - proxy_set_header X-Forwarded-Port 443
+  - proxy_set_header X-Forwarded-Host $http_host
+  - proxy_set_header X-Forwarded-Proto https
+unificated_sites_http: |
+   {% raw %}[ {% endraw %} 
+   {% for item in unification_sites %} 
+   {% raw %}{ {% endraw %} 'name': "redirect.{{ item['name'] | safe }}", 'value':
+      [ "listen 80",
+       "server_name {{ item['name'] | safe }}",
+       "return 301 https://$host$request_uri",
+       "access_log {{ nginx_log_dir }}/{{ nginx_sites_log_dir }}/redirect.{{ item['type'] | safe }}.access.log nginx_log_format",
+       "error_log {{ nginx_log_dir }}/{{ nginx_sites_log_dir }}/redirect.{{ item['type'] | safe }}.error.log notice"
+      ]{% raw %} } {% endraw %}{% if not loop.last %}, 
+   {% endif %} 
+   {% endfor %}
+   {% raw %} ]{% endraw %}
+
+unificated_sites_https_acme_wildcard: |
+   {% raw %}[ {% endraw %} 
+   {% for item in unification_sites %} 
+   {% raw %}{ {% endraw %} 'name': "{{ item['name'] | safe }}", 'value':
+      [ "listen 443 ssl",
+       "server_name {{ item['name'] | safe }}",
+       {% if 'cert_bot' in item.value %}
+       "ssl_certificate {{ core_dns_cloud_settings.cert_cloud.cert_root }}/{{ acme_wildcard_domain }}/fullchain.cer",
+       "ssl_certificate_key {{ core_dns_cloud_settings.cert_cloud.cert_root }}/{{ acme_wildcard_domain }}/{{ acme_wildcard_domain }}.key",
+       "include /etc/nginx/same.d/{{ ansible_environment }}_locations_acme_well_known.conf",
+       {% else %}
+       {% if 'wildcard' in item.value %}
+       "ssl_certificate {{ core_dns_cloud_settings.cert_cloud.cert_root }}/{{ acme_wildcard_domain }}/fullchain.cer",
+       "ssl_certificate_key {{ core_dns_cloud_settings.cert_cloud.cert_root }}/{{ acme_wildcard_domain }}/{{ acme_wildcard_domain }}.key",
+       {% endif %}
+       {% if 'primary' in item.value %}
+       "ssl_certificate {{ core_dns_cloud_settings.cert_cloud.cert_root }}/{{ acme_primary_domain }}/fullchain.cer",
+       "ssl_certificate_key {{ core_dns_cloud_settings.cert_cloud.cert_root }}/{{ acme_primary_domain }}/{{ acme_primary_domain }}.key",
+       {% endif %}
+       {% if 'third_level_business' in item.value %}
+       "ssl_certificate {{ core_dns_cloud_settings.cert_cloud.cert_root }}/{{ acme_third_level_business_domain }}/fullchain.cer",
+       "ssl_certificate_key {{ core_dns_cloud_settings.cert_cloud.cert_root }}/{{ acme_third_level_business_domain }}/{{ acme_third_level_business_domain }}.key",
+       {% endif %}
+       {% if 'custom' in item.value %}
+       "ssl_certificate {{ core_dns_cloud_settings.cert_cloud.cert_root }}/{{ item['prefix'] | safe }}/{{ item['value'] | safe }}.crt",
+       "ssl_certificate_key {{ core_dns_cloud_settings.cert_cloud.cert_root }}/{{ item['prefix'] | safe }}/{{ item['value'] | safe }}.rsa",
+       {% endif %}
+       {% endif %}
+       "access_log {{ nginx_log_dir }}/{{ nginx_sites_log_dir }}/{{ item['type'] | safe }}.access.log nginx_log_format",
+       "error_log {{ nginx_log_dir }}/{{ nginx_sites_log_dir }}/{{ item['type'] | safe }}.error.log notice",
+       "include /etc/nginx/same.d/{{ ansible_environment }}_{{ item['config'] | safe }}.conf",
+       "include /etc/nginx/same.d/{{ ansible_environment }}_locations_{{ item['location'] | safe }}.conf"
+      ]{% raw %} } {% endraw %}{% if not loop.last %}, 
+   {% endif %} 
+   {% endfor %}
+   {% raw %} ]{% endraw %}
+
+unificated_sites_https: |
+   {% raw %}[ {% endraw %} 
+   {% for item in unification_sites %} 
+   {% raw %}{ {% endraw %} 'name': "{{ item['name'] | safe }}", 'value':
+      [ "listen 443 ssl",
+       "server_name {{ item['name'] | safe }}",
+       {% if 'cert_bot' in item.value %}
+       "ssl_certificate {{ ssl_cert_bot_dir }}/{{ item['prefix'] | safe }}/fullchain.pem",
+       "ssl_certificate_key {{ ssl_cert_bot_dir }}/{{ item['prefix'] | safe }}/privkey.pem",
+       "include /etc/nginx/same.d/{{ ansible_environment }}_locations_acme_well_known.conf",
+       {% else %}
+       "ssl_certificate {{ ssl_cert_dir }}/{{ item['value'] | safe }}.crt",
+       "ssl_certificate_key {{ ssl_cert_dir }}/{{ item['value'] | safe }}.rsa",
+       {% endif %}
+       "access_log {{ nginx_log_dir }}/{{ nginx_sites_log_dir }}/{{ item['type'] | safe }}.access.log nginx_log_format",
+       "error_log {{ nginx_log_dir }}/{{ nginx_sites_log_dir }}/{{ item['type'] | safe }}.error.log notice",
+       "include /etc/nginx/same.d/{{ ansible_environment }}_{{ item['config'] | safe }}.conf",
+       "include /etc/nginx/same.d/{{ ansible_environment }}_locations_{{ item['location'] | safe }}.conf"
+      ]{% raw %} } {% endraw %}{% if not loop.last %}, 
+   {% endif %} 
+   {% endfor %}
+   {% raw %} ]{% endraw %}
+
+unificated_sites_without_https: |
+   {% raw %}[ {% endraw %} 
+   {% for item in unification_sites %} 
+   {% raw %}{ {% endraw %} 'name': "{{ item['name'] | safe }}", 'value':
+      [ "listen 80",
+       "server_name {{ item['name'] | safe }}",
+       "access_log {{ nginx_log_dir }}/{{ nginx_sites_log_dir }}/{{ item['type'] | safe }}.access.log nginx_log_format",
+       "error_log {{ nginx_log_dir }}/{{ nginx_sites_log_dir }}/{{ item['type'] | safe }}.error.log notice",
+       "include /etc/nginx/same.d/{{ ansible_environment }}_{{ item['config'] | safe }}.conf",
+       "include /etc/nginx/same.d/{{ ansible_environment }}_locations_{{ item['location'] | safe }}.conf"
+      ]{% raw %} } {% endraw %}{% if not loop.last %}, 
+   {% endif %} 
+   {% endfor %}
+   {% raw %} ]{% endraw %}
+
+#  For save {{vars['myvar_' + '{{ }}']}}
+
+cert_bot_sites: |
+   {% raw %}[ {% endraw %} 
+   {% for item in unification_sites %}
+   {% if 'cert_bot' in item.value %}
+   {% raw %}{ {% endraw %} "{{ item['name'] | safe }}": "{{ item['prefix'] | safe }}/fullchain.pem" {% raw %} } {% endraw %}{% if not loop.last %}, 
+   {% endif %} 
+   {% endif %}
+   {% endfor %}
+   {% raw %} ]{% endraw %}
+
+host_default_name_site: |
+   {% raw %}[ {% endraw %} 
+   {% raw %}{ {% endraw %} 'name': "default", 'value':
+     [ "listen 80 default_server",
+       "server_name _",
+       "root \"/usr/share/nginx/html\"",
+       "index index.html"
+     ]{% raw %} } {% endraw %}
+   {% raw %} ]{% endraw %} 
+
+unificated_sites_disabled: | 
+   {% raw %}[ {% endraw %}{% for item in unification_sites %}{% if 'disabled' in item['published'] %}{% raw %}{ {% endraw %}'name': "redirect.{{ item['name'] | safe }}"{% raw %}}{% endraw %},{% raw %}{{% endraw %}'name': "{{ item['name'] | safe }}"{% raw %} }{% endraw %}{% if not loop.last %},{% endif %}{% endif %}{% endfor %}{% raw %}]{% endraw %}
+
+unificated_sites_enabled: |
+   {% if 'http_only' in nginx_core_type %}
+   {% raw %}[ {% endraw %}{% for item in unification_sites %}{% if 'enabled' in item['published'] %}{% raw %}{{% endraw %}'name': "{{ item['name'] | safe }}"{% raw %} }{% endraw %}{% if not loop.last %},{% endif %}{% endif %}{% endfor %}{% raw %}]{% endraw %}
+   {% elif 'https_only' in nginx_core_type %}
+   {% raw %}[ {% endraw %}{% for item in unification_sites %}{% if 'enabled' in item['published'] %}{% raw %}{ {% endraw %}'name': "redirect.{{ item['name'] | safe }}"{% raw %}}{% endraw %},{% raw %}{{% endraw %}'name': "{{ item['name'] | safe }}"{% raw %} }{% endraw %}{% if not loop.last %},{% endif %}{% endif %}{% endfor %}{% raw %}]{% endraw %}
+   {% endif %}
+   
+config_defaults:
+    - client_max_body_size {{ http_server.max_request_length }}k
+    - set $rid $pid-$msec-$remote_addr-$request_length
+    - add_header x-requestId $rid always
+    - add_header Access-Control-Allow-Origin {{ http_server.access_control_allow_origin }} always
+    - add_header Access-Control-Allow-Credentials true always
+    - add_header Access-Control-Allow-Headers 'Origin, X-Requested-With, Content-Type, Accept' always
+    - add_header Access-Control-Expose-Headers 'x-count, x-page, x-commentcounts, x-votecounts, x-require' always
+    - add_header Access-Control-Allow-Methods 'DELETE, GET, HEAD, OPTIONS, POST, PUT' always
+    - add_header Access-Control-Max-Age 86400 always
+    - add_header Vary 'Origin, Accept-Encoding' always
+    - if ($request_method = OPTIONS) { return 200; }
+
+nginx_remove_configs: []
+
+nginx_auth_basic_files: {}
+nginx_remove_auth_basic_files: []
+
+nginx_daemon_mode: "on"
+
+#### For save {{vars['myvar_' + '{{ }}']}}

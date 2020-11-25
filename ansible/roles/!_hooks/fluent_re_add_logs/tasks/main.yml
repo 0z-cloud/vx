@@ -1,0 +1,11 @@
+- name: Copy current logfile to temp
+  raw: cp /var/log/syslog /tmp/missed.syslog
+
+- name: Extend current syslog file with missed part
+  raw: cat /tmp/missed.syslog >> /var/log/syslog
+
+- name: Extend current syslog with yesterday logfile
+  raw: cat /var/log/syslog.1 >> /var/log/syslog
+
+- name: Extend current log with 2 days archived log
+  raw: zcat /var/log/syslog.2.gz >> /var/log/syslog

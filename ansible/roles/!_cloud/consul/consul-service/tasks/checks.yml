@@ -1,0 +1,13 @@
+
+- name: Getting necessary package nssm path
+  raw: where.exe nssm 2>$null
+  register: result_nssm
+  ignore_errors: yes
+  tags:
+    - when-test
+
+- name: Check NSSM Service status
+  fail: msg="Please install necessary package - NSSM"
+  when: "{{ result_nssm.rc | int }} != 0"
+  tags:
+    - when-test

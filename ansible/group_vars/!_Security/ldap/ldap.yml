@@ -1,0 +1,69 @@
+
+openldap_server_pkgs:
+  - slapd
+  - ldap-utils
+  - python-selinux
+  - openssl
+  - libpam-dev
+  - build-essential
+  - libpam0g-dev
+  - gcc
+  - flex
+  - bison
+
+openldap_server_app_path: "/etc/ldap/"
+openldap_server_user: "openldap"
+
+inventory_ldap:
+    ous:
+      - Groups
+      - People
+    groups:
+      vortex_Root:
+         gidNumber: 1030
+         ou: "Groups"
+         description: "vortex_Root"
+      vortex_Admins:
+         gidNumber: 1010
+         ou: "Groups"
+         description: "vortex_Admins"
+      vortex_SecurityManagers:
+         gidNumber: 1006
+         ou: "Groups"
+         description: "vortex_SecurityManagers"
+      vortex_Developers:
+         gidNumber: 1005
+         ou: "Groups"
+         description: "vortex_Developers"
+      vortex_NetworkAdmins:
+         gidNumber: 1004
+         ou: "Groups"
+         description: "vortex_NetworkAdmins"
+      vortex_People:
+         gidNumber: 1003
+         ou: "Groups"
+         description: "vortex_People"
+      vortex_Administrators:
+         gidNumber: 1002
+         ou: "Groups"
+         description: "vortex_Administrators"
+      Services:
+         gidNumber: 1001
+         ou: "Groups"
+         description: "Read-Only service users"
+      Administrators:
+         gidNumber: 1000
+         ou: "Groups"
+         description: "Administrators"
+    users:
+      {
+          'vortex': {
+               'fullname': 'Rostislav Grigoryev',
+               'shell': '/bin/bash',
+               'key': "",
+               'group': "vortex_Administrators",
+               'access': "",
+               'uid': "16861",
+               'gidNumber': "1000",
+               },
+      }

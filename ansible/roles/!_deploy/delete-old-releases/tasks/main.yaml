@@ -1,0 +1,12 @@
+- name: Find Old Releases
+  find:
+    paths: "{{ APPLICATION_DIRECTORY }}/releases"
+    file_type: directory
+  register: old_releases
+
+- name: Delete Old Releases
+  file:
+    dest: "{{ item[1].path }}"
+    state: absent
+  with_indexed_items:
+  - "{{ (old_releases.files | sort(attribute='mtime', reverse=true))[3:] }}"

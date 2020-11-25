@@ -1,0 +1,21 @@
+%%
+%% {{ ansible_managed }}
+%%
+[
+  {rabbit,
+    [
+      {tcp_listeners, [{{ rabbitmq_amqp_port }}]},
+      {cluster_partition_handling, pause_minority},
+      {vm_memory_high_watermark, 0.8},
+      {vm_memory_high_watermark_paging_ratio, {{ rabbitmq_memory_high_watermark }}},
+      {disk_free_limit, "{{ rabbitmq_disk_free_limit }}"},
+      {queue_master_locator, <<"{{ rabbitmq_queue_master_locator }}">>},
+      {hipe_compile, {{ rabbitmq_hipe_compile }}}
+    ]
+  },
+  {kernel,
+    [
+      {net_ticktime, 60}
+    ]
+  }
+].

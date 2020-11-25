@@ -1,0 +1,11 @@
+- name: Started TeamCity Zero Playbook...
+  hosts: teamcity-server
+  become: true
+  tasks:
+    - name: Include Vars from Build
+      include_vars: ./ansible.yml
+    - name:
+      debug:
+        msg:
+  tags: always
+

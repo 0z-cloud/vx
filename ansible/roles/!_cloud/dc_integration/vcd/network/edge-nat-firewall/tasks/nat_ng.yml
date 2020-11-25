@@ -1,0 +1,154 @@
+# ##############################################################################################################
+# ### SHARED GET TO CHECK NAT RULES
+# ##############################################################################################################
+
+# - name: NAT RULES IDs LIST - READ IDs of NAT TRANSLATION RULE
+#   shell: vcd gateway services nat list {{ anycloud_result_edge_router }} | awk '{print $3}' | tail -n +3
+#   register: read_nat_translation_list_rule_ids
+
+# # ОТЛАДКА: ВЫВОД ИЗ РЕЗУЛЬТАТОВ ЭЛЕМЕНТОВ ID, DESCRIPRION ПОЛУЧЕННОГО ИЗ МАССИВА ВСЕХ ПРАВИЛ 
+# - name: DEBUG stdout_lines read_nat_translation_list_rule_ids
+#   debug:
+#     msg: "{{ item.value[4] }} {{ item.value[6] }}"
+#   with_dict: "{{ list_with_nat_rules_ids_full_complete.results }}"
+#   when: "'stdout_lines' in item.key"
+
+# ОБЪЯВЛЕНИЕ: ПЕРЕМЕННЫЕ ПАТТЕРНЫ ДЛЯ ПОИСКА ВХОЖДЕНИЙ
+- name: SET VAR WITH SEARCH STRING
+  set_fact:
+    nat_rules_completed_rule_routed_to_network_desc_to_find: ".*{{ anycloud_defaults_virtual_cloud_application_box_sector }} Routed {{ anycloud_result_routed_network_cut }}0/24 to Internet.*"
+    nat_rules_completed_rule_vpn_to_routed_desc_to_find: ".*{{ anycloud_defaults_virtual_cloud_application_box_sector }} VPN port {{ oz_router_subnet_anycloud_vpn_port }} From Internet To {{ anycloud_result_routed_network_cut }}2.*"
+
+# # ОТЛАДКА: ВЫВОД ПАТТЕРНА ПОИСКА ПРАВИЛА СЕТИ ПРЯМОГО И ПЕРВИЧНОГО ДОСТУПА ВО ВНЕШНИЕ СЕТИ
+# - name: '[D]: nat_rules_completed_rule_routed_to_network_desc_to_find'
+#   debug:
+#     msg: "{{ nat_rules_completed_rule_routed_to_network_desc_to_find }}"
+
+# # ОТЛАДКА: ВЫВОД ПАТТЕРНА ПОИСКА ПРАВИЛА VPN ДОСТУПА ИЗ ВНЕШНИХ СЕТЕЙ
+# - name: '[D]: nat_rules_completed_rule_vpn_to_routed_desc_to_find'
+#   debug:
+#     msg: "{{ nat_rules_completed_rule_vpn_to_routed_desc_to_find }}"
+
+# ОБЪЯВЛЕНИЕ: СПИСОК ДЛЯ ЗНАЧЕНИЙ ID ВСЕХ ПРАВИЛ ВХОЖДЕНИЙ СЕТИ ПРЯМОГО И ПЕРВИЧНОГО ДОСТУПА 
+- name: DEFINE VAR - SET LIST WITH ROUTED NETWORK NAT RULE IDs
+  set_fact:
+    set_fact_with_routed_network_nat_rule_ids: []
+
+# ОБЪЯВЛЕНИЕ: СПИСОК ДЛЯ ЗНАЧЕНИЙ ID ВСЕХ ПРАВИЛ VPN ДОСТУПА ИЗ ВНЕШНИХ СЕТЕЙ
+- name: DEFINE VAR - SET LIST WITH VPN TO NETWORK NAT RULE IDs
+  set_fact:
+    set_fact_with_vpn_to_internal_nat_rule_ids: []
+
+# ОБЪЯВЛЕНИЕ: ДОБАВЛЕНИЕ В СПИСОК ТОЛЬКО ЗНАЧЕНИЙ ID ПРАВИЛ ДЛЯ СЕТИ ПРЯМОГО И ПЕРВИЧНОГО ДОСТУПА ВО ВНЕШНИЕ СЕТИ
+- name: APPEND VAR - SET LIST WITH ROUTED NETWORK NAT RULE IDs
+  set_fact:
+    set_fact_with_routed_network_nat_rule_ids: "{{ set_fact_with_routed_network_nat_rule_ids + ([ item.value[6] | join | replace(\"ID\", \"\") | replace(\" \", \"\")]) }}"
+  with_dict: "{{ list_with_nat_rules_ids_full_complete.results }}"
+  when: "'stdout_lines' in item.key and item.value is match(nat_rules_completed_rule_routed_to_network_desc_to_find)"
+
+# ОБЪЯВЛЕНИЕ: ДОБАВЛЕНИЕ В СПИСОК ТОЛЬКО ЗНАЧЕНИЙ ID VPN ДОСТУПА ИЗ ВНЕШНИХ СЕТЕЙ
+- name: APPEND VAR - SET LIST WITH VPN TO NETWORK NAT RULE IDs
+  set_fact:
+    set_fact_with_vpn_to_internal_nat_rule_ids: "{{ set_fact_with_vpn_to_internal_nat_rule_ids + ([ item.value[6] | join | replace(\"ID\", \"\") | replace(\" \", \"\")]) }}"
+  with_dict: "{{ list_with_nat_rules_ids_full_complete.results }}"
+  when: "'stdout_lines' in item.key and item.value is match(nat_rules_completed_rule_vpn_to_routed_desc_to_find)"
+
+# # ОТЛАДКА: ВЫВОД ЗНАЧЕНИЙ ИЗ СПИСКА ДЛЯ СЕТИ ПРЯМОГО И ПЕРВИЧНОГО ДОСТУПА
+# - name: DEBUG NEW ROUTED NAT RULES LIST WITH IDS
+#   debug:
+#     msg: "{{ item }}"
+#   with_items: "{{ set_fact_with_routed_network_nat_rule_ids }}"
+
+# # ОТЛАДКА: ВЫВОД ЗНАЧЕНИЙ ИЗ СПИСКА ДЛЯ VPN ДОСТУПА ИЗ ВНЕШНИХ СЕТЕЙ
+# - name: DEBUG NEW VPN TO NETWORK NAT RULES LIST WITH IDS
+#   debug:
+#     msg: "{{ item }}"
+#   with_items: "{{ set_fact_with_vpn_to_internal_nat_rule_ids }}"
+
+# ОБЪЯВЛЕНИЕ: РАСЧЕТ КОЛИЧЕСТВА ЭЛЕМЕНТОВ СПИСКА ДЛЯ ВСЕХ ПРАВИЛ
+- name: LENGTH OF DEFINE VAR - SET LIST WITH ROUTED NETWORK NAT RULE IDs
+  set_fact:
+    length_set_fact_with_routed_network_nat_rule_ids: "{{ set_fact_with_routed_network_nat_rule_ids | length }}"
+    length_set_fact_with_vpn_to_internal_nat_rule_ids: "{{ set_fact_with_vpn_to_internal_nat_rule_ids | length }}"
+
+##########################################
+# ПРОВЕРКА ПО КОЛИЧЕСТВУ ЭЛЕМЕНТОВ ДЛЯ КАЖДОГО ПРАВИЛА
+##########################################
+
+- name: Include tasks routed check
+  include_tasks: routed_check.yml
+
+- name: Include tasks vpn check
+  include_tasks: vpn_check.yml
+
+##########################################
+
+# # ОТЛАДКА: ВЫВОД НЕ ТРЕБУЕМЫХ ПРАВИЛ ДУБЛЕЙ В СПИСКЕ К УДАЛЕНИЮ ДЛЯ СЕТИ ПРЯМОГО И ПЕРВИЧНОГО ДОСТУПА
+# - name: LIST UNWANTED DUPLICATE RULE IDs ROUTED
+#   debug:
+#     msg: "{{ length_set_fact_with_routed_network_nat_rule_ids_to_delete }}"
+#   when: "'error' in to_do_set_fact_with_routed_network_nat_rule_ids"
+
+# # ОТЛАДКА: ВЫВОД НЕ ТРЕБУЕМЫХ ПРАВИЛ ДУБЛЕЙ В СПИСКЕ К УДАЛЕНИЮ ДЛЯ VPN ДОСТУПА ИЗ ВНЕШНИХ СЕТЕЙ
+# - name: LIST UNWANTED DUPLICATE RULE IDs VPN
+#   debug:
+#     msg: "{{ length_set_fact_with_vpn_to_internal_nat_rule_ids_to_delete }}"
+#   when: "'error' in to_do_set_fact_with_vpn_to_internal_nat_rule_ids"
+
+#######################
+
+# # ОТЛАДКА: ВЫВОД НЕ ТРЕБУЕМЫХ ПРАВИЛ ДУБЛЕЙ В СПИСКЕ К УДАЛЕНИЮ
+# - name: DEBUG to_do_set_fact_with_routed_network_nat_rule_ids
+#   debug:
+#     msg: "{{ item }}"
+#   with_items: "{{ to_do_set_fact_with_routed_network_nat_rule_ids }}"
+
+##########################################################################################################################################
+
+# ВЫПОЛНЕНИЕ ЗАДАЧ ИЗ ВНЕШНЕГО ФАИЛА С ПЕРЕДАЧЕЙ ПЕРЕМЕННОЙ СПИСКА ID С ПРАВИЛАМИ К УДАЛЕНИЮ ДЛЯ СЕТИ ПРЯМОГО И ПЕРВИЧНОГО ДОСТУПА 
+- name: LIST UNWANTED DUPLICATE RULE IDs ROUTED
+  include_tasks: fix_when_error.yml
+  vars:
+    list_to_remove: "{{ length_set_fact_with_routed_network_nat_rule_ids_to_delete }}"
+  when: "'error' in to_do_set_fact_with_routed_network_nat_rule_ids"
+
+# ВЫПОЛНЕНИЕ ЗАДАЧ ИЗ ВНЕШНЕГО ФАИЛА С ПЕРЕДАЧЕЙ ПЕРЕМЕННОЙ СПИСКА ID С ПРАВИЛАМИ К УДАЛЕНИЮ ДЛЯ VPN ДОСТУПА ИЗ ВНЕШНИХ СЕТЕЙ
+- name: LIST UNWANTED DUPLICATE RULE IDs VPN
+  include_tasks: fix_when_error.yml
+  vars:
+    list_to_remove: "{{ length_set_fact_with_vpn_to_internal_nat_rule_ids_to_delete }}"
+  when: "'error' in to_do_set_fact_with_vpn_to_internal_nat_rule_ids"
+
+##########################################################################################################################################
+
+# # ВЫПОЛНЕНИЕ ЗАДАЧИ ДОБАВЛЕНИЯ ПРАВИЛА ДЛЯ СЕТИ ПРЯМОГО И ПЕРВИЧНОГО ДОСТУПА 
+# - name: GO CREATE RULE WHEN PRESENT
+#   include_tasks: present.yml
+#   vars:
+#     present_to_present: "{{ presented_id_of_with_routed_network_nat_rule_ids }}"
+#   when: "'present' in to_do_set_fact_with_routed_network_nat_rule_ids"
+
+# # ВЫПОЛНЕНИЕ ЗАДАЧИ ДОБАВЛЕНИЯ ПРАВИЛА ДЛЯ VPN ДОСТУПА ИЗ ВНЕШНИХ СЕТЕЙ
+# - name: GO CREATE RULE WHEN PRESENT
+#   include_tasks: present.yml
+#   vars:
+#     present_to_present: "{{ presented_id_of_with_vpn_to_internal_nat_rule_ids }}"
+#   when: "'present' in to_do_set_fact_with_vpn_to_internal_nat_rule_ids"
+
+##########################################################################################################################################
+
+# ВЫПОЛНЕНИЕ ЗАДАЧИ ДОБАВЛЕНИЯ ПРАВИЛА ДЛЯ СЕТИ ПРЯМОГО И ПЕРВИЧНОГО ДОСТУПА 
+- name: GO CREATE RULE WHEN FILLME
+  include_tasks: fill_when_fill.yml
+  vars:
+    fill_to_fill: '--enabled -o {{ anycloud_result_routed_network_cut }}0/24 -t {{ public_ips_from_edge[0] }} --desc "{{ anycloud_defaults_virtual_cloud_application_box_sector }} Routed {{ anycloud_result_routed_network_cut }}0/24 to Internet"'
+    fill_to_type: 'create-snat'
+  when: "'fillme' in to_do_set_fact_with_routed_network_nat_rule_ids"
+
+# ВЫПОЛНЕНИЕ ЗАДАЧИ ДОБАВЛЕНИЯ ПРАВИЛА ДЛЯ VPN ДОСТУПА ИЗ ВНЕШНИХ СЕТЕЙ
+- name: GO CREATE RULE WHEN FILLME
+  include_tasks: fill_when_fill.yml
+  vars:
+    fill_to_fill: '-o {{ public_ips_from_edge[0] }} -t {{ anycloud_result_routed_network_cut }}2 -op {{ oz_router_subnet_anycloud_vpn_port }} -tp {{ oz_router_subnet_anycloud_vpn_port }} -p tcp --enabled --desc "{{ anycloud_defaults_virtual_cloud_application_box_sector }} VPN port {{ oz_router_subnet_anycloud_vpn_port }} From Internet To {{ anycloud_result_routed_network_cut }}2"'
+    fill_to_type: 'create-dnat'
+  when: "'fillme' in to_do_set_fact_with_vpn_to_internal_nat_rule_ids"

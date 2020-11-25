@@ -1,0 +1,14 @@
+- name: Running afterinstall cleaning and installing emergency things, playbook
+  hosts: all
+  become: true
+  roles:
+
+    - name: Update apt sources.list files
+      role: ./!_bootstrap/apt-default-sources
+
+    - name: Call afterinstall cleaning role
+      role: "./!_0_init/afterinstall"
+
+    - name: Upgrade system full by apt upgrade
+      role: ./!_bootstrap/apt-upgrade-system-os
+      when: platform_upgrade_are_ is defined

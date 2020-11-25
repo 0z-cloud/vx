@@ -1,0 +1,63 @@
+# - name: "Starting auth daemon on server {{ ossec_server_name }}"
+#   service: name=ossec-authd state=started
+#   when: ossec_managed_server is defined and not check_keys.stat.exists and ossec_server_name|default("vortex-ossec-server") != ""
+#   delegate_to: "{{ item }}"
+#   with_items: "{{ groups['vortex-ossec-server'] }}"
+#   run_once: true
+#   tags:
+#     - config
+
+# - name: "Pausing"
+#   pause:
+#     minutes: 2
+#     prompt: 'Please execute the following command on your ossec-server: "service ossec-authd start"'
+#   when: ossec_managed_server not in vars and not check_keys.stat.exists or ossec_server_name|default("vortex-ossec-server") == ""
+#   tags:
+#     - skip_ansible_lint
+
+# - name: "Register client"
+#   shell: /var/ossec/bin/agent-auth -m {{ ossec_server_ip|default(ossec_server_fqdn) }} -p 1514
+#   args:
+#     creates: /var/ossec/etc/client.keys
+#   tags:
+#     - config
+#     - skip_ansible_lint
+
+# - name: Kill the auth-daemon on server {{ ossec_server_name }}
+#   service: 
+#     name: ossec 
+#     state: restarted
+#   delegate_to: "{{ item }}"
+#   with_items: "{{ groups['vortex-ossec-server'] }}"
+#   when: ossec_managed_server is defined and not check_keys.stat.exists and ossec_server_name|default("vortex-ossec-server") != ""
+#   run_once: true
+
+# - name: Pausing
+#   pause:
+#     minutes: 2
+#     prompt: 'Please execute the following command on your ossec-server: "service ossec-authd stop"'
+#   when: ossec_managed_server is not defined and not check_keys.stat.exists and ossec_server_name|default("vortex-ossec-server") == ""
+
+# - name: Restart ossec-remoted on server. If this is the first agent added it will not be running
+#   shell: /var/ossec/bin/ossec-control restart
+#   delegate_to: "{{ item }}"
+#   with_items: "{{ groups['vortex-ossec-server'] }}"
+#   when: ossec_managed_server and not check_server_keys.stat.exists and ossec_server_name|default("vortex-ossec-server") != ""
+#   run_once: true
+#   tags:
+#     - skip_ansible_lint
+
+# - name: Pausing
+#   pause:
+#     minutes: 2
+#     prompt: 'Please execute the following command on your ossec-server: "/var/ossec/bin/ossec-control restart"'
+#   when: ossec_managed_server is not defined and not check_server_keys.stat.exists and ossec_server_name|default("") == ""
+  
+# - name: Restart ossec-remoted on server
+#   shell: /var/ossec/bin/ossec-control restart
+#   delegate_to: "{{ item }}"
+#   with_items: "{{ groups['vortex-ossec-server'] }}"
+#   when: ossec_managed_server and ossec_server_name|default("vortex-ossec-server") != ""
+#   run_once: true
+#   tags:
+#     - skip_ansible_lint

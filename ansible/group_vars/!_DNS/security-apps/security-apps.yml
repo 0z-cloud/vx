@@ -1,0 +1,60 @@
+cloud_dir: /mnt/security-apps-glusterfs-storage
+
+bind_cloud_settings:
+  domain: "{{ consul_merge_domain_name }}"
+  public_domain: "{{ public_consul_domain }}"
+  packages:
+    - bind9
+    - bind9utils
+    - bind9-doc
+    - bind9-host
+  zone_path: "pri"
+  bind_etc: "/cloud/local/bind/etc/bind"
+  logging_path: "/var/log/named"
+  mixed_static_with_dynamic_entries:
+  - { record: "dns                            ", value: "IN      A       172.16.21.1"          }
+  other_environments_subdomains:
+    develop:
+      # DC LOCATION INFO
+      dc_location: digitalocean
+      # NS SERVER PREFIX FOR LOCATION
+      dc_prefix: sandbox
+      # PUBLIC CLOUD IP OF FRONTEND
+      dns_ip_list:
+        - "165.22.65.40"
+        - "134.209.241.217"
+        - "134.209.249.75"
+    sandbox:
+      # DC LOCATION INFO
+      dc_location: digitalocean
+      # NS SERVER PREFIX FOR LOCATION
+      dc_prefix: sandbox
+      # PUBLIC CLOUD IP OF FRONTEND
+      dns_ip_list:
+        - "165.22.65.40"
+        - "134.209.241.217"
+        - "134.209.249.75"
+    stage:
+      # DC LOCATION INFO
+      dc_location: digitalocean
+      # NS SERVER PREFIX FOR LOCATION
+      dc_prefix: sandbox
+      # PUBLIC CLOUD IP OF FRONTEND
+      dns_ip_list:
+        - "165.22.65.40"
+        - "134.209.241.217"
+        - "134.209.249.75"
+
+core_dns_cloud_settings:
+  ports:
+    dns: 53
+    web: 9153
+  directories:
+    configuration: "/cloud/local/opt/coredns"
+  cert_cloud:
+    letsencrypt: "{{ cloud_dir }}/ca_root/letsencrypt"
+    ca_root: "{{ cloud_dir }}/ca_root"
+    deploy: "{{ cloud_dir }}/ca_root/letsencrypt/deploy"
+    dnsapi: "{{ cloud_dir }}/ca_root/letsencrypt/dnsapi"
+    cert_root: "{{ cloud_dir }}/ca_root/cert_root"
+    certificate_sync_onboard_fullpath: "/mnt/cloud-bind-frontend-dns-glusterfs-storage/"

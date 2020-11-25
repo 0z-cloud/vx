@@ -1,0 +1,7 @@
+- name: Registrator Playbook step...
+  become: true
+  hosts: swarm-cluster
+  roles:
+    - name: Setup Registrator Service for Masters & Clients
+      role: ./!_cloud/docker/docker-registrator
+  tags: [registrator-setup]

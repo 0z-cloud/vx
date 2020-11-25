@@ -1,0 +1,14 @@
+#! /bin/sh
+killall -9 mysql-proxy
+sleep 1
+
+/usr/bin/mysql-proxy \
+--keepalive \
+--daemon \
+--proxy-address=127.0.0.1:3306 \
+--proxy-backend-addresses={{ mysql_proxy_backend_address }}:3306 \
+--admin-address=127.0.0.1:4042 \
+--admin-username=root --admin-password=u96ophi \
+--admin-lua-script=/usr/lib/mysql-proxy/lua/admin.lua \
+--pid-file=/var/run/mysqld/mysql-proxy.pid \
+--log-file=/var/log/syslog

@@ -1,0 +1,23 @@
+replicaCount: 1
+
+image:
+  image_name: card-storage
+  tag: dev-1
+  pullPolicy: Always
+
+container:
+  port: 3200
+
+service:
+  type: ClusterIP
+  port: 3200
+  targetPort: 3200
+
+env:
+  RAILS_LOG_TO_STDOUT: "true"
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

@@ -1,0 +1,22 @@
+- name: Generate plain the rc.local exec script
+  template:
+    src: rc_local.j2
+    dest: /etc/rc.local
+    mode: 0777
+    backup: yes
+    
+- name: Generates service run config
+  template:
+    src: systemd_service.j2
+    dest: /etc/systemd/system/rc-local.service
+    backup: yes
+
+- name: Enable service rc.local, and not touch the running state
+  service:
+    name: rc-local
+    enabled: yes
+
+- name: Restart service rc.local
+  service:
+    name: rc-local
+    state: restarted

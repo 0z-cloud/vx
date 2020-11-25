@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<meta-runner name="4: FRONT | Update nginx frontend &amp; DNS backend">
+  <description>ReactivePay_Main_DNS_Meta</description>
+  <settings>
+    <parameters>
+      <param name="ANSIBLE_APPLICATION_TYPE" value="" />
+      <param name="ANSIBLE_CI_PROJECT_NAME" value="" />
+      <param name="ANSIBLE_CI_PROJECT_NAMESPACE" value="" />
+      <param name="ANSIBLE_CI_VERSION" value="" />
+      <param name="ANSIBLE_CLOUD_TYPE" value="" />
+      <param name="ANSIBLE_COMMIT_SHA" value="%system.build.vcs.number%" />
+      <param name="ANSIBLE_DEPLOY_USERNAME" value="" />
+      <param name="ANSIBLE_DEPLOY_VAULT_PASSWORD" value="" spec="text display='normal' validationMode='any'" />
+      <param name="ANSIBLE_ENVIRONMENT" value="" />
+      <param name="ANSIBLE_PRODUCT_NAME" value="" />
+      <param name="ANSIBLE_REGISTRY_URL" value="" />
+      <param name="ANSIBLE_REGISTRY_USERNAME" value="" />
+      <param name="ANSIBLE_RUN_TYPE" value="" />
+      <param name="ANSIBLE_TRIGGER_TOKEN" value="" spec="text display='normal' validationMode='any'" />
+      <param name="ANSIBLE_VERSION" value="" />
+      <param name="A_DEPLOY_PASSWORD" value="" spec="text display='normal' validationMode='any'" />
+      <param name="A_VAULT_PASSWORD" value="" spec="text display='normal' validationMode='any'" />
+      <param name="MAIN_ANSIBLE_BUILD_ID" value="%env.BUILD_NUMBER%" />
+      <param name="NG_DEPLOY_PASSWORD" value="credentialsJSON:08eea89d-0ea4-41b3-8968-aa48280a6e9c" spec="password description='NG_DEPLOY_PASSWORD' label='NG_DEPLOY_PASSWORD' display='prompt'" />
+      <param name="RunningOnlyQA" value="" />
+    </parameters>
+    <build-runners>
+      <runner name="Update nginx frontend &amp; DNS backend" type="simpleRunner">
+        <parameters>
+          <param name="script.content"><![CDATA[. ./ci_version.sh
+rm -rf ./ci_version.yml
+
+echo "MAIN_ANSIBLE_BUILD_ID: %MAIN_ANSIBLE_BUILD_ID%"
+echo "ANSIBLE_COMMIT_SHA: %ANSIBLE_COMMIT_SHA%"
+
+ANSIBLE_COMMIT_SHA_SHORT=`echo %ANSIBLE_COMMIT_SHA% | head -c 8`
+DATE_YEAR=`date '+%Y'`
+DATE_MOUTH=`date '+%m'`
+ANSIBLE_CI_VERSION="${DATE_YEAR}.${DATE_MOUTH}.%MAIN_ANSIBLE_BUILD_ID%-${ANSIBLE_COMMIT_SHA_SHORT}"
+
+echo "ANSIBLE_CI_VERSION: $ANSIBLE_CI_VERSION" >> ./ci_version.yml
+
+echo "Creating the temp shell settings file for pass values to next step"
+ls -la ../
+ls -la ./
+
+rm -rf ./ci_settings.sh
+rm -rf ./ci_version.yml
+
+#. ./ci_vault.sh
+
+echo "..............................."
+ls -la 
+echo "..............................."
+cd ./ansible
+echo "..............................."
+
+echo "pass %A_DEPLOY_PASSWORD%"
+echo "user %ANSIBLE_DEPLOY_USERNAME%"
+
+echo "hostname:"
+hostname
+
+echo "pip list:"
+pip list | egrep 'docker|docker-py|requests'
+
+echo %RunningOnlyQA%
+
+RUNNING_ONLY_QA="%RunningOnlyQA%"
+
+echo "RUNNING_ONLY_QA is $RUNNING_ONLY_QA"
+
+if [ "$RUNNING_ONLY_QA" = true ]; then
+
+  echo "RUNNING_ONLY_QA is true"
+
+else
+
+    echo "RUNNING_ONLY_QA is false"
+
+    ./!_all_services_internal.sh "%ANSIBLE_ENVIRONMENT%" "%ANSIBLE_PRODUCT_NAME%" "%ANSIBLE_DEPLOY_USERNAME%" "%A_DEPLOY_PASSWORD%" "%ANSIBLE_APPLICATION_TYPE%" "%ANSIBLE_RUN_TYPE%" "%ANSIBLE_CLOUD_TYPE%" "%A_VAULT_PASSWORD%" "%ANSIBLE_REGISTRY_URL%" "%ANSIBLE_CI_PROJECT_NAME%" "%ANSIBLE_CI_PROJECT_NAMESPACE%" "$ANSIBLE_CI_VERSION" "$A_ENV_SECURITY"
+
+fi
+
+echo "..............................."]]></param>
+          <param name="teamcity.step.mode" value="default" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
+    </build-runners>
+    <requirements />
+  </settings>
+</meta-runner>
+

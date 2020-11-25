@@ -1,0 +1,158 @@
+{% raw %}version: '3.7'
+
+volumes:
+  postgres-data:
+    driver: local
+  business-gems:
+    driver: local
+  business-docs-gems:
+    driver: local
+  core-gems:
+    driver: local
+  settings-gems:
+    driver: local
+  guard-gems:
+    driver: local
+
+services:{% endraw %}
+{% for key,value in all_services_remap_docker_compose_generate.items() %}{% for app,data in all_services_settings_map.items()%}{% if key == app %}{% raw %}
+  {% endraw %}{{ key }}{% raw %}:
+      image: {% endraw %}{{ value['image'] }}{% raw %}:latest
+{% endraw %}{% if value['command'] is defined %}{% raw %}
+      command: "{% endraw %}{{ value['command'] }}{% raw %}"
+{% endraw %}{% endif %}
+{% if value['privileged'] is defined %}{% raw %}
+      privileged: true
+{% endraw %}{% endif %}{% raw %}
+      build:
+{% endraw %}{% raw %}
+        context: ./{% endraw %}{{ value['build_context'] }}{% raw %}/{% endraw %}{{ key }}{% raw %}
+        dockerfile: "{% endraw %}{% if value['dockerfile_context'] is defined %} {{ value['dockerfile_context'] }}{% raw %}"{% endraw %}{% else %}{% raw %}Dockerfile"
+{% endraw %}{% endif %}{% if value['environment'] is defined %}{% raw %}
+        args:
+{% endraw %}{% for de in value['environment'] %}{% raw %}
+          {% endraw %}{{ de | join }}{% raw %}
+{% endraw %}{% endfor %}
+{% endif %}
+{% if value['volumes'] is defined %}{% raw %}
+      volumes: 
+{% endraw %}{% for volume in value['volumes'] %}{% raw %}
+        - {% endraw %}{{ volume | join }}{% raw %}
+{% endraw %}{% endfor %}
+{% endif %}
+{% if value['environment'] is defined %}{% raw %}
+      environment:
+{% endraw %}{% for de in value['environment'] %}{% raw %}
+        {% endraw %}{{ de | join }}{% raw %}
+{% endraw %}{% endfor %}
+{% endif %}
+{% if value['depends_on'] is defined %}{% raw %}
+      depends_on: 
+{% endraw %}{% for depend in value['depends_on'] %}{% raw %}
+        - {% endraw %}{{ depend | join }}{% raw %}
+{% endraw %}{% endfor %}
+{% endif %}
+{% if value['attached_networks_main'] is defined %}
+{% if value['depends_on'] is defined %}{% raw %}
+      links: 
+{% endraw %}{% for depend in value['depends_on'] %}{% raw %}
+        - "{% endraw %}{{ depend | join }}:{{ depend | join | replace('_','-') }}{% raw %}"
+{% endraw %}
+{% endfor %}
+{% endif %}
+{% endif %}
+{% if value['no_healthcheck'] is defined %}{% raw %}
+      healthcheck:
+        disable: true
+{% endraw %}{% endif %}
+{% if value['ports'] is defined %}{% raw %}
+      ports: 
+{% endraw %}{% for p in value['ports'] %}{% raw %}
+        - {% endraw %}{{ p | join }}{% raw %}
+{% endraw %}{% endfor %}
+{% endif %}
+{% if value['entrypoint'] is defined %}{% raw %}
+      entrypoint: {% endraw %}{{ value['entrypoint'] }}{% raw %}
+{% endraw %}
+{% endif %}
+{% if data is defined %}{% raw %}
+      environment: 
+        SERVICE_VERSION: latest
+{% endraw %}{% for d in data %}{% raw %}
+        {% endraw %}{{ d | join }}{% raw %}
+{% endraw %}{% endfor %}
+{% endif %}
+{% endif %}{% endfor %}
+{% endfor %}
+
+{% if special_all_services_remap_docker_compose_generate is defined %}{% if special_all_services_settings_map is defined %}
+{% for key,value in special_all_services_remap_docker_compose_generate.items() %}{% for app,data in special_all_services_settings_map.items()%}{% if key == app %}{% raw %}
+  {% endraw %}{{ key }}{% raw %}:
+      image: {% endraw %}{{ value['image'] }}{% raw %}:latest
+{% endraw %}{% if value['command'] is defined %}{% raw %}
+      command: "{% endraw %}{{ value['command'] }}{% raw %}"
+{% endraw %}{% endif %}
+{% if value['privileged'] is defined %}{% raw %}
+      privileged: true
+{% endraw %}{% endif %}{% raw %}
+      build:
+{% endraw %}{% raw %}
+        context: ./{% endraw %}{{ value['build_context'] }}{% raw %}/{% endraw %}{{ key }}{% raw %}
+        dockerfile: "{% endraw %}{% if value['dockerfile_context'] is defined %} {{ value['dockerfile_context'] }}{% raw %}"{% endraw %}{% else %}{% raw %}Dockerfile"
+{% endraw %}{% endif %}{% if value['environment'] is defined %}{% raw %}
+        args:
+{% endraw %}{% for de in value['environment'] %}{% raw %}
+          {% endraw %}{{ de | join }}{% raw %}
+{% endraw %}{% endfor %}
+{% endif %}
+{% if value['volumes'] is defined %}{% raw %}
+      volumes: 
+{% endraw %}{% for volume in value['volumes'] %}{% raw %}
+        - {% endraw %}{{ volume | join }}{% raw %}
+{% endraw %}{% endfor %}
+{% endif %}
+{% if value['environment'] is defined %}{% raw %}
+      environment:
+{% endraw %}{% for de in value['environment'] %}{% raw %}
+        {% endraw %}{{ de | join }}{% raw %}
+{% endraw %}{% endfor %}
+{% endif %}
+{% if value['depends_on'] is defined %}{% raw %}
+      depends_on: 
+{% endraw %}{% for depend in value['depends_on'] %}{% raw %}
+        - {% endraw %}{{ depend | join }}{% raw %}
+{% endraw %}{% endfor %}
+{% endif %}
+{% if value['attached_networks_main'] is defined %}
+{% endif %}
+{% if value['depends_on'] is defined %}{% raw %}
+      links: 
+{% endraw %}{% for depend in value['depends_on'] %}{% raw %}
+        - "{% endraw %}{{ depend | join }}{% raw %}:{% endraw %}{{ depend | join | replace('_','-') }}{% raw %}"
+{% endraw %}
+{% endfor %}
+{% endif %}
+{% if value['no_healthcheck'] is defined %}{% raw %}
+      healthcheck:
+        disable: true
+{% endraw %}{% endif %}
+{% if value['ports'] is defined %}{% raw %}
+      ports: 
+{% endraw %}{% for port in value['ports'] %}{% raw %}
+        - {% endraw %}{{ port | join }}{% raw %}
+{% endraw %}{% endfor %}
+{% endif %}
+{% if value['entrypoint'] is defined %}{% raw %}
+      entrypoint: {% endraw %}{{ value['entrypoint'] }}{% raw %}
+{% endraw %}{% endif %}
+{% if data is defined %}{% raw %}
+      environment: 
+        SERVICE_VERSION: latest
+{% endraw %}{% for d in data %}{% raw %}
+        {% endraw %}{{ d | join }}{% raw %}
+{% endraw %}
+{% endfor %}
+{% endif %}
+{% endif %}{% endfor %}
+{% endfor %}
+{% endif %}{% endif %}

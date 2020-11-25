@@ -1,0 +1,49 @@
+---
+# General RabbitMQ parameters that apply to this role itself
+rabbitmq_version: latest
+rabbitmq_server_state: present
+rabbitmq_server_purge: no
+rabbitmq_ulimit: 65536
+
+# RabbitMQ config parameters
+rabbitmq_amqp_port: 5672
+rabbitmq_epmd_port: 4369
+rabbitmq_node_port: 25672
+rabbitmq_memory_high_watermark: 0.5
+rabbitmq_disk_free_limit: 1GB
+rabbitmq_queue_master_locator: min-masters
+rabbitmq_hipe_compile: "false"
+
+# RabbitMQ plugins
+rabbitmq_plugins:
+  - name: rabbitmq_management
+    state: enabled
+  - name: rabbitmq_management_agent
+    state: enabled
+
+# RabbitMQ management of vhosts, users,...
+rabbitmq_remove_guest: false
+rabbitmq_vhosts: []
+rabbitmq_users: []
+rabbitmq_queues: []
+rabbitmq_exchanges: []
+
+# RabbitMQ cluster parameters
+rabbitmq_cluster: false
+rabbitmq_cluster_master: false
+rabbitmq_master: vortex-rabbit-01
+rabbitmq_erlang_cookie: NEPTQRGCQDKAHSOSFDML
+
+unification_services:
+    - {'rabbitmq': {'target': 'rabbitmq-cluster', 'listen_port': "{{ rabbitmq_service_listen_port }}", 'check_type': "tcp", 'script_check': "{{ inventory_hostname }}:{{ rabbitmq_service_listen_port }}" }}
+
+rabbitmq_vhosts_and_settings:
+  - { name: "financial_web_service_itreports", password: "vanillaice" }
+  - { name: "service_bus_in_use", password: "asd819hr1br12br18qQ" }
+  - { name: "dev3", password: "lymph-alway-weary-dandy" }
+  - { name: "dev4", password: "dd-elsie-tuna-rajah-equip-size-scrape-juju-mirage-luxe" }
+  - { name: "dev2", value: "asdasdv32tbs9tu029hj590h01bhv" }
+  - { name: "topups-gsm", password: "pTpCOvVziGr6We8SJ0gq" }
+  - { name: "service_bus_in_use", password: "asd819hr1br12br18qQ" }
+  - { name: "dev1", password: "asd819hr1br12br18qQ" }
+  - { name: "vortex", password: "asd819hr1br12br18qQ" }

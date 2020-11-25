@@ -1,0 +1,8 @@
+- name: Run the pansearch role on all servers in group vortex-pansearch-hosts
+  become: true
+  hosts: "{{ HOSTS | default('vortex-pansearch-hosts') }}"
+  roles:
+    - name: Run the pansearch role
+      role: ./!_security/scripts/pansearch
+  tags: 
+    - pansearch

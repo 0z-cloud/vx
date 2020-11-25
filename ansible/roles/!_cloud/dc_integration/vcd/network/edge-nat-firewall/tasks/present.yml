@@ -1,0 +1,4 @@
+# - name: PRESENT - Show present NAT record with dynamic variable passed - present_to_present
+#   debug:
+#     msg: "{{ item }}"
+#   with_items: "{{ present_to_present }}"

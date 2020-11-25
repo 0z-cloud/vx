@@ -1,0 +1,4 @@
+# For information about entries in this file, type "man shorewall-tunnels"
+###############################################################################
+#TYPE			ZONE	GATEWAY(S)			GATEWAY
+#								ZONE(S)

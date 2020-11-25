@@ -1,0 +1,56 @@
+---
+- name: Information about hipe_compile
+  debug:
+    msg: "Beware, you enabled the hipe_compile parameter, this will cause RabbitMQ to start up slower than usual!"
+  when: rabbitmq_hipe_compile == "true"
+
+- name: Set the RabbitMQ configuration file
+  template:
+    src: rabbitmq.config.j2
+    dest: /etc/rabbitmq/rabbitmq.config
+    owner: root
+    group: root
+    mode: 0644
+  notify: "Restart RabbitMQ"
+
+- name: Set the RabbitMQ defaults file
+  template:
+    src: default/rabbitmq-server.j2
+    dest: /etc/default/rabbitmq-server
+    owner: root
+    group: root
+    mode: 0644
+  notify: "Restart RabbitMQ"
+
+- name: Set the RabbitMQ logrotate file
+  template:
+    src: logrotate/rabbitmq-server.j2
+    dest: /etc/logrotate.d/rabbitmq-server
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Enable a higher number of open files
+  lineinfile:
+    dest: /lib/systemd/system/rabbitmq-server.service
+    regexp: "^LimitNOFILE"
+    insertafter: "^WorkingDirectory"
+    line: "LimitNOFILE=300000"
+  notify: "Restart RabbitMQ"
+
+- name: Enable the required plugins
+  rabbitmq_plugin:
+    names: "{{ item.name }}"
+    state: "{{ item.state }}"
+    new_only: yes
+  when: rabbitmq_plugins is defined
+  with_items: "{{ rabbitmq_plugins }}"
+
+- name: Put the rabbitmqadmin file in the executable path
+  copy:
+    src: rabbitmqadmin
+    dest: /usr/local/bin/
+    owner: root
+    group: root
+    mode: 0755
+  when: rabbitmq_plugins is defined

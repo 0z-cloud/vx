@@ -1,0 +1,183 @@
+
+- name: Template apt source list configuration to /etc/apt
+  template:
+    src: certbot_repo.list
+    dest: /etc/apt/sources.list.d/certbot_repo_0z.list
+
+- name: Add repository key
+  apt_key:
+    keyserver: keyserver.ubuntu.com
+    id: 8C47BE8E75BCA694
+
+- name: Update APT cache
+  apt:
+    update_cache: true
+
+- name: Remove apt sources list for certbot
+  file:
+    path: /etc/apt/sources.list.d/certbot_repo_0z.list
+    state: absent 
+
+- name: Create bootstrap primary hostname group LETSENCRYPT_CLUSTER_BOOTSTRAP
+  add_host: 
+    name: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
+    hostname: "{{ hostvars[item]['ansible_hostname'] }}"
+    groups: LETSENCRYPT_CLUSTER_BOOTSTRAP
+  delegate_to: "{{ item }}"
+  with_items: "{{ ansible_play_hosts }}"
+
+- name: Debug group LETSENCRYPT_CLUSTER_BOOTSTRAP
+  debug:
+    msg: "{{ hostvars[item]['ansible_hostname'] }}"
+  with_items: "{{ groups['LETSENCRYPT_CLUSTER_BOOTSTRAP'] }}"
+  when: inventory_hostname in groups['LETSENCRYPT_CLUSTER_BOOTSTRAP']
+
+- name: Set Primary DNS Master IP as fact for compare
+  set_fact:
+    primary_master_dns_ip: "{{ item }}"
+  with_items: | 
+    {% for host in groups['LETSENCRYPT_CLUSTER_BOOTSTRAP'][0] %}{{ host }}{% endfor %}
+
+- name: Debug when node not a primary
+  debug: 
+    msg: "{{ item }}"
+  with_items: | 
+    {% for host in groups['LETSENCRYPT_CLUSTER_BOOTSTRAP'][0] %}{{ host }}{% endfor %}
+  when: hostvars[inventory_hostname]['ansible_default_ipv4']['address'] != primary_master_dns_ip
+
+- name: Create letsencrypt Cloud dirs
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0755
+  with_dict: "{{ core_dns_cloud_settings.cert_cloud | default({}) }}"
+
+- name: Copy acme.sh dir
+  copy:
+      src: "{{ item }}"
+      dest: "{{ core_dns_cloud_settings.cert_cloud.letsencrypt }}/"
+  with_fileglob:
+    - "files/acme_sh/*"
+  #run_once: true
+
+- name: Template acme.sh
+  template:
+      src: "acme.sh"
+      dest: "{{ core_dns_cloud_settings.cert_cloud.letsencrypt }}/acme.sh"
+  #run_once: true
+  tags: debug
+
+# - name: Copy dnsapi dir
+#   copy:
+#       src: "{{ item }}"
+#       dest: "{{ core_dns_cloud_settings.cert_cloud.dnsapi }}/"
+#   with_fileglob:
+#     - "files/acme_sh/dnsapi/*"
+#   when: first_run_upload is defined
+#   run_once: true
+
+# - name: Copy deploy dir
+#   copy:
+#       src: "{{ item }}"
+#       dest: "{{ core_dns_cloud_settings.cert_cloud.deploy }}/"
+#   with_fileglob:
+#     - "files/acme_sh/deploy/*"
+#   when: first_run_upload is defined
+#   run_once: true
+
+- name: Update system and upgrade packages
+  apt:
+    state: present
+    update_cache: yes
+    upgrade: full
+
+- name: Fix possible broken packages for letsencrypt
+  apt:
+    name: "{{ item }}"
+    state: fixed
+    update_cache: yes
+  with_items:
+    - software-properties-common
+    - python3
+    - python3-dev
+    # - eatmydata 
+    # - libeatmydata1 
+    # - python3-importlib-metadata 
+    # - python3-jinja2 
+    # - python3-json-pointer 
+    # - python3-jsonpatch 
+    # - python3-jsonschema 
+    # - python3-markupsafe 
+    # - python3-more-itertools 
+    # - python3-pyrsistent 
+    # - python3-zipp
+    # - python3-certbot
+    # - certbot
+    # - dnsutils
+    # - python3-zope
+    # - python3-zope.component
+    # - python3-zope.hookable
+
+
+- name: Shell enable universe packages
+  shell: add-apt-repository universe
+
+- name: Install packages for letsencrypt
+  apt:
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+  with_items:
+    - python3-certbot
+    - certbot
+    - dnsutils
+    - python3-certbot-apache
+
+# - name: Add rights for acme.sh
+#   raw: "chmod +x {{ core_dns_cloud_settings.cert_cloud.letsencrypt }}/acme.sh"
+
+- name: Changing perm of "acme.sh", adding "+x"
+  file: 
+    dest: "{{ core_dns_cloud_settings.cert_cloud.letsencrypt }}/acme.sh"
+    mode: a+x
+    state: file
+
+- name: Add rights for deploy
+  raw: "chmod +x {{ core_dns_cloud_settings.cert_cloud.letsencrypt }}/deploy/*"
+  when: first_run_upload is defined
+
+- name: Add rights for dnsapi
+  raw: "chmod +x {{ core_dns_cloud_settings.cert_cloud.letsencrypt }}/dnsapi/*"
+  when: first_run_upload is defined
+
+- name: Ensure that the existing certificate is still valid 2 weeks (1209600 seconds) from now
+  openssl_certificate:
+    path: "{{ core_dns_cloud_settings.cert_cloud.cert_root }}/{{ item }}/{{ item }}.cer"
+    provider: assertonly
+    valid_in: 1209600
+  with_items:
+    - "*.{{ public_consul_domain }}"
+    - "{{ public_consul_domain }}"
+  ignore_errors: true
+  register: certificate_valid_result
+
+- name: Show status from check expired cert
+  debug:
+    msg: "{{ item.key }} {{ item.value }}"  
+  with_dict: "{{ certificate_valid_result.results }}"
+
+- name: Show status from check expired cert
+  set_fact:
+    any_check_result_final: "ko"  
+  with_dict: "{{ certificate_valid_result.results }}"
+  when: "'failed' in item.key and item.value is true"
+
+- name: Show status from check expired cert only when ok
+  debug:
+    msg: "KO {{ item.key }}"  
+  with_dict: "{{ certificate_valid_result.results }}"
+  when: "'ko' in any_check_result_final and 'failed' in item.key and item.value is true"
+
+- name: Include update certificates only if that needed
+  include_tasks: issue.yml
+  when: "'ko' in any_check_result_final"

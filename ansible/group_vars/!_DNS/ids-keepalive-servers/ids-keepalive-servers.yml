@@ -1,0 +1,22 @@
+cloud_dir: /mnt/cloud-bind-frontend-dns-glusterfs-storage
+
+bind_cloud_settings:
+  domain: "{{ consul_merge_domain_name }}"
+  public_domain: "{{ public_consul_domain }}"
+  packages:
+    - bind9
+    - bind9utils
+    - bind9-doc
+    - bind9-host
+  zone_path: "pri"
+  bind_etc: "/etc/bind"
+  logging_path: "/var/log/named"
+  mixed_static_with_dynamic_entries:
+  - { record: "dns                            ", value: "IN      A       172.16.21.1"          }
+
+core_dns_cloud_settings:
+  ports:
+    dns: 53
+    web: 9153
+  directories:
+    configuration: "/cloud/ids/opt/coredns"

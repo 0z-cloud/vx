@@ -1,0 +1,24 @@
+
+- name: Bootstrap infrastructure from localhost to vCloud Director Appliance
+  hosts: localhost
+  #strategy: free
+  gather_facts: False
+  tasks:
+    - name: Load groupvars/product global shared settings
+      include_vars: group_vars/products/{{ ansible_product }}/{{ item }}.yml
+      with_items:
+        - vcd
+        - main
+
+    - name: Load groupvars/product global shared settings
+      include_vars: group_vars/products/{{ ansible_product }}/{{ ansible_environment }}/{{ item }}.yml
+      with_items:
+        - vcd
+        - main
+
+- name: Starting the instance bootstrap and check
+  hosts: localhost
+  roles:
+
+      - name: Include role vCloud Director VM bootstrap and validate
+        role: ./!_cloud/dc_integration/vcd/instance/destroy

@@ -1,0 +1,4 @@
+percona_mysql_exporter_defaults:
+    directories:
+        working_etc_directory: /opt/percona_mysql_exporter/{{ ansible_environment }}/etc
+        working_docker_build_directory: /opt/percona_mysql_exporter/{{ ansible_environment }}/build_docker

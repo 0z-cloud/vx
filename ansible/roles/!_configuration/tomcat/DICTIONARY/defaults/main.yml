@@ -1,0 +1,21 @@
+ansible_tomcat_settings_defaults:
+    directories:
+        ansible_catalina_local_home: "{{ tomcat_properties.directories.CATALINA_LOCAL_DEPLOY }}"
+        ansible_catalina_home: "{{ tomcat_properties.directories.CATALINA_HOME }}"
+        ansible_catalina_base_tomcat_folder: "{{ tomcat_properties.directories.CATALINA_BASE }}"
+        ansible_product_webapps_path: "{{ tomcat_properties.directories.CATALINA_HOME }}/{{ ansible_product_webapps_path }}"
+        ansible_product_webapps_root: "{{ tomcat_properties.directories.CATALINA_HOME }}/{{ ansible_product_webapps_path }}/{{ ansible_product_webapps_root }}"
+        ansible_conf_catalina_policy: "{{ tomcat_properties.directories.CATALINA_BASE }}/policy.d"
+        ansible_catalina_backup_dir: "{{ tomcat_properties.directories.CATALINA_BASE }}/backups/webapps_on_install"
+    configurations:
+        conf_web_xml: "{{ tomcat_properties.directories.CATALINA_BASE }}/conf/web.xml"
+        conf_server_xml: "{{ tomcat_properties.directories.CATALINA_BASE }}/conf/server.xml"
+        conf_tomcat_users: "/etc/tomcat11/tomcat-users.xml"
+        conf_logging_properties: "/etc/tomcat11/logging.properties"
+        conf_catalina_properties: "/etc/tomcat11/catalina.properties"
+        conf_default: "/etc/default/tomcat11"
+    packages_list:
+         - "tomcat11"
+         - "tomcat11-common"
+         - "libtomcat11-java"
+    init_script: "{{ ansible_tomcat_settings_init_script }}"

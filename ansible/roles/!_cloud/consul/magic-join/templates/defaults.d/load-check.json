@@ -1,0 +1,8 @@
+{
+  "check": {
+    "id": "check-load",
+    "name": "check-load",
+    "script": "/opt/consul/check.db/check_load -w 1,2,3 -c 2,3,4",
+    "interval": "1m"
+  }
+}

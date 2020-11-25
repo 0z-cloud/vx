@@ -1,0 +1,16 @@
+
+- name: Import Visa/MC CA certificates after upgrade java
+  raw: "{{ item }}"
+  with_items: 
+    - "keytool -noprompt -import -trustcacerts -alias visa3dsca -file /srv/vortex/cert/vtb24/mpi/VISA/ca.pem -keystore $JAVA_HOME/jre/lib/security/cacerts -storepass changeit"
+    - "keytool -noprompt -import -trustcacerts -alias visa3dsrootca -file /srv/vortex/cert/vtb24/mpi/VISA/rootca.pem -keystore $JAVA_HOME/jre/lib/security/cacerts -storepass changeit"
+    - "keytool -noprompt -import -trustcacerts -alias mcsslca -file /srv/vortex/cert/vtb24/mpi/MC/mc-ca.pem -keystore $JAVA_HOME/jre/lib/security/cacerts -storepass changeit"
+    - "keytool -noprompt -import -trustcacerts -alias mcsslsha256ca -file /srv/vortex/cert/vtb24/mpi/MC/mc-ca-sha256.pem -keystore $JAVA_HOME/jre/lib/security/cacerts -storepass changeit"
+
+- name: Debug contents after insert CA Certs
+  raw: keytool -list -v -keystore /usr/lib/jvm/java-8-oracle/jre/lib/security/cacerts -storepass changeit | grep -E 'visa|mcsslca|mcsslsha256ca|visa3dsca'
+  register: keytool_insert_result
+
+- name: Show result after insert CA Certs Visa/MC
+  debug:
+    msg: "{{ keytool_insert_result }}"

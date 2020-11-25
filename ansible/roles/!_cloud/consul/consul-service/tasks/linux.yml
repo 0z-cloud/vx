@@ -1,0 +1,200 @@
+
+- name: -- Consul Service Discovery -- Creating groups
+  group:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - admin
+    - "{{ consul_defaults.consul_security.linux_username }}"
+    
+- name: -- Consul Service Discovery -- Create Consul User
+  user: 
+    name: consul
+    shell: /bin/bash
+    groups: "admin,sudo,root,{{ consul_defaults.consul_security.linux_username }}"
+    append: yes
+
+- name: -- Consul Service Discovery -- Delete the directories
+  file:
+    path: "{{ item.value }}"
+    state: absent
+    mode: 0755
+
+  with_dict: "{{ consul.directories | default({}) }}"
+
+- name: -- Consul Service Discovery -- Create the directories
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0755
+    owner: "{{ consul_defaults.consul_security.linux_username }}"
+    group: "{{ consul_defaults.consul_security.linux_username }}"
+  with_dict: "{{ consul.directories | default({}) }}"
+
+- name: Download Consul Binary Unix
+  get_url: 
+     force_basic_auth: yes
+     dest: "{{ consul.directories.working_consul }}"
+     url: "{{ consul.consul_get_url }}"
+     mode: 0755
+  register: download_consul
+
+- name: Debug show download_consul
+  debug:
+    msg: "{{ download_consul }}"
+  
+- name: -- Consul Service Discovery -- Copy Consul Binary to /bin
+  unarchive:
+     src: "{{ consul.directories.working_consul }}/{{ consul.consul_get_zip }}"
+     dest: "/bin"
+     copy: no
+     mode: 0755
+  register: bin_to_consul
+
+- name: Debug show bin_to_consul
+  debug:
+    msg: "{{ bin_to_consul }}"
+  
+- name: -- Consul Service Discovery -- Consul CA init on First Master
+  include: ca_root.yml
+  when: inventory_hostname in groups['consul-masters'][0]
+  tags: [linux]
+
+# - name: Create upstart-server init script from template
+#   template: 
+#       src: upstart-server.conf.j2
+#       dest: "/etc/init.d/consul"
+#   when: consul_type == "master"
+
+# - name: Create upstart-client init script from template
+#   template: 
+#       src: upstart-client.conf.j2
+#       dest: "/etc/init.d/consul"
+#   when: consul_type == "client"
+
+- name: -- Consul Service Discovery -- MASTER | Create systemd config from template
+  template: 
+      src: systemd-server.conf.j2
+      dest: "/etc/systemd/system/consul.service"
+  when: consul_type == "master"
+
+- name: -- Consul Service Discovery -- CLIENT | Create systemd config from template
+  template: 
+      src: systemd-client.conf.j2
+      dest: "/etc/systemd/system/consul.service"
+  when: consul_type == "client"
+
+#  /etc/systemd/system/consul.service
+
+# - name: Set Permission to upstart-script
+#   file: 
+#       path: /etc/init.d/consul 
+#       owner: consul
+#       group: root 
+#       mode: 0755
+
+- name: -- Consul Service Discovery -- Create consul.json.j2 from template
+  template: 
+      src: consul.json.j2
+      dest: "{{ consul.directories.working_etc_directory }}/consul.json"
+  when: consul_type == "master"
+
+- name: -- Consul Service Discovery -- Create consul.json.j2 from template
+  template: 
+      src: consul-client.json.j2
+      dest: "{{ consul.directories.working_etc_directory }}/consul.json"
+  when: consul_type == "client"
+
+- name: -- Consul Service Discovery -- Generate peers.json
+  template: 
+      src: peers.INFO.j2
+      dest: "{{ consul.directories.working_consul_data }}/raft/peers.json"
+  when: peers_recovery is defined
+
+- name: -- Consul Service Discovery -- Download Consul Binary Unix
+  shell: wget {{ consul.consul_get_url }} -P {{ consul.directories.working_consul }}
+  tags: download_consul
+
+  
+- name: -- Consul Service Discovery -- Copy Consul Binary to /bin
+  unarchive:
+     src: "{{ consul.directories.working_consul }}/{{ consul.consul_get_zip }}"
+     dest: "/bin"
+     copy: no
+
+# - name: Disabling serving the systemd-resolved on localhost port 53
+#   lineinfile:
+#     path: /etc/systemd/resolved.conf
+#     regexp: '^[Resolve] '
+#     insertafter: '^[Resolve] '
+#     line: 'DNSStubListener=no'
+
+- name: -- Consul Service Discovery -- System Reread Configs for systemd
+  systemd:
+    daemon_reload: yes
+
+# - name: Restart systemd-resolved service and ensure it is not masked
+#   systemd:
+#     name: systemd-resolved
+#     state: restarted
+#     enabled: yes
+
+- name: -- Consul Service Discovery -- Enable Consul service and ensure it is not masked
+  systemd:
+    name: consul
+    enabled: yes
+    masked: no
+
+- name: -- Consul Service Discovery -- Set cap_sys_chroot+ep on /foo
+  capabilities:
+    path: /bin/consul
+    capability: cap_net_bind_service+ep
+    state: present
+
+- name: -- Consul Service Discovery -- Start Consul service
+  systemd:
+    name: consul
+    state: started
+    enabled: yes
+
+- name: -- Consul Service Discovery -- Enabling Consul service
+  systemd:
+    name: consul
+    enabled: yes
+
+# - name: Update RC D
+#   shell: update-rc.d consul "{{ item }}"
+#   with_items:
+#     - "defaults"
+#     - "enable"
+
+# - name: Add service to Default Start Up
+#   service:
+#      name: consul
+#      enabled: yes
+#      state: started
+
+# - name: enable consul service
+#   service: name=consul enabled=yes
+
+# - name: start consul
+#   service: name=consul state=started
+
+# - name: enable service httpd and ensure it is not masked
+#   systemd:
+#     name: consul
+#     enabled: yes
+
+# - name: Raw enable service // to do - not work need run by hands sometimes
+#   shell: systemctl enable consul
+
+# - name: Restart Service Consul
+#   shell: /etc/init.d/consul restart
+
+- name: -- Consul Service Discovery -- Consul Join Masters
+  shell: consul join -rpc-addr {{ ansible_default_ipv4['address'] | join }}:8400 {% for host in groups['consul-masters'] %} {{ hostvars[host]['ansible_default_ipv4']['address'] }} {% endfor %}&
+  when: consul_type == "master"
+  with_items: "{{ groups['consul-masters'] }}"
+
+# - name: Restart Service Consul
+#   shell: /etc/init.d/consul restart

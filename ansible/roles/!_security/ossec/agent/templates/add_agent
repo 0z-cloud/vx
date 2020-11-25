@@ -1,0 +1,3 @@
+{% for host in play_hosts %}
+{{ current_ossec_server_clients_count.results + 2 | map(attribute='stdout') | list }}, {{ ansible_fqdn }}
+{% endfor %}

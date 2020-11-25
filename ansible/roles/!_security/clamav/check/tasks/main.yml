@@ -1,0 +1,14 @@
+- name: Trying to find clamav_scanner.sh
+  shell: "ls -la /wrk/scripts/clamav_scanner.sh"
+  register: la_clamav_scanner_sh
+  ignore_errors: true
+
+- name: Success result on host because script exists
+  debug:
+    msg: "System {{ inventory_hostname }} already have a script /wrk/scripts/clamav_scanner.sh"
+  when: la_clamav_scanner_sh.rc == 0
+
+- name: FAIL result on host because script not exists
+  fail:
+    msg: "Whoops! On host {{ hostvars[inventory_hostname].ansible_fqdn }} File /wrk/scripts/clamav_scanner.sh not exists!!!"
+  when: la_clamav_scanner_sh.rc != 0

@@ -1,0 +1,26 @@
+####
+
+- name: Shell gets "LockOutRealm" from $CATALINA_HOME/conf/server.xml, if see error its good =)
+  shell: "grep 'LockOutRealm' {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}/conf/server.xml | grep '{{ item }}'"
+  register: ansible_grep_connectors_server_xml_lockout_realm
+  ignore_errors: true
+  
+- name: Check the grep LockOutRealm in conf/server.xml, if PCI compliance ok, we ignore that and go next
+  fail:
+    msg: "Whoops! Connector have {{ item }} in File {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}/conf/server.xml conetent not PCI Compliant - please add lockout realm to server.xml"
+  when: "{{ item }} != 0"
+  with_items: "{{ ansible_grep_connectors_server_xml_lockout_realm.results | map(attribute='rc') | list }}"
+
+######## HOW TO FIX COMPLIANCE:
+
+# 1. Add the lockout realm
+
+# <Realm className="org.apache.catalina.realm.LockOutRealm"
+# failureCount="3" lockOutTime="600" cacheSize="1000"
+# cacheRemovalWarningTime="3600">
+#  <Realm
+# className="org.apache.catalina.realm.DataSourceRealm"
+# dataSourceName=... />
+# </Realm> 
+
+########

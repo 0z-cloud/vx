@@ -1,0 +1,12 @@
+- name: First generate stub on-fly current exec process networks subnets object
+  set_fact:
+      anycloud_zone_extra_subnets_adapters_networks_get_on_fly_direct_subnet: "{{ lookup('random_subnet') }}"
+      anycloud_zone_extra_subnets_adapters_networks_get_on_fly_routed_subnet: "{{ lookup('random_subnet') }}"
+      anycloud_zone_extra_subnets_adapters_networks_get_on_fly_isolated_subnet: "{{ lookup('random_subnet') }}"
+      anycloud_zone_extra_subnets_adapters_networks_get_on_fly_zone_subnet: "{{ lookup('random_subnet') }}"
+      anycloud_zone_extra_subnets_adapters_networks_get_on_fly_vpnmesh_subnet: "{{ lookup('random_subnet') }}"
+      anycloud_zone_extra_subnets_adapters_networks_on_fly_direct_subnet: "{{ lookup('random_subnet') }}"
+      anycloud_zone_extra_subnets_adapters_networks_on_fly_routed_subnet: "{{ lookup('random_subnet') }}"
+      anycloud_zone_extra_subnets_adapters_networks_on_fly_isolated_subnet: "{{ lookup('random_subnet') }}"
+      anycloud_zone_extra_subnets_adapters_networks_on_fly_zone_subnet: "{{ lookup('random_subnet') }}"
+      anycloud_zone_extra_subnets_adapters_networks_on_fly_vpnmesh_subnet: "{{ lookup('random_subnet') }}"

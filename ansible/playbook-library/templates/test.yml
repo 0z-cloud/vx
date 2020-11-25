@@ -1,0 +1,17 @@
+- name: Test playbook step with roles call
+  become: true
+  hosts: all
+  roles:
+    - name: Test
+      role: ./!_test_suite/test
+  tags: [test-autorun]
+
+
+- name: Test playbook step with tasks list
+  become: true
+  hosts: all
+  tasks:
+    - name: Tnstall test package
+      apt:
+        name: test 
+  tags: [test-autorun]

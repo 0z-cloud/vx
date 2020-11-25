@@ -1,0 +1,49 @@
+- name: Deploy a PHP Laravel Application
+  hosts: "{{ HOSTS }}"
+  become: true
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/laravel/{{ HOSTS }}/{{ HOSTS }}.yml"
+  vars:
+    RELEASE: "{{ ansible_date_time.year }}{{ ansible_date_time.month }}{{ ansible_date_time.day }}{{ ansible_date_time.hour }}{{ ansible_date_time.minute }}{{ ansible_date_time.second }}"
+    RELEASE_DIRECTORY: "{{ APPLICATION_DIRECTORY }}/releases/{{ RELEASE }}"
+    RELEASE_OWNER: www-data
+    RELEASE_GROUP: www-data
+    APPLICATION_SHARED_DIRECTORIES:
+    - { path: "storage/app", symlink: true }
+    - { path: "storage/app/public", symlink: false }
+    - { path: "storage/framework", symlink: true }
+    - { path: "storage/framework/cache", symlink: false }
+    - { path: "storage/framework/cache/data", symlink: false }
+    - { path: "storage/framework/sessions", symlink: false }
+    - { path: "storage/framework/views", symlink: false }
+    - { path: "storage/logs", symlink: true }
+  vars_prompt:
+  - name: GITLAB_JOB
+    prompt: "Job"
+    private: no
+  - name: GITLAB_TOKEN
+    prompt: "Token"
+
+  tasks:
+
+  - block:
+    - include_role:
+        name: "./!_deploy/create-application-directories"
+    - include_role:
+        name: "./!_deploy/create-release-directory"
+    - include_role:
+        name: "./!_deploy/download-artifacts"
+    - include_role:
+        name: "./!_deploy/laravel_ng"
+    - include_role:
+        name: "./!_hooks/notifier"
+        tasks_from: deploy_notify
+      vars:
+        DEPLOY_NOTIFY_MESSAGE: "ENVIRONMENT: {{ ansible_environment }} DEPLOY JOB: {{ GITLAB_JOB }} FOR {{ inventory_hostname }} SUCCESS!"
+
+    rescue:
+    - include_role:
+        name: "./!_hooks/notifier"
+        tasks_from: deploy_notify
+      vars:
+        DEPLOY_NOTIFY_MESSAGE: "ENVIRONMENT: {{ ansible_environment }} DEPLOY JOB: {{ GITLAB_JOB }} FOR {{ inventory_hostname }} FAILED!"

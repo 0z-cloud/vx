@@ -1,0 +1,16 @@
+- name: Run the Apache2 with modsecurity configuration
+  become: true
+  hosts: "{{ HOSTS | default('apache2-webservers') }}"
+  roles:
+  
+    - name: Install Apache2
+      role: ./!_cloud/apache/install
+
+    - name: Configure Sites
+      role: ./!_cloud/apache/configuration
+
+    - name: Configure ModSecurity
+      role: ./!_cloud/apache/mod_security
+
+    - name: Add phpldapadmin
+      role: ./!_monitoring/phpldapadmin

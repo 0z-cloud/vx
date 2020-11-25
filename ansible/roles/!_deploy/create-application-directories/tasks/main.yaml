@@ -1,0 +1,21 @@
+- name: Create application directory structure
+  file:
+    dest: "{{ item }}"
+    state: directory
+    owner: "{{ RELEASE_OWNER }}"
+    group: "{{ RELEASE_GROUP }}"
+    mode: 0775
+  with_items:
+    - "{{ APPLICATION_DIRECTORY }}"
+    - "{{ APPLICATION_DIRECTORY }}/releases"
+    - "{{ APPLICATION_DIRECTORY }}/shared"
+
+- name: Create shared directories
+  file:
+    dest: "{{ APPLICATION_DIRECTORY }}/shared/{{ item.path }}"
+    state: directory
+    owner: "{{ RELEASE_OWNER }}"
+    group: "{{ RELEASE_GROUP }}"
+    mode: 0775
+  with_items: "{{ APPLICATION_SHARED_DIRECTORIES }}"
+  when: APPLICATION_SHARED_DIRECTORIES is defined

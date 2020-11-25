@@ -1,0 +1,3 @@
+mysql_router:
+  cluster_name: "{{ mysql_router_cluster_name }}"
+  primary_ip: "{{ mysql_router_target_node_ip }}"

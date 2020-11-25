@@ -1,0 +1,6 @@
+- name: Create supervisor programs
+  template:
+    src: program.j2
+    dest: /etc/supervisor/conf.d/{{ item.program }}.conf
+  with_items: "{{ SUPERVISOR_PROGRAMS }}"
+  when: SUPERVISOR_PROGRAMS is defined

@@ -1,0 +1,33 @@
+percona_settings:
+  wsrep_cluster_name: vortex_{{ ansible_environment }}
+  public_port: 3306
+  extended_port: 3306
+  cluster_port: 4567
+  streams_port: 4444
+  extrass_port: 4568
+  directories:
+    data_path: "/opt/percona/{{ ansible_environment }}/data"
+    config_path: "/opt/percona/{{ ansible_environment }}/config"
+  root_password: root
+  percona_databases:
+    - vortex
+    - easily
+    - posterm
+    - admin
+  percona_users:
+    - name: 'vortex'
+      password: 'vortex'
+      privileges: 'vortex.*:ALL'
+    - name: 'easily'
+      password: 'easily'
+      privileges: 'easily.*:ALL'
+    - name: 'posterm'
+      password: 'posterm'
+      privileges: 'posterm.*:ALL'
+
+    - name: 'admin'
+      password: 'admin'
+      privileges: 'admin.*:ALL'
+
+unification_services:
+  - {'percona': {'target': 'percona-cluster', 'listen_port': "{{ percona_service_listen_port }}", 'check_type': "tcp", 'script_check': "{{ inventory_hostname }}:{{ percona_service_listen_port }}" }}

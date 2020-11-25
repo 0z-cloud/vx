@@ -1,0 +1,252 @@
+# https://docs.ansible.com/ansible/latest/modules/docker_compose_module.html#requirements
+
+- import_playbook: ansible_localhost_playbook_brew_mac_os_x.yml
+- import_playbook: ansible_localhost_playbook_pip_requirements.yml
+
+- name: Localhost development configuration docker-compose generator
+  hosts: localhost
+  become: true
+  vars_files:
+      # - "./group_vars/!_ApplicationDocker_Template/docker-compose-template.yml"
+      - "group_vars/all.yml"
+      - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+      - "group_vars/products/{{ ansible_product }}/main.yml"
+      - "group_vars/products/{{ ansible_product }}/shared.yml"
+      - "group_vars/products/{{ ansible_product }}/{{ ansible_cloud_type }}.yml"
+      - "inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+      # - "group_vars/!_anyCloud/anyCloud.yml"
+  vars:
+    # ansible_environment: production
+    # ansible_product: adam
+    version_ansible_build_id: latest
+    cloud_dir_replace: ./../.cloud/cloud_dir
+    ansible_python_interpreter: "/usr/local/bin/python3"
+  vars_prompt:
+    - name: "ANSIBLE_APPLICATION_TYPE"
+      prompt: "Provide your Application Type Name"
+      default: "vortex"
+      private: no
+    - name: "ansible_environment"
+      prompt: "Provide your Environment Name"
+      default: "production"
+      private: no
+    - name: "ansible_product"
+      prompt: "Provide your Product Name"
+      default: "vortex"
+      private: no
+    # - name: "cloud_dir_replace"
+    #   prompt: "Provide your localhost path"
+    #   default: "./.cloud"
+    #   private: yes
+  tasks:
+
+    - name: Install python docker compose
+      pip:
+        name: "{{ item }}"
+        state: present
+        executable: pip3
+      with_items:
+        - docker-compose
+        - PyYAML
+        - docker
+
+    - name: Load default inventory group_vars
+      include_vars: "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+
+    - name: Include environment variables for applications
+      include_vars: "group_vars/!_Applications_Core/{{ ANSIBLE_APPLICATION_TYPE }}/{{ ANSIBLE_APPLICATION_TYPE }}_folders_map.yml"
+
+    - name: Include environment variables for applications
+      include_vars: "group_vars/!_Applications_Core/{{ ANSIBLE_APPLICATION_TYPE }}/{{ ANSIBLE_APPLICATION_TYPE }}_settings_map.yml"
+
+    - name: Include environment variables for environment cloud
+      include_vars: "group_vars/!_DNS/cloud-bind-frontend-dns/cloud-bind-frontend-dns.yml"
+
+    - name: Set fact again. Do a localhost cloud great again!
+      set_fact:
+        cloud_dir: "{{ cloud_dir_replace }}"
+
+    - name: Include Vars for Build Basic Image Cretion for Product 
+      include_vars: ./group_vars/!_ApplicationDocker_Template/in_pleace_prepare_selfbox_basic_image/in_pleace_prepare_selfbox_basic_image.yml 
+
+    # - name: Template the in_pleace_prepare_selfbox_basic_image
+    #   template:
+    #     src: "./group_vars/!_ApplicationDocker_Template/docker-compose-localhost.yml.j2"
+    #     dest: "./../../docker-compose.yml"
+
+    - name: Template the in_pleace_prepare_selfbox_basic_image
+      template:
+        src: "./group_vars/!_ApplicationDocker_Template/docker-compose-localhost.yml.j2"
+        dest: "./../../docker-compose.yml"
+
+    - name: Create .cloud EVE placement in Vortex local placement
+      file:
+        path: "{{ item }}"
+        state: directory
+      with_items:
+        - "./../../.cloud/eve"
+        - "./../../.cloud/container_entrypoint"
+      when: ansible_lf_eden_eve_hypervisor_cloud_integration is defined
+
+    - name: Whole re/linking to temp cloud Vx Selfbox & Vx Separate
+      shell: list=("ansible" "services" "dockerfiles" ".local" "extended" "PythonQA") | for i in ${list[@]}; do rm -rf ./.cloud/$i ; ln -s ./../$i ./.cloud/$i ; done
+
+    - name: Create .vx_edge EVE vx_edge in Vortex to EVE 
+      file:
+        path: "./_lf_edge_vx_eve/_vx_edge/{{ item }}"
+        state: directory
+      with_items:
+        - "etc" # configs to propose
+        - "src" # sources place work
+        - "bin" # builded bin facts
+        - "mnt" # docker volume to mount 
+      when: ansible_lf_eden_eve_hypervisor_cloud_integration is defined
+
+    - name: Template the clone access github.com api auth token for able used as each container 
+      template:
+        src: "clone_git_api.sh.j2"
+        dest: "{{ item }}"
+        mode: 0777
+      with_items:
+        - "./_lf_edge_vx_eve/_vx_edge/.git_credentials"
+        - "./../../.cloud/eve/clone_git_api.sh"
+      when: ansible_lf_eden_eve_hypervisor_cloud_integration is defined
+
+    - name: Template the DOCKER_HOST external push if build in docker by itself host docker engine 
+      template:
+        src: "docker_outside_env_init.sh.j2"
+        dest: "./../../.cloud/container_entrypoint/docker_outside_env_init.sh"
+        mode: 0777
+      when: ansible_lf_eden_eve_hypervisor_cloud_integration is defined
+
+    # shell: list=("heaven" "eden" "adam" "eve") | for i in ${list[@]}; do rm -rf ./.cloud/$i ; ln -s ./../$i ./.cloud/$i ; done
+
+    # - name: RAW Copy force to place needed configurations changes for EVE components
+    #   shell: list=("heaven" "eden" "adam" "eve") | for i in ${list[@]}; do cp -r ./_lf_edge_vx_eve/_vx_edge ./_lf_edge_vx_eve/services/$i ; done
+    #   when: ansible_lf_eden_eve_hypervisor_cloud_integration is defined
+
+    - name: RAW Copy force to place needed configurations changes for EVE components
+      shell: cp -R ./_lf_edge_vx_eve/_vx_edge ./_lf_edge_vx_eve/services/heaven
+      when: ansible_lf_eden_eve_hypervisor_cloud_integration is defined
+
+    - name: Docker Compose - build basic image
+      docker_compose:
+        project_name: "{{ ansible_environment }}-{{ ansible_product }}-cloud"
+        project_src: "./../../"
+        build: yes
+
+    # - name: Create directories list
+    #   set_fact:
+    #     directories_primary: |
+    #        {% set dirlist = [] %}
+    #        {% if special_all_services_remap_docker_compose_generate is defined %}
+    #        {% for key,value in special_all_services_remap_docker_compose_generate.items() %}
+    #        {% for app,data in special_all_services_settings_map.items()%}
+    #        {% if key == app %}{% if value['volumes'] is defined and 'sock' not in value['volumes'] %}
+    #        {% for volume in value['volumes'] %}{% set mount_volume_path = volume.split(':') %}{% set dirlist = dirlist.append(mount_volume_path[0]) %}
+    #        {% endfor %}{% endif %}{% endif %}{% endfor %}{% endfor %}{% endif %}{{ dirlist }}
+    #     directories_seconds: |
+    #        {% set dirlist = [] %}
+    #        {% if all_services_remap_docker_compose_generate is defined %}
+    #        {% for key,value in all_services_remap_docker_compose_generate.items() %}
+    #        {% for app,data in all_services_settings_map.items()%}
+    #        {% if key == app %}{% if value['volumes'] is defined and 'sock' not in value['volumes'] %}
+    #        {% for volume in value['volumes'] %}{% set mount_volume_path = volume.split(':') %}{% set dirlist = dirlist.append(mount_volume_path[0]) %}
+    #        {% endfor %}{% endif %}{% endif %}{% endfor %}{% endfor %}{% endif %}{{ dirlist }}
+
+    # - name: Create local dirs
+    #   debug:
+    #     msg: "{{ item }}"
+    #   with_items: 
+    #     - "{{ directories_primary }}"
+    #     - "{{ directories_seconds }}"
+
+    # - name: Create local dirs
+    #   file:
+    #     path: "{{ item }}"
+    #     state: directory
+    #   with_items: 
+    #     - "{{ directories_primary }}"
+    #     - "{{ directories_seconds }}"
+
+    # - name: Docker Compose Destroy-Absent
+    #   docker_compose:
+    #     project_name: "{{ ansible_environment }}-{{ ansible_product }}-localhost"
+    #     project_src: "./../../"
+    #     state: absent
+- name: Localhost development configuration docker-compose generator
+  hosts: localhost
+  become: true
+  vars_files:
+    - "./group_vars/!_ApplicationDocker_Template/docker-compose-template.yml"
+    - "group_vars/all.yml"
+  vars:
+    # ansible_environment: production
+    # ansible_product: adam
+    version_ansible_build_id: latest
+    cloud_dir_replace: ./../.cloud/cloud_dir
+    ansible_python_interpreter: "/usr/local/bin/python3"
+  vars_prompt:
+    - name: "ANSIBLE_APPLICATION_TYPE"
+      prompt: "Provide your Application Type Name"
+      default: "lf_edge_eve"
+      private: no
+    - name: "ansible_environment"
+      prompt: "Provide your Environment Name"
+      default: "production"
+      private: no
+    - name: "ansible_product"
+      prompt: "Provide your Product Name"
+      default: "lf-edge-eve"
+      private: no
+    # - name: "cloud_dir_replace"
+    #   prompt: "Provide your localhost path"
+    #   default: "./.cloud"
+    #   private: yes
+  strategy: free
+  serial: 3
+  tasks:
+
+    - name: Include Vars for All Image Collection for Product 
+      include_vars: ./group_vars/!_ApplicationDocker_Template/docker-compose-template.yml
+
+    - name: Template the docker-compose.yml
+      template:
+        src: "./group_vars/!_ApplicationDocker_Template/docker-compose-localhost.yml.j2"
+        dest: "./../../docker-compose.yml"
+
+    - name: Docker Compose - build
+      docker_compose:
+        project_name: "{{ ansible_environment }}-{{ ansible_product }}-cloud"
+        project_src: "./../../"
+        build: yes
+
+
+    # - name: Pretend to create instances
+    #   command: "sleep {{ item }}"  # Instead of calling a long running operation at a cloud provider, we just sleep.
+    #   with_items:
+    #     - 6
+    #     - 8
+    #     - 7
+    #   register: _create_instances
+    #   async: 600  # Maximum runtime in seconds. Adjust as needed.
+    #   poll: 0  # Fire and continue (never poll)
+
+    # - name: Wait for creation to finish
+    #   async_status:
+    #     jid: "{{ item.ansible_job_id }}"
+    #   register: _jobs
+    #   until: _jobs.finished
+    #   delay: 5  # Check every 5 seconds. Adjust as you like.
+    #   retries: 10  # Retry up to 10 times. Adjust as needed.
+    #   with_items: "{{ _create_instances.results }}"
+
+
+
+    - name: Docker Compose re/Start
+      docker_compose:
+        project_name: "{{ ansible_environment }}-{{ ansible_product }}-cloud"
+        project_src: "./../../"
+        recreate: always
+        build: yes
+        restarted: yes

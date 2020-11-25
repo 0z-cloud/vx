@@ -1,0 +1,9 @@
+postfix:
+  directories:
+    main: /etc/postfix
+  packages:
+    - postfix
+    - mailutils
+    - libsasl2-2
+    - ca-certificates
+    - libsasl2-modules

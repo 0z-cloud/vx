@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" parent-id="CryptoBank" uuid="7c2a2bc2-a21e-4cf6-aa60-28ac77433c85" xsi:noNamespaceSchemaLocation="https://www.jetbrains.com/teamcity/schemas/2018.1/project-config.xsd">
+  <name>Enviroments Templates</name>
+  <parameters />
+  <cleanup />
+</project>
+

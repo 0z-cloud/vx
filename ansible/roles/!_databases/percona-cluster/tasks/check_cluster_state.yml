@@ -1,0 +1,15 @@
+- name: Get local state of cluster container
+  shell: docker exec percona-{{ ansible_environment }}-{{ ansible_hostname }} mysql -uroot -proot -e "SHOW GLOBAL STATUS LIKE 'wsrep_local_state_comment';"
+  register: wsrep_local_state_comment
+
+- name: Get wsrep_cluster_status state of cluster container
+  shell: docker exec percona-{{ ansible_environment }}-{{ ansible_hostname }} mysql -uroot -proot -e "SHOW GLOBAL STATUS LIKE 'wsrep_cluster_status';"
+  register: wsrep_cluster_status
+
+- name: Show status of wsrep_local_state_comment
+  debug:
+    msg: "{{ wsrep_local_state_comment }}"
+
+- name: Show status of wsrep_cluster_status
+  debug:
+    msg: "{{ wsrep_cluster_status }}"

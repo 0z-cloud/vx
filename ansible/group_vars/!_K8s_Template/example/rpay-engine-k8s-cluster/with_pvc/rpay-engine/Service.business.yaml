@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: business
+    chart: business-0.1.0
+    heritage: Tiller
+    io.cattle.field/appId: rpay-engine
+    release: rpay-engine
+  name: business
+  selfLink: /api/v1/namespaces/rpay-engine/services/business
+spec:
+  ports:
+  - port: 4000
+    protocol: TCP
+    targetPort: 4000
+  selector:
+    app: business
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}

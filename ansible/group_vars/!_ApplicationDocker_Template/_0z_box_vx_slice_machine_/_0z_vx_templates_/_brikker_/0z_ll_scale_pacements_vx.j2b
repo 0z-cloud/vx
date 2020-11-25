@@ -1,0 +1,17 @@
+{% block placeholder %}{% if value['scale'] is defined and value['placement'] is defined %}{% raw %}
+      deploy:
+        mode: replicated
+        replicas: {% endraw %}{{ value['scale'] }}{% raw %}
+        placement:
+          constraints:
+            - node.role == {% endraw %}{{ value['placement'] }}{% raw %}
+        restart_policy:
+          condition: on-failure
+          delay: 120s
+          window: 120s
+        update_config:
+          parallelism: 1
+          order: {% endraw %}{{ value['order'] }}{% raw %}
+{% endraw %}
+{% endif %}{% endblock %}
+

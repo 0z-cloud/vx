@@ -1,0 +1,14 @@
+dn: olcDatabase={1}hdb,cn=config
+add: olcAccess
+olcAccess: to attrs=userPassword 
+    by dn="cn=admin,dc=vortex,dc=co" write 
+    by self write 
+    by * none
+olcAccess: to dn.base="" 
+    by users read 
+    by * none
+olcAccess: to * 
+    by dn="cn=admin,dc=vortex,dc=co" write 
+    by * none
+    
+    

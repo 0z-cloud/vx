@@ -1,0 +1,82 @@
+apiVersion: projectcalico.org/v3
+kind: NetworkPolicy
+metadata:
+  name: allow-tcp-{{ K8S_CLUSTER_LISTEN_PORT_2379 }}
+  namespace: kube-system
+spec:
+  selector: color == 'red'
+  ingress:
+  - action: Allow K8S_CLUSTER_LISTEN_PORT_2379
+    protocol: TCP
+    source:
+      selector: color == 'blue'
+    destination:
+      ports:
+        - {{ K8S_CLUSTER_LISTEN_PORT_2379 }}
+
+---
+apiVersion: projectcalico.org/v3
+kind: NetworkPolicy
+metadata:
+  name: allow-egress-external
+  namespace: kube-system
+spec:
+  selector:
+    color == 'red'
+  types:
+    - Egress
+  egress:    
+    - action: Allow
+      destination:
+        nets:
+        - {{ POD_NETWORK_CIDR }}
+        - {{ CLUSTER_NETWORK_CIDR }}
+        - {{ SERVICE_NETWORK_CIDR }}
+
+---
+apiVersion: projectcalico.org/v3
+kind: NetworkPolicy
+Metadata:
+  name: allow-tcp-udp-{{ k8s_cluster_dns_port_outside }}
+  namespace: kube-system
+Spec:
+  types:
+  - Ingress
+  - Egress
+  ingress:
+  - action: Accept
+    protocol: TCP
+  - action: Accept
+    protocol: UDP
+
+---
+apiVersion: projectcalico.org/v3
+kind: NetworkPolicy
+Metadata:
+  name: allow-tcp-udp-{{ k8s_cluster_dns_port_inside }}
+  namespace: kube-system
+Spec:
+  types:
+  - Ingress
+  - Egress
+  ingress:
+  - action: Accept
+    protocol: TCP
+  - action: Accept
+    protocol: UDP
+
+---
+apiVersion: projectcalico.org/v3
+kind: NetworkPolicy
+Metadata:
+  name: allow-tcp-{{ K8S_CLUSTER_LISTEN_PORT_2380 }}
+  namespace: kube-system
+Spec:
+  types:
+  - Ingress
+  - Egress
+  ingress:
+  - action: Accept
+    protocol: TCP
+  - action: Accept
+    protocol: UDP

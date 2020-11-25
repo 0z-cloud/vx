@@ -1,0 +1,892 @@
+###############################################################
+# INVENTORY PRIMARY INFO
+# ansible_product: lf-edge-eve
+# Vx & EVE EDGE MVP
+###############################################################
+ansible_lf_eden_eve_hypervisor_cloud_integration: true
+
+###############################################################
+# EVE REPOSITORIES LIST
+eden_eve_cloud_repositories_list:
+  - "github.com/itmo-eve/eve.git"
+  - "github.com/itmo-eve/adam.git"
+  - "github.com/itmo-eve/eden.git"
+
+###############################################################
+# MAC OS X WORKAROUND
+# GIVE ACCESS FROM RUNNED CONTAINER TO ITSELF RUNS DOCKER HOST
+MAC_OSX_DOCKER_API_HTTP_PORT: "2377"
+MAC_OSX_DOCKER_API_HTTP_LISTEN: "127.0.0.1/32"
+
+###############################################################
+
+ansible_product: lf-edge-eve
+ansible_git_project_path: "lf-edge/adam-vortex"
+ansible_environment: production
+ansible_application_core_name_settings_storage_environment: production
+ansible_children_environment: "no"
+
+# SERVICE DISCOVERY DMZ TO PUBLIC
+selected_consul_service_discovery_state: true
+
+###############################################################
+# ! INFO (inventory can be have are a preferred, complained and restricted -
+# types cloud landscape bootstraping providers)
+#
+# Target cloud adapter is are:
+
+ansible_cloud_declared_hypervisor_init_type: kvm
+ansible_cloud_declared_want_cloud_placement_target_type: eve
+# ansible_cloud_declared_target_type: gcp
+ansible_cloud_declared_target_type: vsphere
+
+ansible_cloud_declared_target_uppercase_type: "{{ ansible_cloud_declared_target_type | upper }}"
+
+################################################################
+# EVE EDGE GENESIS EDEN PLATFORM PRODUCTION SOURCE INVENTORY
+################################################################
+eden_eve_default_host: "127.0.0.1"
+eden_eve_default_ssh_port: 2222
+eden_eve_default_telnet_port: 7777
+eden_redis_service_listen_port: "{{ redis_service_listen_port }}"
+eden_redis_registry_service_listen_port: "{{ registry_inside_service_listen_port }}"
+eden_redis_eserver_service_listen_port: 8888
+eden_redis_adam_service_listen_port: 3333
+eden_redis_eve_host: localhost
+eden_cloud_eve_default_ip: "192.168.1.2"
+eden_cloud_eden_default_ip: "192.168.0.1"
+eden_cloud_apps_subnet: "10.1.0.0/24"
+
+eden_cloud_service_listen_port: 8027
+zina_service_listen_port: 8227
+eden_cloud_eve_docker_listener: 5912:5901
+eden_cloud_eve_docker_listener: "5911:5900"
+eden_cloud_eve_docker_listener: "8027:8027"
+eden_cloud_eve_docker_listener: "8028:8028"
+
+###############################################################
+# Configuration layout zone template = pci / minimal / default
+# ansible_environment_security_configuration: "default" 
+ansible_environment_security_configuration: "pci" 
+###############################################################
+
+# VORTEX ANYCLOUD
+# anycloud_virtual_cloud_name: global
+
+anycloud_zone: earth
+anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_description: vSwitch_{{ ansible_environment }}
+anycloud_region: worldwide
+anycloud_defaults_virtual_cloud_cidr: 172.16.222.0/24
+anycloud_virtual_cloud_name: vZone_Sector_Network_Exchange_{{ ansible_product }}_zone_{{ ansible_environment }}_{{ ansible_datacenter }}
+anycloud_virtual_cloud_description: "{{ anycloud_virtual_cloud_name }}"
+
+anycloud_vm_performance_configuration: 4cmc4
+anycloud_vm_storage_configuration: Silver
+
+#anycloud_virtual_machine_default_hard_disk_template_source_name: ubuntu_18_04_64_20G_cloudbase_20181212
+#anycloud_virtual_machine_resources_middle_type: 4cmc4
+#anycloud_defaults_virtual_cloud_cidr: 172.16.221.0/24
+
+## types of cluster swarm/k8s/mixed/none
+cloud_cluster_type: k8s
+
+# ETCD SETTINGS
+etcd_service_listen_port: 2380
+
+# KUBERNETES
+K8S_SOFTWARE_VERSION: stable-v1.18
+K8S_SOFTWARE_TOKEN: c72y4n.1cq5pjl0wv2855es
+K8S_DASHBOARD_STATE: yes
+
+kube_api_anonymous_auth: true
+
+## K8 USERS
+kube_users:
+  kube:
+    pass: "287987501705710975091705"
+    role: admin
+    groups:
+      - system:masters
+
+## K8S MAIN SETTINGS 
+CLOUD_DIRECTORY: /mnt/cloud-bind-frontend-dns-glusterfs-storage
+CLOUD_PRIVATE_NETWORK_INTERFACE: enp0s8
+
+CALICO_POOL_1_CIDR: 10.224.128.0/19
+CALICO_POOL_2_CIDR: 10.224.192.0/19
+CALICO_POOL_3_CIDR: 10.224.160.0/19
+CALICO_POOL_4_IPIP_CIDR: 10.224.96.0/19
+FLANNEL_POOL_1_CIDR: 192.168.200.0/24
+
+# COREDNS K8
+docker_image_repo: "docker.io"
+
+coredns_version: "1.6.9"
+coredns_image_repo: "{{ docker_image_repo }}/coredns/coredns"
+coredns_image_tag: "{{ coredns_version }}"
+
+# DEFAULT NETWORK SUBNETS
+# service_cidr: "10.96.0.0/12"
+# pod_network_cidr: "10.244.0.0/16"
+
+LB_NETWORK_CIDR: "10.32.224.0/20"
+
+## SERVICES MESH KUBERNETES BETWEEN NETWORK
+# pod_net <-> service_net <-> cluster_net
+SERVICE_NETWORK_CIDR: "10.233.0.0/18"
+# --service-cluster-ip-range=10.32.0.0/24
+
+## CLUSTER NETWORK - VM's or any nodes network space
+# [any-node] <=> cluster_net <=> [any-node]
+CLUSTER_NETWORK_CIDR: "10.32.0.0/16"
+# --cluster-cidr=10.200.0.0/16 
+
+## POD NETWORK - KUBERNETES PRIVATE DMZ/CDE
+# [some-sub-zone] <-> [pod-network] <-> service_net <-> cluster_net <-> public_net
+POD_NETWORK_CIDR: "10.224.0.0/16"
+# --pod-cidr=10.2.0.0/16
+
+LOAD_BALANCER_DNS: loadbalancer.{{ public_consul_domain }}
+INSIDE_K8_LOAD_BALANCER_DNS: dns.{{ k8_cloud_domain_name }}
+NS_CLOUD_BALANCER_DNS: vip-ns0-cloud.{{ public_consul_domain }}
+
+CALICO_NETWORKS_ARRAY:
+    - name: pool1
+      CALICO_POOL_CIDR: "10.224.128.0/19"
+      ipipMode: "Never"
+      natOutgoing: "true"
+      disabled: "false"
+      nodeSelector: "all()"
+    - name: pool2
+      CALICO_POOL_CIDR: "10.224.192.0/19"
+      ipipMode: "Never"
+      natOutgoing: "true"
+      disabled: "false"
+      nodeSelector: "all()"
+    - name: default-ipv4-ippool
+      CALICO_POOL_CIDR: "10.224.160.0/19"
+      ipipMode: "Never"
+      natOutgoing: "true"
+      disabled: "false"
+      nodeSelector: "all()"
+    - name: ippool-ipip-1
+      CALICO_POOL_CIDR: "10.224.96.0/19"
+      ipipMode: "Always"
+      natOutgoing: "true"
+      disabled: "false"
+
+K8S_CLUSTER_LISTEN_PORT: 6443
+K8S_CLUSTER_LISTEN_PORT_2380: 2380
+K8S_CLUSTER_LISTEN_PORT_2379: 2379
+TYPHA_API_LISTEN_PORT: 5473
+
+K8S_CLUSTER_NAME: main_k8_cluster
+K8S_CLUSTER_ADDRESS: 10.32.40.101
+CALICO_ETCD_CLUSTER_IP: 10.32.40.100
+DNS_VIP_BIND_CLUSTER_IP: 10.32.40.102
+
+CALICO_ETCD_LISTEN_PORT: 6666
+
+# IDS KEEPALIVED PRIMARY_GATEWAY
+ids_primary_vip_gateway: "{{ CALICO_ETCD_CLUSTER_IP }}"
+k8s_primary_vip_gateway: "{{ K8S_CLUSTER_ADDRESS }}"
+k8s_primary_vip_gateway_subnet_mask: "/16"
+
+ids_public_vip_ip: "172.16.31.5"
+primary_cloud_gw: "172.16.0.253"
+nginx_frontend_ip_01: "172.16.21.150"
+
+### K8S RESOURCES LIMITS
+core_dns_memory_pod_limit: 170Mi
+
+#### For example, like in 1.8.x feature: --feature-gates SelfHosting=true
+K8S_INIT_OPTIONS: ""
+
+K8S_EXTRA_API_KUBEADM_OPTIONS: "--ignore-preflight-errors=all"
+#### For example: kubeadm_opts: '--apiserver-cert-extra-sans "k8s.domain.com,kubernetes.domain.com"'
+
+## Network implementation('flannel', 'calico', 'canal')
+K8S_NETWORK_TYPE: calico
+
+## Additional feature to install {true/false}
+K8S_HELM_STATE: true
+K8S_METALB_STATE: true
+K8S_HEALTHCHECK_STATE: true
+
+## Application Settings Example
+MINIO_ACCESS_KEY: Jhs617UAGfg1A15
+
+# PCI DSS!
+
+## POSTFIX MAIL SEND
+
+default_mail_relayhost_address: "smtp.gmail.com"
+default_mail_relayhost_port: "587"
+default_mail_relay_host_port: "{{ default_mail_relayhost_address }}:{{ default_mail_relayhost_port }}"
+default_mail_username: "admin@lf-vx-z1e-vcd.fleandr.com"
+default_mail_password: "2304i10i120i412"
+default_localhost_relay: "localhost"
+default_localhost_port: "25"
+default_localhost_stmp_string: "{{ default_localhost_relay }}:{{ default_localhost_port }}"
+
+# CLAMAV
+
+CLAMAV_MAILING_USER: clamav-scanner@lf-vx-z1e-vcd.fleandr.com
+CLAMAV_MAILING_HOSTNAME_URI: "smtp://{{ default_localhost_relay }}:{{ default_localhost_port }}"
+CLAMAV_MAILING_PASSWORD: "example-password"
+CLAMAV_MAILING_DESTINATION: pci-devops@lf-vx-z1e-vcd.fleandr.com
+
+# OSSEC
+
+ossec_wazuh_smtp_server: "{{ default_mail_relayhost_address }}"
+ossec_wazuh_email_from: "{{ default_mail_username }}"
+ossec_wazuh_email_to: "security@lf-vx-z1e-vcd.fleandr.com"
+ossec_wazuh_email_notification: yes
+ossec_wazuh_email_alerts_log: yes
+ossec_wazuh_use_password: yes
+
+# pci_dss_environment: true
+environment_rsyslog_rotate_days: 365
+
+# # DATABASE BACKEND CLUSTER SETTINGS
+
+# redis_backend_service_listen_port: "{{ redis_public_port }}"
+# pgbouncer_backend_service_listen_port: 5432
+# mongo_backend_service_listen_port: 27017
+# minio_backend_service_listen_port: 9101
+# elasticsearch_backend_service_listen_port: 11400
+
+# DATABASE FRONTEND CONFIGURATION FOR CONNECTION 
+
+## VIP BALANCER ENDPOINT TO LOCAL SWARM CLUSTER
+
+vip_balancer_endpoint_host: pgpool
+#vip_balancer_endpoint_host: postgres
+#vip_balancer_endpount_ip: 172.16.1.100
+
+postgres_database_host: "10.135.115.146"
+#postgres_database_host: "pgpool"
+#postgres_database_host: "postgres"
+mongo_database_host: "mongo"
+minio_database_host: "minio"
+redis_database_host: "redis"
+elasticsearch_database_host: "elasticsearch"
+
+KIBANA_ELASTICSEARCH_URL: "elasticsearch"
+
+# APP BASIC SETTINGS FOR BACKENDS
+
+METABASE_DB_TYPE: "MB_DB_TYPE: h2"
+METABASE_PLACEMENT_SWARM_CLUSTER_TYPE: worker
+
+# MAILING SETTINGS
+
+APP_DOMAIN: lf-vx-z1e-vcd.fleandr.com
+APP_COMPANY_NAME: "lf-edge"
+APP_SUPPORT_EMAIL: support@lf-vx-z1e-vcd.fleandr.com
+APP_MAIL_DOMAIN: lf-vx-z1e-vcd.fleandr.com
+APP_MAILER_SERVER: smtp.gmail.com
+APP_MAILER_PASSWORD: 2304i10i120i412
+APP_MAILER_USER: admin@lf-vx-z1e-vcd.fleandr.com
+APP_NOREPLY_EMAIL: noreply@lf-vx-z1e-vcd.fleandr.com
+
+# APPLICATION SETTINGS
+
+CLIENT_APP_NAME: eden-vortice
+
+DEV_ADMIN_USER: admin@admin.admin
+DEV_ADMIN_PASSWORD: admin@admin.admin
+
+# ANSIBLE 0z-Cloud INVENTORY TYPE
+# possible values: bare / alicloud / vsphere / vcd
+# ansible_cloud_type: gcp
+
+ansible_cloud_type: vsphere
+
+# DATABASE CONNECTION APPLICATION SETTINGS
+
+APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_HOST: "mariadb"
+APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_PORT: "{{ mariadb_service_listen_port }}"
+APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_USER: "vortice_{{ ansible_environment }}_user"
+APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_PASSWORD: "7585c877x857z43w654d6tu67r876u"
+APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_DATABASE: "vortice_{{ ansible_environment }}"
+
+MAILER_HOST_ADDRESS: smtp.office365.com
+MAILER_HOST_PORT: 587
+MAILER_HOST_SECURE: '\"false\"'
+MAILER_HOST_AUTH_PASSWORD: '7ex-x_Rk_fqN'
+MAILER_HOST_AUTH_USERNAME: 'noreplysite@local.cloud.eve.vortice.eden'
+MAILER_SENDER_USERNAME: "site@local.cloud.eve.vortice.eden"
+
+NODE_LOGGING_TO_SQL: ""
+NODE_HTTP_MAX_REDIRECTS: 5
+NODE_HTTP_TIMEOUT: 5000
+NODE_HTTPS_SERVICE_SUPPORT: ""
+NODE_ADVANCED_LOGGING: "true"
+NODE_INSIDE_MODE: "DEV"
+NODE_BIND_ADDRESS: "0.0.0.0"
+##
+
+TEST_ENVIRONMENT_USERNAME: postgres
+TEST_ENVIRONMENT_PASSWORD: "{{ TEST_ENVIRONMENT_USERNAME }}"
+
+PCI_IN_SWARM_POSTGRESQL_NAME: "{{ TEST_ENVIRONMENT_USERNAME }}"
+
+ENVIRONMENT_DB_SETTINGS:
+  CORE:
+    APP_DB_USERNAME_ENV: "{{ TEST_ENVIRONMENT_USERNAME }}"
+    APP_DB_PASSWORD_ENV: "{{ TEST_ENVIRONMENT_USERNAME }}"
+  METABASE:
+    APP_DB_USERNAME_ENV: "{{ TEST_ENVIRONMENT_USERNAME }}"
+    APP_DB_PASSWORD_ENV: "{{ TEST_ENVIRONMENT_USERNAME }}"
+
+# DOCKER SETTINGS
+
+docker_test_release: False
+
+# Docker Inventory Location Settings
+default_docker_image_environment_tag: latest
+default_docker_image_environment_location: registry
+default_docker_database_postgresql_environment_location: "{{ all_services_location_map.directories.database }}:/var/lib/postgresql/data"
+default_docker_database_postgresql_logs_environment_location: "{{ all_services_location_map.directories.database_log }}:/var/log/postgresql"
+default_docker_database_mongo_environment_location: "{{ all_services_location_map.directories.mongo }}:/data/db"
+default_docker_database_minio_environment_location: "{{ all_services_location_map.directories.minio }}:/export"
+default_docker_database_minio_config_environment_location: "{{ all_services_location_map.directories.minio_config }}:/root/.minio"
+default_docker_database_settings_environment_location: "{{ all_services_location_map.directories.settings_storage }}:/storage"
+default_docker_database_business_environment_location: "{{ all_services_location_map.directories.settings_storage }}:/business/storage"
+default_docker_metabase_environment_location: "{{ all_services_location_map.directories.metabase_storage }}:/metabase-data"
+default_docker_database_pritunl_mongo_environment_location: "{{ all_access_services_location_map.directories.mongo }}:/data/db"
+default_docker_database_pritunl_service_environment_location: "{{ all_access_services_location_map.directories.mongo }}:/mount"
+default_docker_database_nginx_environment_location: "/tmp:/tmp/"
+default_docker_database_nginx_config_environment_location: "/etc/nginx:/etc/nginx"
+
+#
+
+ssh_users_allhosts_adduser__to_merge:
+  - { name: 'vortex', groups: 'adm, sudo', shell: '/bin/bash', key: 'rostislav.pub' }
+
+# cloud_dir: /mnt/glusterfs
+
+consul_datacenter: "{{ ansible_datacenter }}"
+# consul_datacenter: "dc00"
+# IN ADAPTER SETTINGS
+ansible_datacenter: "dc00"
+ansible_datacenter_location: moscow
+# PREFIXES
+
+consul_business_prefix: "business"
+consul_core_prefix: "core"
+consul_api_prefix: "cli"
+consul_guard_prefix: "guard"
+consul_settings_prefix: "settings"
+consul_demo_prefix: "demo"
+consul_metabase_prefix: "metabase"
+consul_docs_business_prefix: "docs.business"
+consul_tests_prefix: "tests"
+
+# CONSUL DOMAINS
+
+consul_public_prefix: "ru"
+cosnul_private_prefix: "consul"
+consul_powerdns_prefix: "powerdns"
+consul_domain_name: "adam.eden-vortice.cloud.eve.vortice.eden.consul."
+consul_merge_domain_name: "lf-vx-z1e-vcd.fleandr.com."
+k8_cloud_domain_name_public_prefix: "k8"
+consul_cloud_domain_name_public_prefix: "cloud"
+merge_consul_domain: "lf-vx-z1e-vcd.fleandr.com"
+public_consul_domain: "lf-vx-z1e-vcd.fleandr.com"
+internal_consul_domain: "adam.eden-vortice.cloud.eve.vortice.eden.consul"
+consul_domain_parent_name: "local.cloud.eve.vortice.eden"
+consul_internal_servers_sub_domain_zone: "server.{{ public_consul_domain }}"
+
+# CLOUD DOMAINS
+
+k8_cloud_domain_name: "k8.{{ public_consul_domain }}"
+consul_cloud_domain_name: "cloud.{{ public_consul_domain }}"
+consul_cloud_fqdn_full: "cloud.{{ consul_merge_domain_name }}"
+
+internal_service_consul_cloud_fqdn: "service.{{ merge_consul_domain }}"
+dot_internal_service_consul_cloud_fqdn: "service.{{ consul_merge_domain_name }}"
+
+cloud_service_consul_cloud_fqdn: "service.cloud.{{ merge_consul_domain }}"
+dot_cloud_service_consul_cloud_fqdn: "service.cloud.{{ consul_merge_domain_name }}"
+
+consul_service_cloud_domain_name: "{{ cosnul_private_prefix }}.{{ cloud_service_consul_cloud_fqdn }}"
+
+## ACME WILDCARD
+
+### ACME
+
+acme_cloud_url: "acme.{{ public_consul_domain }}"
+
+acme_wildcard_domain: "*.{{ public_consul_domain }}"
+acme_listen_port: 8099
+amce_wildcard: "true"
+
+## NGINX FRONTEND SITES
+
+## Nexus Site
+ansible_global_nexus_site_name: "nexus.{{ public_consul_domain }}"
+
+## Main Sites
+#
+ansible_global_business_site_name: "{{ consul_business_prefix }}.{{ public_consul_domain }}"
+ansible_global_guard_site_name: "{{ consul_guard_prefix }}.{{ public_consul_domain }}"
+ansible_global_settings_site_name: "{{ consul_settings_prefix }}.{{ public_consul_domain }}"
+ansible_global_demo_site_name: "{{ consul_demo_prefix }}.{{ public_consul_domain }}"
+ansible_global_docs_business_site_name: "{{ consul_docs_business_prefix }}.{{ public_consul_domain }}"
+ansible_global_core_site_name: "{{ consul_core_prefix }}.{{ public_consul_domain }}"
+ansible_global_metabase_site_name: "{{ consul_metabase_prefix }}.{{ public_consul_domain }}"
+ansible_global_sentry_site_name: "sentry.{{ public_consul_domain }}"
+ansible_global_cli_site_name: "{{ consul_api_prefix }}.{{ public_consul_domain }}"
+ansible_global_frontend_site_name: "frontend.{{ public_consul_domain }}"
+ansible_global_backend_site_name: "backend.{{ public_consul_domain }}"
+ansible_global_admin_panel_site_name: "admin-panel.{{ public_consul_domain }}"
+
+# Primary Production Domain for public services
+production_public_domain: "lf-vx-z1e-vcd.fleandr.com"
+primary_parent_shared_inventory_domain: "lf-vx-z1e-vcd.fleandr.com"
+
+# gitlab-server and registry
+
+anycloud_ci_cd_vcs_project_checkout_service_auth_identity_pass_or_token: "IN_VAULT"
+
+### NGINX CORE SETTING
+# POSSIBLE VALUES = http_only or https_only or acme
+
+acme_certificate_name: "*.{{ public_consul_domain }}"
+nginx_core_type: https_only
+
+# acme_third_level_business_domain 
+# acme_primary_domain
+# acme_wildcard_domain
+
+# third_level_business
+# primary
+# wildcard
+
+#
+acme_third_level_business_domain: "*.{{ ansible_global_business_site_name }}"
+acme_primary_domain: "{{ public_consul_domain }}"
+# acme_wildcard_domain: "{{ acme_certificate_name }}"
+
+unification_sites: "{{ specific_environment_sites + projects_default_sites }}"
+
+specific_environment_sites:
+  - {
+    name: "{{ ansible_global_admin_panel_site_name }}",
+    published: "enabled",
+    value: "wildcard",
+    prefix: "{{ ansible_global_admin_panel_site_name }}",
+    type: "{{ ansible_global_admin_panel_site_name }}",
+    location: "admin_panel",
+    config: "defaults"
+  }
+  - {
+    name: "{{ ansible_global_backend_site_name }}",
+    published: "enabled",
+    value: "wildcard",
+    prefix: "{{ ansible_global_backend_site_name }}",
+    type: "{{ ansible_global_backend_site_name }}",
+    location: "febe_api",
+    config: "defaults"
+  }
+  - {
+    name: "{{ ansible_global_frontend_site_name }}",
+    published: "enabled",
+    value: "wildcard",
+    prefix: "{{ ansible_global_frontend_site_name }}",
+    type: "{{ ansible_global_frontend_site_name }}",
+    location: "frontend",
+    config: "defaults"
+  }
+  - {
+    name: "{{ ansible_global_cli_site_name }}",
+    published: "enabled",
+    value: "wildcard",
+    prefix: "{{ ansible_global_cli_site_name }}",
+    type: "{{ ansible_global_cli_site_name }}",
+    location: "cli",
+    config: "defaults"
+  }
+  - {
+    name: "{{ ansible_global_www_site_name }}",
+    published: "enabled",
+    value: "wildcard",
+    prefix: "{{ ansible_global_www_site_name }}",
+    type: "{{ ansible_global_www_site_name }}",
+    location: "frontend",
+    config: "defaults"
+  }
+  - {
+    name: "{{ ansible_global_metabase_site_name }}",
+    published: "enabled",
+    value: "wildcard",
+    prefix: "{{ ansible_global_metabase_site_name }}",
+    type: "{{ ansible_global_metabase_site_name }}",
+    location: "metabase",
+    config: "defaults"
+  }
+  - {
+    name: "{{ ansible_global_sentry_site_name }}",
+    published: "enabled",
+    value: "wildcard",
+    prefix: "{{ ansible_global_sentry_site_name }}",
+    type: "{{ ansible_global_sentry_site_name }}",
+    location: "sentry",
+    config: "defaults"
+  }
+
+  # - {
+  #   name: "{{ ansible_global_core_site_name }}",
+  #   published: "enabled",
+  #   value: "wildcard",
+  #   prefix: "{{ ansible_global_core_site_name }}",
+  #   type: "{{ ansible_global_core_site_name }}",
+  #   location: "core",
+  #   config: "defaults"
+  # }
+  # - {
+  #   name: "{{ ansible_global_nexus_site_name }}",
+  #   published: "enabled",
+  #   value: "wildcard",
+  #   prefix: "{{ ansible_global_nexus_site_name }}",
+  #   type: "{{ ansible_global_nexus_site_name }}",
+  #   location: "nexus",
+  #   config: "defaults"
+  # }
+
+static_dns_mappings:
+  main:
+    consul_web_private_ip: |
+      {% set hostslist = [] %}
+      {% for host in groups['consul-masters'] %}
+      {% if hostvars[host]['second_ip'] is defined and 'REPLACED' not in hostvars[host]['second_ip'] %}
+      {% set hostslist1 = hostslist.append(hostvars[host]['second_ip']) %}{% else %}{% set hostslist2 = hostslist.append(hostvars[host]['second_ip']) %}
+      {% endif %}
+      {% endfor %}
+      {{ hostslist }}
+    website_ip: |
+      {% set hostslist = [] %}
+      {% for host in groups['nginx-frontend'] %}
+      {% if 'REPLACED' not in hostvars[host]['public_nat_ip'] %}
+      {% set hostslist1 = hostslist.append(hostvars[host]['public_nat_ip']) %}
+      {% else %}
+      {% set hostslist2 = hostslist.append(hostvars[host]['ansible_default_ipv4']['address']) %}
+      {% endif %}
+      {% endfor %}
+      {{ hostslist }}
+    external_ip: |
+      {% set hostslist = [] %}
+      {% for host in groups['nginx-frontend'] %}
+      {% if hostvars[host]['public_nat_ip'] is defined and 'REPLACED' not in hostvars[host]['public_nat_ip'] %}
+      {% set hostslist1 = hostslist.append(hostvars[host]['public_nat_ip']) %}{% else %}{% set hostslist2 = hostslist.append(hostvars[host]['ansible_default_ipv4']['address']) %}
+      {% endif %}
+      {% endfor %}
+      {{ hostslist }}
+    nat_external_ip: |
+      {% set hostslist = [] %}
+      {% for host in groups['nginx-frontend'] %}
+      {% set hostslist = hostslist.append(hostvars[host]['public_nat_ip']) %}
+      {% endfor %}
+      {{ hostslist }}
+    dns_root_primary_ip: |
+      {% set hostslist = [] %}
+      {% for host in groups['cloud-bind-frontend-dns'] %}
+      {% if hostvars[host]['public_nat_ip'] is defined and 'REPLACED' not in hostvars[host]['public_nat_ip'] %}
+      {% set hostslist1 = hostslist.append(hostvars[host]['public_nat_ip']) %}
+      {% else %}
+      {% set hostslist2 = hostslist.append(hostvars[host]['ansible_default_ipv4']['address']) %}
+      {% endif %}
+      {% endfor %}
+      {{ hostslist }}
+    private_root_primary_ip_second_interface: |
+      {% set hostslist = [] %}
+      {% for host in groups['nginx-frontend'] %}
+      {% if hostvars[host]['second_ip'] is defined and 'REPLACED' not in hostvars[host]['second_ip'] %}
+      {% set hostslist1 = hostslist.append(hostvars[host]['ansible_ssh_host']) %}
+      {% else %}
+      {% set hostslist2 = hostslist.append(hostvars[host]['ansible_ssh_host']) %}
+      {% endif %}
+      {% endfor %}
+      {{ hostslist }}
+    ids_private_vip_ip: 
+      - 192.168.2.5
+    registry_in_other_cluster_inside_network_ip: 
+      - 192.168.67.101
+    poc_internal_ip_address_outside:
+      - 192.168.67.100
+
+unification_services_uno: "{{ specific_environment_unification_services + default_project_services }}"
+unification_services: "{{ unification_services_uno + default_project_hidden_internal_services }}"
+
+default_project_hidden_internal_services:
+    - {'consul': { 'external_ip': '{{ static_dns_mappings.main.consul_web_private_ip }}', 'target': 'consul-masters', 'listen_port': "{{ consul_https_service_listen_port }}", 'check_type': "http", 'script_check': "http://{{ inventory_hostname }}:{{ consul_https_service_listen_port }}" }}
+
+specific_environment_unification_services:
+    - {'dhub': { 'external_ip': '{{ static_dns_mappings.main.private_root_primary_ip_second_interface }}', 'target': 'core', 'listen_port': "{{ admin_panel_service_listen_port }}", 'check_type': "http", 'script_check': "http://{{ inventory_hostname }}:{{ admin_panel_service_listen_port }}" }}
+    - {'febe-api': { 'external_ip': '{{ static_dns_mappings.main.external_ip }}', 'target': 'core', 'listen_port': "{{ admin_panel_service_listen_port }}", 'check_type': "http", 'script_check': "http://{{ inventory_hostname }}:{{ admin_panel_service_listen_port }}" }}
+    - {'admin-panel': { 'external_ip': '{{ static_dns_mappings.main.external_ip }}', 'target': 'core', 'listen_port': "{{ admin_panel_service_listen_port }}", 'check_type': "http", 'script_check': "http://{{ inventory_hostname }}:{{ admin_panel_service_listen_port }}" }}
+    - {'backend': { 'external_ip': '{{ static_dns_mappings.main.external_ip }}', 'target': 'core', 'listen_port': "{{ backend_service_listen_port }}", 'check_type': "http", 'script_check': "http://{{ inventory_hostname }}:{{ backend_service_listen_port }}" }}
+    - {'cli': { 'external_ip': '{{ static_dns_mappings.main.external_ip }}', 'target': 'core', 'listen_port': "{{ cli_service_listen_port }}", 'check_type': "http", 'script_check': "http://{{ inventory_hostname }}:{{ cli_service_listen_port }}" }}
+    - {'frontend': { 'external_ip': '{{ static_dns_mappings.main.external_ip }}', 'target': 'core', 'listen_port': "{{ frontend_service_listen_port }}", 'check_type': "http", 'script_check': "http://{{ inventory_hostname }}:{{ frontend_service_listen_port }}" }}
+    - {'mailer': { 'external_ip': '{{ static_dns_mappings.main.external_ip }}', 'target': 'core', 'listen_port': "{{ mailer_service_listen_port }}", 'check_type': "http", 'script_check': "http://{{ inventory_hostname }}:{{ mailer_service_listen_port }}" }}
+    - {'www': { 'external_ip': '{{ static_dns_mappings.main.external_ip }}', 'target': 'core', 'listen_port': "{{ frontend_service_listen_port }}", 'check_type': "http", 'script_check': "http://{{ inventory_hostname }}:{{ frontend_service_listen_port }}" }}
+    - {'metabase': { 'external_ip': '{{ static_dns_mappings.main.external_ip }}', 'target': 'core', 'listen_port': "{{ metabase_service_listen_port }}", 'check_type': "http", 'script_check': "http://{{ inventory_hostname }}:{{ metabase_service_listen_port }}" }}
+    - {'sentry': { 'external_ip': '{{ static_dns_mappings.main.external_ip }}', 'target': 'sentry-service', 'listen_port': "{{ sentry_web_service_listen_port }}", 'check_type': "http", 'script_check': "http://{{ inventory_hostname }}:{{ sentry_web_service_listen_port }}" }}
+
+    # - {'sentry': { 'external_ip': '{{ static_dns_mappings.main.external_ip }}', 'target': 'sentry-service', 'listen_port': "{{ sentry_web_service_listen_port }}", 'check_type': "http", 'script_check': "http://{{ inventory_hostname }}:{{ sentry_web_service_listen_port }}" }}
+    # - {'nexus': { 'external_ip': '{{ static_dns_mappings.main.external_ip }}', 'target': 'nexus-service', 'listen_port': "{{ nexus_service_listen_port }}", 'check_type': "http", 'script_check': "http://{{ inventory_hostname }}:{{ nexus_service_listen_port }}" }}
+
+unification_dns_primary_services:
+    - {'@': { 'external_ip': '{{ static_dns_mappings.main.external_ip }}', 'target': 'core', 'listen_port': "{{ frontend_service_listen_port }}", 'check_type': "http", 'script_check': "http://{{ inventory_hostname }}:{{ frontend_service_listen_port }}" }}
+    - {'oz': { 'external_ip': '{{ static_dns_mappings.main.external_ip }}', 'target': 'core', 'listen_port': "{{ www_service_listen_port }}", 'check_type': "http", 'script_check': "http://{{ inventory_hostname }}:{{ www_service_listen_port }}" }}
+    # - {'dhub': { 'external_ip': '{{ static_dns_mappings.main.private_root_primary_ip_second_interface }}', 'target': 'core', 'listen_port': "{{ www_service_listen_port }}", 'check_type': "http", 'script_check': "http://{{ inventory_hostname }}:{{ www_service_listen_port }}" }}
+    # - {'poc': { 'external_ip': '{{ static_dns_mappings.main.poc_internal_ip_address_outside }}', 'target': 'core', 'listen_port': "{{ www_service_listen_port }}", 'check_type': "http", 'script_check': "http://{{ inventory_hostname }}:{{ www_service_listen_port }}" }}
+    # - {'vortex': { 'external_ip': '{{ k8s_primary_vip_gateway }}', 'target': 'core', 'listen_port': "{{ www_service_listen_port }}", 'check_type': "http", 'script_check': "http://{{ inventory_hostname }}:{{ www_service_listen_port }}" }}
+    # - {'k8s': { 'external_ip': '{{ ids_primary_vip_gateway }}', 'target': 'docs', 'listen_port': "{{ www_service_listen_port }}", 'check_type': "http", 'script_check': "http://{{ inventory_hostname }}:{{ www_service_listen_port }}" }}
+    # - {'www': { 'external_ip': '{{ static_dns_mappings.main.website_ip }}', 'target': 'docs', 'listen_port': "{{ docs_service_listen_port }}", 'check_type': "http", 'script_check': "http://{{ inventory_hostname }}:{{ docs_service_listen_port }}" }}
+
+# EXAMPLE PLACED
+# unification_services_remapping_external_fqdn:
+  #- {'febe_api': { 'dns_publish_prefix': 'api', 'upstream_prefix': 'febe-api', 'external_ip': '{{ static_dns_mappings.main.external_ip }}', 'target': 'service_discovery', 'listen_port': '{{ public_api_service_listen_port }}', 'check_type': 'tcp', 'script_check': '{{ inventory_hostname }}:{{ public_api_service_listen_port }}' }}
+  # - {'gateway_mcom': { 'dns_publish_prefix': 'gateway-mcom', 'upstream_prefix': 'gateway-mcom', 'external_ip': '{{ static_dns_mappings.main.external_ip }}', 'target': 'service_discovery', 'listen_port': '{{ public_api_service_listen_port }}', 'check_type': 'tcp', 'script_check': '{{ inventory_hostname }}:{{ public_api_service_listen_port }}' }}
+
+unification_services_remapping_external_fqdn:
+  - {'admin-panel': { 'dns_publish_prefix': 'admin-panel', 'upstream_prefix': 'admin-panel', 'external_ip': '{{ static_dns_mappings.main.external_ip }}', 'target': 'service_discovery', 'listen_port': '{{ public_api_service_listen_port }}', 'check_type': 'tcp', 'script_check': '{{ inventory_hostname }}:{{ public_api_service_listen_port }}' }}
+  - {'vortex': { 'dns_publish_prefix': 'vortex', 'upstream_prefix': 'vortex', 'external_ip': '{{ ids_primary_vip_gateway }}', 'target': 'service_discovery', 'listen_port': '{{ frontend_service_listen_port }}', 'check_type': 'tcp', 'script_check': '{{ inventory_hostname }}:{{ frontend_service_listen_port }}' }}
+  - {'k8s': { 'dns_publish_prefix': 'k8s', 'upstream_prefix': 'k8s', 'external_ip': '{{ k8s_primary_vip_gateway }}', 'target': 'service_discovery', 'listen_port': '{{ www_service_listen_port }}', 'check_type': 'tcp', 'script_check': '{{ inventory_hostname }}:{{ www_service_listen_port }}' }}
+  # - {'sentry': { 'dns_publish_prefix': 'sentry', 'upstream_prefix': 'sentry', 'external_ip': '{{ sentry_primary_vip_gateway }}', 'target': 'service_discovery', 'listen_port': '{{ www_service_listen_port }}', 'check_type': 'tcp', 'script_check': '{{ inventory_hostname }}:{{ www_service_listen_port }}' }}
+  # - {'admin-panel': { 'dns_publish_prefix': 'admin-panel', 'upstream_prefix': 'admin-panel', 'external_ip': '{{ static_dns_mappings.main.external_ip }}', 'target': 'service_discovery', 'listen_port': '{{ public_api_service_listen_port }}', 'check_type': 'tcp', 'script_check': '{{ inventory_hostname }}:{{ public_api_service_listen_port }}' }}
+
+unification_services_for_check:
+  - {'ns': {'target': 'consul-masters', 'listen_port': "{{ dns_service_listen_port }}", 'check_type': "script", 'script_check': "dig @{{ ansible_default_ipv4['address'] }} {{ consul_domain_name }}&& echo 'success' || echo 'fail'" }}
+
+crazy_hop_consul_services:
+  - {'cloud-ns': { 'name': 'cloud-ns', 'exec': 'py', 'type': 'external_body', 'script': "nill" }}
+  - {'services': { 'name': 'services', 'exec': 'py', 'type': 'external_body', 'script': "nill" }}
+
+unificated_consul_services: "{{ unification_services }}"
+
+basic_consul_services:
+  - {'ram': {'target': 'all', 'check_type': "script", 'script_check': "intel_inside_already_we_have" }}
+  - {'cpu': {'target': 'all', 'check_type': "script", 'script_check': "intel_inside_already_we_have" }}
+  - {'disks': {'target': 'all', 'check_type': "script", 'script_check': "intel_inside_already_we_have" }}
+
+####
+
+# HTTP Only
+nginx_result: "{{ unificated_sites_http + host_default_name_site + unificated_sites_https_acme_wildcard }}"
+
+# HTTP + > HTTPS configuration
+# nginx_result: "{{ unificated_sites_https + unificated_sites_http + host_default_name_site }}"
+
+nginx_config_defaults:
+  "{
+    '{{ nginx_configs_defaults }}':
+         {{ config_defaults | list }}
+    }"
+
+nginx_configs:
+  "{
+    '{{ nginx_configs_upstreams }}':
+         {{ unification_upstreams | list }}
+    }"
+
+nginx_locations_mapping_list:
+    - backend
+    - cli
+    - frontend
+    - mailer
+    - consul
+    - teamcity
+    - metabase
+    - www
+    - grafana
+    - alertmanager
+    - prometheus
+    - core
+    - kibana
+    - febe_api
+    - admin_panel
+    - registry
+    - gitlab
+    - dhub
+    - sentry
+    # - wazuh
+    # - teamcity
+    # - registry
+    # - gitlab
+    # - kubernetes
+    # - nexus
+
+
+nginx_prepared: |
+  {% set merge_config_result = [] %}
+  {% for service in nginx_locations_mapping_list %}
+  {% set loaded_part = lookup('vars', 'nginx_config_locations_' + service) %}
+  {% set merge_config_result2 = merge_config_result.append(loaded_part) %}
+  {% endfor %}
+  {{ merge_config_result }}
+
+nginx_same: "{{ nginx_config_defaults | combine(nginx_prepared) }}"
+
+ansible_port: 22
+
+#### PORTS FOR INVENTORY
+
+# adam PORTS
+mariadb_service_listen_port: 3306
+backend_service_listen_port: 3001
+frontend_service_listen_port: 3000
+admin_panel_service_listen_port: 3002
+mailer_service_listen_port: 3311
+cli_service_listen_port: 3721
+test_service_listen_port: 21415
+# NEXUS 
+nexus_service_listen_port: 8081
+sentry_web_service_listen_port: 14231
+
+# KUBERNETES
+kubernetes_web_service_listen_port: 8001
+# k8s_cluster_dns_port_outside: 1153
+k8s_cluster_dns_port_outside: 53
+k8s_cluster_dns_port_inside: 53
+k8s_cluster_dns_prometheus_port_outside: 9153
+
+# PG Cluster
+pgmanager_service_internal_listen_port: 8080
+pgmanager_service_listen_port: 8888
+pgpool_service_listen_port: 9999
+
+### HTTP
+http_service_listen_port: 80
+https_service_listen_port: 443
+
+### GIT
+git_service_listen_port: 8022
+registry_service_listen_port: 7657
+
+git_http_container_service_listen_port: 80
+git_https_container_service_listen_port: 443
+git_ssh_container_service_listen_port: 22
+git_publish_ssh_container_service_listen_port: 14422
+publish_git_http_container_service_listen_port: 18880
+publish_registry_inside_service_listen_port: 18443
+registry_inside_service_listen_port: 5000
+nginx_8060_inside_service_listen_port: 8060
+
+# Prometheus
+prometheus_service_listen_port: 9090
+
+# Grafana
+grafana_internal_service_listen_port: 3011
+# nginx_access_whitelist: IP_TO_INSERT
+grafana_smtp_host: "{{ default_localhost_stmp_string }}"
+grafana_smtp_user: "{{ default_mail_username }}"
+grafana_smtp_pass: ""
+grafana_smtp_from: "{{ default_mail_username }}"
+
+# Cadvisor
+cadvisor_service_listen_port: 8080
+
+# Node exporter
+node_exporter_service_listen_port: 9103
+
+# Alert Manager
+alert_manager_notify_to:
+  - 'ros@lf-vx-z1e-vcd.fleandr.com'
+  - 'support@lf-vx-z1e-vcd.fleandr.com'
+  - 'support@lf-vx-z1e-vcd.fleandr.com'
+alert_manager_notify_host: "{{ default_mail_relay_host_port }}"
+alert_manager_notify_from: "{{ default_mail_username }}"
+alert_manager_notify_pass: "{{ default_mail_password }}"
+alert_manager_host: "185.11.24.11"
+alert_manager_service_listen_port: 9093
+
+# Wazuh
+wazuh_authd_password: TopSecretPassword1v91n24
+wazuh_manager_host: "185.11.24.11"
+wazuh_kibana_internal_service_listen_port: 5606
+wazuh_elasticsearch_listen_port: 9206
+wazuh_manager_events_listen_port: 1514
+wazuh_manager_agent_listen_port: 1515
+wazuh_manager_cluster_listen_port: 1516
+wazuh_manager_syslog_listen_port: 514
+wazuh_manager_api_listen_port: 55000
+
+wazuh_elasticsearch_web_https_service_listen_port: 13067
+wazuh_elasticsearch_web_https_service_internal_listen_port: 443
+
+wazuh_elasticsearch_web_http_service_listen_port: 13066
+wazuh_elasticsearch_web_http_service_internal_listen_port: 80
+
+wazuh_manager_web_https_service_listen_port: 13065
+wazuh_manager_web_https_service_internal_listen_port: 443
+
+wazuh_manager_web_http_service_listen_port: 13064
+wazuh_manager_web_http_service_internal_listen_port:  80
+
+wazuh_kibana_web_https_service_listen_port: 13063
+wazuh_kibana_web_https_service_internal_listen_port: 443
+
+wazuh_kibana_web_http_service_listen_port: 13062
+wazuh_kibana_web_http_service_internal_listen_port: 80
+
+# TeamCity
+teamcity_service_listen_port: 8111
+
+# Kibana
+kibana_service_listen_port: 5601
+
+# Elastic HQ
+elastic_hq_service_listen_port: 9701
+
+# RABBITMQ
+rabbitmq_service_listen_port: 15672
+
+# Percona
+percona_service_listen_port: "{{ mariadb_service_listen_port }}"
+
+### Consul
+consul_service_listen_port: 8300
+consul_dns_service_listen_port: 8600
+consul_https_service_listen_port: 8700
+consul_http_service_listen_port: 8500
+consul_serf_lan_service_listen_port: 8301
+consul_serf_wan_service_listen_port: 8302
+consul_rpc_service_listen_port: 8400
+# Elasticsearch port
+elasticsearch_service_listen_port: 9200
+
+# Logging ElasticSearch cluster port
+logging_elasticsearch_cluster_listen_port: "{{ elasticsearch_service_listen_port }}"
+logging_kibana_internal_service_listen_port: "{{ kibana_service_listen_port }}"
+
+# Redis port
+redis_io_cluster_enabled: "false"
+redis_username: "redis" # TODO
+redis_passowrd: "dc1d494f7915da973d6c037357c548adbaee349e35"
+redis_public_port: 6379
+redis_slave_public_port: 6380
+redis_service_listen_port: "{{ redis_public_port }}"
+
+#
+# Ports for all Applications
+#
+minio_service_listen_port: 9101
+www_service_listen_port: 13886
+core_service_listen_port: 3010
+metabase_service_listen_port: 9000
+mongo_service_listen_port: 27017
+nginx_https_service_listen_port: 443
+nginx_http_service_listen_port: 80
+postgres_service_listen_port: 5432
+
+# # EXAMPLE
+# # Java Applications
+# #
+# gate_java_service_listen_port: 11001
+# coreapp_service_listen_port: 11002
+# processing_sandbox_service_listen_port: 11003
+# keyserver_service_listen_port: 11004

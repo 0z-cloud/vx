@@ -1,0 +1,7 @@
+- name: NTP Configure Playbook
+  become: true
+  hosts: "{{ HOSTS | default('linux-hosts') }}"
+  roles:
+    - name: NTP Configure Role
+      role: ./!_bootstrap/ntp/configure
+      when: ansible_children_environment == 'no'

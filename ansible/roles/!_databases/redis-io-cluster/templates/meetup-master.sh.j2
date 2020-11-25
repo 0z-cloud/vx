@@ -1,0 +1,9 @@
+#!/bin/sh
+
+{% for host in groups['REDIS_CLUSTER_HOSTS_FULL'] if host != inventory_hostname %}{% raw %}
+redis-cli -p {% endraw %}{{ redis_io_service_settings.public_port }}{% raw %} CLUSTER MEET {% endraw %}{{ hostvars[host]['ansible_default_ipv4']['address'] }} {{ redis_io_service_settings.public_port }}{% endfor %}
+
+{% if redis_io_cluster_enabled == "true" %}
+{% for host in groups['REDIS_CLUSTER_HOSTS_FULL'] %}{% raw %}
+redis-cli -p {% endraw %}{{ redis_io_service_settings.public_port }}{% raw %} CLUSTER MEET {% endraw %}{{ hostvars[host]['ansible_default_ipv4']['address'] }} {{ redis_io_service_settings.public_port }}{% endfor %}
+{% endif %}

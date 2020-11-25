@@ -1,0 +1,8 @@
+apiVersion: projectcalico.org/v3
+kind: CalicoAPIConfig
+metadata:
+spec:{% raw %}
+  etcdEndpoints: "{% endraw %}{% for host in groups['kubernetes-master'] %}{% raw %}https://{% endraw %}{{ hostvars[host]['second_ip'] }}{% raw %}:{% endraw %}{{ K8S_CLUSTER_LISTEN_PORT_2379 }}{% if not loop.last %}{% raw %},{% endraw %}{% endif %}{% endfor %}{% raw %}"
+  {% endraw %}etcdKeyFile: /etc/kubernetes/pki/etcd/server.key
+  etcdCertFile: /etc/kubernetes/pki/etcd/server.crt
+  etcdCACertFile: /etc/kubernetes/pki/etcd/ca.crt

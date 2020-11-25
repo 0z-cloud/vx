@@ -1,0 +1,41 @@
+snat 
+
+Action             snat
+Description        Covid Net
+Enabled            True
+ID                 196615
+Logging            False
+OriginalAddress    192.168.50.0/24
+OriginalPort       any
+Protocol           any
+TranslatedAddress  37.18.116.45
+TranslatedPort     any
+property           value
+
+
+dnat 
+
+Action             dnat
+Description        openvpn UDP
+Enabled            True
+ID                 196613
+Logging            False
+OriginalAddress    37.18.116.45
+OriginalPort       1194
+Protocol           udp
+TranslatedAddress  192.168.67.2
+TranslatedPort     1194
+property           value
+
+
+Action             dnat
+Description        TRANSLATE FROM PUBLIC TO ozRouter PRIMA
+Enabled            True
+ID                 196637
+Logging            False
+OriginalAddress    37.18.116.45
+OriginalPort       19247
+Protocol           tcp
+TranslatedAddress  172.16.74.3
+TranslatedPort     19247
+property           value

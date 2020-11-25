@@ -1,0 +1,18 @@
+## vCenter resources Information
+vsphere_datacenter:  "{{ anycloud_adapter_api_datacenter }}"
+vsphere_folder: "{{ anycloud_adapter_api_datacenter }}_{{ ansible_product }}_{{ ansible_environment }}"
+vsphere_resourcepool: '{{ anycloud_ansible_resource_pool | default("non_prod") }}'
+# vsphere_cluster: ''
+# vsphere_datastore: 'DS-HP-01'
+# inventory_hostname: ''
+## Guest Information 
+# guest_network: '192.168.10.xxx-vmnetwork'
+# guest_custom_ip: '192.168.10.121'
+# guest_netmask: '255.255.255.0'
+# guest_gateway: '192.168.10.1'
+# guest_dns_server: '8.8.8.8'
+
+guest_fqdn: '{{ public_consul_domain }}'
+guest_domain_name: '{{ public_consul_domain }}'
+guest_template: '{{ anycloud_vm_template_name }}'
+# anycloud_resource_pool: "{{ vsphere_resourcepool }}"

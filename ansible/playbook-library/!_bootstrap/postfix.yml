@@ -1,0 +1,8 @@
+- name: Setup postfix service for run specific tasks.
+  hosts: "{{ HOSTS | default('all') }}"
+  vars_files:
+    - "group_vars/_MTA/postfix_defaults.yml"
+  roles:
+    - name: Run postfix service role
+      role: ./!_bootstrap/postfix
+      when: ansible_children_environment == 'no'

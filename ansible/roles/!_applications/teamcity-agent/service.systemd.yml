@@ -1,0 +1,15 @@
+# /etc/systemd/system/tc-agent.service
+
+[Unit]
+Description=Teamcity Agent 
+Documentation=man:named(8)
+After=network.target
+
+[Service]
+ExecStart=/opt/tc-agent/bin/agent.sh start
+
+ExecStop=/opt/tc-agent/bin/agent.sh stop
+
+[Install]
+WantedBy=mu=lti-user.target
+Alias=tc-agent.service

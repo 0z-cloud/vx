@@ -1,0 +1,101 @@
+
+
+- name: APT | Update cache and install curl
+  apt:
+    name: curl
+    update_cache: yes
+
+- name: APT | Install default packages
+  apt:
+    name: "{{ item }}"
+    update_cache: yes
+  with_items:
+    - apt-transport-https
+    - ca-certificates
+    - software-properties-common
+    - gnupg-agent
+    - ntpdate
+    - ntp
+    # - python-pip
+
+- name: Hardcore sync
+  shell: "{{ item }}"
+  with_items:
+    - "service ntp stop"
+    - "ntpdate -s 1.pool.ntp.org "
+    - "service ntp start"
+  ignore_errors: true
+
+- name: Get a current date
+  shell: date
+  register: current_timestamp
+
+- name: Show a current date
+  debug:
+    msg: "{{ current_timestamp }}"
+
+- name: SHELL | Adding the docker repository gpg public key
+  shell: "wget --no-check-certificate -O- https://download.docker.com/linux/ubuntu/gpg | apt-key add -"
+  # curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+
+# - name: SHELL | Add docker repo
+#   shell: add-apt-repository "deb [arch=amd64] [trusted=yes] https://download.docker.com/linux/ubuntu {{ lsb_release.stdout_lines | join }} stable"
+
+- name: SHELL | Add docker repo
+  shell: |
+      add-apt-repository \
+      "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+      $(lsb_release -cs) \
+      stable"
+
+# - name: APT | Add docker repository
+#   apt_repository:
+#     repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu  stable"
+#     state: present
+
+- name: APT | Install second stage packages
+  apt:
+    name: "{{ item }}"
+    update_cache: yes
+  with_items:
+    - sshpass
+    - docker-ce
+    - python
+    - python3
+    - unzip
+    - mc 
+    - nano 
+    - htop 
+    - python3-pip 
+    - smartmontools 
+    - build-essential 
+    - checkinstall 
+    - libreadline-gplv2-dev 
+    - libncursesw5-dev 
+    - libssl-dev 
+    - libsqlite3-dev 
+    - tk-dev 
+    - libgdbm-dev 
+    - libc6-dev 
+    - libbz2-dev 
+    - libffi-dev
+    - python3-pip
+    # - python-pip3
+    # - python-dockerpty 
+    - gnupg2
+    - pass
+    - socat
+
+- name: PIP | Get a get-pip.py
+  shell: wget https://bootstrap.pypa.io/get-pip.py > /tmp/get-pip.py
+
+- name: PIP | Run the get-pip.py
+  shell: python /tmp/get-pip.py
+
+- name: PREPARE | Template pip requirements.txt
+  template:
+    src: requirements.txt.j2
+    dest: /tmp/requirements.txt
+
+- name: DEPLOYING | Install python pip requirements
+  shell: pip3 install -r /tmp/requirements.txt

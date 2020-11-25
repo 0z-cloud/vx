@@ -1,0 +1,7 @@
+- name: Create release directory
+  file:
+    dest: "{{ RELEASE_DIRECTORY }}"
+    state: directory
+    owner: "{{ RELEASE_OWNER }}"
+    group: "{{ RELEASE_GROUP }}"
+    mode: 0775

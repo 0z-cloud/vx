@@ -1,0 +1,114 @@
+# - name: Open Firewall For GlusterFS TCP
+#   become: true
+#   vars:
+#       ufw_port_for_inventory_hostnames:
+#         - port: 
+#             - 139
+#           hosts: "{{ groups['{{ GLUSTERFS_CLUSTER_HOSTS }}'] }}"
+#         - port: 
+#             - 135
+#           hosts: "{{ groups['{{ GLUSTERFS_CLUSTER_HOSTS }}'] }}"
+#         - port: 
+#             - 445
+#           hosts: "{{ groups['{{ GLUSTERFS_CLUSTER_HOSTS }}'] }}"
+#         - port: 
+#             - 631
+#           hosts: "{{ groups['{{ GLUSTERFS_CLUSTER_HOSTS }}'] }}"
+#         - port: 
+#             - 24007:24010
+#           hosts: "{{ groups['{{ GLUSTERFS_CLUSTER_HOSTS }}'] }}"
+#         - port:
+#             - 38465:38469
+#           hosts: "{{ groups['{{ GLUSTERFS_CLUSTER_HOSTS }}'] }}"
+#         - port:
+#             - 111
+#           hosts: "{{ groups['{{ GLUSTERFS_CLUSTER_HOSTS }}'] }}"
+#         - port:
+#             - 49152:49251
+#           hosts: "{{ groups['{{ GLUSTERFS_CLUSTER_HOSTS }}'] }}"
+#         - port:
+#             - 2049
+#           hosts: "{{ groups['{{ GLUSTERFS_CLUSTER_HOSTS }}'] }}"
+#         - port: 
+#             - 963
+#           hosts: "{{ groups['{{ GLUSTERFS_CLUSTER_HOSTS }}'] }}"
+#   hosts: "{{ GLUSTERFS_CLUSTER_HOSTS }}"
+#   tasks:
+    
+#     - name: Open access to GlusterFS cluster
+#       ufw:
+#         rule: allow
+#         port: "{{ item.0.port | join }}"
+#         proto: udp
+#         state: enabled
+#         from_ip: "{{ hostvars[item.1].ansible_default_ipv4.address }}"
+#       with_subelements:
+#          - "{{ ufw_port_for_inventory_hostnames }}"
+#          - hosts
+#       when: ufw_deploy_defined is defined
+#   tags:
+#     - ufw
+
+# - name: Open Firewall For GlusterFS TCP
+#   become: true
+#   vars:
+#       ufw_port_for_inventory_hostnames: 
+#         - port: 
+#             - 139
+#           hosts: "{{ groups['{{ GLUSTERFS_CLUSTER_HOSTS }}'] }}"
+#         - port: 
+#             - 135
+#           hosts: "{{ groups['{{ GLUSTERFS_CLUSTER_HOSTS }}'] }}"
+#         - port: 
+#             - 445
+#           hosts: "{{ groups['{{ GLUSTERFS_CLUSTER_HOSTS }}'] }}"
+#         - port: 
+#             - 631
+#           hosts: "{{ groups['{{ GLUSTERFS_CLUSTER_HOSTS }}'] }}"
+#         - port: 
+#             - 24007:24010
+#           hosts: "{{ groups['{{ GLUSTERFS_CLUSTER_HOSTS }}'] }}"
+#         - port:
+#             - 38465:38469
+#           hosts: "{{ groups['{{ GLUSTERFS_CLUSTER_HOSTS }}'] }}"
+#         - port:
+#             - 111
+#           hosts: "{{ groups['{{ GLUSTERFS_CLUSTER_HOSTS }}'] }}"
+#         - port:
+#             - 49152:49251
+#           hosts: "{{ groups['{{ GLUSTERFS_CLUSTER_HOSTS }}'] }}"
+#         - port:
+#             - 2049
+#           hosts: "{{ groups['{{ GLUSTERFS_CLUSTER_HOSTS }}'] }}"
+#         - port: 
+#             - 963
+#           hosts: "{{ groups['{{ GLUSTERFS_CLUSTER_HOSTS }}'] }}"
+#   hosts: "{{ GLUSTERFS_CLUSTER_HOSTS }}"
+#   tasks:
+#     - name: Open access to GlusterFS cluster
+#       ufw:
+#         rule: allow
+#         port: "{{ item.0.port | join }}"
+#         #route: yes
+#         proto: tcp
+#         state: enabled
+#         from_ip: "{{ hostvars[item.1].ansible_default_ipv4.address }}"
+#       with_subelements:
+#          - "{{ ufw_port_for_inventory_hostnames }}"
+#          - hosts
+#       when: ufw_deploy_defined is defined
+#   tags:
+#     - ufw
+
+- name: Create GlusterFS Cluster
+  become: true
+  vars_files:
+    - "group_vars/!_GlusterFS/main.yml"
+    - "group_vars/all/all.yml"
+    - "group_vars/all.yml"
+  hosts: "{{ GLUSTERFS_CLUSTER_HOSTS }}"
+  roles:
+    - name: Run glusterfs install role
+      role: ./!_storage/glusterfs/install
+      vars:
+        GLUSTERFS_HOST_GROUP: "{{ GLUSTERFS_CLUSTER_HOSTS | default([]) }}"

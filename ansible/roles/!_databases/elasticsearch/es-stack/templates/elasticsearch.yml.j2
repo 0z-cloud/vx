@@ -1,0 +1,42 @@
+
+cluster:
+  name: {{ elasticsearch_stack_settings.cluster_name }}
+
+node:
+  name: elasticsearch-master-{{ ansible_environment }}
+  max_local_storage_nodes: 1
+
+node.data: true
+node.master: true
+node.ingest: true
+
+http.port: {{ elasticsearch_stack_settings.http_port }}
+bootstrap.memory_lock: false
+transport.profiles.default.port: {{ elasticsearch_stack_settings.client_port }}
+transport.profiles.default.bind_host: 0.0.0.0
+
+transport.profiles.client.port: {{ elasticsearch_stack_settings.node_port }}
+transport.profiles.client.bind_host: 0.0.0.0
+
+transport.profiles.client.publish_host: 0.0.0.0
+
+network.host: 0.0.0.0
+network.publish_host: 0.0.0.0
+
+path.logs: /var/log/elasticsearch
+
+discovery.zen.ping.unicast.hosts: ["elasticsearch:{{ elasticsearch_stack_settings.node_port }}"]
+discovery.zen.minimum_master_nodes: 1
+cluster.routing.allocation.disk.threshold_enabled: true
+cluster.routing.allocation.disk.watermark.low: 8gb
+cluster.routing.allocation.disk.watermark.high: 4gb
+cluster.routing.allocation.disk.watermark.flood_stage: 2Gb
+http.cors.allow-origin: "*"
+http.cors.enabled: true
+http.host: 0
+http.compression: true
+cluster.max_shards_per_node: 300
+gateway.recover_after_nodes: 1
+gateway.recover_after_time: 1m
+gateway.expected_nodes: 1
+cluster.initial_master_nodes: elasticsearch-master-{{ ansible_environment }}

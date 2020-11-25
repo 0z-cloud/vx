@@ -1,0 +1,15 @@
+#
+postgres_cluster_settings:
+    vars:
+    directories:
+        main_path: /opt/postgres/{{ ansible_environment }}
+        data_path: /opt/postgres/{{ ansible_environment }}/data
+        config_path: /opt/postgres/{{ ansible_environment }}/configuration
+    use_datastore_container: true
+    datastore_container_name: "postgres-datastore-{{ ansible_environment }}"
+    postgres_docker_tag: ''
+    postgres_container_name: "postgres-{{ ansible_environment }}"
+    postgres_docker_env: []
+    expose_host_port: 0
+    root_password: 9124091jc0sa9u12
+    postgres_user: sentry_postgres

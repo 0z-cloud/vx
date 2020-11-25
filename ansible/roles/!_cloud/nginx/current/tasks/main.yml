@@ -1,0 +1,34 @@
+---
+
+# - include_tasks: debug.yml
+
+# - include_tasks: debug2.yml
+
+- include_tasks: nginx-official-repo.yml
+  when: nginx_official_repo == True
+
+- include_tasks: installation.packages.yml
+  when: nginx_installation_type == "packages"
+
+- include_tasks: ensure-dirs.yml
+
+- include_tasks: remove-defaults.yml
+  when: not keep_only_specified
+
+- include_tasks: remove-extras.yml
+  when: keep_only_specified
+
+- include_tasks: remove-unwanted.yml
+
+- include_tasks: copy-mime.yml
+
+- include_tasks: configuration.yml
+
+- include_tasks: copy-ssl.yml
+  when: nginx_core_type == "https_only"
+  tags: [service, nginx, copyssl, passwordfile]
+
+- name: Start the nginx service
+  service: name={{ nginx_service_name }} state=restarted enabled=yes
+  when: nginx_installation_type in nginx_installation_types_using_service and nginx_daemon_mode == "on"
+  tags: [service, nginx, passwordfile]

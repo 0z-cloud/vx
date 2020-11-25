@@ -1,0 +1,17 @@
+- name: Add user task
+  become: true
+  hosts: "{{ HOSTS | default('vortex-after-bastion')}}"
+  vars_prompt:
+    - name: "ADD_USERNAME"
+      prompt: "Enter the Username"
+      private: no
+    - name: "ADD_FULLNAME"
+      prompt: "Enter the Full Name of the user, as example Ivan Ivanov"
+      private: no
+    - name: "NEW_PASSWORD"
+      prompt: "Enter the Password"
+      private: yes
+      confirm: yes
+  roles:
+    - name: Change the SSH password
+      role: ./!_security/ssh_access/add_user

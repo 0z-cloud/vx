@@ -1,0 +1,17 @@
+---
+- name: Install the nginx packages
+  apt:
+    name: nginx
+    state: latest
+  environment: "{{ nginx_env }}"
+  when: ansible_os_family == "Debian"
+  notify:
+    - restart nginx
+  tags: [packages,nginx]
+
+- name: Install the necessary apache2-utils packages
+  apt:
+    name: apache2-utils
+    state: latest
+  when: ansible_os_family == "Debian"
+  tags: [packages,apache2]

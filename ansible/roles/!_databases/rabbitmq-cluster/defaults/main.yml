@@ -1,0 +1,35 @@
+---
+# General RabbitMQ parameters that apply to this role itself
+rabbitmq_version: latest
+rabbitmq_server_state: present
+rabbitmq_server_purge: no
+rabbitmq_ulimit: 65536
+
+# RabbitMQ config parameters
+rabbitmq_amqp_port: 5672
+rabbitmq_epmd_port: 4369
+rabbitmq_node_port: 25672
+rabbitmq_memory_high_watermark: 0.5
+rabbitmq_disk_free_limit: 1GB
+rabbitmq_queue_master_locator: min-masters
+rabbitmq_hipe_compile: "false"
+
+# RabbitMQ plugins
+rabbitmq_plugins:
+  - name: rabbitmq_management
+    state: enabled
+  - name: rabbitmq_management_agent
+    state: enabled
+
+# RabbitMQ management of vhosts, users,...
+rabbitmq_remove_guest: false
+rabbitmq_vhosts: []
+rabbitmq_users: []
+rabbitmq_queues: []
+rabbitmq_exchanges: []
+
+# RabbitMQ cluster parameters
+rabbitmq_cluster: true
+rabbitmq_cluster_master: false
+rabbitmq_master: your_cluster_master
+rabbitmq_erlang_cookie: NEPTQRGCQDKAHSOSFDML

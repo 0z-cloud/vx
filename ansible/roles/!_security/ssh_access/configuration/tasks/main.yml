@@ -1,0 +1,60 @@
+---
+
+- name: SSH | Create group admin
+  group:
+    state: present
+    name: admin
+
+- name: SSH | Create users
+  user:
+    state: present
+    name: "{{ item.key }}"
+    group: admin
+    shell: "{{ item.value.shell }}"
+  with_dict: "{{ sshusers }}"
+
+- name: SSH | Allow group 'admin' to use passwordless sudo
+  lineinfile:
+    state: 'present'
+    dest: '/etc/sudoers'
+    regexp: '^%ADMIN ALL\='
+    line: '%ADMIN ALL=(ALL) NOPASSWD:ALL'
+    validate: 'visudo -cf %s'
+  when: ansible_nonpci_inventory is defined
+
+- name: SSH | Add user to group 'sudo' to use sudo with password
+  user: 
+    name: "{{ item.key }}"
+    state: present
+    groups: "sudo"
+  with_dict: "{{ sshusers }}"
+  when: ansible_nonpci_inventory is not defined
+
+- name: SSH | Create key directory
+  file:
+    path: /etc/ssh/authorized_keys
+    state: directory
+    owner: 0
+    group: 0
+    mode: 0755
+
+- name: SSH | Upload user key
+  copy:
+    content: "{{ item.value.key | b64decode }}"
+    dest: "/etc/ssh/authorized_keys/{{ item.key }}"
+    owner: 0
+    group: 0
+    mode: 0644
+  with_dict: "{{ sshusers }}"
+
+- name: SSH | Update and check sshd configuration file 
+  template:
+    src: sshd_config.j2
+    dest: /etc/ssh/sshd_config
+    backup: yes
+    owner: 0
+    group: 0
+    mode: 0644
+    validate: '/usr/sbin/sshd -T -f %s'
+  notify:
+    - restart sshd

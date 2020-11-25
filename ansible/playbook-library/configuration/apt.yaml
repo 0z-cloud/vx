@@ -1,0 +1,34 @@
+- name: Apt playbook with tagging about possible runs
+  hosts: "{{ HOSTS }}"
+  become: true
+
+  roles:
+    - name: Install packages
+      role: ./!_system_maintanance/install
+      tags:
+        - system_maintanance_install
+
+    - name: Remove packages
+      role: ./!_system_maintanance/remove
+      tags:
+        - system_maintanance_remove
+
+    - name: Automove packages and purge
+      role: ./!_system_maintanance/autoremove
+      tags:
+        - system_maintanance_autoremove
+
+    - name: Upgrade packages
+      role: ./!_system_maintanance/upgrade
+      tags:
+        - system_maintanance_upgrade
+
+    - name: Add repository
+      role: ./!_system_maintanance/add_repo
+      tags:
+        - system_maintanance_add_repo
+
+    - name: Remove repository
+      role: ./!_system_maintanance/remove_repo
+      tags:
+        - system_maintanance_remove_repo

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="cf91739b-914f-4eaa-9c69-6a1d0a230abf" xsi:noNamespaceSchemaLocation="https://www.jetbrains.com/teamcity/schemas/2018.1/project-config.xsd">
+  <name>ReactivePay_PCI</name>
+  <parameters>
+    <param name="A_DEPLOY_PASSWORD" value="credentialsJSON:1bf88eb5-feba-4ba9-83c1-1984e01effee" spec="password description='Primary Deploy Password' label='A_DEPLOY_PASSWORD' display='normal'" />
+    <param name="A_ENV_SECURITY" value="minimal" spec="text display='normal' description='A_ENV_SECURITY' label='A_ENV_SECURITY' validationMode='any'" />
+    <param name="A_VAULT_PASSWORD" value="credentialsJSON:b466982c-c83e-455e-a6ba-4399fcc1858e" spec="password display='normal' description='A_VAULT_PASSWORD' label='A_VAULT_PASSWORD'" />
+    <param name="message" value="credentialsJSON:fdf18dab-cb78-48a6-901a-04aec4e5b528" spec="password display='normal' description='Encrypted commit message matcher sha key' label='message'" />
+  </parameters>
+  <cleanup />
+</project>
+

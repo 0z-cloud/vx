@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<meta-runner name="INIT_NG">
+  <description>INIT_NG</description>
+  <settings>
+    <parameters>
+      <param name="ANSIBLE_APPLICATION_TYPE" value="" />
+      <param name="ANSIBLE_BUILD_ID" value="" />
+      <param name="ANSIBLE_CI_PROJECT_NAME" value="" />
+      <param name="ANSIBLE_CI_PROJECT_NAMESPACE" value="" />
+      <param name="ANSIBLE_CLOUD_TYPE" value="" />
+      <param name="ANSIBLE_COMMIT_SHA" value="" />
+      <param name="ANSIBLE_DEPLOY_USERNAME" value="" />
+      <param name="ANSIBLE_ENVIRONMENT" value="" />
+      <param name="ANSIBLE_PRODUCT_NAME" value="" />
+      <param name="ANSIBLE_REGISTRY_URL" value="" />
+      <param name="ANSIBLE_REGISTRY_USERNAME" value="" />
+      <param name="ANSIBLE_RUN_TYPE" value="" />
+      <param name="ANSIBLE_VERSION" value="" />
+      <param name="A_DEPLOY_PASSWORD" value="" spec="text validationMode='any' display='hidden'" />
+      <param name="A_ENV_SECURITY" value="" />
+      <param name="A_VAULT_PASSWORD" value="" spec="text validationMode='any' display='hidden'" />
+      <param name="INIT_PASS" value="credentialsJSON:b2bc6c27-ec64-413a-b27c-8a32e5628dd9" spec="password display='prompt' description='INIT_PASS' label='INIT_PASS'" />
+      <param name="MAIN_ANSIBLE_BUILD_ID" value="" />
+      <param name="NG_DEPLOY_PASSWORD" value="credentialsJSON:b2bc6c27-ec64-413a-b27c-8a32e5628dd9" spec="password description='NG_DEPLOY_PASSWORD' label='NG_DEPLOY_PASSWORD' display='prompt'" />
+      <param name="RunningOfferForBuild" value="" />
+      <param name="RunningOfferForPublish" value="" />
+      <param name="RunningOnlyQA" value="" />
+      <param name="env.reverse.dep.env.ReactivePayEngine_Infrastructure.A_DEPLOY_PASSWORD" value="%A_DEPLOY_PASSWORD%" />
+      <param name="env.reverse.dep.env.ReactivePayEngine_Infrastructure.A_VAULT_PASSWORD" value="%A_VAULT_PASSWORD%" />
+      <param name="env.reverse.dep.env.ReactivePay_Main.A_DEPLOY_PASSWORD" value="%A_DEPLOY_PASSWORD%" />
+      <param name="env.reverse.dep.env.ReactivePay_Main.A_VAULT_PASSWORD" value="%A_VAULT_PASSWORD%" />
+      <param name="message" value="credentialsJSON:b2bc6c27-ec64-413a-b27c-8a32e5628dd9" spec="password description='message' label='message' display='prompt'" />
+    </parameters>
+    <build-runners>
+      <runner name="Prepare CI" type="simpleRunner">
+        <parameters>
+          <param name="script.content"><![CDATA[echo %RunningOnlyQA%
+            echo %NG_DEPLOY_PASSWORD%
+            echo %message%
+            echo "Root project password %secure:NG_DEPLOY_PASSWORD%"
+            echo "Root project password %NG_DEPLOY_PASSWORD%"
+            echo "%secure:teamcity.password.NG_DEPLOY_PASSWORD%"
+            echo "%secure:teamcity.password.NG_DEPLOY_PASSWORD%"
+            echo "init pass: %secure:teamcity.password.NG_DEPLOY_PASSWORD%"
+
+            RUNNING_ONLY_QA="%RunningOnlyQA%"
+
+            echo "RUNNING_ONLY_QA is $RUNNING_ONLY_QA"
+            if [ "$RUNNING_ONLY_QA" = true ]; then
+            echo "RUNNING_ONLY_QA is true"
+            else
+            echo "RUNNING_ONLY_QA is false"
+            fi
+
+            ls -la ./
+
+            bash -x
+
+            echo "%message%" > ./message.yml
+            echo "%secure:teamcity.password.message%" > ./super_message.yml
+            echo "%secure:teamcity.password.NG_DEPLOY_PASSWORD%" > ./NG_DEPLOY_PASSWORD.yml
+            echo "%NG_DEPLOY_PASSWORD%" > ./pass.yml
+            echo %secure:password.NG_DEPLOY_PASSWORD% > ./NG_DEPLOY_PASSWORD_password1.yml
+            echo %secure:NG_DEPLOY_PASSWORD% > ./NG_DEPLOY_PASSWORD_password2.yml
+            echo %secure:NG_DEPLOY_PASSWORD% > ./NG_DEPLOY_PASSWORD_password3.yml
+            echo "%secure:password.message%" > ./super_message.yml
+
+            #chmod +x ./ci_vault.sh
+            ls -la ./
+            sleep 200]]></param>
+          <param name="teamcity.step.mode" value="default" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
+    </build-runners>
+    <requirements />
+  </settings>
+</meta-runner>
+

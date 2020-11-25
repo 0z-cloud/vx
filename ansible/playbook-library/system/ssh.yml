@@ -1,0 +1,15 @@
+- name: Start updating the users profiles on hosts
+  hosts: "{{ HOSTS | default('localhost') }}"
+  become: true
+  vars:
+    - ssh_default_password: "1235"
+
+  roles:
+    - name: Error message
+      role: ./!_hooks/failed_msgs/ssh
+    
+    - name: Apply add users role
+      role: ./!_security/ssh/adduser
+    
+    - name: Apply remove users role
+      role: ./!_security/ssh/removeuser

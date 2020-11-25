@@ -1,0 +1,8 @@
+{
+  "check": {
+    "id": "route-53-master",
+    "name": "route-53-master",
+    "script": "/opt/consul/etc/consul.d/route53magic",
+    "interval": "1m"
+  }
+}

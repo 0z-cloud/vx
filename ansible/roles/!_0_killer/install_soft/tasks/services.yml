@@ -1,0 +1,8 @@
+
+- name: SYSTEMCTL DAEMON-RELOAD | System Reread Configs for systemd
+  systemd:
+    daemon_reload: yes
+
+- name: RUN COMMON SHELL CHANGES SOMETHING LIST | Common exec after process
+  shell: "{{ item }}"
+  with_items: "{{ commands_to_run }}"

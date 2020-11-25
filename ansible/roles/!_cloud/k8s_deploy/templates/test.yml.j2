@@ -1,0 +1,6 @@
+{{ item.key }}
+
+
+{{ item.value }}
+
+image: {{ ANSIBLE_REGISTRY_URL }}/{{ ansible_git_project_path }}/{{ item.value['image'] }}:{{ lookup('vars', 'passed_ci_docker_tag_' + item.key) }}

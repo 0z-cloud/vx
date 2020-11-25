@@ -1,0 +1,17 @@
+- name: Running Apache2 Playbook for Repository mirror server
+  hosts: "clamav-repository-mirror:apt-repository-mirror:build-repository-mirror:python-repository-mirror:linux-repository-mirror"
+  become: true
+  vars_files: 
+    - "!_PCI/repository-mirror/repository-mirror.yml"
+  roles:
+    - name: Install Apache2 with default configuration
+      role: ./!_cloud/apache_ng/install
+      when: ansible_children_environment == 'no'
+
+    - name: Enable/Disable Apache2 web-sites
+      role: ./!_cloud/apache_ng/configuration
+      when: ansible_children_environment == 'no'
+
+    - name: Enable/Disable Apache2 modules
+      role: ./!_cloud/apache_ng/modules
+      when: ansible_children_environment == 'no'

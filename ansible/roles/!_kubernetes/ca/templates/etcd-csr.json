@@ -1,0 +1,22 @@
+{
+  "CN": "etcd.{{ public_consul_domain }}",
+  "hosts": [
+    "127.0.0.1",
+    "{{ K8S_CLUSTER_ADDRESS }}",{% for host in groups['kubernetes-master'] %}
+    "{{ hostvars[host]['second_ip'] }}"{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "RU",
+      "ST": "MO",
+      "L": "Moscow",
+      "O": "k8s",
+      "OU": "System"
+    }
+  ]
+}

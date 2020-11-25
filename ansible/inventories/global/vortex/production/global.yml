@@ -1,0 +1,20 @@
+locations:
+  moscow:
+    - dc1
+  piter:
+    - dc2
+  london:
+    - dc1
+  frankfurt:
+    - dc2
+
+# locations_merge: no / yes - merge all locations to global
+locations_merge: no
+locations_merge_stub: global
+
+# locations_defaults: declare default locations to run
+locations_defaults: all
+
+# datacenter_merge: no / yes - merge all datacenters to tougether
+datacenter_merge: no
+datacenter_merge_stub: tougether

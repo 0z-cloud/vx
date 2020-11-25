@@ -1,0 +1,36 @@
+- name: RabbitMQ Swarm Docker Playbook step...
+  become: true
+  hosts: "{{ HOSTS | default('rabbitmq-cluster') }}"
+  vars_files:
+    - "inventories/global/oz_router/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+    - "group_vars/products/{{ ansible_product }}/main.yml"
+    - "group_vars/products/{{ ansible_product }}/shared.yml"
+    - "group_vars/products/{{ ansible_product }}/zone.yml"
+    - "group_vars/!_anyCloud/anyCloud.yml"
+    - "group_vars/all.yml"
+    - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/dns/{{ REPLACED_HOSTS | default('master-bind-master-backend') }}/{{ REPLACED_HOSTS | default('master-bind-master-backend') }}.yml"
+    - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+    - "inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+  roles:
+    - name: Setup RabbitMQ Service 
+      role: ./!_databases/rabbitmq-docker
+  tags: [rabbitmq-setup]
+
+- name: Consul magic JOIN DNS step... Unix work...
+  become: true
+  hosts: "{{ HOSTS | default('rabbitmq-cluster') }}"
+  vars_files:
+    - "{{ inventory_dir }}/group_vars/{{ HOSTS }}/{{ HOSTS }}.yml"
+    - "inventories/global/oz_router/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+    - "group_vars/products/{{ ansible_product }}/main.yml"
+    - "group_vars/products/{{ ansible_product }}/shared.yml"
+    - "group_vars/products/{{ ansible_product }}/zone.yml"
+    - "group_vars/!_anyCloud/anyCloud.yml"
+    - "group_vars/all.yml"
+    - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/dns/{{ REPLACED_HOSTS | default('master-bind-master-backend') }}/{{ REPLACED_HOSTS | default('master-bind-master-backend') }}.yml"
+    - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+    - "inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+  roles:
+    - name: Consul magic do...
+      role: ./!_cloud/consul/magic-join
+  tags: [consul-dns-join]

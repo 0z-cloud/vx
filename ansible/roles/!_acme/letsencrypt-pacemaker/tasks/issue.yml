@@ -1,0 +1,185 @@
+
+- name: Register account
+  raw: "{{ core_dns_cloud_settings.cert_cloud.letsencrypt }}//acme.sh --register-account"
+  register: register_account_result
+  when: first_run is defined and hostvars[inventory_hostname]['ansible_default_ipv4']['address'] == primary_master_dns_ip
+  tags: debug
+
+- name: Debug register_account_result
+  debug:
+    msg: "{{ register_account_result }}"
+  when: first_run is defined and hostvars[inventory_hostname]['ansible_default_ipv4']['address'] == primary_master_dns_ip
+  tags: debug
+
+- name: STAGE | Show prepared acme.sh get record 
+  debug:
+    msg: "{{ core_dns_cloud_settings.cert_cloud.letsencrypt }}/acme.sh --staging --issue -d {{ acme_domain_for_obtain }} --dns --yes-I-know-dns-manual-mode-enough-go-ahead-please | grep -e \"[']\" | grep -v Domain | sed \"s/'//g\""
+  tags: stage
+  ignore_errors: true
+  when: stage_test is defined and hostvars[inventory_hostname]['ansible_default_ipv4']['address'] == primary_master_dns_ip
+
+- name: STAGE | Run acme.sh get record 
+  raw: "{{ core_dns_cloud_settings.cert_cloud.letsencrypt }}/acme.sh --staging --issue -d {{ acme_domain_for_obtain }} --dns --yes-I-know-dns-manual-mode-enough-go-ahead-please | grep -e \"[']\" | grep -v Domain | sed \"s/'//g\""
+  register: core_dns_cloud_settings_record_output_stage
+  tags: stage
+  ignore_errors: true
+  when: stage_test is defined and hostvars[inventory_hostname]['ansible_default_ipv4']['address'] == primary_master_dns_ip
+  run_once: true
+
+- name: LIVE | Run acme.sh get record
+  raw: "{{ core_dns_cloud_settings.cert_cloud.letsencrypt }}/acme.sh --issue -d {{ acme_domain_for_obtain }} --dns --yes-I-know-dns-manual-mode-enough-go-ahead-please | grep -e \"[']\" | grep -v Domain | sed \"s/'//g\""
+  register: core_dns_cloud_settings_record_output
+  tags: debug
+  ignore_errors: true
+  run_once: true
+  when: stage_test is not defined and hostvars[inventory_hostname]['ansible_default_ipv4']['address'] == primary_master_dns_ip
+
+- name: STAGE | Debug output stage
+  debug:
+    msg: "{{ core_dns_cloud_settings_record_output_stage }}"
+  tags: stage
+  register: txt_core_dns_cloud_settings_record_output_stage
+  # when: stage_test is defined and hostvars[inventory_hostname]['ansible_default_ipv4']['address'] == primary_master_dns_ip
+
+- name: STAGE | Debug output stage
+  debug:
+    msg: "{{ core_dns_cloud_settings_record_output_stage.stdout | replace('\r\n', '') | trim | replace(\"'\", \"\") }}"
+  tags: stage
+  register: txt_core_dns_cloud_settings_record_output_stage
+  when: stage_test is defined 
+  
+  #and hostvars[inventory_hostname]['ansible_default_ipv4']['address'] == primary_master_dns_ip
+
+- name: LIVE | Debug output
+  debug:
+    msg: "{{ core_dns_cloud_settings_record_output.stdout | replace('\r\n', '') | trim | replace(\"'\", \"\") }}"
+  tags: debug
+  register: txt_core_dns_cloud_settings_record_output
+  when: stage_test is not defined 
+  
+  #and hostvars[inventory_hostname]['ansible_default_ipv4']['address'] == primary_master_dns_ip
+
+- name: DELIGATE FACTS | Send acme token variable and delegate to all hosts
+  set_fact:
+    txt_core_dns_cloud_settings_record_output: "{{ txt_core_dns_cloud_settings_record_output }}"
+    txt_core_dns_cloud_settings_record_output_stage: "{{ txt_core_dns_cloud_settings_record_output_stage }}"
+  delegate_to: "{{ item }}"
+  delegate_facts: true
+  with_items: "{{ groups['master-bind-master-backend'] }}"
+  when: hostvars[inventory_hostname]['ansible_default_ipv4']['address'] == primary_master_dns_ip
+
+- name: DEBUG | Show deligated values
+  debug:
+    var: "{{ item }}"
+  with_items:
+    - txt_core_dns_cloud_settings_record_output_stage
+    - txt_core_dns_cloud_settings_record_output
+  ignore_errors: true 
+
+- name: LIVE | Remove old TXT record for obtain the acme certificate
+  lineinfile:
+    path: "{{ bind_cloud_settings.bind_etc }}/{{ bind_cloud_settings.zone_path }}/{{ bind_cloud_settings.public_domain }}"
+    regexp: '^{{ acme_domain_prefix_txt }}'
+    state: absent
+  tags: debug
+  when: stage_test is not defined
+
+- name: STAGE | Remove old TXT record for obtain the acme certificate
+  lineinfile:
+    path: "{{ bind_cloud_settings.bind_etc }}/{{ bind_cloud_settings.zone_path }}/{{ bind_cloud_settings.public_domain }}"
+    regexp: '^{{ acme_domain_prefix_txt }}.stage '
+    state: absent
+  tags: stage
+  when: stage_test is defined
+
+- name: LIVE | Replace TXT record for obtain the acme certificate
+  lineinfile:
+    path: "{{ bind_cloud_settings.bind_etc }}/{{ bind_cloud_settings.zone_path }}/{{ bind_cloud_settings.public_domain }}"
+    regexp: '^{{ acme_domain_prefix_txt }}\n;TXT_MAPPER_ENDLINE'
+    line: '{{ acme_domain_prefix_txt }}                 IN      TXT	"{{ txt_core_dns_cloud_settings_record_output.msg | join }}"'
+    insertbefore: ';TXT_MAPPER_ENDLINE'
+    state: present
+  tags: debug
+  when: stage_test is not defined
+
+- name: STAGE | Replace TXT record for obtain the acme certificate
+  lineinfile:
+    path: "{{ bind_cloud_settings.bind_etc }}/{{ bind_cloud_settings.zone_path }}/{{ bind_cloud_settings.public_domain }}"
+    regexp: '^{{ acme_domain_prefix_txt }}.stage '
+    line: '{{ acme_domain_prefix_txt }}.stage                 IN      TXT	"{{ txt_core_dns_cloud_settings_record_output_stage.msg | join }}"'
+    insertbefore: ';TXT_MAPPER_ENDLINE'
+    state: present
+  tags: stage
+  when: stage_test is defined
+
+- name: LIVE | Check fill results
+  raw: cat {{ bind_cloud_settings.bind_etc }}/{{ bind_cloud_settings.zone_path }}/{{ bind_cloud_settings.public_domain }}
+  register: domain_config_result
+  tags: debug
+  when: stage_test is not defined
+
+- name: STAGE | Check fill results
+  raw: cat {{ bind_cloud_settings.bind_etc }}/{{ bind_cloud_settings.zone_path }}/{{ bind_cloud_settings.public_domain }}
+  register: domain_config_result_stage
+  tags: stage
+  when: stage_test is defined
+
+- name: LIVE | Debug domain_config_result
+  debug:
+    msg: "{{ domain_config_result }}"
+  tags: debug
+  when: stage_test is not defined
+
+- name: STAGE | Debug domain_config_result
+  debug:
+    msg: "{{ domain_config_result_stage }}"
+  tags: stage
+  when: stage_test is defined
+
+- name: Restarting bind9 on Primary DNS
+  service:
+    name: bind9
+    state: restarted
+  tags: debug
+  when: hostvars[inventory_hostname]['ansible_default_ipv4']['address'] == primary_master_dns_ip
+
+- name: Wait restart service on primary DNS
+  shell: sleep 5
+
+- name: Restarting bind9 on Secondary Master DNS
+  service:
+    name: bind9
+    state: restarted
+  tags: debug
+  when: hostvars[inventory_hostname]['ansible_default_ipv4']['address'] != primary_master_dns_ip
+
+- name: Await 15 secs for up bind9
+  shell: sleep 15
+
+- name: STAGE | Run acme.sh get certificate
+  raw: "{{ core_dns_cloud_settings.cert_cloud.letsencrypt }}/acme.sh --staging --renew -d {{ acme_domain_for_obtain }} --yes-I-know-dns-manual-mode-enough-go-ahead-please"
+  register: core_dns_cloud_settings_renew_output_stage
+  run_once: true
+  tags: stage
+  when: stage_test is defined and hostvars[inventory_hostname]['ansible_default_ipv4']['address'] == primary_master_dns_ip
+  ignore_errors: true
+
+- name: LIVE | Run acme.sh get certificate
+  raw: "{{ core_dns_cloud_settings.cert_cloud.letsencrypt }}/acme.sh --renew -d {{ acme_domain_for_obtain }} --yes-I-know-dns-manual-mode-enough-go-ahead-please"
+  register: core_dns_cloud_settings_renew_output
+  run_once: true
+  tags: debug
+  ignore_errors: true
+  when: stage_test is not defined and hostvars[inventory_hostname]['ansible_default_ipv4']['address'] == primary_master_dns_ip
+
+- name: STAGE | Debug domain_config_result
+  debug:
+    msg: "{{ core_dns_cloud_settings_renew_output_stage }}"
+  tags: stage
+  when: stage_test is defined and hostvars[inventory_hostname]['ansible_default_ipv4']['address'] == primary_master_dns_ip
+
+- name: LIVE | Debug domain_config_result
+  debug:
+    msg: "{{ core_dns_cloud_settings_renew_output }}"
+  tags: debug
+  when: stage_test is not defined and hostvars[inventory_hostname]['ansible_default_ipv4']['address'] == primary_master_dns_ip

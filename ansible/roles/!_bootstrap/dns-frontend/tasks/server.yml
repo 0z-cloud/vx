@@ -1,0 +1,72 @@
+- name: Install necessary packages DNS
+  apt:
+    name: "{{ bind_cloud_settings.packages }}"
+    state: present
+
+- name: Create Dir with local domain
+  file:
+    path: "{{ bind_cloud_settings.bind_etc }}/{{ bind_cloud_settings.zone_path }}/"
+    state: directory
+    mode: 0755
+    owner: bind
+  tags: configuration
+
+- name: Create Dir for logging
+  file:
+    path: "{{ bind_cloud_settings.logging_path }}"
+    state: directory
+    mode: 0755
+    owner: bind
+  tags: configuration
+
+- name: Copy current configuration
+  raw: cp -r /etc/bind/* {{ bind_cloud_settings.bind_etc }}/
+
+- name: Template DNS options
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ bind_cloud_settings.bind_etc }}/{{ item }}"
+  with_items:
+    - named.conf.local
+    - named.conf.options
+    - named.conf
+    - named.conf.default-zones
+  tags: configuration
+
+- name: Template etc defaults bind9 configuration startup options
+  template:
+    src: etc_default.j2
+    dest: /etc/default/bind9
+
+- name: Template the domain configuration
+  template:
+    src: domain.j2
+    dest: "{{ bind_cloud_settings.bind_etc }}/{{ bind_cloud_settings.zone_path }}/{{ bind_cloud_settings.public_domain }}"
+  tags: configuration
+
+- name: Template new startup configuration
+  template:
+    src: bind9.j2
+    dest: "/etc/init.d/bind9"
+    mode: 0777
+  tags: configuration
+
+- name: Chown changes to bind:bind
+  raw: chown -R bind:bind {{ bind_cloud_settings.bind_etc }}/*
+
+- name: Configure the apparmor profile for new dirs
+  lineinfile:
+      line: '{{ bind_cloud_settings.bind_etc }}** rwm,'
+      insertbefore: '/var/cache/bind/ rw,'
+      dest: /etc/apparmor.d/usr.sbin.named
+      state: present
+
+- name: Reloading apparmor 
+  service:
+    name: apparmor
+    state: reloaded
+
+- name: Restarting bind9
+  service:
+    name: bind9
+    state: restarted

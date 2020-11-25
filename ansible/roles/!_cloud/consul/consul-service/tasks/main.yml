@@ -1,0 +1,12 @@
+- name: Inject defaults
+  set_fact:
+    consul: "{{ consul_defaults | combine(consul) }}"
+  tags: [always]
+
+- name: Consul Install on Linux
+  include: linux.yml
+  #when: "{{ hostvars[inventory_hostname].ansible_system  == 'Linux'}}"
+  tags: [linux]
+
+# - name: Consul Join on Linux
+#   include: join.yml

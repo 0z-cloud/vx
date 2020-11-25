@@ -1,0 +1,8 @@
+wazuh_kibana_defaults:
+  directories:
+    main: /opt/wazuh/kibana/{{ ansible_environment }}
+    configs: /opt/wazuh/kibana/{{ ansible_environment }}/configs
+    data: /opt/wazuh/kibana/{{ ansible_environment }}/data
+  system_security:
+    linux:
+      user_group: wazuh

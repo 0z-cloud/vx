@@ -1,0 +1,35 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    certmanager.k8s.io/cluster-issuer: letsencrypt-prod
+    field.cattle.io/creatorId: user-rxbgq
+    field.cattle.io/ingressState: '{"ZmxleHktZ3VhcmQtYWRtaW4tZGV2LXJvY2tldGhvLW1l":"rpay-engine:flexy-guard-admin-dev-rocketho-me","ZmxleHktZ3VhcmQtYWRtaW4vcnBheS1lbmdpbmUvZmxleHktZ3VhcmQtYWRtaW4uZGV2LnJvY2tldGhvLm1lLy8vNTAwMA==":""}'
+    field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":443,"protocol":"HTTPS","serviceName":"rpay-engine:f-guard-admin","ingressName":"rpay-engine:flexy-guard-admin","hostname":"flexy-guard-admin.dev.rocketho.me","path":"/","allNodes":true}]'
+    ingress.kubernetes.io/force-ssl-redirect: "true"
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+  creationTimestamp: null
+  generation: 1
+  labels:
+    app: core
+    cattle.io/creator: norman
+    io.cattle.field/appId: rpay-engine
+  name: flexy-guard-admin
+  selfLink: /apis/extensions/v1beta1/namespaces/rpay-engine/ingresses/flexy-guard-admin
+spec:
+  rules:
+  - host: flexy-guard-admin.dev.rocketho.me
+    http:
+      paths:
+      - backend:
+          serviceName: f-guard-admin
+          servicePort: 5000
+        path: /
+  tls:
+  - hosts:
+    - flexy-guard-admin.dev.rocketho.me
+    secretName: flexy-guard-admin-dev-rocketho-me
+status:
+  loadBalancer: {}

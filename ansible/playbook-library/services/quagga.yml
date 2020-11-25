@@ -1,0 +1,8 @@
+---
+- name: Install and configure Quagga
+  hosts: firewall-hosts
+  sudo: yes
+  gather_facts: yes
+  roles:
+     - name: Running Quagga Network Role
+       role: ./!_network/quagga

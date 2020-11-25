@@ -1,0 +1,9 @@
+- name: Run the Rsyslog Alienvault Log Watchdog role
+  become: true
+  hosts: "{{ HOSTS | default('vortex-alienvault-watchdog') }}"
+  roles:
+    - name: Run the Rsyslog Allienvalt Log
+      role: ./!_security/scripts/watchdog/alienvault
+  tags: 
+    - watchdog
+   

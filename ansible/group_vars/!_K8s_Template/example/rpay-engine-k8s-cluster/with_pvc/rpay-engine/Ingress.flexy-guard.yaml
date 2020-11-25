@@ -1,0 +1,34 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    certmanager.k8s.io/cluster-issuer: letsencrypt-prod
+    field.cattle.io/creatorId: user-rxbgq
+    field.cattle.io/ingressState: '{"ZmxleHktZ3VhcmQvcnBheS1lbmdpbmUvZmxleHktZ3VhcmQuZGV2LnJvY2tldGhvLm1lLy8vNTAwMA==":""}'
+    field.cattle.io/publicEndpoints: '[{"addresses":["95.217.53.7"],"port":443,"protocol":"HTTPS","serviceName":"rpay-engine:flexy-guard","ingressName":"rpay-engine:flexy-guard","hostname":"flexy-guard.dev.rocketho.me","path":"/","allNodes":true}]'
+    ingress.kubernetes.io/force-ssl-redirect: "true"
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: "true"
+  creationTimestamp: null
+  generation: 1
+  labels:
+    app: core
+    cattle.io/creator: norman
+    io.cattle.field/appId: rpay-engine
+  name: flexy-guard
+  selfLink: /apis/extensions/v1beta1/namespaces/rpay-engine/ingresses/flexy-guard
+spec:
+  rules:
+  - host: flexy-guard.dev.rocketho.me
+    http:
+      paths:
+      - backend:
+          serviceName: flexy-guard
+          servicePort: 5000
+        path: /
+  tls:
+  - hosts:
+    - flexy-guard.dev.rocketho.me
+    secretName: flexy-guard-dev-rocketho-me
+status:
+  loadBalancer: {}

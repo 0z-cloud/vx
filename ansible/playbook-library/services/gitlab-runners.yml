@@ -1,0 +1,16 @@
+---
+
+- name: Fact Gathering
+  hosts: "gitlab-runners:nginx-forntend"
+  tasks: []
+  tags: [get_facts, always]
+
+- name: Gitlab-Frontend Install & Configure with registry
+  become: true
+  hosts: "gitlab-runners:nginx-forntend"
+  vars_files:
+    - "group_vars/nginx-frontend/specific-target-group/{{ HOSTS | default('nginx-frontend') }}.yml"
+    - "group_vars/nginx-frontend/{{ HOSTS | default('nginx-frontend') }}.yml"
+  roles:
+    - name: GitLAB do...
+      role: ./!_applications/gitlab-runners

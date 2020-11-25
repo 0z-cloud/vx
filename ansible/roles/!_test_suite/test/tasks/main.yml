@@ -1,0 +1,20 @@
+- name: test task
+  raw: echo "test task on {{ inventory_hostname }} - $`hostname`"
+  register: test_debug
+  
+- name: test debug
+  debug:
+    msg: "{{ test_debug }}"
+
+- name: test debug hostvars
+  debug:
+    msg: "{{ hostvars[inventory_hostname] }}"
+
+# test file for test
+- name: create test file
+  template:
+    src: test
+    dest: /tmp/test
+    mode: 0644
+    owner: 0
+    group: 0

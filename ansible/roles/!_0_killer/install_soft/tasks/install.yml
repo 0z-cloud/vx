@@ -1,0 +1,17 @@
+- name: APT UPDATE ALL REPOS | apt update
+  apt:
+    update_cache: yes
+
+- name: APT INSTALL ALL REQUIRED PACKAGES | apt install 
+  apt:
+    name: "{{ item }}"
+    state: latest
+  with_items: "{{ required_packages }}"
+  when: inventory_hostname in {{ groups['kubernetes-cluster'] }}
+
+- name: Remove role packages from VM which not in server group for that role
+  apt:
+    name: "{{ item }}"
+    state: absent
+  with_items: "{{ required_packages }}"
+  when: inventory_hostname not in {{ groups['kubernetes-cluster'] }}

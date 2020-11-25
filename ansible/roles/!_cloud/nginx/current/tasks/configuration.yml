@@ -1,0 +1,74 @@
+---
+- name: Copy the nginx configuration file
+  template:
+    src: nginx.conf.j2
+    dest: "{{nginx_conf_dir}}/nginx.conf"
+  notify:
+   - restart nginx
+  tags: [configuration,nginx]
+
+- name: Ensure auth_basic files created
+  template:
+    src: auth_basic.j2
+    dest: "{{ nginx_conf_dir }}/auth_basic/{{ item }}"
+    owner: root
+    group: "{{ nginx_group }}"
+    mode: 0750
+  with_items: "{{ nginx_auth_basic_files }}"
+  tags: [configuration,nginx]
+
+- name: Create the configurations for all sites
+  template:
+    src: site.conf.j2
+    dest: "{{ nginx_conf_dir }}/sites-available/{{ item['name'] | join }}.conf"
+  with_items: "{{ nginx_sites }}"
+  notify:
+   - reload nginx
+  tags: [configuration,nginx]
+  
+- name: Create links for sites-enabled
+  file:
+    state: link
+    src: "{{ nginx_conf_dir }}/sites-available/{{ item['name'] | join }}.conf"
+    dest: "{{ nginx_conf_dir }}/sites-enabled/{{ item['name'] | join }}.conf"
+  with_items: "{{ unificated_sites_enabled }}"
+  notify:
+   - reload nginx
+  tags: [configuration,nginx]
+
+- name: Remove links for disabled sites
+  file:
+    state: absent
+    path: "{{ nginx_conf_dir }}/sites-enabled/{{ item['name'] | join }}.conf"
+  with_items: "{{ unificated_sites_disabled }}"
+  notify:
+   - reload nginx
+  tags: [configuration,nginx]
+
+- name: GEN UPSTREAMS | Create the configurations for independent config file
+  template:
+    src: config.conf.j2
+    dest: "{{ nginx_conf_dir }}/conf.d/{{ item }}.conf"
+  with_items: "{{ nginx_configs }}"
+  notify:
+   - reload nginx
+  tags: [debug,configuration,nginx]
+
+- name: Create the configurations for same config file
+  template:
+    src: same.conf.j2
+    dest: "{{nginx_conf_dir}}/same.d/{{ item }}.conf"
+  with_items: "{{ nginx_same }}"
+  notify:
+   - reload nginx
+  tags: [configuration,nginx]
+
+- name: Create SSL directory
+  become: true
+  file:
+   dest: "{{ item }}"
+   state: directory
+  with_items:
+   - "{{ nginx_ssl_dir }}"
+  notify: restart nginx
+  tags: [configuration, nginx]

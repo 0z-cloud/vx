@@ -1,0 +1,19 @@
+# MySQL Configuration
+#
+# Launch gmysql backend
+
+# gpgsql-socket=
+# local-address=192.168.4.4
+# allow-recursion=192.168.4.0/24
+# recursor=127.0.0.1
+
+launch=gpgsql
+gpgsql-host={{ powerdns_postgresql_settings_inventory_ip | join }}
+gpgsql-port={{ powerdns_main_dns_service_listen_port }}
+gpgsql-dbname={{ powerdns_postgresql_settings.database }}
+gpgsql-user={{ powerdns_postgresql_settings.user }}
+gpgsql-password={{ powerdns_postgresql_settings.password }}
+gpgsql-dnssec=yes
+experimental-json-interface=yes
+experimental-api-key=changeme
+webserver=yes

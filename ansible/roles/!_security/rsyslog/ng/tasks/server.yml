@@ -1,0 +1,25 @@
+- name: Installing rsyslog for server
+  apt: 
+    name: rsyslog
+    state: latest
+    update_cache: true
+
+# - name: Generating config from template rsyslog.conf
+#   template:
+#     src: rsyslog.conf
+#     dest: /etc/rsyslog.conf
+
+# - name: Enabling the rsyslog service
+#   service: 
+#     name: rsyslog
+#     enabled: yes
+
+# - name: Checking service started
+#   service:
+#     name: rsyslog
+#     state: started
+
+# - name: Checking service started
+#   service:
+#     name: rsyslog
+#     state: restarted

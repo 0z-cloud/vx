@@ -1,0 +1,97 @@
+{% for volume in item.value['volumes'] %}{% set mount_volume_path = volume.split(':') %}
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    field.cattle.io/creatorId: user-rxbgq
+  creationTimestamp: null
+  finalizers:
+  - kubernetes.io/pvc-protection
+  labels:
+    cattle.io/creator: norman
+  name: {{ item.key }}-{{ loop.index }}
+  selfLink: /api/v1/namespaces/{{ ansible_product }}-{{ ansible_environment }}/persistentvolumeclaims/{{ item.key }}-{{ loop.index }}
+spec:
+  accessModes:
+  - ReadWriteOnce
+  dataSource: null
+  resources:
+    requests:
+      storage: {{ item.value['k8s_storage_space_size'] }}
+  storageClassName: openebs-hostpath
+  volumeMode: Filesystem
+status: {}
+
+{% for volume in item.value['volumes'] %}{% set mount_volume_path = volume.split(':') %}
+
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    annotations:
+      pv.kubernetes.io/bind-completed: "yes"
+      pv.kubernetes.io/bound-by-controller: "yes"
+      volume.beta.kubernetes.io/storage-provisioner: openebs.io/local
+      # volume.kubernetes.io/selected-node: worker1
+    creationTimestamp: null
+    finalizers:
+    - kubernetes.io/pvc-protection
+    labels:
+      app: {{ item.key }}
+      release: {{ item.key }}
+      role: master
+    name: {{ item.key }}-{{ loop.index }}-1
+    namespace: {{ item.key }}-{{ loop.index }}
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    dataSource: null
+    resources:
+      requests:
+        storage: {{ item.value['k8s_storage_space_size'] }}
+    storageClassName: openebs-hostpath
+    volumeMode: Filesystem
+  status:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: {{ item.value['k8s_storage_space_size'] }}
+    phase: Bound
+  
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    annotations:
+      field.cattle.io/creatorId: user-rxbgq
+      pv.kubernetes.io/bind-completed: "yes"
+      pv.kubernetes.io/bound-by-controller: "yes"
+      volume.beta.kubernetes.io/storage-provisioner: openebs.io/local
+      # volume.kubernetes.io/selected-node: worker2
+    creationTimestamp: null
+    finalizers:
+    - kubernetes.io/pvc-protection
+    labels:
+      cattle.io/creator: norman
+    name: {{ item.key }}-{{ loop.index }}-2
+    namespace: {{ item.key }}-{{ loop.index }}
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    dataSource: null
+    resources:
+      requests:
+        storage: {{ item.value['k8s_storage_space_size'] }}
+    storageClassName: openebs-hostpath
+    volumeMode: Filesystem
+  status:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: {{ item.value['k8s_storage_space_size'] }}
+    phase: Bound
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""

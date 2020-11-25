@@ -1,0 +1,73 @@
+- name: Inject defaults
+  set_fact:
+    wazuh_es: "{{ wazuh_es_defaults | combine(wazuh_es) }}"
+  tags: [always]
+
+- name: Creating Wazuh Elasticsearch Groups
+  group:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - admin
+    - "{{ wazuh_es.system_security.linux.user_group }}"
+
+- name: Create Wazuh Elasticsearch User
+  user: 
+    name: "{{ wazuh_es.system_security.linux.user_group }}"
+    shell: /bin/bash
+    groups: "admin,sudo,root,{{ wazuh_es.system_security.linux.user_group }}"
+    append: yes
+
+- name: Create the directories
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0755
+    owner: "{{ wazuh_es.system_security.linux.user_group }}"
+    group: "{{ wazuh_es.system_security.linux.user_group }}"
+  with_dict: "{{ wazuh_es.directories | default({}) }}"
+
+- name: Create elasticsearch config from template
+  template: 
+    src: elasticsearch.yml.j2
+    dest: "{{ wazuh_es.directories.configs }}/elasticsearch.yml"
+  tags: generate
+
+- name: Install Wazuh Elasticsearch
+  docker_container:
+    name: "wazuh-elasticsearch-{{ ansible_environment }}-{{ inventory_hostname }}"
+    image: "{{ ansible_global_gitlab_registry_site_name }}/{{ ansible_git_project_path }}/wazuh-elasticsearch:{{ default_docker_image_environment_tag }}"
+    hostname: "{{ ansible_hostname }}"
+    volumes:
+        - "{{ wazuh_es.directories.data }}/:/var/data/elasticsearch"
+        - "{{ wazuh_es.directories.logs }}/:/var/log/elasticsearch"
+    #    - "{{ wazuh_es.directories.configs }}/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml"
+    ports:
+      - "{{ wazuh_elasticsearch_listen_port }}:9200"
+    env:
+      #API_USER: "{{ wazuh_es.api.username }}"
+      #API_PASSWORD: "{{ wazuh_es.api.password }}"
+      ELASTIC_CLUSTER: "false"
+      CLUSTER_NAME: "wazuh"
+      CLUSTER_NODE_MASTER: "false"
+      CLUSTER_NODE_DATA: "true"
+      CLUSTER_NODE_INGEST: "true"
+      CLUSTER_NODE_NAME: "wazuh-elasticsearch"
+      CLUSTER_MASTER_NODE_NAME: "master-node"
+      CLUSTER_MEMORY_LOCK: "true"
+      CLUSTER_DISCOVERY_SERVICE: "wazuh-elasticsearch"
+      CLUSTER_NUMBER_OF_MASTERS: "2"
+      CLUSTER_MAX_NODES: "1"
+      CLUSTER_DELAYED_TIMEOUT: "1m"
+      CLUSTER_INITIAL_MASTER_NODES: "wazuh-elasticsearch"
+      # ES_JAVA_OPTS: "-Xms1g -Xmx1g"
+      # ELASTIC_CLUSTER: "true"
+      # CLUSTER_NODE_MASTER: "true"
+      # CLUSTER_MASTER_NODE_NAME: "{{ ansible_environment }}-{{ ansible_hostname }}"
+    ulimits:
+      memlock:-1:-1
+    memory: 2G
+    #privileged: yes
+    state: started
+    restart_policy: unless-stopped
+    recreate: yes

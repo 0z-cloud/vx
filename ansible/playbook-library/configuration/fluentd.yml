@@ -1,0 +1,7 @@
+- name: Run a fluentd role on some hosts
+  hosts: "{{ HOSTS }}"
+  become: true
+  
+  roles:
+    - name: Running the fluentd role
+      role: ./!_logging/fluentd

@@ -1,0 +1,179 @@
+
+
+- name: Remove if exists temp
+  shell: "rm -rf {{ item }}"
+  with_items:
+    - "{{ consul.directories.certificate_authority_root }}/{{ consul.authority_files.ca_root_crt }}"
+    - "{{ consul.directories.certificate_authority_root }}/{{ consul.authority_files.ca_root_crt }}"
+    - "{{ consul.directories.certificate_authority_root }}/{{ consul.authority_files.agent_ca }}"
+    - "{{ consul.directories.certificate_authority_root }}/{{ consul.authority_files.agent_key_of_ca }}"
+    - "{{ consul.directories.certificate_authority_root }}/*"
+    - "/cloud/consul/pki/ca/*"
+  # when: clean_glusterfs_all is defined
+
+- name: Check that the Consul ca_root_key exists
+  stat:
+    path: "{{ consul.directories.certificate_authority_root }}/{{ consul.authority_files.ca_root_key }}"
+  register: stat_result_of_ca_key
+
+- name: Check that the Consul ca_root_crt exists
+  stat:
+    path: "{{ consul.directories.certificate_authority_root }}/{{ consul.authority_files.ca_root_crt }}"
+  register: stat_result_of_ca_crt
+
+  # consul tls cert create -server -additional-dnsname= -additional-ipaddress -dc= -domain=
+  # consul tls cert create -server -additional-dnsname= -additional-ipaddress 
+  
+- name: Shell exec to Issue new CA Consul Authority Chain, if it some part of object from Default CA Private/Public are no exists 
+  shell: "consul tls ca create -domain=cloud.{{ public_consul_domain }} -additional-name-constraint=*.{{ public_consul_domain }} -additional-name-constraint=*.cloud{{ public_consul_domain }} -name-constraint cloud -additional-name-constraint=*.service.{{ public_consul_domain }} | awk '{print $3}' -log-file {{ consul.directories.logging_dir }} -config-dir {{ consul.directories.configs_dir }} -domain=*.cloud.{{ public_consul_domain }}"
+  when: stat_result_of_ca_crt.stat.exists == False and stat_result_of_ca_key.stat.exists == False
+  register: ca_generate_result_list
+  args:
+    chdir: "{{ consul.directories.certificate_authority_root }}"
+
+- name: Debug the current directory ca_generate_result_list
+  debug: 
+    msg: "{{ item | join }}"
+  with_dict:
+    - "{{ ca_generate_result_list }}"
+
+  # cmd
+  # stdout
+  # stderr
+  # rc
+  # start
+  # end
+  # delta
+  # changed
+  # stdout_lines
+  # stderr_lines
+  # failed
+
+- name: Show Contents of New CA
+  shell: "cat {{ consul.directories.certificate_authority_root }}/{{ item | join }}"
+  with_items:
+    - "{{ ca_generate_result_list.stdout_lines }}"
+  register: ca_bundle_contents
+
+- name: 911rs Debug the current directory ca_bundle_contents
+  debug: 
+    msg: "{{ item.value }}"
+  with_dict: "{{ ca_bundle_contents.results }}"
+
+- name: Debug the current directory ca_bundle_contents
+  debug: 
+    msg: "{{ item.value }}"
+  with_dict: "{{ ca_bundle_contents.results }}"
+  when: "'item' in item.key"
+
+- name: Declare the current directory ca_bundle_contents
+  set_fact: 
+    name_path_to_agent_ca_crt: "{{ item.value }}"
+  with_dict: "{{ ca_bundle_contents.results }}"
+  when: "'item' in item.key and 'agent-ca.pem' in item.value"
+
+- name: Declare the current directory ca_bundle_contents
+  set_fact: 
+    name_path_to_agent_ca_key: "{{ item.value }}"
+  with_dict: "{{ ca_bundle_contents.results }}"
+  when: "'item' in item.key and 'agent-ca-key.pem' in item.value"
+
+- name: Debug the current directory name_path_to_agent_ca_key
+  debug: 
+    msg: "{{ name_path_to_agent_ca_key | join }}"
+
+- name: Debug the current directory name_path_to_agent_ca_crt
+  debug: 
+    msg: "{{ name_path_to_agent_ca_crt | join }}"
+
+- name: Register line to run for request and sign server certificate
+  set_fact:
+    consul_server_service_runline: "consul tls cert create -server -name-constraint=cloud {% for host in groups['consul-masters'] %}-node={{ hostvars[host].ansible_nodename }} -additional-dnsname={{ hostvars[host].ansible_nodename }} -additional-dnsname={{ hostvars[host].ansible_nodename }}.cloud.{{ merge_consul_domain }} -additional-ipaddress={{ hostvars[host].second_ip }} -additional-ipaddress={{ hostvars[host]['ansible_default_ipv4']['address'] }} {% endfor %} -domain=cloud.{{ public_consul_domain }}"
+
+- name: Debug the current directory consul_server_service_runline
+  debug: 
+    msg: "{{ consul_server_service_runline | join }}"
+
+# consul tls cert create -server -additional-dnsname= -additional-ipaddress -dc= -domain=
+  # shell: "cd {{ consul.directories.certificate_authority_root }}; consul tls ca create -server -domain=cloud.{{ public_consul_domain }} -additional-name-constraint=*.{{ public_consul_domain }} -additional-name-constraint=*.cloud{{ public_consul_domain }} -name-constraint cloud -additional-name-constraint=*.service.{{ public_consul_domain }} | awk '{print $3}'"
+- name: Shell copy to other name
+  shell: "{{ item }}"
+  with_items:
+    - "cp -R {{ consul.directories.certificate_authority_root }}/{{ name_path_to_agent_ca_crt }} {{ consul.directories.certificate_authority_root }}/consul-agent-ca.pem"
+    - "cp -R {{ consul.directories.certificate_authority_root }}/{{ name_path_to_agent_ca_key }} {{ consul.directories.certificate_authority_root }}/consul-agent-ca-key.pem"
+
+- name: Check remapped step 1 - that the Consul ca_root_key exists
+  stat:
+    path: "{{ consul.directories.certificate_authority_root }}/consul-agent-ca-key.pem"
+  register: status_result_of_ca_key
+
+- name: Check remapped step 1 - that the Consul ca_root_crt exists
+  stat:
+    path: "{{ consul.directories.certificate_authority_root }}/consul-agent-ca.pem"
+  register: status_result_of_ca_crt
+
+- name: Debug the status_result_of_ca_crt directory contents
+  debug: 
+    msg: "{{ status_result_of_ca_crt }}"
+
+- name: Debug the status_result_of_ca_key directory contents
+  debug: 
+    msg: "{{ status_result_of_ca_key }}"
+
+- name: Shell exec to Issue new Server Consul Authority Chain, if it some part of object from Default CA Private/Public are no exists 
+  shell: "consul tls cert create -server {{ hostvars[inventory_hostname].ansible_nodename }} -key {{ name_path_to_agent_ca_key }} -ca {{ name_path_to_agent_ca_crt }} -name-constraint cloud.{{ public_consul_domain }} {% for host in groups['consul-masters'] %}-node={{ hostvars[host].ansible_nodename }} -additional-dnsname={{ hostvars[host].ansible_nodename }} -additional-dnsname={{ hostvars[host].ansible_nodename }}.cloud.{{ merge_consul_domain }} -additional-ipaddress={{ hostvars[host].second_ip }} -additional-ipaddress={{ hostvars[host]['ansible_default_ipv4']['address'] }} {% endfor %} -domain=cloud.{{ public_consul_domain }}"
+  args:
+    chdir: "{{ consul.directories.certificate_authority_root }}"
+  when: status_result_of_ca_crt.stat.exists != False and status_result_of_ca_key.stat.exists != False
+
+  #when: stat_result_of_ca_crt.stat.exists == False or stat_result_of_ca_key.stat.exists == False
+
+# - name: Shell exec to Issue new Server Consul Authority Chain, if it some part of object from Default CA Private/Public are no exists 
+#   shell: "cd {{ consul.directories.certificate_authority_root }}; consul tls cert create -server -node={{ hostvars[inventory_hostname].ansible_nodename }}.server.{{ ansible_datacenter }}.{{ consul_cloud_domain_name }} -domain={{ consul_cloud_domain_name }} -dc={{ ansible_datacenter }}
+#   when: stat_result_of_ca_crt.stat.exists == False or stat_result_of_ca_key.stat.exists == False
+
+- name: Register generated certificates on root ca dir
+  raw: ls -la {{ consul.directories.certificate_authority_root }}/
+  register: consul_ca_generates_result
+
+- name: Debug the current directory contents
+  debug: 
+    msg: "{{ consul_ca_generates_result }}"
+
+- name: Show current variable - cloud dir
+  debug:
+    msg: "{{ cloud_dir }}"
+
+- name: Register generated certificates on root ca dir
+  raw: "ls -la {{ cloud_dir }}"
+  register: consul_ca_generates_result
+
+- name: -- Consul Service Discovery -- Create the cladictories
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: 0755
+    owner: "{{ consul_defaults.consul_security.linux_username }}"
+    group: "{{ consul_defaults.consul_security.linux_username }}"
+  with_dict: "{{ consul_defaults.cladictories | default({}) }}"
+
+- name: Show current variable - consul_ca_generates_result dir
+  debug:
+    msg: "{{ consul_ca_generates_result }}"
+
+- name: Sync to cloud dir Consul generated CA  certificates
+  shell: "{{ item }}"
+  with_items:
+    - "cp -R {{ consul.directories.certificate_authority_root }}/{{ consul_defaults.authority_files.agent_ca }} {{ consul_defaults.cladictories.certificate_authority_root }}/{{ consul_defaults.authority_dest_sync_ca.agent_ca }}"
+    - "cp -R {{ consul.directories.certificate_authority_root }}/{{ consul_defaults.authority_files.agent_key_of_ca }} {{ consul_defaults.cladictories.certificate_authority_root }}/{{ consul_defaults.authority_dest_sync_ca.agent_key_of_ca }}"
+    - "cp -R {{ consul.directories.certificate_authority_root }}/{{ consul_defaults.source_to_sync_cloud_ca_files.server_crt_pem }} {{ consul_defaults.cladictories.certificate_authority_root }}/{{ consul_defaults.dest_to_sync_cloud_ca_files.server_crt_crt }}"
+    - "cp -R {{ consul.directories.certificate_authority_root }}/{{ consul_defaults.source_to_sync_cloud_ca_files.server_crt_key }} {{ consul_defaults.cladictories.certificate_authority_root }}/{{ consul_defaults.dest_to_sync_cloud_ca_files.server_crt_key }}"
+
+- name: Register generated cladictories root on root ca dir
+  raw: "ls -la {{ item.value }}"
+  register: consul_ca_generates_result_cladictories
+  with_dict: "{{ consul_defaults.cladictories | default({}) }}"
+
+- name: Show current variable - consul_ca_generates_result_cladictories dir
+  debug:
+    msg: "{{ consul_ca_generates_result_cladictories }}"

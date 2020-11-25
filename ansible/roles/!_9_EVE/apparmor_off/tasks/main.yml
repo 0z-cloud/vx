@@ -1,0 +1,41 @@
+- name: Check the target disable placement file at his place
+  stat:
+    path: "/etc/apparmor.d/disable/usr.sbin.libvirtd"
+  register: qemu_apparmor_status_about_off
+
+- name: Touch the file to disable Apparmor for QEMU 
+  shell: "touch /etc/apparmor.d/disable/usr.sbin.libvirtd"
+  when: qemu_apparmor_status_about_off.stat.exists == False and qemu_apparmor_status_about_off.stat.exists == False
+  register: ca_generate_result_list
+
+- name: Reboot immediately if there was a change.
+  shell: "sleep 5 && reboot"
+  async: 1
+  poll: 0
+  when: ca_generate_result_list is changed
+
+- name: Wait for the reboot to complete if there was a change.
+  wait_for_connection:
+    connect_timeout: 20
+    sleep: 5
+    delay: 5
+    timeout: 300
+  when: ca_generate_result_list is changed
+
+- name: Configure apt - remove lists lock /var/lib/apt/lists/lock
+  command: rm /var/lib/apt/lists/lock
+
+- name: Configure apt - remove /var/cache/apt/archives/lock
+  command: rm /var/cache/apt/archives/lock
+
+- name: Configure apt - remove /var/lib/dpkg/lock  
+  command: rm /var/lib/dpkg/lock  
+
+- name: Configure apt - dpkg configure all
+  command: dpkg --configure -a
+
+- name: Update and upgrade apt packages 
+  apt:
+    upgrade: yes
+    update_cache: yes
+    cache_valid_time: 86400

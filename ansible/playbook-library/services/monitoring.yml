@@ -1,0 +1,54 @@
+- name: Gathering all facts
+  hosts: all
+  tasks: []
+  tags: always
+
+- name: Setup cadvisor
+  hosts: cadvisor-service
+  become: true
+  roles:
+    - name: Run node cadvisor role
+      role: ./!_monitoring/cadvisor
+      when: ansible_children_environment == 'no'
+      tags:
+        - cadvisor
+
+- name: Setup node exporter
+  hosts: node-exporter
+  become: true
+  roles:
+    - name: Run node exporter role
+      role: ./!_monitoring/node-exporter
+      when: ansible_children_environment == 'no'
+      tags:
+        - node-exporter
+
+- name: Setup alertmanager
+  hosts: alertmanager
+  become: true
+  roles:
+    - name: Run node alertmanager role
+      role: ./!_monitoring/alertmanager
+      when: ansible_children_environment == 'no'
+      tags:
+        - alertmanager
+
+- name: Setup prometheus
+  hosts: prometheus
+  become: true
+  roles:
+    - name: Run node prometheus role
+      role: ./!_monitoring/prometheus
+      when: ansible_children_environment == 'no'
+      tags: 
+        - prometheus
+
+- name: Setup grafana
+  hosts: grafana
+  become: true
+  roles:
+    - name: Run node grafana role
+      role: ./!_monitoring/grafana
+      when: ansible_children_environment == 'no'
+      tags: 
+        - grafana

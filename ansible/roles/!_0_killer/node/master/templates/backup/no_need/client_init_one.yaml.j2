@@ -1,0 +1,31 @@
+apiVersion: kubeadm.k8s.io/v1beta2
+kind: ClusterConfiguration
+kubernetesVersion: stable
+clusterName: "{{ K8S_CLUSTER_NAME }}"
+apiServer:
+  certSANs:
+  - "127.0.0.1"
+  - "{{ K8S_CLUSTER_ADDRESS }}"{% for host in groups['kubernetes-master'] %}{% raw %}
+  - "{% endraw %}{{ hostvars[host]['second_ip'] }}"{% raw %}
+  - "{% endraw %}{{ hostvars[host].ansible_nodename }}"{% endfor %}{% raw %}
+  - "{% endraw %}{{ ansible_global_kubernetes_site_name }}"
+controlPlaneEndpoint: "{{ hostvars[inventory_hostname]['second_ip'] }}:{{ K8S_CLUSTER_LISTEN_PORT }}"
+etcd:
+  external:
+    endpoints:{% for host in groups['kubernetes-master'] %}{% raw %}
+    - https://{% endraw %}{{ hostvars[host]['second_ip'] }}:{{ K8S_CLUSTER_LISTEN_PORT_2379 }}{% endfor %}{% raw %}
+    caFile: {% endraw %}/opt/ca/pki/ca.crt
+    certFile: /opt/ca/pki/etcd.crt
+    keyFile: /opt/ca/pki/etcd-key.pem
+networking:
+    dnsDomain: "{{ public_consul_domain }}"
+    podSubnet: "{{ POD_NETWORK_CIDR }}"
+    serviceSubnet: "{{ hostvars[inventory_hostname]['second_network_subnet'] }}"
+apiServerExtraArgs:
+    apiserver-count: "3"
+
+api:
+    advertiseAddress: 10.167.0.3
+    # advertiseAddress: 10.167.0.2
+    bindPort: 443
+    controlPlaneEndpoint: k8s-test

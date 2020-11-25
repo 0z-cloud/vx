@@ -1,0 +1,16 @@
+---
+
+- name: Create workdir
+  file:
+    path: "{{ heapster_workdir }}"
+    state: directory
+
+- name: Copy manifest templates
+  template: src="{{ item.src }}" dest="{{ item.dest }}"
+  with_items:
+    - { src: 'templates/heapster.yaml.j2', dest: "{{ heapster_workdir }}/heapster.yaml" }
+    - { src: 'templates/grafana.yaml.j2', dest: "{{ heapster_workdir }}/grafana.yaml" }
+    - { src: 'templates/influxdb.yaml.j2', dest: "{{ heapster_workdir }}/ingluxdb.yaml" }
+
+- name: Create resources
+  command: kubectl apply -f {{ heapster_workdir }}

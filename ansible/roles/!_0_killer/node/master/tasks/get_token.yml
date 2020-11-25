@@ -1,0 +1,42 @@
+- name: Create new token
+  shell: kubeadm token create
+  register: new_kubeadm_token
+  when: inventory_hostname in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+
+- name: Get join token for workers nodes
+  shell: "kubeadm --kubeconfig /etc/kubernetes/admin.conf token list | tail -n -1 | awk '{print $1}'"
+  register: k8s_workers_join_token
+  delegate_to: "{{ item }}"
+  when: inventory_hostname not in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+  with_items: "{{ groups['kubernetes-master'][0] }}"
+
+- name: Get ca.crt hash for join workers nodes
+  shell: "openssl x509 -in /etc/kubernetes/pki/ca.crt -noout -pubkey | openssl rsa -pubin -outform DER 2>/dev/null | sha256sum | cut -d' ' -f1"
+  register: k8s_workers_ca_hash
+  delegate_to: "{{ item }}"
+  when: inventory_hostname not in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+  with_items: "{{ groups['kubernetes-master'][0] }}"
+
+- name: Set result k8s_workers_ca_hash
+  set_fact:
+    k8s_workers_ca_hash_result: "{{ item.stdout }}"
+  when: inventory_hostname not in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+  with_items: "{{ k8s_workers_ca_hash.results }}"
+
+- name: Set result k8s_workers_join_token
+  set_fact:
+    k8s_workers_join_token_result: "{{ item.stdout }}"
+  when: inventory_hostname not in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker']
+  with_items: "{{ k8s_workers_join_token.results }}"
+
+- name: Show join workers token and certificate hash on workers
+  debug:
+    msg: "{{ item }}"
+  with_items:
+    - "{{ k8s_workers_ca_hash_result }}"
+    - "{{ k8s_workers_join_token_result }}"
+  when: debug_playbook_stdout is defined and inventory_hostname not in groups['kubernetes-master'][0] and inventory_hostname not in groups['kubernetes-worker'] and debug_playbook_stdout is defined
+
+- name: Join masters nodes for current cluster
+  command: kubeadm join {{ K8S_CLUSTER_ADDRESS }}:{{ K8S_CLUSTER_LISTEN_PORT }} --token {{ k8s_workers_join_token_result }} --discovery-token-ca-cert-hash sha256:{{ k8s_workers_ca_hash_result }} --ignore-preflight-errors=all
+  when: inventory_hostname not in groups['kubernetes-master'] and inventory_hostname not in groups['kubernetes-worker']

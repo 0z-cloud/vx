@@ -1,0 +1,16 @@
+- name: Running Apache2 Playbook
+  hosts: "{{ HOSTS | default('localhost') }}"
+  become: true
+  
+  roles:
+    - name: Error message
+      role: ./!_hooks/failed_msgs/apache2
+  
+    - name: Install Apache2 with default configuration
+      role: ./!_cloud/apache/install
+
+    - name: Enable/Disable Apache2 web-sites
+      role: ./!_cloud/apache/configuration
+
+    - name: Enable/Disable Apache2 modules
+      role: ./!_cloud/apache/modules

@@ -1,0 +1,77 @@
+apiVersion: kubeadm.k8s.io/v1beta1
+kind: MasterConfiguration
+api:
+  advertiseAddress: {{ hostvars[inventory_hostname]['second_ip'] }}
+etcd:
+  endpoints:{% for host in groups['kubernetes-master'] %}{% raw %}
+  - https://{% endraw %}{{ hostvars[host]['second_ip'] }}:{{ K8S_CLUSTER_LISTEN_PORT_2379 }}{% endfor %}{% raw %}
+  caFile: {% endraw %}/opt/ca/pki/ca.pem
+  certFile: /opt/ca/pki/etcd.pem
+  keyFile: /opt/ca/pki/etcd-key.pem
+networking:
+  podSubnet: {{ POD_NETWORK_CIDR }}
+apiServerCertSANs:
+{% for host in groups['kubernetes-master'] %}
+- {{ hostvars[host]['second_ip'] }}
+{% endfor %}
+- {{ K8S_CLUSTER_ADDRESS }}
+- {{ CALICO_ETCD_CLUSTER_IP }}
+apiServerExtraArgs:
+  endpoint-reconciler-type: lease
+
+apiVersion: kubeadm.k8s.io/v1beta2
+kind: ClusterConfiguration
+bootstrapTokens:
+- groups:
+  - system:bootstrappers:kubeadm:default-node-token
+  token: abcdef.0123456789abcdef
+  ttl: 24h0m0s
+  usages:
+  - signing
+  - authentication
+kind: InitConfiguration
+localAPIEndpoint:
+  advertiseAddress: {{ hostvars[inventory_hostname]['second_ip'] }}
+  bindPort: {{ K8S_CLUSTER_LISTEN_PORT }}
+nodeRegistration:
+  criSocket: /var/run/dockershim.sock
+  name: {{ hostvars[inventory_hostname]['ansible_nodename'] }}
+  taints:
+  - effect: NoSchedule
+    key: node-role.kubernetes.io/master
+---
+kind: ClusterConfiguration
+apiVersion: kubeadm.k8s.io/v1beta2
+apiServer:
+  extraArgs:
+    apiserver-count: "3"
+    advertise-address: "{{ hostvars[inventory_hostname]['second_ip'] }}"
+certificatesDir: /opt/ca/pki
+clusterName: "{{ K8S_CLUSTER_NAME }}"
+  advertiseAddress: {{ hostvars[inventory_hostname]['second_ip'] }}
+  bindPort: {{ K8S_CLUSTER_LISTEN_PORT }}
+  controlPlaneEndpoint: "vortex.vless.ru:{{ K8S_CLUSTER_LISTEN_PORT }}"
+controllerManager:
+  extraArgs:
+    cluster-signing-key-file: /opt/ca/pki/ca.key
+    bind-address: {{ hostvars[inventory_hostname]['second_ip'] }}
+    deployment-controller-sync-period: "50s"
+
+dns:
+  type: CoreDNS
+etcd:
+  external:
+    caFile: /opt/ca/pki/ca.pem
+    certFile: /opt/ca/pki/etcd.pem
+    keyFile: /opt/ca/pki/etcd-key.pem
+    endpoints:{% for host in groups['kubernetes-master'] %}{% raw %}
+    - https://{% endraw %}{{ hostvars[host]['second_ip'] }}:{{ K8S_CLUSTER_LISTEN_PORT_2379 }}
+    {% endfor %}
+imageRepository: k8s.gcr.io
+kind: ClusterConfiguration
+kubernetesVersion: v1.18.0
+networking:
+  dnsDomain: {{ public_consul_domain }}
+  serviceSubnet: {{ SERVICE_NETWORK_CIDR }}
+  podSubnet: {{ POD_NETWORK_CIDR }}
+scheduler: {}

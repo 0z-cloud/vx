@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<template xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="252c438e-f26c-475f-883d-cd0a5d9a6422" xsi:noNamespaceSchemaLocation="https://www.jetbrains.com/teamcity/schemas/2018.1/project-config.xsd">
+  <name>Ansible_Deploy_Template</name>
+  <description>Ansible Deploy Template</description>
+  <settings>
+    <options>
+      <option name="allowExternalStatus" value="true" />
+      <option name="allowPersonalBuildTriggering" value="false" />
+      <option name="artifactRules" value="ansible_build_result.zip!** =&gt; ./" />
+      <option name="maximumNumberOfBuilds" value="1" />
+      <option name="showDependenciesChanges" value="true" />
+    </options>
+    <disabled-settings>
+      <setting-ref ref="BUILD_EXT_3" />
+    </disabled-settings>
+    <parameters>
+      <param name="ANSIBLE_APPLICATION_TYPE" value="" />
+      <param name="ANSIBLE_BUILD_ID" value="" />
+      <param name="ANSIBLE_CI_PROJECT_NAME" value="" />
+      <param name="ANSIBLE_CI_PROJECT_NAMESPACE" value="" />
+      <param name="ANSIBLE_CLOUD_TYPE" value="" />
+      <param name="ANSIBLE_COMMIT_SHA" value="" />
+      <param name="ANSIBLE_DEPLOY_USERNAME" value="" />
+      <param name="ANSIBLE_ENVIRONMENT" value="" />
+      <param name="ANSIBLE_PRODUCT_NAME" value="" />
+      <param name="ANSIBLE_REGISTRY_URL" value="" />
+      <param name="ANSIBLE_REGISTRY_USERNAME" value="" />
+      <param name="ANSIBLE_RUN_TYPE" value="" />
+      <param name="ANSIBLE_TRIGGER_TOKEN" value="" spec="text validationMode='any' display='normal'" />
+      <param name="ANSIBLE_VERSION" value="" />
+      <param name="env.ANSIBLE_ENVIRONMENT" value="%ANSIBLE_ENVIRONMENT%" />
+    </parameters>
+    <build-runners>
+      <runner id="RUNNER_1" name="Build docker images" type="simpleRunner">
+        <parameters>
+          <param name="script.content"><![CDATA[ls -la ./
+
+cat ./current_tags.yml
+
+echo "ANSIBLE_BUILD_ID: %ANSIBLE_BUILD_ID%"
+echo "ANSIBLE_COMMIT_SHA: %ANSIBLE_COMMIT_SHA%"
+
+ANSIBLE_COMMIT_SHA_SHORT=`echo %ANSIBLE_COMMIT_SHA% | head -c 8`
+
+DATE_YEAR=`date '+%Y'`
+DATE_MOUTH=`date '+%m'`
+ANSIBLE_CI_VERSION="${DATE_YEAR}.${DATE_MOUTH}.%ANSIBLE_BUILD_ID%-${ANSIBLE_COMMIT_SHA_SHORT}"
+
+echo "ANSIBLE_COMMIT_SHA_SHORT: $ANSIBLE_COMMIT_SHA_SHORT"
+echo "ANSIBLE_APPLICATION_TYPE: %ANSIBLE_APPLICATION_TYPE%"
+echo "ANSIBLE_CI_PROJECT_NAME: %ANSIBLE_CI_PROJECT_NAME%"
+echo "ANSIBLE_CI_PROJECT_NAMESPACEL: %ANSIBLE_CI_PROJECT_NAMESPACE%"
+echo "ANSIBLE_CLOUD_TYPE: %ANSIBLE_CLOUD_TYPE%"
+echo "ANSIBLE_DEPLOY_USERNAME: %ANSIBLE_DEPLOY_USERNAME%"
+echo "ANSIBLE_ENVIRONMENT: %ANSIBLE_ENVIRONMENT%"
+echo "ANSIBLE_PRODUCT_NAME: %ANSIBLE_PRODUCT_NAME%"
+echo "ANSIBLE_REGISTRY_URL: %ANSIBLE_REGISTRY_URL%"
+echo "ANSIBLE_REGISTRY_USERNAME: %ANSIBLE_REGISTRY_USERNAME%"
+echo "ANSIBLE_RUN_TYPE: %ANSIBLE_RUN_TYPE%"
+echo "ANSIBLE_TRIGGER_TOKEN: %ANSIBLE_TRIGGER_TOKEN%"
+echo "ANSIBLE_CI_VERSION: $ANSIBLE_CI_VERSION"
+
+echo "Docker Login:"
+
+docker login "%ANSIBLE_REGISTRY_URL%" -u "%ANSIBLE_REGISTRY_USERNAME%" -p "%ANSIBLE_TRIGGER_TOKEN%"
+
+cd ./ansible]]></param>
+          <param name="teamcity.step.mode" value="default" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
+    </build-runners>
+    <vcs-settings>
+      <vcs-entry-ref root-id="Teamcity" />
+    </vcs-settings>
+    <requirements />
+    <build-triggers />
+    <build-extensions>
+      <extension id="BUILD_EXT_3" type="BuildFailureOnMessage">
+        <parameters>
+          <param name="buildFailureOnMessage.conditionType" value="contains" />
+          <param name="buildFailureOnMessage.messagePattern" value="fatal:" />
+          <param name="buildFailureOnMessage.outputText" value="Stop on: fatal" />
+          <param name="buildFailureOnMessage.reverse" value="false" />
+        </parameters>
+      </extension>
+    </build-extensions>
+    <artifact-dependencies>
+      <dependency id="ARTIFACT_DEPENDENCY_1" sourceBuildTypeId="ReactivePay_Main" cleanDestination="false">
+        <revisionRule name="sameChainOrLastFinished" revision="latest.sameChainOrLastFinished" />
+        <artifact sourcePath="ansible_docker_build_result.zip!** =&gt; ./" />
+      </dependency>
+    </artifact-dependencies>
+    <dependencies>
+      <depend-on sourceBuildTypeId="ReactivePay_Main">
+        <options>
+          <option name="take-started-build-with-same-revisions" value="true" />
+          <option name="take-successful-builds-only" value="true" />
+        </options>
+      </depend-on>
+    </dependencies>
+    <cleanup />
+  </settings>
+</template>
+

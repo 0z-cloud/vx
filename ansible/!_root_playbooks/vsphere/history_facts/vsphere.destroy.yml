@@ -1,0 +1,49 @@
+
+- name: Bootstrap infrastructure from localhost to ESXi Vcenter Appliance
+  hosts: localhost
+  vars_prompt:
+    - name: ATTENTION
+      prompt: "ATTENTION YOU WANTS TO RUN DESTROY VM PLAYBOOK! If you really wants to remove all VMs from ESXi Cluster press enter."
+  gather_facts: False
+  tasks:
+    
+    - name: Debug dict
+      debug:
+        msg: "{{ item.value.network }} {{ item.value.ip }} {{ item.value.name }}"
+      with_dict: "{{ cloud_bootstrap.servers }}"
+    
+    - name: ONE NET | Test debug when second_ip == null
+      debug:
+        msg: "{{ item.value.ip }} {{ lookup('random_mac') }}"
+      when: (item.value.second_ip is defined and item.value.second_ip == '') or (item.value.second_ip is not defined) or (item.value.second_ip == 'null')
+      with_dict: "{{ cloud_bootstrap.servers }}"
+    
+    - name: MULTI NET | Test debug when second_ip != null
+      debug:
+        msg: "{{ item.value.ip }} {{ lookup('random_mac') }}"
+      when: item.value.second_ip is defined and item.value.second_ip != '' and item.value.second_ip != 'null'
+      with_dict: "{{ cloud_bootstrap.servers }}"
+
+    - name: STOPPING | Stopping for destroy a VM
+      vmware_guest:
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        validate_certs: no
+        datacenter: "{{ anycloud_adapter_api_datacenter }}"
+        folder: "/"
+        name: "{{ item.value.name }}"
+        state: poweredoff
+      with_dict: "{{ cloud_bootstrap.servers }}"
+
+    - name: DESTROYING | Destroying a VM
+      vmware_guest:
+        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+        username: "{{ anycloud_adapter_api_user }}"
+        password: "{{ anycloud_adapter_api_password }}"
+        validate_certs: no
+        datacenter: "{{ anycloud_adapter_api_datacenter }}"
+        folder: "/"
+        name: "{{ item.value.name }}"
+        state: absent
+      with_dict: "{{ cloud_bootstrap.servers }}"

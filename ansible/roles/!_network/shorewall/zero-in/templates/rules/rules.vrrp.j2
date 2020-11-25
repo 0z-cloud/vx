@@ -1,0 +1,55 @@
+# VRRP
+#
+# For information on the settings in this file, type "man shorewall-rules"
+######################################################################################################################################################################################################
+# ACTION		    SOURCE		            DEST							        PROTO	DEST	SOURCE		ORIGINAL	RATE		USER/	MARK	CONNLIMIT	TIME		HEADERS		SWITCH		HELPER
+#
+
+{% if inventory_hostname in groups['network-balancer-stack'] %}
+# ICMP												
+ACCEPT              vrrp                    fw                                      icmp
+
+# NTP
+ACCEPT              vrrp                    fw							            udp     ntp,domain
+ACCEPT              vrrp                    fw							            udp     ntp,domain
+
+# DNS
+ACCEPT              vrrp                    nginx							        udp	    53
+ACCEPT              vrrp                    ngnix							        tcp	    53
+
+# DNS
+ACCEPT              vrrp                    wan							            udp	    53
+ACCEPT              vrrp                    wan							            tcp	    53
+
+# VRRP BETWEEN IDS ON vrrp INTERFACE
+ACCEPT              fw                      vrrp                                    vrrp
+ACCEPT              vrrp                    fw                                      vrrp
+
+# SSH BETWEEN ROUTERS FOR MAINTANANCE
+ACCEPT              fw                      vrrp                                    tcp	    22
+ACCEPT              vrrp                    fw                                      tcp     22
+
+ACCEPT              fw                      vrrp                                    tcp	    22
+ACCEPT              vrrp                    fw                                      tcp     22
+
+# SSH FROM bas ROUTERS FOR MAINTANANCE
+ACCEPT              fw                      bas                                 tcp	    22
+ACCEPT              bas                    fw                                   tcp     22
+
+{% endif %}
+
+########################
+# block local ip from vrrp
+# DEFAULT DROP FROM vrrp LAN_IP SUBNETS
+DROP		        vrrp:$LAN_IP	                                fw
+
+########################
+# Dummy - ping, drop telnet, accept traceroute from vrrp to fw
+Ping(ACCEPT)	    vrrp		                                    fw		-	-	-		-		s:2/sec
+# anti ping flood
+ACCEPT		        vrrp		                                    fw		                        icmp	    0,3/4,8,11
+# ping response
+ACCEPT		        vrrp		                                    fw		                        udp	        33434:33529
+# for traceroute
+DROP		        vrrp		                                    fw		                        tcp	        23
+# block telnet

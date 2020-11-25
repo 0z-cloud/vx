@@ -1,0 +1,25 @@
+#!/bin/bash
+
+rm -rf /usr/share/elasticsearch/data/nodes/0/node.lock
+
+find /usr/share/elasticsearch/data/ | grep write.lock | xargs -I ID rm -rf ID
+
+# sleep for bootstrap
+
+# sleep 60
+
+set -e
+
+# Add elasticsearch as command if needed
+if [ "${1:0:1}" = '-' ]; then
+	set -- elasticsearch "$@"
+fi
+
+if [ "$1" = 'elasticsearch' -a "$(id -u)" = '0' ]; then
+	# Change the ownership of /usr/share/elasticsearch/data to elasticsearch
+	chown -R elasticsearch:elasticsearch /usr/share/elasticsearch/data
+	
+	set -- gosu elasticsearch "$@"
+fi
+
+exec "$@"

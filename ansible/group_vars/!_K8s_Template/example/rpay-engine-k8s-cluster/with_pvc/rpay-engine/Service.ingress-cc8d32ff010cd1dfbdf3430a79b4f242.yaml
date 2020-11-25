@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    field.cattle.io/targetWorkloadIds: '["deployment:rpay-engine:wallet"]'
+  creationTimestamp: null
+  labels:
+    cattle.io/creator: norman
+  name: ingress-cc8d32ff010cd1dfbdf3430a79b4f242
+  ownerReferences:
+  - apiVersion: v1beta1/extensions
+    controller: true
+    kind: Ingress
+    name: wallet
+    uid: 5a606d54-a036-11e9-890b-b42e994820d9
+  selfLink: /api/v1/namespaces/rpay-engine/services/ingress-cc8d32ff010cd1dfbdf3430a79b4f242
+spec:
+  ports:
+  - port: 8800
+    protocol: TCP
+    targetPort: 8800
+  selector:
+    workloadID_ingress-cc8d32ff010cd1dfbdf3430a79b4f242: "true"
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}

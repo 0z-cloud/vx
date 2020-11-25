@@ -1,0 +1,18 @@
+# CLUSTER
+#
+# For information on the settings in this file, type "man shorewall-rules"
+######################################################################################################################################################################################################
+# ACTION		    SOURCE		            DEST							        PROTO	DEST	SOURCE		ORIGINAL	RATE		USER/	MARK	CONNLIMIT	TIME		HEADERS		SWITCH		HELPER
+#
+
+
+{% if inventory_hostname in groups['nginx-frontend'] %}
+## NGINX GROUP ACCEPT OUT TO BALANCER VIP
+
+ACCEPT              geov                    vip                                     tcp     {{ redis_backend_service_listen_port }}
+ACCEPT              geov                    vip                                     tcp     {{ pgbouncer_backend_service_listen_port }}
+ACCEPT              geov                    vip                                     tcp     {{ mongo_backend_service_listen_port }}
+ACCEPT              geov                    vip                                     tcp     {{ minio_backend_service_listen_port }}
+ACCEPT              geov                    vip                                     tcp     {{ elasticsearch_backend_service_listen_port }}
+
+{% endif %}

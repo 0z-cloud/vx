@@ -1,0 +1,9 @@
+dn: dc=vortex,dc=co 
+objectclass: dcObject 
+objectclass: organization 
+o: vortex Company 
+dc: vortex 
+
+dn: cn=Manager,dc=vortex,dc=co
+objectclass: organizationalRole 
+cn: Manager

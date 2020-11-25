@@ -1,0 +1,4 @@
+- name: First generate stub on-fly current exec process networks subnets object
+  set_fact:
+    oz_router_subnet_anycloud_vpn_port: "{{ lookup('random_vpn_server_port') }}"
+    oz_router_subnet_anycloud_web_port: "{{ lookup('random_vpn_server_port') }}"

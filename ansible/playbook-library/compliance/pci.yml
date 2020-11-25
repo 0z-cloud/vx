@@ -1,0 +1,18 @@
+- name: Running tests cases
+  hosts: all
+  become: true
+  roles:
+    - name: DSS check step 3.. test
+      role: ./!_test_suite/test
+  tags: [test]
+
+- name: DSS of PCI check and configuring
+  hosts: all
+  become: true
+  roles:
+    - name: DSS check step 1.. auditd
+      role: ./!_security/audit
+    - name: DSS check step 2.. rsyslog
+      role: ./!_security/rsyslog
+      
+      

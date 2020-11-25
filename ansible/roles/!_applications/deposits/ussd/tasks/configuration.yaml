@@ -1,0 +1,8 @@
+- name: Create USSD Configuration
+  template:
+    src: ussd.j2
+    dest: "{{ RELEASE_DIRECTORY }}/config.json"
+    owner: "{{ RELEASE_OWNER }}"
+    group: "{{ RELEASE_GROUP }}"
+    mode: 0644
+

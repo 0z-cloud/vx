@@ -1,0 +1,29 @@
+
+<source>
+    @type tail
+    path /var/log/syslog
+    pos_file /positions/syslog.pos
+    <parse>
+        @type grok
+        grok_pattern %{SYSLOGLINE}
+        custom_pattern_path /fluentd/etc
+        grok_failure_key grokfailure
+    </parse>
+    tag any.syslog
+</source>
+
+<filter any.syslog>
+  @type grep
+  <regexp>
+    key program
+    pattern  /(^kernel.*$)/
+  </regexp>
+</filter>
+
+<filter any.syslog>
+  @type grep
+  <regexp>
+    key program
+    pattern  /(^kernel.*$)/
+  </regexp>
+</filter>

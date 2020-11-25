@@ -1,0 +1,20 @@
+#	Example (/etc/shorewall/interfaces record):
+#		net	$NET_IF		$NET_BCAST	$NET_OPTIONS
+#	The result will be the same as if the record had been written
+#		net	eth0		130.252.100.255	routefilter,norfc1918
+###############################################################################
+ANY=0.0.0.0/0
+WAN=eth0
+IPMI=eth1
+ISCSI=eth2
+ESX=eth9
+WEB=eth3
+ELSE=eth4
+SQL=eth5
+KEY=eth6
+HUB=eth7
+VPN1=tun0
+VPN2=tun1
+
+LAN_IP=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,169.254.0.0/16,0.0.0.0/8,127.0.0.0/8,240.0.0.0/4,255.255.255.255,192.0.2.0/24,100.64.0.0/10,192.0.0.0/24,198.18.0.0/15,198.51.100.0/24,203.0.113.0/24,224.0.0.0/4
+#LAST LINE -- DO NOT REMOVE

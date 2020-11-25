@@ -1,0 +1,43 @@
+ca_service_settings:
+  directories:
+    data: /opt/ca/{{ ansible_product }}_{{ ansible_environment }}/
+    source: /opt/ca/source/
+    ca: /opt/ca/
+    kube: /opt/ca/kube/
+    config: /opt/ca/conf
+    bin: /opt/ca/bin/
+    pki: /opt/ca/pki/
+  pkg_links:
+    - https://pkg.cfssl.org/R1.2/cfssl_linux-amd64
+    - https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64
+  app_links:
+    - cfssl
+    - cfssljson
+  app_prefi: _linux-amd64
+
+etcd_service_settings:
+  directories:
+    etc: /etc/etcd 
+    var: /var/lib/etcd/
+    data: /opt/etcd/{{ ansible_product }}_{{ ansible_environment }}/
+    source: /opt/etcd/{{ ansible_product }}_{{ ansible_environment }}/source/
+    ca: /opt/ca/{{ ansible_product }}_{{ ansible_environment }}
+    bin: /opt/ca/bin
+  etcd_get_url: https://github.com/etcd-io/etcd/releases/download/v3.4.5/etcd-v3.4.5-linux-amd64.tar.gz
+  etcd_get_zip: etcd-v3.4.5-linux-amd64.tar.gz
+  etcd_arc_ver: etcd-v3.4.5-linux-amd64
+k8s_service_settings:
+  directories:
+    etc: /etc/kubernetes 
+    pki: /etc/kubernetes/pki
+    kube: /etc/kubernetes/kube
+    cni: /etc/cni/
+    data: /var/lib/kubelet/
+    libcni: /var/lib/cni/
+
+systemd_dir: /lib/systemd/system
+system_env_dir: /etc/sysconfig
+network_dir: /etc/kubernetes/network
+cni_bin_download_dir: /opt/cni/bin
+kubeadmin_config: /etc/kubernetes/admin.conf
+kube_addon_dir: /etc/kubernetes/addon

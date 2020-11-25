@@ -1,0 +1,8 @@
+percona_settings_defaults:
+  wsrep_cluster_name: "{{ ansible_product }}_{{ ansible_environment }}"
+  public_port: 3306
+  extended_port: 3306
+  cluster_port: 4567
+  directories:
+    data_path: "/opt/percona/{{ ansible_environment }}/data"
+    config_path: "/opt/percona/{{ ansible_environment }}/config"

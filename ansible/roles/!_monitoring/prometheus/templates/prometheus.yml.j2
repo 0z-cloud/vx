@@ -1,0 +1,44 @@
+# my global config
+global:
+  scrape_interval:     15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  # scrape_timeout is set to the global default (10s).
+
+  # Attach these labels to any time series or alerts when communicating with
+  # external systems (federation, remote storage, Alertmanager).
+  external_labels:
+      monitor: 'codelab-monitor'
+
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets:
+       - {% for host in groups['alertmanager'] %}{{ hostvars[host]['ansible_nodename'] }}:{{ alert_manager_service_listen_port }}
+     {% endfor %}
+
+rule_files:
+   - "alert_rules.yml"
+
+scrape_configs:
+   {% if swarm_disabled_inventory is not defined %}
+- job_name: 'cadvisor'
+     scrape_interval: 5s
+     metrics_path: /metrics
+     scheme: http
+     static_configs:
+     - targets: [{% for host in groups['cadvisor'] %}'{{ hostvars[host]['ansible_nodename'] }}:{{ cadvisor_service_listen_port }}'{% if not loop.last %}, {% endif %}{% endfor %} ]{% else %}
+- job_name: 'cadvisor'
+     scrape_interval: 5s
+     metrics_path: /metrics
+     scheme: http
+     static_configs:
+     - targets: [{% for host in groups['cadvisor'] %}'{{ hostvars[host]['ansible_nodename'] }}:{{ cadvisor_service_listen_port }}'{% if not loop.last %}, {% endif %}{% endfor %}]
+{% endif %}  
+   {% if swarm_disabled_inventory is not defined %}
+- job_name: 'nodex'
+     static_configs:
+     - targets: [{% for host in groups['node-exporter'] %}'{{ hostvars[host]['ansible_nodename'] }}:{{ node_exporter_service_listen_port }}'{% if not loop.last %}, {% endif %}{% endfor %} ]{% else %}
+- job_name: 'nodex'
+     static_configs:
+     - targets: [{% for host in groups['node-exporter'] %}'{{ hostvars[host]['ansible_nodename'] }}:{{ node_exporter_service_listen_port }}'{% if not loop.last %}, {% endif %}{% endfor %}]
+    {% endif %}

@@ -1,0 +1,204 @@
+- name: Include bootstrap cluster tasks when bootstrap is defined
+  include: bootstrap.yml
+  when: bootstrap_cluster is defined
+
+
+# - name: Await bootstrap 30
+#   raw: sleep 30
+
+# # ONLY BOOTSTRAP WORKS SECTION
+
+# - name: re/Create a Percona Cluster Service docker container
+#   docker_container:
+#       name: percona-{{ ansible_environment }}-{{ ansible_hostname }}
+#       image: "percona/percona-xtradb-cluster:5.6.42"
+#       hostname: "{{ ansible_hostname }}"
+#       volumes:
+#         - "{{ percona_settings.directories.data_path }}:/var/lib/mysql:rw"
+#         - "{{ percona_settings.directories.config_path }}/hosts:/etc/hosts"
+#         - "{{ percona_settings.directories.config_path }}/entrypoint-bootstrap.sh:/entrypoint.sh"
+#       ports:
+#         - "{{ percona_settings.public_port }}:{{ percona_settings.public_port }}"
+#         - "{{ percona_settings.cluster_port }}:{{ percona_settings.cluster_port }}"
+#       env:
+#         MYSQL_ROOT_PASSWORD: "{{ percona_settings.root_password }}"
+#         CLUSTER_NAME: "{{ percona_settings.wsrep_cluster_name }}"
+#       privileged: yes
+#       restart_policy: always
+#       detach: True
+#       recreate: yes
+#       state: started
+#       network_mode: host
+#       user: root
+#   when: inventory_hostname in groups['percona-cluster-bootstrap']
+
+# - name: Await bootstrap 30
+#   raw: sleep 30
+
+# # ONLY BOOTSTRAP WORKS SECTION
+
+# # - name: re/Create a Percona Cluster Service docker container
+# #   docker_container:
+# #       name: percona-{{ ansible_environment }}-{{ ansible_hostname }}
+# #       image: "percona/percona-xtradb-cluster:5.6.42"
+# #       hostname: "{{ ansible_hostname }}"
+# #       volumes:
+# #         - "{{ percona_settings.directories.config_path }}/my.cnf:/etc/mysql/my.cnf"
+# #         - "{{ percona_settings.directories.data_path }}:/var/lib/mysql:rw"
+# #         - "{{ percona_settings.directories.config_path }}/hosts:/etc/hosts"
+# #       ports:
+# #         - "{{ percona_settings.public_port }}:{{ percona_settings.public_port }}"
+# #         - "{{ percona_settings.cluster_port }}:{{ percona_settings.cluster_port }}"
+# #       env:
+# #         MYSQL_ROOT_PASSWORD: "{{ percona_settings.root_password }}"
+# #         CLUSTER_NAME: "{{ percona_settings.wsrep_cluster_name }}"
+# #       privileged: yes
+# #       restart_policy: always
+# #       detach: True
+# #       recreate: yes
+# #       state: started
+# #       network_mode: host
+# #       user: root
+# #   when: inventory_hostname in groups['percona-cluster-bootstrap']
+
+# - name: re/Create a Percona Cluster Service docker container
+#   docker_container:
+#       name: percona-{{ ansible_environment }}-{{ ansible_hostname }}
+#       image: "percona/percona-xtradb-cluster:5.6.42"
+#       hostname: "{{ ansible_hostname }}"
+#       volumes:
+#         - "{{ percona_settings.directories.config_path }}/entrypoint.sh:/entrypoint.sh"
+#         - "{{ percona_settings.directories.config_path }}/my.cnf:/etc/mysql/my.cnf"
+#         - "{{ percona_settings.directories.data_path }}:/var/lib/mysql:rw"
+#         - "{{ percona_settings.directories.config_path }}/hosts:/etc/hosts"
+#       ports:
+#         - "{{ percona_settings.public_port }}:{{ percona_settings.public_port }}"
+#         - "{{ percona_settings.cluster_port }}:{{ percona_settings.cluster_port }}"
+#       env:
+#         MYSQL_ROOT_PASSWORD: "{{ percona_settings.root_password }}"
+#         CLUSTER_NAME: "{{ percona_settings.wsrep_cluster_name }}"
+#         CLUSTER_JOIN: "{% for host in groups['percona-cluster-bootstrap'] %}{{ hostvars[host].ansible_hostname }}{% endfor %}"
+#       privileged: yes
+#       restart_policy: always
+#       detach: True
+#       recreate: yes
+#       state: started
+#       network_mode: host
+#       user: root
+#   when: inventory_hostname not in groups['percona-cluster-bootstrap']
+
+# # - name: Change directory permissions
+# #   shell: docker exec percona-{{ ansible_environment }}-{{ ansible_hostname }} chown -R 1001:1001 /var/lib/mysql
+
+# # # WIP TO NEED WITHOUT BOOTSTRAP
+
+# - name: Await bootstrap 120
+#   raw: sleep 120
+
+# - name: re/Create a Percona Cluster Service docker container
+#   docker_container:
+#       name: percona-{{ ansible_environment }}-{{ ansible_hostname }}
+#       image: "percona/percona-xtradb-cluster:5.6.42"
+#       hostname: "{{ ansible_hostname }}"
+#       volumes:
+#         - "{{ percona_settings.directories.config_path }}/entrypoint.sh:/entrypoint.sh"
+#         - "{{ percona_settings.directories.config_path }}/my.cnf:/etc/mysql/my.cnf"
+#         - "{{ percona_settings.directories.data_path }}:/var/lib/mysql:rw"
+#         - "{{ percona_settings.directories.config_path }}/hosts:/etc/hosts"
+#       ports:
+#         - "{{ percona_settings.public_port }}:{{ percona_settings.public_port }}"
+#         - "{{ percona_settings.cluster_port }}:{{ percona_settings.cluster_port }}"
+#       env:
+#         MYSQL_ROOT_PASSWORD: "{{ percona_settings.root_password }}"
+#         CLUSTER_NAME: "{{ percona_settings.wsrep_cluster_name }}"
+#         CLUSTER_JOIN: "{% for host in groups['percona-cluster-bootstrap'] %}{{ hostvars[host].ansible_hostname }}{% endfor %}"
+#       privileged: yes
+#       restart_policy: always
+#       detach: True
+#       recreate: yes
+#       state: started
+#       network_mode: host
+#       user: root
+#   when: inventory_hostname in groups['percona-cluster-bootstrap']
+
+# # - name: re/Create a Percona Cluster Service docker container
+# #   docker_container:
+# #       name: percona-{{ ansible_environment }}-{{ ansible_hostname }}
+# #       image: "percona/percona-xtradb-cluster:5.6.42"
+# #       hostname: "{{ ansible_hostname }}"
+# #       volumes:
+# #         - "{{ percona_settings.directories.config_path }}/my.cnf:/etc/mysql/my.cnf"
+# #         - "{{ percona_settings.directories.data_path }}:/var/lib/mysql:rw"
+# #         - "{{ percona_settings.directories.config_path }}/hosts:/etc/hosts"
+# #         - "{{ percona_settings.directories.config_path }}/entrypoint.sh:/entrypoint.sh"
+# #       ports:
+# #         - "{{ percona_settings.public_port }}:{{ percona_settings.public_port }}"
+# #         - "{{ percona_settings.cluster_port }}:{{ percona_settings.cluster_port }}"
+# #       privileged: yes
+# #       restart_policy: always
+# #       detach: True
+# #       recreate: yes
+# #       state: started
+# #       network_mode: host
+# #       user: root
+
+# # - name: Change directory permissions
+# #   shell: docker exec percona-{{ ansible_environment }}-{{ ansible_hostname }} chown -R 1001:1001 /var/lib/mysql
+
+# # - name: Await bootstrap 30
+# #   raw: sleep 30
+
+# # - name: re/Create a Percona Cluster Service docker container
+# #   docker_container:
+# #       name: percona-{{ ansible_environment }}-{{ ansible_hostname }}
+# #       image: "percona/percona-xtradb-cluster:5.6.42"
+# #       hostname: "{{ ansible_hostname }}"
+# #       volumes:
+# #         - "{{ percona_settings.directories.config_path }}/my.cnf:/etc/mysql/my.cnf"
+# #         - "{{ percona_settings.directories.data_path }}:/var/lib/mysql:rw"
+# #         - "{{ percona_settings.directories.config_path }}/hosts:/etc/hosts"
+# #         - "{{ percona_settings.directories.config_path }}/entrypoint-bootstrap.sh:/entrypoint.sh"
+# #       ports:
+# #         - "{{ percona_settings.public_port }}:{{ percona_settings.public_port }}"
+# #         - "{{ percona_settings.cluster_port }}:{{ percona_settings.cluster_port }}"
+# #       env:
+# #         MYSQL_ROOT_PASSWORD: "{{ percona_settings.root_password }}"
+# #         CLUSTER_NAME: "{{ percona_settings.wsrep_cluster_name }}"
+# #       privileged: yes
+# #       restart_policy: always
+# #       detach: True
+# #       recreate: yes
+# #       state: started
+# #       network_mode: host
+# #       user: root
+# #   when: inventory_hostname in groups['percona-cluster-bootstrap']
+
+# # - name: Await bootstrap cluster 60
+# #   raw: sleep 60
+
+# # - name: re/Create a Percona Cluster Service docker container
+# #   docker_container:
+# #       name: percona-{{ ansible_environment }}-{{ ansible_hostname }}
+# #       image: "percona/percona-xtradb-cluster:5.6.42"
+# #       hostname: "{{ ansible_hostname }}"
+# #       volumes:
+# #         - "{{ percona_settings.directories.config_path }}/my.cnf:/etc/mysql/my.cnf"
+# #         - "{{ percona_settings.directories.data_path }}:/var/lib/mysql:rw"
+# #         - "{{ percona_settings.directories.config_path }}/hosts:/etc/hosts"
+# #         - "{{ percona_settings.directories.config_path }}/entrypoint.sh:/entrypoint.sh"
+# #       ports:
+# #         - "{{ percona_settings.public_port }}:{{ percona_settings.public_port }}"
+# #         - "{{ percona_settings.cluster_port }}:{{ percona_settings.cluster_port }}"
+# #       env:
+# #         MYSQL_ROOT_PASSWORD: "{{ percona_settings.root_password }}"
+# #         CLUSTER_NAME: "{{ percona_settings.wsrep_cluster_name }}"
+# #       privileged: yes
+# #       restart_policy: always
+# #       detach: True
+# #       recreate: yes
+# #       state: started
+# #       network_mode: host
+# #       user: root
+
+#   #   inventory_hostname in groups['percona-cluster']
+#   # delegate_to: "{{ groups.webservers | first }}"

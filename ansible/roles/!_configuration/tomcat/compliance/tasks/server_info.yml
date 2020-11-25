@@ -1,0 +1,42 @@
+#### GREP SERVER INFO
+
+- name: Shell gets grep server.info lib/org/apache/catalina/util/ServerInfo.properties, if see error its good =)
+  shell: "grep 'server.info' {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}/lib/org/apache/catalina/util/ServerInfo.properties"
+  register: ansible_grep_server_info_properties
+  tags: ansible_grep_server_info_properties
+  ignore_errors: true
+  
+- name: Check the grep server.info lib/org/apache/catalina/util/ServerInfo.properties, if PCI compliance ok, we ignore that and go next
+  fail:
+    msg: "Whoops! File {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}/lib/org/apache/catalina/util/ServerInfo.properties conetent not PCI Compliant - please change server.info"
+  when: ansible_grep_server_info_properties.rc == 0
+  tags: ansible_grep_server_info_properties
+
+#### GREP SERVER NUMBER
+
+- name: Shell gets grep server.number lib/org/apache/catalina/util/ServerInfo.properties, if see error its good =)
+  shell: "grep 'server.number' {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}/lib/org/apache/catalina/util/ServerInfo.properties"
+  register: ansible_grep_server_number_properties
+  tags: ansible_grep_server_number_properties
+  ignore_errors: true
+  
+- name: Check the grep server.number lib/org/apache/catalina/util/ServerInfo.properties, if PCI compliance ok, we ignore that and go next
+  fail:
+    msg: "Whoops! File {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}/lib/org/apache/catalina/util/ServerInfo.properties conetent not PCI Compliant - please change server.number"
+  when: ansible_grep_server_number_properties.rc == 0
+  tags: ansible_grep_server_number_properties
+
+
+#### GREP SERVER BUILT
+
+- name: Shell gets grep server.built lib/org/apache/catalina/util/ServerInfo.properties, if see error its good =)
+  shell: "grep 'server.built' {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}/lib/org/apache/catalina/util/ServerInfo.properties"
+  register: ansible_grep_server_built_properties
+  tags: ansible_grep_server_built_properties
+  ignore_errors: true
+  
+- name: Check the grep server.built lib/org/apache/catalina/util/ServerInfo.properties, if PCI compliance ok, we ignore that and go next
+  fail:
+    msg: "Whoops! File {{ ansible_tomcat_settings.directories.ansible_catalina_base_tomcat_folder }}/lib/org/apache/catalina/util/ServerInfo.properties conetent not PCI Compliant - please change server.built"
+  when: ansible_grep_server_built_properties.rc == 0
+  tags: ansible_grep_server_built_properties

@@ -1,0 +1,12 @@
+- name: Install docker step...for all hosts
+  become: true
+  vars_prompt:
+    - name: "docker_test_release"
+      prompt: "Write 'true' if want to install test release. Default value - null."
+      default: "true"
+      private: no
+  hosts: "{{ HOSTS | default('all') }}"
+  roles:
+    - name: Docker install playbook
+      role: ./!_cloud/docker/install_dev
+  tags: [docker-setup]
