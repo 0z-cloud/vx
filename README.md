@@ -1,9 +1,9 @@
 # Welcome, to Vortex Vx˜
 
-**Release State: stable-1.6.0-gold-master**
+**Release State: stable-1.6.1-h0-test**
 
 
-* At ``` *.woinc.space ``` we are place a ``` Public Demo Access Platform ``` 
+* At ``` *.woinc.ru ``` we are place a ``` Public Demo Access Platform ``` 
   which represent our ``` Vx Live Run ``` 
 
 * This are real ``` Lifecycle Auto Cloud ``` 
@@ -23,13 +23,11 @@
 
 Example run contain:
 
- - https://teamcity.woinc.space
- - https://gitlab.woinc.space
- - https://www.woinc.space
- - https://ogame.woinc.space
- - https://woinc.space
-
-
+ - https://woinc.ru
+ - https://teamcity.woinc.ru
+ - https://gitlab.woinc.ru
+ - https://www.woinc.ru
+ - https://ogame.woinc.ru
 
 ## Repository statements:
 
