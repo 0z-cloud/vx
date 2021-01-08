@@ -205,7 +205,7 @@ Example run contain:
 
 ## Full Working Map, stages of flow, step by step.
 
-- [Vortex BIG BANG Workflow](ansible/CI/repo_images/vortex_cutted_full_flow.png)
+![Vortex BIG BANG Workflow](ansible/CI/repo_images/vortex_cutted_full_flow.png)
 
 ## Readme's links:
 
