@@ -29,6 +29,11 @@ Example run contain:
  - https://www.woinc.ru
  - https://ogame.woinc.ru
 
+## SSL Tests Results: 07.01.2021
+
+![ssl labs at 07.01.2021](ansible/CI/repo_images/ssl_labs_test_07_01_2021.png)
+
+
 ## Repository statements:
 
 ```
