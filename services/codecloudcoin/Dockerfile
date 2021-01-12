@@ -30,18 +30,18 @@ RUN mkdir -p /app/woinc
 COPY ./ /
 
 RUN ls -la /
-RUN ls -la /wo-api/woinc
-RUN ls -la /wo-api/
+RUN ls -la /codecloudcoin/woinc
+RUN ls -la /codecloudcoin/
 
 RUN cd /
 RUN pip3 install python-ldap
 
-RUN pip3 install -r /wo-api/requirements.txt \
-    && pip3 install -r /wo-api/optionals.txt
-COPY /wo-api/start.sh /
-COPY /wo-api/extended.sh /
-COPY /wo-api/while.sh /
-COPY /wo-api/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+RUN pip3 install -r /codecloudcoin/requirements.txt \
+    && pip3 install -r /codecloudcoin/optionals.txt
+COPY /codecloudcoin/start.sh /
+COPY /codecloudcoin/extended.sh /
+COPY /codecloudcoin/while.sh /
+COPY /codecloudcoin/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 RUN pip3 install psycopg2
 EXPOSE 4444
 HEALTHCHECK --interval=10s --timeout=10s --retries=5 \

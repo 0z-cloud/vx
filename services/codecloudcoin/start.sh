@@ -2,7 +2,7 @@
 
 # /while.sh
 
-# python3 /wo-api/woinc/create_db.py
+python3 /codecloudcoin/woinc/create_db.py
 
 # sleep 30
 
@@ -16,6 +16,6 @@ echo "------------------->----p-e-r-v-i-s-o----<---------"
 echo "MAIN START:-------->--u-p-e-r-v-i-s-o-r--<---------"
 echo "------------------->s-u-p-e-r-v-i-s-o-r-d<---------"
 echo "---------------------------------------------------"
-cd /wo-api/woinc && python3 ./run.py &
+cd /codecloudcoin/woinc && python3 ./run.py &
 /while.sh
 # exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
