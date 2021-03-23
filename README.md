@@ -79,7 +79,7 @@ Example run contain:
     - [+] Amazon Web Services (API)
     - [ ] Openstack
     - [ ] Huawei Cloud
-    - [ ] DigitalOcean
+    - [+] DigitalOcean
     - [ ] Azure
     - [ ] Apache (Citrix) CloudStack
     - [+] Google Compute Engine / Google Cloud Platform (API)

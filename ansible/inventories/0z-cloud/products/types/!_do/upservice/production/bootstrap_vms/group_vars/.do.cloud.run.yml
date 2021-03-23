@@ -1,0 +1,221 @@
+anycloud_virtual_machine_default_hard_disk_template_source_name: "ubuntu_18_04_64_20G_alibase_20181212.vhd"
+ansible_environment: production
+ansible_product: upservice
+count: 1
+anycloud_allocate_public_ip: yes
+#####
+
+cloud_bootstrap:
+
+  basic_roles:
+
+    - '!_bootstrap/update-dns-config'
+    - '!_bootstrap/ntp-client'
+    - '!_bootstrap/local-repository'
+    - auditd
+    - rsyslog
+    - ossim-agent
+
+  services:
+    inventory_groups_vars:
+        test-sentry-redis-io-cluster:
+            redis_public_port: 6379
+            redis_slave_public_port: 6380
+            redis_username: redis
+            redis_passowrd: dc1d494f7915da973d6c037357c548adbaee349e35
+
+  switches:
+    vswitch_01:
+        anycloud_virtual_cloud_name: "{{ anycloud_defaults_cloud_name }}"
+        anycloud_zone: "{{ anycloud_zone }}"
+        anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_description: "vSwitch_production"
+        anycloud_region: "{{ anycloud_region }}"
+        anycloud_defaults_virtual_cloud_cidr: '{{ anycloud_defaults_virtual_cloud_cidr }}'
+        anycloud_communication_device_id: "REPLACED"
+
+  vpc_zones:
+    vpc_0001:
+        anycloud_virtual_cloud_name: "{{ anycloud_defaults_cloud_name }}"
+        anycloud_region: "{{ anycloud_region }}"
+        anycloud_virtual_cloud_description: "{{ anycloud_virtual_cloud_description }}"
+        anycloud_virtual_zone_cidr_block: "{{ anycloud_defaults_virtual_cloud_cidr }}"
+
+  security_zones:
+    sg_zone_0001:
+        sg_group_id: "REPLACED"
+
+  servers:
+
+    # upservice_kube_04:
+    #     # Replaced after VMs bootstrapped in anycloud
+    #     network: "REPLACED"
+    #     ip: "upservice-kube-04-production_public_ip_address_REPLACED"
+    #     gw: "REPLACED"
+    #     #
+    #     anycloud_vm_vapp_box_name: "{{ anycloud_vm_vapp_box_name }}"
+    #     anycloud_vm_template_name: "{{ anycloud_vm_template_name }}"
+    #     name: "upservice-kube-04-production"
+    #     anycloud_vm_storage_configuration: "{{ anycloud_vm_storage_configuration }}"
+    #     anycloud_vm_performance_configuration: "{{ anycloud_vm_performance_configuration }}"
+    #     initial_only_dns_servers:
+    #         - "8.8.8.8"
+    #     ansible_inventory_groups:
+    #         - vx_vlan_all
+    #         - kubernetes-cluster
+    #         - kubernetes-master
+    #         - consul-cluster
+    #         - consul-clients
+    #         - master-bind-master-backend
+    #         - bind-master-glusterfs
+    #         - gitlab-runners
+    #         - teamcity-server
+    #         - teamcity-agent
+    #     ansible_inventory_vars:
+    #         swarm_node_type: "client"
+    #         consul_type: "client"
+    #         kubernetes_type: "master"
+    #         second_network: "REPLACED"
+    #         second_ip: "upservice-kube-04-production_private_ip_address_REPLACED"
+
+    # upservice_kube_03:
+    #     # Replaced after VMs bootstrapped in anycloud
+    #     network: "REPLACED"
+    #     ip: "upservice-kube-03-production_public_ip_address_REPLACED"
+    #     gw: "REPLACED"
+    #     #
+    #     anycloud_vm_vapp_box_name: "{{ anycloud_vm_vapp_box_name }}"
+    #     anycloud_vm_template_name: "{{ anycloud_vm_template_name }}"
+    #     name: "upservice-kube-03-production"
+    #     anycloud_vm_storage_configuration: "{{ anycloud_vm_storage_configuration }}"
+    #     anycloud_vm_performance_configuration: "{{ anycloud_vm_performance_configuration }}"
+    #     initial_only_dns_servers:
+    #         - "8.8.8.8"
+    #     ansible_inventory_groups:
+    #         - vx_vlan_all
+    #         - kubernetes-cluster
+    #         - kubernetes-worker
+    #         - consul-cluster
+    #         - cloud-bind-frontend-dns
+    #         - glusterfs-storage-cloud-bind-frontend-dns
+    #         - consul-masters
+    #         - swarm-cluster
+    #         - nginx-frontend
+    #         - settings
+    #         - core
+    #         - business
+    #         - guard
+    #         - demo
+    #         - metabase
+    #         - postgres-gitlab-cloud-persistent-target
+    #         - gitlab-runners
+    #     ansible_inventory_vars:
+    #         cloud_ns_name: "ns3-cloud"
+    #         other_ns_name: "ns3-office"
+    #         other_ns_ip: "other_child_dc_ip"
+    #         #other_ns_ip: "185.40.28.91"
+    #         swarm_node_type: "master"
+    #         consul_type: "master"
+    #         kubernetes_type: "client"
+    #         second_network: "REPLACED"
+    #         second_ip: "upservice-kube-03-production_private_ip_address_REPLACED"
+
+    upservice_kube_02:
+        # Replaced after VMs bootstrapped in anycloud
+        network: "REPLACED"
+        ip: "68.183.12.205"
+        gw: "REPLACED"
+        #
+        anycloud_vm_vapp_box_name: "{{ anycloud_vm_vapp_box_name }}"
+        anycloud_vm_template_name: "{{ anycloud_vm_template_name }}"
+        name: "upservice-kube-02-production"
+        anycloud_vm_storage_configuration: "{{ anycloud_vm_storage_configuration }}"
+        anycloud_vm_performance_configuration: "{{ anycloud_vm_performance_configuration }}"
+        initial_only_dns_servers:
+            - "8.8.8.8"
+        ansible_inventory_groups:
+            - vx_vlan_all
+            - kubernetes-cluster
+            - kubernetes-worker
+            - consul-cluster
+            - cloud-bind-frontend-dns
+            - glusterfs-storage-cloud-bind-frontend-dns
+            - consul-masters
+            - swarm-cluster
+            - nginx-frontend
+            - settings
+            - core
+            - business
+            - guard
+            - demo
+            - metabase
+            - docs
+            - postgres-gitlab-cloud-persistent-target
+            - gitlab-runners
+        ansible_inventory_vars:
+            cloud_ns_name: "ns2-cloud"
+            other_ns_name: "ns2-office"
+            other_ns_ip: "other_child_dc_ip"
+            #other_ns_ip: "185.40.28.92"
+            swarm_node_type: "master"
+            consul_type: "master"
+            kubernetes_type: "client"
+            second_network: "REPLACED"
+            second_ip: "10.110.0.3"
+
+    upservice_kube_01:
+        # Replaced after VMs bootstrapped in anycloud
+        network: "REPLACED"
+        ip: "165.22.197.107"
+        gw: "REPLACED"
+        #
+        anycloud_vm_vapp_box_name: "{{ anycloud_vm_vapp_box_name }}"
+        anycloud_vm_template_name: "{{ anycloud_vm_template_name }}"
+        name: "upservice-kube-01-production"
+        anycloud_vm_storage_configuration: "{{ anycloud_vm_storage_configuration }}"
+        anycloud_vm_performance_configuration: "{{ anycloud_vm_performance_configuration }}"
+        initial_only_dns_servers:
+            - "8.8.8.8"
+        ansible_inventory_groups:
+            - vx_vlan_all
+            - kubernetes-cluster
+            - kubernetes-worker
+            - consul-cluster
+            - cloud-bind-frontend-dns
+            - glusterfs-storage-cloud-bind-frontend-dns
+            - consul-masters
+            - swarm-cluster
+            - nginx-frontend
+            - settings
+            - core
+            - business
+            - guard
+            - demo
+            - metabase
+            - docs
+            - gitlab-server
+            - postgres-gitlab-cloud-persistent-target
+            - gitlab-runners
+        ansible_inventory_vars:
+            cloud_ns_name: "ns1-cloud"
+            other_ns_name: "ns1-office"
+            other_ns_ip: "other_child_dc_ip"
+            #other_ns_ip: "185.40.28.93"
+            swarm_node_type: "master"
+            consul_type: "master"
+            kubernetes_type: "client"
+            second_network: "REPLACED"
+            second_ip: "10.110.0.4"
+
+ssh_connect_type_self: "defaults"
+ssh_connect_type_via: "ansible_ssh_common_args='-o ProxyCommand=\"ssh -W %h:%p %r@10.16.131.250\"'"
+
+anycloud_domain: "upscloud.appservice.dev"
+
+#CURRENTLY ONLY CAN BE USED TEMPLATE DATASTORAGE FOR INITIAL CREATION VMs FROM TEMPLATE
+#-.-.-.->>-.-.-.-.->>-.-.-.-.->>-.-.-.-.->>-.-.-.-.->>-.-.-.-.->>-.-.-.-.->>-.-.-.-.->>
+
+anycloud_datacenter: "Linx-MSK-M8-6-16"
+
+dns_servers:
+   - 8.8.8.8
+   - 1.1.1.1

@@ -5,7 +5,7 @@
       - name: Load groupvars/product global shared settings
         include_vars: group_vars/products/{{ ansible_product }}/{{ item }}.yml
         with_items:
-          - alicloud
+          - do
           - main
 
       - name: Load groupvars/product global shared settings
@@ -14,12 +14,29 @@
           - attached
           - main
 
+
+
 - name: Starting the instance bootstrap and check
   hosts: localhost
+  tasks:
+    - name: Show 
+      debug:
+        msg: "{{ ansible_cloud_type }}"
+
+- name: Starting the instance bootstrap and check
+  hosts: localhost
+  vars_files:
+      - "inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/all.yml"
+      - "group_vars/products/{{ ansible_product }}/main.yml"
+      - "group_vars/products/{{ ansible_product }}/shared.yml"
+      - "group_vars/products/{{ ansible_product }}/{{ ansible_cloud_type }}.yml"
+      - "inventories/0z-cloud/products/types/!_{{ ansible_cloud_type }}/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+      - "group_vars/!_anyCloud/anyCloud.yml"
+      - "group_vars/all.yml"
   roles:
 
-      - name: Include role VPC Zone maintain
-        role: ./!_cloud/dc_integration/alicloud/vpc
+      - name: Include role VPC Zone maintain Create VMs
+        role: ./!_cloud/dc_integration/do/vm
 
-      - name: Include role vSwitch Zone maintain
-        role: ./!_cloud/dc_integration/alicloud/vswitch
+      # - name: Include role vSwitch Zone maintain
+      #   role: ./!_cloud/dc_integration/do/vswitch

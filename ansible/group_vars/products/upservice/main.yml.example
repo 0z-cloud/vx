@@ -1,0 +1,85 @@
+##########################################################################################################################################################################################################################################
+# MAIN.YML RESULT DOMAIN TO MERGE - Default environment variables and annotations, merge and determination
+##########################################################################################################################################################################################################################################
+anycloud_allocate_public_ip: True
+#########################################################################################################################################################################################################################################
+anycloud_domain_default: "woinc.space"
+##########################################################################################################################################################################################################################################
+# DOCKER REGISTRY CREDENTIALS
+initial_shared_runners_registration_token: "afafafsfh32t0gnioewg"
+initial_shared_runners_registration_username: "root"
+##########################################################################################################################################################################################################################################
+## DATACENTER ADAPTER SETTINGS = lf-edge-eve PARAMETRS
+anycloud_adapter_api_url_verify_ssl: true
+anycloud_adapter_api_url_version: 30.0
+anycloud_adapter_api_datacenter: lf-vx-z1e-vcd
+anycloud_adapter_api_url_http_uri: "https://vcd.vortex.ru/tenant/aim/"
+anycloud_adapter_api_url_endpoint: "10.10.10.7"
+#########################################################################################################################################################################################################################################
+## INSTANCE BOOTSTRAP ACCESS CREDENTIALS
+anycloud_adapter_api_user: "aim_admin"
+anycloud_adapter_api_password: 'r3155151!'
+anycloud_vm_access_pass: 7fagt2350cloud777
+#########################################################################################################################################################################################################################################
+# AnyCloud Instances parameters
+anycloud_adapter_image_hostname: "ai_dev_vm_"
+anycloud_virtual_machine_default_hard_disk_template_source_name: ubuntu_18_04_64_20G_alibase_20181212.vhd
+anycloud_virtual_machine_default_vm_template_vm_name: u2004_template64
+
+anycloud_vapp_template_name_of_template_container: u2004_template64
+anycloud_template_adapter_root_folder: "/"
+#########################################################################################################################################################################################################################################
+## AnyCloud: Provider Availiable by Performance configurations
+anycloud_virtual_machine_resources_primary_type: "ecs.c5.large"
+anycloud_virtual_machine_resources_middle_type: "ecs.c5.xlarge"
+#########################################################################################################################################################################################################################################
+## AnyCloud: Provider Network Limits maximum in/out in megabits/s
+anycloud_defaults_max_bandwidth_in: 200
+anycloud_defaults_max_bandwidth_out: 50
+##########################################################################################################################################################################################################################################
+## AnyCloud: Layout Common parameters
+anycloud_landscape_region: "eu-west-1"
+anycloud_landscape_region_sub_zone: "eu-west-1a"
+##########################################################################################################################################################################################################################################
+## AnyCloud: Network communication device settings
+##########################################################################################################################################################################################################################################
+# AnyCloud: Virtual Private Cloud Zones Declaration
+anycloud_internet_charge_type: PayByTraffic # PayByTraffic / PayByBandwidth
+anycloud_instance_charge_type: PostPaid # PostPaid
+##########################################################################################################################################################################################################################################
+## You must have minimal one enabled zone for works networks
+anycloud_adapter_vpc_zone_virtual_abstract:
+  zones: 
+    0z_template: 
+      index: 1
+      enabled: true # false || false
+      cidr: 172.16.0.0/16
+    main:
+      index: 2
+      enabled: true # true || false
+      cidr: 192.168.0.0/16
+  dns_servers:
+    - '8.8.8.8'
+    - '8.8.4.4'
+##########################################################################################################################################################################################################################################
+# ADAPTER SPECIFIC : Settings which getted from anycloud web console of your Cloud Provider account
+##########################################################################################################################################################################################################################################
+anycloud_adapter_virtual_cloud_cidr: '172.16.0.0/24'
+anycloud_adapter_global_virtual_cloud_cidr: "192.168.0.0/16"
+anycloud_adapter_domain_fqdn: "cloud.rnp.com"
+anycloud_adapter_virtual_datacenter: lf-vx-z1e-vcd
+anycloud_adapter_virtual_organization: AIM
+#########################################################################################################################################################################################################################################
+## VORTEX DEFAULT EXAMPLE 
+#########################################################################################################################################################################################################################################
+# anycloud_api_user_login: "aim_admin"
+# anycloud_api_access_key: "LTAI18PoV9VdqhK7!"
+# anycloud_api_secret_key: "UXQ6BBASSOBRIgVZjA7ZioDoCQrzjm"
+# anycloud_vm_access_pass: "12345"
+# anycloud_api_user_login: "{{ anycloud_adapter_api_user }}"
+# anycloud_api_access_key: "{{ anycloud_adapter_api_password }}"
+# anycloud_api_secret_key: "{{ anycloud_adapter_api_password }}"
+# alicloud_access_key: "{{ anycloud_api_access_key }}"
+##########################################################################################################################################################################################################################################
+# Personal Storage Settings Vault Done
+##########################################################################################################################################################################################################################################
