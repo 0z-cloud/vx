@@ -69,6 +69,7 @@ ansible/.oz_tools/
 _era_/
 
 ansible/inventories/0z-cloud/products/types/*/*/*/bootstrap_vms/group_vars/.vagrant.cloud.run.yml
+ansible/inventories/0z-cloud/products/types/*/*/*/bootstrap_vms/group_vars/.do.cloud.run.yml
 
 docker-compose.yml
 
@@ -79,3 +80,4 @@ services/ogame_php/.mariadb/**
 services/ogame_php/.mariadb/
 services/ogame_php/.mariadb
 services/ogame_php/\.mariadb/
+
