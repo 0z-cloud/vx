@@ -268,8 +268,8 @@ cloud_bootstrap:
             name: "upservice-kube-01-production"
             # IMPLEMENT DHCP!
             # RE-Vx TEMPLATE RFC - 
-            ip: "upservice-kube-01-production_public_ip_address_REPLACED"
-            gw: "upservice-kube-01-production_public_ip_gateway_REPLACED"
+            ip: "165.22.197.107"
+            gw: "165.22.192.1"
             # gw: "10.10.10.1"
             # ip: "REPLACED"
             # ip: "10.10.11.104"
@@ -388,7 +388,7 @@ cloud_bootstrap:
                 #second_network: "upservice-kube-01_second_network:_REPLACED"
                 second_iface: "REPLACED"
                 # second_iface: "upservice-kube-01_second_iface_REPLACED"
-                second_ip: "upservice-kube-01-production_private_ip_address_REPLACED"
+                second_ip: "10.110.0.4"
                 # second_network_subnet: "255.255.255.0"
                 second_network_subnet: "REPLACED"
                 # second_network_subnet: "upservice-kube-01_second_network_subnet_REPLACED"
@@ -452,8 +452,8 @@ cloud_bootstrap:
             #################################################################################################################################################################################################################################
             # IMPLEMENT DHCP!
             # RE-Vx TEMPLATE RFC - ip: "VX GET upservice-kube-22_public_ip_address_REPLACED"
-            ip: "upservice-kube-02-production_public_ip_address_REPLACED"
-            gw: "upservice-kube-02-production_public_ip_gateway_REPLACED"
+            ip: "68.183.12.205"
+            gw: "68.183.0.1"
             network: "REPLACED"
             network_name: "VM Network"
             # DHCP / STATIC
@@ -554,7 +554,7 @@ cloud_bootstrap:
                 second_network_zone: "cluster"
                 second_network_cluster_group: "nginx-frontend"
                 second_network: "VM Network"
-                second_ip: "upservice-kube-02-production_private_ip_address_REPLACED"
+                second_ip: "10.110.0.3"
                 second_iface: "ens192"
                 # second_ip: "10.10.18.102" 
                 # second_network_subnet: "255.255.255.0"
@@ -613,8 +613,8 @@ cloud_bootstrap:
             #################################################################################################################################################################################################################################
             # IMPLEMENT DHCP!
             # RE-Vx TEMPLATE RFC - ip: "VX GET upservice-kube-04_public_ip_address_REPLACED"
-            ip: "upservice-kube-03-production_public_ip_address_REPLACED"
-            gw: "upservice-kube-03-production_public_ip_gateway_REPLACED"
+            ip: "134.209.196.3"
+            gw: "134.209.192.1"
             network: "REPLACED"
             network_name: "VM Network"
             # DHCP / STATIC
@@ -735,7 +735,7 @@ cloud_bootstrap:
                 #second_network: "upservice-kube-01_second_network:_REPLACED"
                 second_iface: "REPLACED"
                 # second_iface: "upservice-kube-01_second_iface_REPLACED"
-                second_ip: "upservice-kube-03-production_private_ip_address_REPLACED"
+                second_ip: "10.110.0.6"
                 second_network_subnet: "REPLACED"
                 # second_network_subnet: "255.255.255.0"
                 # second_network_subnet: "upservice-kube-01_second_network_subnet_REPLACED"
@@ -795,8 +795,8 @@ cloud_bootstrap:
             #################################################################################################################################################################################################################################
             # IMPLEMENT DHCP!
             # RE-Vx TEMPLATE RFC - ip: "VX GET upservice-kube-04_public_ip_address_REPLACED"
-            ip: "upservice-kube-04-production_public_ip_address_REPLACED"
-            gw: "upservice-kube-04-production_public_ip_gateway_REPLACED"
+            ip: "142.93.237.184"
+            gw: "142.93.224.1"
             network: "REPLACED"
             network_name: "VM Network"
             # DHCP / STATIC
@@ -915,7 +915,7 @@ cloud_bootstrap:
                 #second_network: "upservice-kube-04_second_network:_REPLACED"
                 second_iface: "REPLACED"
                 #second_iface: "upservice-kube-04_second_iface_REPLACED"
-                second_ip: "upservice-kube-04-production_private_ip_address_REPLACED"
+                second_ip: "10.110.0.5"
                 second_network_subnet: "REPLACED"
                 # second_network_subnet: "upservice-kube-04_second_network_subnet_REPLACED"
                     #################################################################################################################################################################################################################################

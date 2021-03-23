@@ -171,7 +171,7 @@ if [ ! -z $target_inventory ]; then
         echo -e "         ${GREEN}RUNNUNG V.PY TO GENERATE ${NC}cloud inventory: ${RED}${inventory}${NC}"
         echo -e "         ${GREEN}Current ${NC}cloud inventory: ${RED}${inventory}${NC}"
         rm -rf ${ansible_path}/inventories/products/$product/$inventory/inventory
-        ${ansible_path}/inventories/0z-cloud/products/types/!_${typeofcloud}/$product/$inventory/v.py --connection_type ${connection_type} --product ${product} --cloudtype ${typeofcloud} --environment ${inventory} >> ${ansible_path}/inventories/products/$product/$inventory/inventory
+        ${ansible_path}/inventories/0z-cloud/products/types/!_${typeofcloud}/$product/$inventory/v.py --file ".dynamic.all.yml" --connection_type ${connection_type} --product ${product} --cloudtype ${typeofcloud} --environment ${inventory} >> ${ansible_path}/inventories/products/$product/$inventory/inventory
 
         if [[ ! -z "$before_inventory_parent" ]]; then
         
@@ -197,7 +197,7 @@ if [ ! -z $target_inventory ]; then
         check_target_inventory_dir;
 
         rm -rf ${ansible_path}/inventories/products/$product/$inventory/inventory
-        ${ansible_path}/inventories/0z-cloud/products/types/!_${typeofcloud}/$product/$source_original_inventoryname/v.py --connection_type ${connection_type} --product ${product} --cloudtype ${typeofcloud} --environment ${source_original_inventoryname} >> ${ansible_path}/inventories/products/$product/$inventory/inventory
+        ${ansible_path}/inventories/0z-cloud/products/types/!_${typeofcloud}/$product/$source_original_inventoryname/v.py --file ".dynamic.all.yml" --connection_type ${connection_type} --product ${product} --cloudtype ${typeofcloud} --environment ${source_original_inventoryname} >> ${ansible_path}/inventories/products/$product/$inventory/inventory
         
         # echo "./inventories/0z-cloud/products/types/\!_${typeofcloud}/$product/$inventory/${connection_type} --connection_type >> ./inventories/products/$product/$inventory/inventory"
 
@@ -231,7 +231,7 @@ else
         check_target_group_vars_ansible_root;
         echo -e "         ${GREEN}Current ${NC}cloud inventory: ${RED}${inventory}${NC}"
         rm -rf ${ansible_path}/inventories/products/$product/$inventory/inventory
-        ${ansible_path}/inventories/0z-cloud/products/types/!_${typeofcloud}/$product/$inventory/v.py --connection_type ${connection_type} --product ${product} --cloudtype ${typeofcloud} --environment ${inventory} >> ${ansible_path}/inventories/products/$product/$inventory/inventory
+        ${ansible_path}/inventories/0z-cloud/products/types/!_${typeofcloud}/$product/$inventory/v.py  --file ".dynamic.all.yml" --connection_type ${connection_type} --product ${product} --cloudtype ${typeofcloud} --environment ${inventory} >> ${ansible_path}/inventories/products/$product/$inventory/inventory
 
         if [[ ! -z "$before_inventory_parent" ]]; then
         
@@ -253,7 +253,7 @@ else
         check_target_inventory_dir;
 
         rm -rf ${ansible_path}/inventories/products/$product/$inventory/inventory
-        ${ansible_path}/inventories/0z-cloud/products/types/!_${typeofcloud}/$product/$inventory/v.py --connection_type ${connection_type} --product ${product} --cloudtype ${typeofcloud} --environment ${inventory} >> ${ansible_path}/inventories/products/$product/$inventory/inventory
+        ${ansible_path}/inventories/0z-cloud/products/types/!_${typeofcloud}/$product/$inventory/v.py  --file ".dynamic.all.yml" --connection_type ${connection_type} --product ${product} --cloudtype ${typeofcloud} --environment ${inventory} >> ${ansible_path}/inventories/products/$product/$inventory/inventory
         
         # echo "./inventories/0z-cloud/products/types/\!_${typeofcloud}/$product/$inventory/${connection_type} --connection_type >> ./inventories/products/$product/$inventory/inventory"
 

@@ -1899,7 +1899,7 @@ run_bootstrap_and_check_infra(){
                     
                     " "info"
 
-        function_selector_runner ansible-playbook -i "$ansible_dir"/inventories/0z-cloud/products/types/\!_"${typeofcloud}"/"$product"/"$inventory"/bootstrap_vms/ "$ansible_dir"/\!_root_playbooks/"$typeofcloud"/bootstrap-ng.yml -e ansible_product="$product" -e ansible_environment="$inventory" -e stage="0"
+        function_selector_runner ansible-playbook -i "$ansible_dir"/inventories/0z-cloud/products/types/\!_"${typeofcloud}"/"$product"/"$inventory"/bootstrap_vms/ "$ansible_dir"/\!_root_playbooks/"$typeofcloud"/bootstrap-ng.yml -e ansible_product="$product" -e ansible_environment="$inventory" -e ansible_cloud_type="$typeofcloud" -e stage="0"
 
     fi
 }
@@ -2302,7 +2302,7 @@ development_run_bootstrap_and_check_infra(){
 
             #for i in {1..$(stty size | cut -d" " -f2)};do echo -n -e "${RED}=${NC}";done
 
-    function_selector_runner ansible-playbook -i "$ansible_dir"/inventories/0z-cloud/products/types/\!_"${typeofcloud}"/"$product"/"$inventory"/bootstrap_vms/ "$ansible_dir"/\!_root_playbooks/"$typeofcloud"/bootstrap-ng.yml -e ansible_product="$product" -e ansible_environment="$inventory" -e stage="0"
+    function_selector_runner ansible-playbook -i "$ansible_dir"/inventories/0z-cloud/products/types/\!_"${typeofcloud}"/"$product"/"$inventory"/bootstrap_vms/ "$ansible_dir"/\!_root_playbooks/"$typeofcloud"/bootstrap-ng.yml -e ansible_product="$product" -e ansible_environment="$inventory"  -e ansible_cloud_type="$typeofcloud" -e stage="0"
 
 
     # if [[ ! -z "$ansible_datacenter" ]]; then
@@ -2344,13 +2344,13 @@ development_run_bootstrap_and_check_infra(){
 
     # OBTAIN CERTIFICATES
 
-            auto_type;
+            # auto_type;
 
-            function_selector_runner ansible-playbook -i "$ansible_dir"/inventories/products/$product/$inventory/ \
-                "$ansible_dir"/playbook-library/!_bootstrap/letsencrypt-ca-sync-pacemaker.yml \
-                -u $username --become-user root \
-                --become -e "ansible_become_pass='$password'" -e "ansible_ssh_pass='$password'" -e stage="3"
-                # -vvvv
+            # function_selector_runner ansible-playbook -i "$ansible_dir"/inventories/products/$product/$inventory/ \
+            #     "$ansible_dir"/playbook-library/!_bootstrap/letsencrypt-ca-sync-pacemaker.yml \
+            #     -u $username --become-user root \
+            #     --become -e "ansible_become_pass='$password'" -e "ansible_ssh_pass='$password'" -e stage="3"
+            #     # -vvvv
 
 
     # V.O.R.T.E.X
@@ -2879,7 +2879,7 @@ lf_edge_iac_bootstrap(){
 
     echo -e "${GREEN}{******* LF EDGE EVE IaC 0z-cloud BOOTSTRAPING STARTED *********************************************************************************************************************************************************************************}${NC}"
 
-    function_selector_runner ansible-playbook -i "$ansible_dir"/inventories/0z-cloud/products/types/\!_"${typeofcloud}"/"$product"/"$inventory"/bootstrap_vms/ "$ansible_dir"/\!_root_playbooks/"$typeofcloud"/bootstrap-ng.yml -e ansible_product="$product" -e ansible_environment="$inventory" -e stage="0"
+    function_selector_runner ansible-playbook -i "$ansible_dir"/inventories/0z-cloud/products/types/\!_"${typeofcloud}"/"$product"/"$inventory"/bootstrap_vms/ "$ansible_dir"/\!_root_playbooks/"$typeofcloud"/bootstrap-ng.yml  -e ansible_cloud_type="$typeofcloud" -e ansible_product="$product" -e ansible_environment="$inventory" -e stage="0"
 
     echo -e "${GREEN}{******* LF EDGE EVE IaC 0z-cloud BOOTSTRAP, SLEEP PLACE **********************************************************************************************************************************************************************}${NC}"
 
