@@ -13,6 +13,24 @@
   register: create_instance_result
   with_dict: "{{ cloud_bootstrap.servers }}"
 
+- name: adad
+  debug: 
+    msg: "
+      {{ item.value.droplet.name }} 
+      
+      {{ item.value.droplet.networks.v4[1].ip_address }} {{ item.value.droplet.networks.v4[1].gateway }}
+
+      {{ item.value.droplet.networks.v4[0].ip_address }} {{ item.value.droplet.networks.v4[0].gateway }}
+
+      "
+    
+    #|
+      # "{% for it in item %}{% if it == 'data' %}{{ item }}{% endif %}{% endfor %}"
+    # msg: "ID is {{ item.data.droplet.id }}, IP is {{ item.data.ip_address }}"
+  with_dict: "{{ create_instance_result.results }}"
+  when: "item.key == 'data'"
+
+
 - name: Copy 0z inventory to work ignored copy for generate the local inventory
   copy:
     src: "inventories/0z-cloud/products/types/!_do/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
@@ -23,7 +41,15 @@
   lineinfile:
     path: inventories/0z-cloud/products/types/!_do/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/.do.cloud.run.yml
     regexp: '^(.*\ip: "{{ item.value.droplet.name }}_public_ip_address_REPLACED")'
-    line: '        ip: "{{ item.value.droplet.networks.v4[1].ip_address }}"'
+    line: '            ip: "{{ item.value.droplet.networks.v4[1].ip_address }}"'
+  with_dict: "{{ create_instance_result.results }}"
+  when: "destroy_instances is not defined and item.key == 'data'"
+
+- name: Line public_ip_gateway in file change for dynamic inventory
+  lineinfile:
+    path: inventories/0z-cloud/products/types/!_do/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/.do.cloud.run.yml
+    regexp: '^(.*\gw: "{{ item.value.droplet.name }}_public_ip_gateway_REPLACED")'
+    line: '            gw: "{{ item.value.droplet.networks.v4[1].gateway }}"'
   with_dict: "{{ create_instance_result.results }}"
   when: "destroy_instances is not defined and item.key == 'data'"
 
