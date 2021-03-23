@@ -13,6 +13,27 @@
   register: create_instance_result
   with_dict: "{{ cloud_bootstrap.servers }}"
 
+- name: Show IaC returned create_instance_result full results from Cloud Api DigitalOcean
+  debug: 
+    msg: "{{ create_instance_result }}"
+
+- name: adad
+  debug: 
+    msg: "
+      {{ item.value.droplet.name }} 
+      
+      {{ item.value.droplet.networks.v4[1].ip_address }} {{ item.value.droplet.networks.v4[1].gateway }}
+
+      {{ item.value.droplet.networks.v4[0].ip_address }} {{ item.value.droplet.networks.v4[0].gateway }}
+
+      "
+    
+    #|
+      # "{% for it in item %}{% if it == 'data' %}{{ item }}{% endif %}{% endfor %}"
+    # msg: "ID is {{ item.data.droplet.id }}, IP is {{ item.data.ip_address }}"
+  with_dict: "{{ create_instance_result.results }}"
+  when: "item.key == 'data'"
+
 - name: Copy 0z inventory to work ignored copy for generate the local inventory
   copy:
     src: "inventories/0z-cloud/products/types/!_do/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
