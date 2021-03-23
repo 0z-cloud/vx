@@ -398,7 +398,7 @@ def main(argv):
     else:
         connection_type_result = "none"
     bootstrap_file_dynamic_check = "bootstrap_vms/group_vars/.dynamic.all.yml"
-    bootstrap_file_static_check = "bootstrap_vms/group_vars/all.yml"
+    bootstrap_file_static_check = "bootstrap_vms/group_vars/.dynamic.all.yml"
     path_normalized_loc_top = get_runpath()
     full_pre_path_loc_top = "/" + path_normalized_loc_top + loadpath_all_declared
     replace_duplicate_slash_path_loc_top = full_pre_path_loc_top.replace('\\\\', '\\')

@@ -34,12 +34,12 @@
 - name: Copy 0z inventory to work ignored copy for generate the local inventory
   copy:
     src: "inventories/0z-cloud/products/types/!_do/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
-    dest: "inventories/0z-cloud/products/types/!_do/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/.do.cloud.run.yml"
+    dest: "inventories/0z-cloud/products/types/!_do/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/.dynamic.all.yml"
   when: destroy_instances is not defined
 
 - name: Line public_ip_address in file change for dynamic inventory
   lineinfile:
-    path: inventories/0z-cloud/products/types/!_do/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/.do.cloud.run.yml
+    path: inventories/0z-cloud/products/types/!_do/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/.dynamic.all.yml
     regexp: '^(.*\ip: "{{ item.value.droplet.name }}_public_ip_address_REPLACED")'
     line: '            ip: "{{ item.value.droplet.networks.v4[1].ip_address }}"'
   with_dict: "{{ create_instance_result.results }}"
@@ -47,7 +47,7 @@
 
 - name: Line public_ip_gateway in file change for dynamic inventory
   lineinfile:
-    path: inventories/0z-cloud/products/types/!_do/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/.do.cloud.run.yml
+    path: inventories/0z-cloud/products/types/!_do/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/.dynamic.all.yml
     regexp: '^(.*\gw: "{{ item.value.droplet.name }}_public_ip_gateway_REPLACED")'
     line: '            gw: "{{ item.value.droplet.networks.v4[1].gateway }}"'
   with_dict: "{{ create_instance_result.results }}"
@@ -55,8 +55,8 @@
 
 - name: Line private_ip_address in file change for dynamic inventory
   lineinfile:
-    path: inventories/0z-cloud/products/types/!_do/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/.do.cloud.run.yml
-    regexp: '^(.*\_ip: "{{ item.value.droplet.name }}_private_ip_address_REPLACED")'
-    line: '            second_ip: "{{ item.value.droplet.networks.v4[0].ip_address }}"'
+    path: inventories/0z-cloud/products/types/!_do/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/.dynamic.all.yml
+    regexp: '^(.*\ip: "{{ item.value.droplet.name }}_private_ip_address_REPLACED")'
+    line: '                second_ip: "{{ item.value.droplet.networks.v4[0].ip_address }}"'
   with_dict: "{{ create_instance_result.results }}"
   when: "destroy_instances is not defined and item.key == 'data'"
