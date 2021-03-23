@@ -1,0 +1,96 @@
+---
+
+# Settings which getted from alicloud web console for your account
+anycloud_ci_cd_vcs_project_checkout_service_auth_identity_pass_or_token: "your deploy key in your brain memory is secret for decrypt you own wallet with shared password"
+anycloud_ci_cd_vcs_project_checkout_service_auth_identity_user: "root"
+
+alicloud_access_key: "vortex"
+anycloud_api_secret_key: "vortex"
+anycloud_vm_access_pass: 1235
+
+# create ECS instance parameters
+anycloud_vm_vapp_box_name: "ubuntu_18_04_64_20G_alibase_20181212.vhd"
+# instance_name: "Instance_From_Ansible"
+instance_description: "Description - vortex host {{ ansible_environment }}"
+# host_name: "my-instance-from-ansible"
+password: "Test12345"
+anycloud_virtual_machine_resources_primary_type: "ecs.c5.large"
+
+# common parameters
+anycloud_landscape_region: "eu-west-1"
+anycloud_landscape_region_sub_zone: "eu-west-1a"
+
+
+# create vswitch parameters
+#anycloud_adapter_virtual_cloud_cidr: '172.16.0.0/24'
+#anycloud_virtual_cloud_name: "vSwitch_{{ ansible_environment }}"
+#anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_description: "Virtual AliCloud vSwitch for {{ ansible_environment }}"
+
+# create vpc parameters
+anycloud_adapter_virtual_cloud_cidr: "172.16.0.0/12"
+anycloud_virtual_cloud_name: "vZone_Sector_Network_Exchange_{{ ansible_product }}_zone_{{ ansible_environment }}_{{ ansible_datacenter }}"
+anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_description: "Create a new VPC resource {{ ansible_environment }} {{ ansible_datacenter }}"
+
+
+anycloud_zone_adapter_cloud_name: "vZone_Sector_Network_Exchange_{{ ansible_product }}_Device_{{ ansible_environment }}_{{ ansible_datacenter }}"
+anycloud_zone_adapter_zone: earth
+anycloud_zone_adapter_region: worldwide
+anycloud_zone_adapter_vpc_zone_virtual_abstract_layout: all
+anycloud_zone_adapter_virtual_cloud_primary_network_virtual_communication_device_description: "Virtual Primary on {{ anycloud_zone_adapter_region }} Cloud Network Communication Device for {{ ansible_environment }} on zone {{ anycloud_zone_adapter_zone }}"
+anycloud_zone_adapter_virtual_cloud_primary_network_virtual_communication_device_dns_suffix: "dn"
+
+sg_name: "SG_{{ ansible_environment }}"
+
+# create security parameters
+group_name: "Security_Group_{{ ansible_environment }}"
+group_description: "Create a new security group resource {{ ansible_environment }}"
+group_inboundRules:
+  - ip_protocol: tcp
+    port_range: 22/22
+    source_cidr_ip: 0.0.0.0/0
+    priority: 1
+  - ip_protocol: tcp
+    port_range: 53/53
+    source_cidr_ip: 0.0.0.0/0
+    priority: 1
+  - ip_protocol: udp
+    port_range: 53/53
+    source_cidr_ip: 0.0.0.0/0
+    priority: 1
+  - ip_protocol: tcp
+    port_range: 80/80
+    source_cidr_ip: 0.0.0.0/0
+    priority: 1
+  - ip_protocol: tcp
+    port_range: 443/443
+    source_cidr_ip: 0.0.0.0/0
+    priority: 1
+group_outboundRules:
+  - ip_protocol: tcp
+    port_range: 80/80
+    dest_cidr_ip: 0.0.0.0/0
+    priority: 1
+  - ip_protocol: tcp
+    port_range: 443/443
+    dest_cidr_ip: 10.0.0.0/0
+    priority: 1
+
+
+anycloud_allocate_public_ip: True
+anycloud_internet_charge_type: "PayByBandwidth"
+anycloud_defaults_max_bandwidth_in: 200
+anycloud_defaults_max_bandwidth_out: 50
+anycloud_instance_extra_metadata_and_tags: {created_by: "vortex-cloud-{{ ansible_environment }}",created_from: "vortex-ecs-vpc-{{ ansible_environment }}"}
+
+anycloud_instance_system_disk_category: "cloud_ssd"
+anycloud_instance_system_disk_size: 50
+
+anycloud_one_instance_duplicates_count: 2
+
+# create ECS disk parameters
+disk_name: "cloud_disk"
+disk_category: "cloud_ssd"
+disk_description: "Description - vortex host {{ ansible_environment }}"
+data_disk_size: 80
+disk_tags: [{tag_key: "created_by", tag_value: "vortex-cloud-{{ ansible_environment }}"}, {tag_key: "created_from", tag_value: "vortex-ecs-vpc-{{ ansible_environment }}"}]
+delete_with_instance: False

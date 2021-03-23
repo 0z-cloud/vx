@@ -1,0 +1,7 @@
+# Settings which getted from your vsphere web console for your account
+
+vsphere_ip: "10.0.0.100"
+anycloud_adapter_api_url_endpoint_fqdn: "vortex-vcsa-01.vortex.com
+anycloud_adapter_api_user: "administrator@vsphere.local"
+vsphere_esxi_login: "root"
+anycloud_adapter_api_password: "vortex"

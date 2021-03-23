@@ -1,6 +1,6 @@
 ###############################################################
 # INVENTORY PRIMARY INFO
-# ansible_product: lf-edge-eve
+# ansible_product: upservice
 # Vx & EVE EDGE MVP
 ###############################################################
 ansible_lf_eden_eve_hypervisor_cloud_integration: true
@@ -20,7 +20,7 @@ MAC_OSX_DOCKER_API_HTTP_LISTEN: "127.0.0.1/32"
 
 ###############################################################
 
-ansible_product: lf-edge-eve
+ansible_product: upservice
 ansible_git_project_path: "lf-edge/adam-vortex"
 ansible_environment: production
 ansible_application_core_name_settings_storage_environment: production
@@ -223,7 +223,7 @@ MINIO_ACCESS_KEY: Jhs617UAGfg1A15
 default_mail_relayhost_address: "smtp.gmail.com"
 default_mail_relayhost_port: "587"
 default_mail_relay_host_port: "{{ default_mail_relayhost_address }}:{{ default_mail_relayhost_port }}"
-default_mail_username: "admin@lf-vx-z1e-vcd.fleandr.com"
+default_mail_username: "admin@upscloud.appservice.dev"
 default_mail_password: "2304i10i120i412"
 default_localhost_relay: "localhost"
 default_localhost_port: "25"
@@ -231,16 +231,16 @@ default_localhost_stmp_string: "{{ default_localhost_relay }}:{{ default_localho
 
 # CLAMAV
 
-CLAMAV_MAILING_USER: clamav-scanner@lf-vx-z1e-vcd.fleandr.com
+CLAMAV_MAILING_USER: clamav-scanner@upscloud.appservice.dev
 CLAMAV_MAILING_HOSTNAME_URI: "smtp://{{ default_localhost_relay }}:{{ default_localhost_port }}"
 CLAMAV_MAILING_PASSWORD: "example-password"
-CLAMAV_MAILING_DESTINATION: pci-devops@lf-vx-z1e-vcd.fleandr.com
+CLAMAV_MAILING_DESTINATION: pci-devops@upscloud.appservice.dev
 
 # OSSEC
 
 ossec_wazuh_smtp_server: "{{ default_mail_relayhost_address }}"
 ossec_wazuh_email_from: "{{ default_mail_username }}"
-ossec_wazuh_email_to: "security@lf-vx-z1e-vcd.fleandr.com"
+ossec_wazuh_email_to: "security@upscloud.appservice.dev"
 ossec_wazuh_email_notification: yes
 ossec_wazuh_email_alerts_log: yes
 ossec_wazuh_use_password: yes
@@ -281,14 +281,14 @@ METABASE_PLACEMENT_SWARM_CLUSTER_TYPE: worker
 
 # MAILING SETTINGS
 
-APP_DOMAIN: lf-vx-z1e-vcd.fleandr.com
+APP_DOMAIN: upscloud.appservice.dev
 APP_COMPANY_NAME: "lf-edge"
-APP_SUPPORT_EMAIL: support@lf-vx-z1e-vcd.fleandr.com
-APP_MAIL_DOMAIN: lf-vx-z1e-vcd.fleandr.com
+APP_SUPPORT_EMAIL: support@upscloud.appservice.dev
+APP_MAIL_DOMAIN: upscloud.appservice.dev
 APP_MAILER_SERVER: smtp.gmail.com
 APP_MAILER_PASSWORD: 2304i10i120i412
-APP_MAILER_USER: admin@lf-vx-z1e-vcd.fleandr.com
-APP_NOREPLY_EMAIL: noreply@lf-vx-z1e-vcd.fleandr.com
+APP_MAILER_USER: admin@upscloud.appservice.dev
+APP_NOREPLY_EMAIL: noreply@upscloud.appservice.dev
 
 # APPLICATION SETTINGS
 
@@ -390,11 +390,11 @@ consul_public_prefix: "ru"
 cosnul_private_prefix: "consul"
 consul_powerdns_prefix: "powerdns"
 consul_domain_name: "adam.eden-vortice.cloud.eve.vortice.eden.consul."
-consul_merge_domain_name: "lf-vx-z1e-vcd.fleandr.com."
+consul_merge_domain_name: "upscloud.appservice.dev."
 k8_cloud_domain_name_public_prefix: "k8"
 consul_cloud_domain_name_public_prefix: "cloud"
-merge_consul_domain: "lf-vx-z1e-vcd.fleandr.com"
-public_consul_domain: "lf-vx-z1e-vcd.fleandr.com"
+merge_consul_domain: "upscloud.appservice.dev"
+public_consul_domain: "upscloud.appservice.dev"
 internal_consul_domain: "adam.eden-vortice.cloud.eve.vortice.eden.consul"
 consul_domain_parent_name: "local.cloud.eve.vortice.eden"
 consul_internal_servers_sub_domain_zone: "server.{{ public_consul_domain }}"
@@ -444,8 +444,8 @@ ansible_global_backend_site_name: "backend.{{ public_consul_domain }}"
 ansible_global_admin_panel_site_name: "admin-panel.{{ public_consul_domain }}"
 
 # Primary Production Domain for public services
-production_public_domain: "lf-vx-z1e-vcd.fleandr.com"
-primary_parent_shared_inventory_domain: "lf-vx-z1e-vcd.fleandr.com"
+production_public_domain: "upscloud.appservice.dev"
+primary_parent_shared_inventory_domain: "upscloud.appservice.dev"
 
 # gitlab-server and registry
 
@@ -795,9 +795,9 @@ node_exporter_service_listen_port: 9103
 
 # Alert Manager
 alert_manager_notify_to:
-  - 'ros@lf-vx-z1e-vcd.fleandr.com'
-  - 'support@lf-vx-z1e-vcd.fleandr.com'
-  - 'support@lf-vx-z1e-vcd.fleandr.com'
+  - 'ros@upscloud.appservice.dev'
+  - 'support@upscloud.appservice.dev'
+  - 'support@upscloud.appservice.dev'
 alert_manager_notify_host: "{{ default_mail_relay_host_port }}"
 alert_manager_notify_from: "{{ default_mail_username }}"
 alert_manager_notify_pass: "{{ default_mail_password }}"

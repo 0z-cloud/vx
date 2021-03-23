@@ -1,0 +1,260 @@
+---
+#########################################################################################################################################################################################################################################
+# Personal Storage Settings Vault Template 
+#
+# VCS Group: vortex
+# Product: lf-edge-eve 
+# Repository: lf-edge-eve 
+# user: westsouthnight 
+# current: stable
+# salt: mashumoto
+# vector: 751888
+# timeto: zen...
+# Environment: template
+# Usage: anycloud
+#########################################################################################################################################################################################################################################
+
+#########################################################################################################################################################################################################################################
+# AnyCloud: Default Settings Configuration 
+#########################################################################################################################################################################################################################################
+
+## VIRTUAL ABSTRACTS PART ###############################################################################################################################################################################################################
+# anycloud_default in values by 0z template, if not used ansible get from 0z defaults, see README.md in oz-inventory
+# anycloud_adapter_virtual_cloud_application_box_zone: box_zone_index
+# anycloud_adapter_virtual_cloud_application_box_scope: box_zone_scope
+#
+anycloud_adapter_virtual_cloud_application_box_sector: "{{ ansible_product }}{% raw %}-{% endraw %}{{ ansible_environment }}{% raw %}-{% endraw %}{{ ansible_datacenter }}{% raw %}-{% endraw %}{{ ansible_datacenter_location }}"
+
+#########################################################################################################################################################################################################################################
+## VCS CHECKOUT AUTH SETTINGS TO GITLAB REGISTRY/REGISTRYv2/NEXUS/etc 
+#########################################################################################################################################################################################################################################
+#
+anycloud_ci_cd_vcs_project_checkout_service_auth_identity_pass_or_token: "WNvmgAHH-qYec3VPSJcC"
+anycloud_ci_cd_vcs_project_checkout_service_auth_identity_user: "root"
+
+#########################################################################################################################################################################################################################################
+## Virtual Private Cloud Config 
+#########################################################################################################################################################################################################################################
+#
+
+##########################################################################################################################################################################################################################################
+## AnyCloud: Network Zone Communication Network Configuration
+##########################################################################################################################################################################################################################################
+#
+anycloud_adapter_virtual_cloud_cidr: '172.16.0.0/24'
+anycloud_adapter_virtual_cloud_primary_network_virtual_communication_cidr: "192.168.103.1/24"
+#anycloud_defaults_virtual_cloud_primary_network_virtual_communication_cidr_static_range: 
+anycloud_adapter_virtual_cloud_primary_network_virtual_communication_cidr_static_range:
+  - "192.168.103.5-192.168.103.10"
+  - "192.168.103.15-192.168.103.20"
+
+anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_dns_suffix: "dn"
+anycloud_virtual_cloud_name: "anycloud_in_{{ anycloud_region }}-{{ anycloud_zone }}-{{ ansible_datacenter }}_{{ ansible_product }}_{{ ansible_environment }}"
+anycloud_virtual_cloud_description: "vZone_{{ anycloud_zone }}_Sector_Network_{{ anycloud_region }}_Exchgange_{{ ansible_product }}_zone_{{ ansible_environment }}"
+anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_description: "Virtual Primary Cloud Network Communication Device On Environment - {{ ansible_environment }}"
+
+anycloud_allocate_public_ip: True
+anycloud_adapter_global_virtual_cloud_cidr: "192.168.0.0/16"
+anycloud_adapter_domain_fqdn: "cloud.rnp.com"
+anycloud_adapter_api_url_verify_ssl: false
+anycloud_adapter_api_url_version: 30.0
+anycloud_adapter_api_datacenter: lf-vx-z1e-vcd
+anycloud_adapter_virtual_datacenter: lf-vx-z1e-vcd
+anycloud_adapter_virtual_organization: AIM
+anycloud_adapter_virtual_application_box_sector: vapp_{{ ansible_environment }}_{{ ansible_product }}_sector
+
+#########################################################################################################################################################################################################################################
+## TARGET PART AUTH & API URI
+#########################################################################################################################################################################################################################################
+#
+anycloud_adapter_api_url_endpoint_fqdn: vcd.cloud.rnp.com
+anycloud_adapter_api_url_endpoint: vcd.vortex.ru
+anycloud_adapter_api_user: "aim_admin"
+anycloud_adapter_api_password: "12345678Qq!"
+
+#########################################################################################################################################################################################################################################
+## INSTANCE BOOTSTRAP ACCESS CREDENTIALS
+#########################################################################################################################################################################################################################################
+#
+anycloud_api_secret_key: "{{ anycloud_api_access_key }}"
+anycloud_vm_access_pass: "12345"
+
+#########################################################################################################################################################################################################################################
+## VORTEX DEFAULT EXAMPLE 
+#########################################################################################################################################################################################################################################
+# anycloud_api_user_login: "aim_admin"
+# anycloud_api_access_key: "LTAI18PoV9VdqhK7!"
+# anycloud_api_secret_key: "UXQ6BBASSOBRIgVZjA7ZioDoCQrzjm"
+# anycloud_vm_access_pass: "12345"
+#########################################################################################################################################################################################################################################
+
+#########################################################################################################################################################################################################################################
+# AnyCloud Instances parameters
+##########################################################################################################################################################################################################################################
+# instance_name: "Instance_From_Ansible" ################################################################################################################################################################################################
+#
+anycloud_adapter_image_hostname: "ai_dev_vm_"
+#
+anycloud_virtual_machine_default_hard_disk_template_source_name: ubuntu_18_04_64_20G_alibase_20181212.vhd
+#
+anycloud_vapp_template_name: "{{ anycloud_target_vapp_template_name }}" # for vshere adapter may be need change to {{ anycloud_virtual_machine_default_hard_disk_template_source_name }}
+#
+anycloud_adapter_vm_template: u2004_template64
+anycloud_template_adapter_root_folder: "/"
+anycloud_target_vapp_template_name: U_Server_2004_64_vortex_Template
+anycloud_vm_instance_description: "Product: {{ ansible_product }} - VM {{ ansible_environment }}"
+
+#########################################################################################################################################################################################################################################
+## AnyCloud: Provider Availiable by Performance configurations
+##########################################################################################################################################################################################################################################
+#
+anycloud_virtual_machine_resources_primary_type: "ecs.c5.large"
+anycloud_virtual_machine_resources_middle_type: "ecs.c5.xlarge"
+
+#########################################################################################################################################################################################################################################
+## AnyCloud: Provider Network Limits maximum in/out in megabits/s
+##########################################################################################################################################################################################################################################
+#
+anycloud_defaults_max_bandwidth_in: 200
+anycloud_defaults_max_bandwidth_out: 50
+
+##########################################################################################################################################################################################################################################
+## AnyCloud: Layout Common parameters
+##########################################################################################################################################################################################################################################
+#
+anycloud_landscape_region: "eu-west-1"
+anycloud_landscape_region_sub_zone: "eu-west-1a"
+
+##########################################################################################################################################################################################################################################
+## AnyCloud: Network communication device settings
+##########################################################################################################################################################################################################################################
+#
+
+##########################################################################################################################################################################################################################################
+# AnyCloud: Virtual Private Cloud Zones Declaration
+##########################################################################################################################################################################################################################################
+# 
+anycloud_internet_charge_type: PayByTraffic # PayByTraffic / PayByBandwidth
+anycloud_instance_charge_type: PostPaid # PostPaid
+
+##########################################################################################################################################################################################################################################
+## You must have minimal one enabled zone for works networks
+##########################################################################################################################################################################################################################################
+#
+anycloud_adapter_vpc_zone_virtual_abstract:
+  zones: 
+    0z_template: 
+      index: 1
+      enabled: true # false || false
+      cidr: 172.16.0.0/16
+    main:
+      index: 2
+      enabled: true # true || false
+      cidr: 192.168.0.0/16
+  dns_servers:
+    - '8.8.8.8'
+    - '8.8.4.4'
+
+##########################################################################################################################################################################################################################################
+# AnyCloud ZONE: Cloud Virtual Sector/Section/Zone Primary Security Group
+##########################################################################################################################################################################################################################################
+# {{ anycloud_region }}-{{ anycloud_zone }}-{{ ansible_datacenter }}
+anycloud_region: worldwide
+anycloud_zone: earth
+anycloud_zone_sector_section_primary_security_group: "SG_{{ ansible_environment }}"
+anycloud_zone_sector_section_primary_security_group_name: "Security_Group_{{ ansible_environment }}"
+anycloud_zone_sector_section_primary_security_group_description: "Security Group resource environment: {{ ansible_environment }} region: {{ anycloud_landscape_region }}"
+
+
+##########################################################################################################################################################################################################################################
+# AnyCloud SECTOR/SECTION SECURITY MAPPING: Array with availiable security defaults rules which contain prefilled sets of directly access on bootstrap and after done initialization of AnyCloud
+##########################################################################################################################################################################################################################################
+#
+anycloud_zone_sector_section_scope_security_suites:
+
+  ssh_enable_dmz:
+
+    group_inboundRules:
+      - ip_protocol: tcp
+        port_range: 22/22
+        source_cidr_ip: ""
+        priority: 1
+    group_outboundRules:
+      - ip_protocol: tcp
+        port_range: 22/22
+        dest_cidr_ip: 0.0.0.0/0
+        priority: 1
+
+  ssh_enable_all:
+
+    group_inboundRules:
+      - ip_protocol: tcp
+        port_range: 22/22
+        source_cidr_ip: 0.0.0.0/0
+        priority: 1
+    group_outboundRules:
+      - ip_protocol: tcp
+        port_range: 22/22
+        dest_cidr_ip: 0.0.0.0/0
+        priority: 1
+
+  default:
+
+    group_inboundRules:
+      - ip_protocol: tcp
+        port_range: 53/53
+        source_cidr_ip: 0.0.0.0/0
+        priority: 1
+      - ip_protocol: udp
+        port_range: 53/53
+        source_cidr_ip: 0.0.0.0/0
+        priority: 1
+      - ip_protocol: tcp
+        port_range: 80/80
+        source_cidr_ip: 0.0.0.0/0
+        priority: 1
+      - ip_protocol: tcp
+        port_range: 443/443
+        source_cidr_ip: 0.0.0.0/0
+        priority: 1
+      - ip_protocol: tcp
+        port_range: 1195/1195
+        source_cidr_ip: 0.0.0.0/0
+        priority: 1
+    group_outboundRules:
+      - ip_protocol: tcp
+        port_range: 80/80
+        dest_cidr_ip: 0.0.0.0/0
+        priority: 1
+      - ip_protocol: tcp
+        port_range: 443/443
+        dest_cidr_ip: 10.0.0.0/0
+        priority: 1
+
+##########################################################################################################################################################################################################################################
+# AnyCloud VM: Instance disk parameters
+##########################################################################################################################################################################################################################################
+#
+anycloud_defaults_storage_profile: Silver
+anycloud_instance_system_disk_category: "cloud_ssd"
+anycloud_instance_system_disk_size: 50
+anycloud_one_instance_duplicates_count: 2
+anycloud_instance_cloud_disk_name: "cloud_disk"
+anycloud_instance_cloud_disk_category: "cloud_ssd"
+anycloud_instance_cloud_disk_description: "Description - {{ ansible_product }} host {{ ansible_environment }}"
+anycloud_instance_cloud_data_disk_size: 80
+anycloud_instance_cloud_disk_tags: [{tag_key: "created_by", tag_value: "{{ ansible_product }}-cloud-{{ ansible_environment }}"}, {tag_key: "created_from", tag_value: "{{ ansible_product }}-ecs-vpc-{{ ansible_environment }}"}]
+anycloud_instance_cloud_delete_with_instance: False
+
+##########################################################################################################################################################################################################################################
+# AnyCloud Meta: Adding metadata information to VM instance meta tags
+##########################################################################################################################################################################################################################################
+#
+anycloud_instance_extra_metadata_and_tags: {
+  created_by: "{{ ansible_product }}-cloud-{{ ansible_environment }}",
+  created_from: "{{ ansible_product }}-ecs-vpc-{{ ansible_environment }}"
+  }
+
+##########################################################################################################################################################################################################################################
+# Personal Storage Settings Vault Done
+##########################################################################################################################################################################################################################################
