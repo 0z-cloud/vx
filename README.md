@@ -1,6 +1,6 @@
 # Welcome, to Vortex Vx˜
 
-**Release State: stable-1.6.1-h0-test**
+**Release State: stable-1.6.2**
 
 
 * At ``` *.woinc.ru ``` we are place a ``` Public Demo Access Platform ``` 
