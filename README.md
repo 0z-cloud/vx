@@ -17,9 +17,6 @@
 * Vx Repo hold and contain exmplain to each implemented as
   ``` a self Vx parts in each Vx Repository ``` 
 
-* So, by you requests, we can be able to give to requester an a access,
-  to internal tools, placed in inside of ``` Demo Infrastructure ```,
-  at [special Telegram channel](https://t.me/joinchat/AAAAAFT2mIn4avUY6E0F9w).
 
 Example run contain:
 
