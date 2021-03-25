@@ -29,10 +29,14 @@ Example run contain:
  - https://www.woinc.ru
  - https://ogame.woinc.ru
 
+### GitFlow
+
+![GitFlow Working Model Diagram.png](ansible/CI/repo_images/gitflow-complete-eng.png)
+![Teamcity Welcome Screen](aansible/CI/repo_images/TeamCity_Overview.png)
+
 ## SSL Tests Results: 07.01.2021
 
 ![ssl labs at 07.01.2021](ansible/CI/repo_images/ssl_labs_test_07_01_2021.png)
-
 
 ## Repository statements:
 
@@ -257,10 +261,6 @@ Target Inventory (GET INVENTORY), resulting inventory:
 ### ZeroCloud configuration flow inside and only on ansible calls
 
 ![Api_flow_dynamic_inventories](ansible/CI/repo_images/vortex_api_generate_flow.png)
-
-### GitFlow
-
-![GitFlow Working Model Diagram.png](ansible/CI/repo_images/gitflow-complete-eng.png)
 
 ### Working with virtual and cloud environments, bootstraping and managing
 
