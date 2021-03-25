@@ -33,7 +33,7 @@ Example run contain:
 
 ![GitFlow Working Model Diagram.png](ansible/CI/repo_images/gitflow-complete-eng.png)
 
-![Teamcity Welcome Screen](aansible/CI/repo_images/TeamCity_Overview.png)
+![Teamcity Welcome Screen](ansible/CI/repo_images/TeamCity_Overview.png)
 
 ## SSL Tests Results: 07.01.2021
 
