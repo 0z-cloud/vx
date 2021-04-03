@@ -26,11 +26,37 @@ Example run contain:
  - https://www.woinc.ru
  - https://ogame.woinc.ru
 
-### GitFlow
+
+
+# Default Build Tags and Registry Dashboard Default Layout
+
+## GitFlow
 
 ![GitFlow Working Model Diagram.png](ansible/CI/repo_images/gitflow-complete-eng.png)
 
-![Teamcity Welcome Screen](ansible/CI/repo_images/TeamCity_Overview.png)
+
+## CI/CD/QA Main Dashboard Default Layout
+
+![Teamcity Welcome](ansible/CI/repo_images/TeamCity_Overview.png)
+
+
+## Services Detector
+
+![Services Detector](ansible/CI/repo_images/services_build_detector.png)
+
+## Service Build Decorator
+
+![Service Build Decorator](ansible/CI/repo_images/service_build_decorator.png)
+
+## Builded Container Tag
+
+![Container Tag](ansible/CI/repo_images/service_build_tag_registry_show.png)
+
+
+## Registry Builded Containers List
+
+![Registry Builded Containers List](ansible/CI/repo_images/container_registry_show_builded_list.png)
+
 
 ## SSL Tests Results: 07.01.2021
 
@@ -124,12 +150,29 @@ Example run contain:
 
 ### Vault Storages
 
-    - [x] Internal Contract Model Vault storage based on Ansible-Vault and simple interface for manage the zero level necessary shared logins and passwords constrains, and also product specific settings, which possibled to be shared by groups, by inventories, regions, sectors, zones, environments and placements like ACL represents are same shared pieces of security cake, - as example one command implements feature for dev[1-3] envvironments, and have only access by security violation policy interface only to part of vault where stored credentials which able perform operations only on dev environments, after task completes, teamlead as example, who have more access level, can from same commit run chain pipeline to stage environment with separated per each user credentials container level
+    - [x] Internal Contract Model Vault storage based on Ansible-Vault and simple interface,
+          uses for manage the zero level necessary shared logins and passwords constrains,
+          and also product specific settings, which possibled to be shared by groups, 
+          by inventories, regions, sectors, zones, environments and placements like ACL, -
+          represents are same shared pieces of security cake, - 
+          as example one command implements feature for dev[1-3] envvironments, 
+          and have only access by security violation policy interface only to part of vault where stored credentials,
+          which able perform operations only on dev environments, after task completes, teamlead as example,
+          who have more access level, can from same commit run chain pipeline to stage environment,
+          with separated per each user credentials container level. 
+            
+            Please README in Vx component documentation.
+
     - [.] Vault (HashiCorp)
 
 ### Service Discovery
 
-    - [x] Consul. Multi-DC & Multi-Zone Cloud Consul Cluster, with separated/mixed Service Discovery each Zone, Service, Network, where ACL are infinitly run with checks to reborn itself cloud warmup bootstrap, by platform levels chaining bootstraping. Mesh accounting, validation and relocation. Nginx service discovery full cover by use as upstreams service discovery endpoints which extends with prefix `*.cloud.` each frontend service mesh endpoint.
+    - [x] Consul. Multi-DC & Multi-Zone Cloud Consul Cluster,
+           with separated/mixed Service Discovery each Zone, Service, Network,
+           where ACL are infinitly run with checks to reborn itself cloud warmup bootstrap,
+           by platform levels chaining bootstraping. Mesh accounting, validation and relocation.
+           Nginx service discovery full cover by use as upstreams service discovery endpoints,
+           which extends with prefix `*.cloud.` each frontend service mesh endpoint.
     - [.] EtcD
 
 ### Mesh Mesh Providers
@@ -280,14 +323,14 @@ Target Inventory (GET INVENTORY), resulting inventory:
 
 - Go to ansible folder in cloned repository, -
 
-        ```
-          cd ./ansible
-        ```
+     ```
+        cd ./ansible
+     ```
 
   - Try run the wrapper as example, -
 
     ```
-    ./reference_iac_stand.sh
+      ./reference_iac_stand.sh
     ```
 
     ![reference_iac_stand.sh](ansible/CI/repo_images/reference_iac_stand.sh.png)
@@ -310,7 +353,7 @@ Target Inventory (GET INVENTORY), resulting inventory:
     Completely Build your software and necessary backend/database/services images for able to work your own software.
 
     ```
-    ./reference_builder.sh
+      ./reference_builder.sh
 
     ```
 
@@ -318,30 +361,30 @@ Target Inventory (GET INVENTORY), resulting inventory:
 
   - Validate Deployment and Deploy - Deploy to Docker Swarm / K8 / Standalone updated manifests, perform DB migrations.
 
-           ```
-           ./reference_deployment.sh
+     ```
+       ./reference_deployment.sh
 
-           ```
+     ```
 
     ![reference_deployment.png](ansible/CI/repo_images/reference_deployment.sh.png)
 
   - Update the Backend DNS & Web-Server (nginx) configurations - update DNS & webserver configurations
     and check some list of backend services like monitoring, ntp, etc.
 
-           ```
-           ./reference_internal.sh
+     ```
+       ./reference_internal.sh
 
-           ```
+     ```
 
     ![reference_internal.png](ansible/CI/repo_images/reference_internal.sh.png)
 
   - Run the QA part of pipeline - running your custom QA test suites.
     You must enable that part of pipeline by itself because default state of feature is disabled.
 
-           ```
-           ./reference_qa.sh
+     ```
+       ./reference_qa.sh
 
-           ```
+     ```
 
     ![reference_qa.png](ansible/CI/repo_images/reference_qa.sh.png)
 
