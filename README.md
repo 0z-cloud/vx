@@ -32,19 +32,17 @@ Example run contain:
  - https://www.woinc.ru
  - https://ogame.woinc.ru
 
-
-
-# Default Build Tags and Registry Dashboard Default Layout
+# .............................................................................................
+## Default Build Tags and Registry Dashboard Default Layout
+# .............................................................................................
 
 ## GitFlow
 
 ![GitFlow Working Model Diagram.png](ansible/CI/repo_images/gitflow-complete-eng.png)
 
-
 ## CI/CD/QA Main Dashboard Default Layout
 
 ![Teamcity Welcome](ansible/CI/repo_images/TeamCity_Overview.png)
-
 
 ## Services Detector
 
@@ -58,11 +56,9 @@ Example run contain:
 
 ![Container Tag](ansible/CI/repo_images/service_build_tag_registry_show.png)
 
-
 ## Registry Builded Containers List
 
 ![Registry Builded Containers List](ansible/CI/repo_images/container_registry_show_builded_list.png)
-
 
 ## SSL Tests Results: 07.01.2021
 
@@ -97,7 +93,9 @@ Example run contain:
     - [+] Feature now in dev's and planned to next major release
     - [p] Feature which are planned for future roadmap release on second major release
     - [t] Feature in Testing Branch
-    - [x] Feature are implemented yet completely, like for CI/CD Pipeline, if Kubernetes as example have that flag, that describes what we can possible create cluster and deploy to it.
+    - [x] Feature are implemented yet completely, like for CI/CD Pipeline, 
+          if Kubernetes as example have that flag, 
+          that describes what we can possible create cluster and deploy to it.
     - [w] Whitepaper page for feature ready to RFC, or wip state
     - [*] Feature planned to be refactored
     - [?] On RFC stage
@@ -250,7 +248,8 @@ Example run contain:
 - [Default QA Running Flow](ansible/CI/repo_images/QA_Short_flow.png)
 - [Mesh QA Geo Stress Flow](ansible/CI/repo_images/QA_mesh_stress_run.png)
 
-  - For mesh ecosystems with multiple geo-placements we able initiate Stress Test Suite to something environment from each able to accessed inventory.
+  - For mesh ecosystems with multiple geo-placements we able initiate Stress Test Suite
+    to something environment from each able to accessed inventory.
 
 ![Mesh QA Geo Stress Flow](ansible/CI/repo_images/QA_mesh_stress_run.png)
 
