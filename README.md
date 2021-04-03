@@ -1,3 +1,9 @@
+# ........................................................................................................
+
+![Vortex BIG BANG Workflow](ansible/CI/repo_images/vortex_cutted_full_flow_up.png)
+
+# ........................................................................................................
+
 # Welcome, to Vortex Vx˜
 
 **Release State: stable-1.6.2**
@@ -247,10 +253,6 @@ Example run contain:
   - For mesh ecosystems with multiple geo-placements we able initiate Stress Test Suite to something environment from each able to accessed inventory.
 
 ![Mesh QA Geo Stress Flow](ansible/CI/repo_images/QA_mesh_stress_run.png)
-
-## Full Working Map, stages of flow, step by step.
-
-![Vortex BIG BANG Workflow](ansible/CI/repo_images/vortex_cutted_full_flow.png)
 
 ## Readme's links:
 
