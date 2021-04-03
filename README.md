@@ -160,7 +160,8 @@ Example run contain:
           by inventories, regions, sectors, zones, environments and placements like ACL, -
           represents are same shared pieces of security cake, - 
           as example one command implements feature for dev[1-3] envvironments, 
-          and have only access by security violation policy interface only to part of vault where stored credentials,
+          and have only access by security violation policy interface,
+          only to part of vault where stored his credentials,
           which able perform operations only on dev environments, after task completes, teamlead as example,
           who have more access level, can from same commit run chain pipeline to stage environment,
           with separated per each user credentials container level. 
