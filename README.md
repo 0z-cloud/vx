@@ -465,25 +465,38 @@ But wants to placement multiple virtual environments on same Datacenter to same 
 
 All linked environments, which we wants to add as childs like virtual, looks and works by the symlinks way.
 
-Lets do like for example, two childs of primary - developemnt and stage environments,
+Lets do like for example, two Childs of Primary - developemnt and stage environments,
 
-- Create the new folders in api cloud inventory -
+- Create the new folders in API Cloud Inventory -
 
+    ```
          ./0z-cloud/products/\!_{{ cloud_type }}/{{ ansible_product }}/developemnt/
          ./0z-cloud/products/\!_{{ cloud_type }}/{{ ansible_product }}/stage/
+    ```
 
-- Create symlinks from parent primary cloud dynamic environment to his new childs -
+- Create symlinks from Parent Primary Cloud dynamic Environment to his new childs -
 
+    ```
          mkdir ./0z-cloud/products/\!_{{ cloud_type }}/{{ ansible_product }}/stage/
          cd ./0z-cloud/products/\!_{{ cloud_type }}/{{ ansible_product }}/stage/
          ln -s ../production/v.py
          ln -s ../production/bootstrap_vms
+    ```
 
-- Copy the target inventory from parent to new, firstaful create a target inventories localtions -
+- Copy the Target inventory from Parent to New, firstaful create a target inventories localtions -
 
-         mkdir ./products/{{ ansible_product }}/stage
-         cp -R ./products/{{ ansible_product }}/production/* ./products/{{ ansible_product }}/{{ new_environment }}/
-
+    ```
+         src_environment="production"
+         new_environment="stage"
+         
+         mkdir ./products/{{ ansible_product }}/{{ new_environment }}
+         
+         old_from_env="./products/{{ ansible_product }}/{{ src_environment }}/*"
+         new_env_path="./products/{{ ansible_product }}/{{ new_environment }}/"
+         
+         cp -R $old_from_env $new_env_path
+    ```
+    
 - Done, now change the domain names and ports settings on your new cloud target childs from production environments, and deploy!
 
 ### Create new environment (api and target) by cloning some as parent:
@@ -513,7 +526,9 @@ Lets do like for example, two childs of primary - developemnt and stage environm
 
       5. type cloud:   
       
-          Target cloud type is must to be a specified, like { aws / azure / do / vsphere / alicloud / bare / etc }
+          Target cloud type is must to be a specified, such as like -
+          
+          { aws / azure / do / vcd / vsphere / yandex / gcp / alicloud / bare / etc }
 
       6. inventory:    
           
