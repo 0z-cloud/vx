@@ -162,8 +162,9 @@ Example run contain:
           as example one command implements feature for dev[1-3] envvironments, 
           and have only access by security violation policy interface,
           only to part of vault where stored his credentials,
-          which able perform operations only on dev environments, after task completes, teamlead as example,
-          who have more access level, can from same commit run chain pipeline to stage environment,
+          which able perform operations only on dev environments, after task completes, 
+          teamlead as example, who have more access level, 
+          and can from same commit run chain pipeline to stage environment,
           with separated per each user credentials container level. 
             
             Please README in Vx component documentation.
