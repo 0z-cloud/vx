@@ -32,10 +32,6 @@ Example run contain:
  - https://www.woinc.ru
  - https://ogame.woinc.ru
 
-# .............................................................................................
-## Default Build Tags and Registry Dashboard Default Layout
-# .............................................................................................
-
 ## GitFlow
 
 ![GitFlow Working Model Diagram.png](ansible/CI/repo_images/gitflow-complete-eng.png)
