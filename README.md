@@ -532,7 +532,8 @@ Lets do like for example, two Childs of Primary - developemnt and stage environm
 
       6. inventory:    
           
-          Target inventory is must to be a specified, which be a result of new inventory for cloud location
+          Target inventory is must to be a specified, -
+          which be a result of new inventory for cloud location
 
       7. product:      
           
