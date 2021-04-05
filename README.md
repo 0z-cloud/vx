@@ -9,18 +9,18 @@
 **Release State: stable-1.6.2**
 
 
-* At ``` *.woinc.ru ``` we are place a ``` Public Demo Access Platform ``` 
-  which represent our ``` Vx Live Run ``` 
+* At ``` *.woinc.ru ``` we place a ``` Public Demo Access Platform ``` 
+  which represents our ``` Vx Live Run ``` 
 
-* This are real ``` Lifecycle Auto Cloud ``` 
+* These are real ``` Lifecycle Auto Cloud ``` 
 
-* Demo have some set of Company Public Internal ``` Products ```,
-  and in public part we are show,
-  as example our simple sample:
+*  The demo has some set of Company Public Internal ``` Products ```,
+  and in public part we show,
+  as an example our simple sample:
   
   - ``` Vx Zone Environment Infrastructure Subset ``` 
 
-* Vx Repo hold and contain exmplain to each implemented as
+* Vx Repo hold and contain explain to each implemented as
   ``` a self Vx parts in each Vx Repository ``` 
 
 
@@ -48,11 +48,11 @@ Example run contain:
 
 ![Service Build Decorator](ansible/CI/repo_images/service_build_decorator.png)
 
-## Builded Container Tag
+## Built Container Tag
 
 ![Container Tag](ansible/CI/repo_images/service_build_tag_registry_show.png)
 
-## Registry Builded Containers List
+## Registry Built Containers List
 
 ![Registry Builded Containers List](ansible/CI/repo_images/container_registry_show_builded_list.png)
 
@@ -87,9 +87,9 @@ Example run contain:
 
     - [-] Feature which almost works fine, but need to update/bugfix/extend/refactor now.
     - [+] Feature now in dev's and planned to next major release
-    - [p] Feature which are planned for future roadmap release on second major release
+    - [p] Feature which is planned for future roadmap release on the second major release
     - [t] Feature in Testing Branch
-    - [x] Feature are implemented yet completely, like for CI/CD Pipeline, 
+    - [x] Feature is implemented yet completely, like for CI/CD Pipeline, 
           if Kubernetes as an example have that flag, 
           that describes what we can possibly create cluster and deploy to it.
     - [w] Whitepaper page for feature ready to RFC, or wip state
@@ -234,7 +234,7 @@ Example run contain:
 - [Vortex Minimal With Service Node](ansible/CI/repo_images/VortexMinimalWithServiceNodeNG.png)
 - [Vortex Standard PCI DSS](ansible/CI/repo_images/VortexStandardPCING.png)
 
-  - As default/standard ecosystem layout, in most cases for simple IT Software Solution we are use,
+  - As default/standard ecosystem layout, in most cases for simple IT Software Solution, we use,
 
   ![Vortex Standard PCI DSS](ansible/CI/repo_images/VortexStandardPCING.png)
 
@@ -276,16 +276,16 @@ Example run contain:
 - [Dockerfiles](dockerfiles/README.md)
 - [Services](services/README.md)
 
-## Two basical types of inventories
+## Two basic types of inventories
 
 Dynamic Inventory (API INVENTORY), called 0z-cloud:
 
      - Zero Inventory start point of your cloud - very simple way to work.
      - Zero Inventory - cloud bootstrap and check or validate your cloud infrastructure.
-     - Contain prefilled/prepared template for create the instances.
+     - Contain prefilled/prepared template for creating the instances.
      - Availiable in two types of run - api or baremetal.
-     - Contains dict and variables which you wants about infrastructure.
-     - In API type used as template.
+     - Contains dict and variables which you want about infrastructure.
+     - In API type used as a template.
 
 Target Inventory (GET INVENTORY), resulting inventory:
 
@@ -293,9 +293,9 @@ Target Inventory (GET INVENTORY), resulting inventory:
      - Placed in inventories/products/{{ ansible_product }}/{{ ansible_environment }}
      - No stored in repository.
 
-## Principial workflow
+## Principal workflow
 
-### Directory structure for dynamic inventories, describes basical call flow
+### The directory structure for dynamic inventories describes basic call flow
 
 ![Directory_structure](ansible/CI/repo_images/vortex_work_map.png)
 
@@ -303,31 +303,31 @@ Target Inventory (GET INVENTORY), resulting inventory:
 
 ![Api_flow_dynamic_inventories](ansible/CI/repo_images/vortex_api_generate_flow.png)
 
-### Working with virtual and cloud environments, bootstraping and managing
+### Working with virtual and cloud environments, bootstrapping and managing
 
-- Basicly, we have refactored and simplifyed reference runners, represented as `references_*.sh`
+- Basically, we have refactored and simplified reference runners, represented as `references_*.sh`
   which in one year past Beta Vortex Prototype Production Testing not looks are great, like now.
-  Fow understanding how it changes solution by timeline, how works before,
-  you can see a past versions of Vortex beta-version wrappers at here -
+  For understanding how it changes solution by timeline, how works before,
+  you can see past versions of Vortex beta-version wrappers here -
   https://github.com/itmo-eve/adam-vortex/tree/master/ansible/scripts/wrappers/init
 
-- Generaly by layout we are have three types of environments, except localhost development type -
-  `standalone`, `minimal` and `pci`.
-  You can create you special one and select your options for you time.
+- Generally, by layout, we have three types of environments, except localhost development type -
+  `standalone`, `minimal` and `PCI`.
+  You can create your special one and select your options for your time.
 
-- Firstaful, we create and bootstrap environment, now its are included in any `reference_*.sh`, in previous versions
+- First of all, we create and bootstrap environment, now its are included in any `reference_*.sh`, in previous versions
   wrappers for that has been in separated executable wrapper files,
-  you can find that old wrappers in https://github.com/itmo-eve/adam-vortex/tree/master/ansible/scripts/wrappers/init
-  If your are a needed, can do like are wants be you require by Platform Product and Cloud layout,
-  with flexible ways to contract your piplene chain CI/CD flow suite.
+  you can find those old wrappers in https://github.com/itmo-eve/adam-vortex/tree/master/ansible/scripts/wrappers/init
+  If you are a needed, can do like are wants be you require by Platform Product and Cloud layout,
+  with flexible ways to contract your pipeline chain CI/CD flow suite.
 
-- Go to ansible folder in cloned repository, -
+- Go to ansible folder in the cloned repository, -
 
      ```
         cd ./ansible
      ```
 
-  - Try run the wrapper as example, -
+  - Try run the wrapper as an example, -
 
     ```
       ./reference_iac_stand.sh
@@ -335,18 +335,18 @@ Target Inventory (GET INVENTORY), resulting inventory:
 
     ![reference_iac_stand.sh](ansible/CI/repo_images/reference_iac_stand.sh.png)
 
-  - TeamCity or other CI/CD/QA running tool just run wrappers to execute a some step of pipeline with
-    `type_of_run` equals `true`, for local runing/debugging/understanding you can run each wrapper
+  - TeamCity or other CI/CD/QA running tool just run wrappers to execute some step of pipeline with
+    `type_of_run` equals `true`, for local running/debugging/understanding you can run each wrapper
     with value `print_only` in `type_of_run` parameter.
-    Please read the configuration in folder `.teamcity` for more understud.
+    Please read the configuration in folder `.teamcity` for more understanding.
 
-  - We split processes for managing your bussines product lifecycle to two steps -
+  - We split processes for managing your business product lifecycle into two steps -
 
-  - Build and validate infrastructure - only if you use a API Cloud Adapter 
-    for support full dynamic environment way.
+  - Build and validate infrastructure - only if you use an API Cloud Adapter 
+    to support a full dynamic environment way.
     
-    If you are uses the baremetal adapter, you must to create infrastructure itself and after then -
-    declare necessary nodes information to static template.
+    If you are using the bare-metal adapter, you must create the infrastructure itself and after then -
+    declare necessary nodes information to the static template.
 
   - Deploy pipeline:
 
@@ -371,8 +371,8 @@ Target Inventory (GET INVENTORY), resulting inventory:
 
     ![reference_deployment.png](ansible/CI/repo_images/reference_deployment.sh.png)
 
-  - Update the Backend DNS & Web-Server (nginx) configurations - update DNS & webserver configurations
-    and check some list of backend services like monitoring, ntp, etc.
+  - Update the Backend DNS & Web-Server (Nginx) configurations - update DNS & webserver configurations
+    and check some list of backend services like monitoring, NTP, etc.
 
      ```
        ./reference_internal.sh
@@ -381,8 +381,8 @@ Target Inventory (GET INVENTORY), resulting inventory:
 
     ![reference_internal.png](ansible/CI/repo_images/reference_internal.sh.png)
 
-  - Run the QA part of pipeline - running your custom QA test suites.
-    You must enable that part of pipeline by itself because default state of feature is disabled.
+  - Run the QA part of the pipeline - running your custom QA test suites.
+    You must enable that part of the pipeline by itself because the default state of the feature is disabled.
 
      ```
        ./reference_qa.sh
@@ -391,77 +391,77 @@ Target Inventory (GET INVENTORY), resulting inventory:
 
     ![reference_qa.png](ansible/CI/repo_images/reference_qa.sh.png)
 
-  - You can customize each part of pipeline, playbooks and roles.
+  - You can customize each part of the pipeline, playbooks, and roles.
 
     ### INTERNAL TEST SUITE DESCRIBE. HOW TO EASY TO START =)
 
-    - By contract in Vortex flow, root exec point for infrastructure (aka HOME_DIR) -
-      placed not in root of whole repository, -
+    - By contract in a Vortex flow, root exec point for infrastructure (aka HOME_DIR) -
+      placed not in the root of the whole repository, -
       
-      Enter and operate your cloud ecosystems avaliable from `ansible` folder.
+      Enter and operate your cloud ecosystems available from `ansible` folder.
 
-    - All chain flow work with detailed annotations you can see in Vortex Cloud interface, 
-      when try to run any `./reference_*.sh` wrapper,
-      which call functions chains for able to instantly start and do develop anything are you want, 
-      open easy interface with the way to create, develop, management, migrate, 
+    - All chain flow work with detailed annotations you can see in Vortex Cloud interface 
+      when trying to run any `./reference_*.sh` wrapper,
+      which calls functions chains for able to instantly start and do develop anything are you want, 
+      open easy interface with the way to create, develop, manage, migrate, 
       update or extend your Clouds with runned Services at Scale.
       
-      If you are run a any reference without input necessary parameters, -
-      Vortex Vx exit imadently with detailed info about this error,
-      and also say what to need do with that.
+      If you are run any reference without input the necessary parameters, -
+      Vortex Vx exit immanently  with detailed info about this error,
+      and also say what to need to do with that.
 
-    - `CI/CD Vortex Chained Pipiline Flows of Suites with Playbooks` designed with `anycloud` model, 
+    - `CI/CD Vortex Chained Pipeline Flows of Suites with Playbooks` designed with `anycloud` model, 
       when not code pass the flow, where `Cloud Vortex Toolset` says - 
-      which he need necessary and by contract are wants,
-      from any input source who want use a any `reference_*.sh`.
-      That statement say we can use for run the `Vortex Vx Flow` by any ` CI/CD Tools Solution Product`,
-      such as `Jenkins`, `Gitlab-CI`, `TeamCity` and by other capabiled for that software. 
+      which he need necessary and by contract are wanted,
+      from any input source who want to use any `reference_*.sh`.
+      That statement says we can use for run the `Vortex Vx Flow` by any ` CI/CD Tools Solution Product`,
+      such as `Jenkins`, `Gitlab-CI`, `TeamCity`, and other capabilities for that software. 
       
-      May be like `cron`.
+      Maybe like `cron`.
 
-    - So, because interface for talking to platform box are knowns and we can use anyway to run pipe, 
-      by same way, like it will same way to hapens in next time on build by any tool, 
-      then say me - i can imitate the `Pushing CI Button or CI Triggers`.
-      Also its are greate way to test all features completely, 
-      from same code for preparing awesome featured release.
+    - So, because the interface for talking to platform box are knowns and we can use any way to run pipe, 
+      by same way, like it will same way to hapen in next time on build by any tool, 
+      then say me - I can imitate the `Pushing CI Button or CI Triggers`.
+      Also, its are great way to test all features completely, 
+      from the same code for preparing an awesome featured release.
 
     - For running any Shell CI Button, go to `ansible` HOME_DIR =)
 
     - Try to run something from `./\!_test/[A-Z]*.sh` - all DevOps Shell Imitation CI Buttons
-      writed with same Pipeline, which itself represent any `CI/CD Tools Product` at any Run. 
+      wrote with the same Pipeline, which itself represents any `CI/CD Tools Product` at any Run. 
       
       Only for development and testing, no play with fire.
 
     ### PROTOTYPE MODEL BLANK PIPE WITH BUILD RUN AT ANSIBLE TESTS
 
-    - LF EDGE EVE CI dev/test Imitation Button Run in Continious Development are is - 
+    - LF EDGE EVE CI dev/test Imitation Button Run in Continuous Development is - 
       
         `./\!_tests/LF_EDGE_EVE_DEVELOPMENT.sh`
 
    ```
 
       PS.  
-          ALL TESTS SHELL CI BUTTONS HAVE A UPPERCASE CHARACTERS.
+          ALL TESTS SHELL CI BUTTONS HAVE UPPERCASE CHARACTERS.
           AND MAY BE RIGHT WAY WILL BE LOOKING TO INSIDE BEFORE =)
 
    ```
 
-    - For contribute and correct usage complete solution, -
-      you must to create `Internal Vault` for you profile ` Internal Vault Contract`.
+    - To contribute and correct usage complete solution, -
+      you must create `Internal Vault` for your profile ` Internal Vault Contract`.
 
-## Examples of usage the inventories childs -
+## Examples of usage the inventories children -
 
 ### One to multiple, where one as a parent:
 
-We have a one primary inventory, on some product, some cloud type provider as total, -
+We have one primary inventory, on some product, some cloud type provider as total, -
 
             one compute environment, - {{ ansible_environment }} == 'production'
 
-But wants to placement multiple virtual environments on same Datacenter to same VMs environment
+But wants to placement multiple virtual environments on the same Datacenter to same VMs environment
 
-All linked environments, which we wants to add as childs like virtual, looks and works by the symlinks way.
+All linked environments, which we want to add as children like virtual, looks and works by the symlinks way.
 
-Lets do like for example, two Childs of Primary - developemnt and stage environments,
+Let's do like for example, two Childs of Primary - development and stage environments,
 
 - Create the new folders in API Cloud Inventory -
 
@@ -470,7 +470,7 @@ Lets do like for example, two Childs of Primary - developemnt and stage environm
          ./0z-cloud/products/\!_{{ cloud_type }}/{{ ansible_product }}/stage/
     ```
 
-- Create symlinks from Parent Primary Cloud dynamic Environment to his new childs -
+- Create symlinks from Parent Primary Cloud dynamic Environment to his new children -
 
     ```
          mkdir ./0z-cloud/products/\!_{{ cloud_type }}/{{ ansible_product }}/stage/
@@ -479,7 +479,7 @@ Lets do like for example, two Childs of Primary - developemnt and stage environm
          ln -s ../production/bootstrap_vms
     ```
 
-- Copy the Target inventory from Parent to New, firstaful create a target inventories localtions -
+- Copy the Target inventory from Parent to New, first of all, create a target inventories locations -
 
     ```
          src_environment="production"
@@ -493,7 +493,7 @@ Lets do like for example, two Childs of Primary - developemnt and stage environm
          cp -R $old_from_env $new_env_path
     ```
     
-- Done, now change the domain names and ports settings on your new cloud target childs from production environments, and deploy!
+- Done, now change the domain names and ports settings on your new cloud target children from production environments, and deploy!
 
 ### Create a new environment (API and target) by cloning some as parent:
 
