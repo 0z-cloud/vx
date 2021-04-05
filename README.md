@@ -449,7 +449,7 @@ Target Inventory (GET INVENTORY), resulting inventory:
     - To contribute and correct usage complete solution, -
       you must create `Internal Vault` for your profile ` Internal Vault Contract`.
 
-## Examples of usage the inventories childs -
+## Examples of usage the inventories children -
 
 ### One to multiple, where one as a parent:
 
