@@ -12,7 +12,7 @@
 * At ``` *.woinc.ru ``` we place a ``` Public Demo Access Platform ``` 
   which represents our ``` Vx Live Run ``` 
 
-* These are real ``` Lifecycle Auto Cloud ``` 
+* This is real ``` Lifecycle Auto Cloud ``` 
 
 *  The demo has some set of Company Public Internal ``` Products ```,
   and in public part we show,
