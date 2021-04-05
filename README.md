@@ -67,20 +67,20 @@ Example run contain:
 * Full IaC support via Ansible Cloud API modules.
 * Ready to use, just add your services and declare infrastructure.
 * Simple to understand solution template provides complete CI/CD/QA.
-* Multimple ways to use a many roles, zones, clusters, networks.
-* K8 & Docker Swarm support - you can have a multiple clusters in one environment.
+* Multimple ways to use  many roles, zones, clusters, networks.
+* K8 & Docker Swarm support - you can have  multiple clusters in one environment.
 * You can have multiple virtual environments on one virtual cloud infrastructure placement.
 * Easy template for build, bootstrap, develop, deploy and test your infrastructure.
-* Have a TeamCity ready to import configuration with full process with simple CI/CD/QA pipeline.
+* Have a TeamCity ready to import configuration with full process with a simple CI/CD/QA pipeline.
 * Network balancer included - keepalived, haproxy, nginx, etc
 * PCI DSS Compliance initial support modules.
 * Firewall zero-in inside based on Shorewall.
-* Many other stuff like rabbitmq/tarantool/redis/etc clusters.
+* Much other stuff like rabbitmq/tarantool/redis/etc clusters.
 * GlusterFS as NFS shared storage.
-* Provides single point in development process.
+* Provides single point in the development process.
 * All configurations fully generated - for local development and environments.
 * You can use different CI/CD tools for use, - TeamCity, Jenkins, Gitlab-CI, etc.
-* Storing builded docker images possible to different registries - gitlab, registryv2, nexus, etc.
+* Storing built docker images possible to different registries - gitlab, registryv2, nexus, etc.
 ```
 
 ### Markdown constants
@@ -90,13 +90,13 @@ Example run contain:
     - [p] Feature which are planned for future roadmap release on second major release
     - [t] Feature in Testing Branch
     - [x] Feature are implemented yet completely, like for CI/CD Pipeline, 
-          if Kubernetes as example have that flag, 
-          that describes what we can possible create cluster and deploy to it.
+          if Kubernetes as an example have that flag, 
+          that describes what we can possibly create cluster and deploy to it.
     - [w] Whitepaper page for feature ready to RFC, or wip state
     - [*] Feature planned to be refactored
     - [?] On RFC stage
     - [.] Pre-research and modeling. Checking able and profit after implementation.
-    - [U] Urgent and most important task for complete
+    - [U] An Urgent and most important task for complete
 
 ### Ansible Teraforma API Cloud adapters
 
@@ -151,17 +151,17 @@ Example run contain:
 ### Vault Storages
 
     - [x] Internal Contract Model Vault storage based on Ansible-Vault and simple interface,
-          uses for manage the zero level necessary shared logins and passwords constrains,
-          and also product specific settings, which possibled to be shared by groups, 
-          by inventories, regions, sectors, zones, environments and placements like ACL, -
+          uses for manage the zero levels necessary shared logins and passwords constraints,
+          and also product specific settings, which possible to be shared by groups, 
+          by inventories, regions, sectors, zones, environments, and placements like ACL, -
           represents are same shared pieces of security cake, - 
-          as example one command implements feature for dev[1-3] envvironments, 
+          For example, one command implements a feature for dev[1-3] environments, 
           and have only access by security violation policy interface,
           only to part of vault where stored his credentials,
-          which able perform operations only on dev environments, after task completes, 
-          teamlead as example, who have more access level, 
+          which able perform operations only on dev environments, after the task completes, 
+          team lead as an example, who has more access level, 
           and can from same commit run chain pipeline to stage environment,
-          with separated per each user credentials container level. 
+          with separated per each user credentials container level.
             
             Please README in Vx component documentation.
 
@@ -171,8 +171,8 @@ Example run contain:
 
     - [x] Consul. Multi-DC & Multi-Zone Cloud Consul Cluster,
            with separated/mixed Service Discovery each Zone, Service, Network,
-           where ACL are infinitly run with checks to reborn itself cloud warmup bootstrap,
-           by platform levels chaining bootstraping. Mesh accounting, validation and relocation.
+           where ACL is infinitly run with checks to reborn itself cloud warmup bootstrap,
+           by platform levels chaining bootstrapping. Mesh accounting, validation and relocation.
            Nginx service discovery full cover by use as upstreams service discovery endpoints,
            which extends with prefix `*.cloud.` each frontend service mesh endpoint.
     - [.] EtcD
@@ -188,30 +188,30 @@ Example run contain:
 
     - [x] CoreDNS.
 
-          * Primary DNS Protocol engadger which placed like frontend endpoint, -
+          * Primary DNS Protocol engager which placed like frontend endpoint, -
           is are a cloud placement ` layout ` use this as shared on each ```` platform ` at ` zone `
           for rewriting, filtering, forwarding, redirection for all DNS queries.
 
           * Only contain rules for recursion pathing processing on each DNS query,
-          knowns only about DNS zones and backend services which answers to them,
+          knowns only about DNS zones and backend services which answer to them,
           such as like K8S Cluster DNS Public VIP Edpoint and Consul Service Discovery DNS Interface,
-          who able possible to use mesh service discovery zones as parts of parent zone.
+          who able possible to use mesh service discovery zones as parts of the parent zone.
 
 
     - [x] Bind9 DNS Services Backend.
 
           * Is are a Stub Placement with SOA and records for primary root Domain, -
-          ` consul_public_domain ` for each ` sector/zone ` where parent are ` environement ` father.
+          ` consul_public_domain ` for each ` sector/zone ` where parent are ` environment ` father.
           Like redirects to (*.cloud|*.k8|*.swarm), declare itself's and static records,
-          vip and service management tools endpoints, which are uses as pointer where Service Discovery,
-          are is enabled for service, and static mapping where generated by Ansible Groups.
+          VIP and service management tools endpoints, which are uses as pointer where Service Discovery,
+          are is enabled for service, and static mapping was generated by Ansible Groups.
 
           * Provides dynamic zone extending and stacking, 
             in geo-mesh networks detects and declare nearest endpoints of truth.
 
     - [-] Kubernetes DNS Vip Endpoint.
 
-          * Used as same case like in Consul, extends domain with prefix k8 by CoreDNS DMZ Service Discovery Sector,
+          * Used as the same case like in Consul, extends domain with prefix k8 by CoreDNS DMZ Service Discovery Sector,
           and able forward DNS queries to Internal Kubernetes Cluster DNS Service Discovery,
           and represented by ` *.k8.{{ consul_public_domain }} `
 
@@ -247,7 +247,7 @@ Example run contain:
 - [Default QA Running Flow](ansible/CI/repo_images/QA_Short_flow.png)
 - [Mesh QA Geo Stress Flow](ansible/CI/repo_images/QA_mesh_stress_run.png)
 
-  - For mesh ecosystems with multiple geo-placements we able initiate Stress Test Suite
+  - For mesh ecosystems with multiple geo-placements we able to initiate Stress Test Suite
     to something environment from each able to accessed inventory.
 
 ![Mesh QA Geo Stress Flow](ansible/CI/repo_images/QA_mesh_stress_run.png)
