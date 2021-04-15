@@ -449,7 +449,7 @@ Target Inventory (GET INVENTORY), resulting inventory:
     - To contribute and correct usage complete solution, -
       you must create `Internal Vault` for your profile ` Internal Vault Contract`.
 
-## Examples of usage the inventories children -
+## Examples of usage the inventories childs -
 
 ### One to multiple, where one as a parent:
 
@@ -459,7 +459,7 @@ We have one primary inventory, on some product, some cloud type provider as tota
 
 But wants to placement multiple virtual environments on the same Datacenter to same VMs environment
 
-All linked environments, which we want to add as children like virtual, looks and works by the symlinks way.
+All linked environments, which we want to add as childs like virtual, looks and works by the symlinks way.
 
 Let's do like for example, two Childs of Primary - development and stage environments,
 
@@ -470,7 +470,7 @@ Let's do like for example, two Childs of Primary - development and stage environ
          ./0z-cloud/products/\!_{{ cloud_type }}/{{ ansible_product }}/stage/
     ```
 
-- Create symlinks from Parent Primary Cloud dynamic Environment to his new children -
+- Create symlinks from Parent Primary Cloud dynamic Environment to his new childs -
 
     ```
          mkdir ./0z-cloud/products/\!_{{ cloud_type }}/{{ ansible_product }}/stage/
@@ -493,7 +493,7 @@ Let's do like for example, two Childs of Primary - development and stage environ
          cp -R $old_from_env $new_env_path
     ```
     
-- Done, now change the domain names and ports settings on your new cloud target children from production environments, and deploy!
+- Done, now change the domain names and ports settings on your new cloud target childs from production environments, and deploy!
 
 ### Create a new environment (API and target) by cloning some as parent:
 
