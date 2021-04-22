@@ -99,7 +99,7 @@ bind_cloud_settings:
     #      xoap.services.domain.com   -   (stage/sandbox)    - child (child of)   = services.domain.com
     #               soap.domain.com   -   (poc/dev)          - parent             = domain.com
     #
-    #   type [parent] - Can be work and enabled, when root dns placement is are a sub-domain. 
+    #   type [parent] - Can be work and enabled, when root DNS placement is a sub-domain. 
     #   type [parent] - In other cases its provide error, be careful.
     ######################################################################################################################################################################################################################
     baremetal:
