@@ -138,7 +138,7 @@ anycloud_internet_charge_type: PayByTraffic # PayByTraffic / PayByBandwidth
 anycloud_instance_charge_type: PostPaid # PostPaid
 
 ##########################################################################################################################################################################################################################################
-## You must have minimal one enabled zone for works networks
+## You must have a minimal one enabled zone for works networks
 ##########################################################################################################################################################################################################################################
 #
 anycloud_adapter_vpc_zone_virtual_abstract:
@@ -167,7 +167,7 @@ anycloud_zone_sector_section_primary_security_group_description: "Security Group
 
 
 ##########################################################################################################################################################################################################################################
-# AnyCloud SECTOR/SECTION SECURITY MAPPING: Array with availiable security defaults rules which contain prefilled sets of directly access on bootstrap and after done initialization of AnyCloud
+# AnyCloud SECTOR/SECTION SECURITY MAPPING: Array with available security defaults rules which contain prefilled sets of directly access on bootstrap and after done initialization of AnyCloud
 ##########################################################################################################################################################################################################################################
 #
 anycloud_zone_sector_section_scope_security_suites:
