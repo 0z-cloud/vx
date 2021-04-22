@@ -1,7 +1,7 @@
 /*! AdminLTE app.js
  * ================
  * Main JS application file for AdminLTE v2. This file
- * should be included in all pages. It controls some layout
+ * should be included on all pages. It controls some layout
  * options and implements exclusive AdminLTE plugins.
  *
  * @Author  Almsaeed Studio
@@ -34,7 +34,7 @@ $.AdminLTE = {};
  */
 $.AdminLTE.options = {
   //Add slimscroll to navbar menus
-  //This requires you to load the slimscroll plugin
+  //This requires you to load the slim scroll plugin
   //in every page before app.js
   navbarMenuSlimscroll: true,
   navbarMenuSlimscrollWidth: "3px", //The width of the scroll bar
@@ -47,9 +47,9 @@ $.AdminLTE.options = {
   sidebarToggleSelector: "[data-toggle='offcanvas']",
   //Activate sidebar push menu
   sidebarPushMenu: true,
-  //Activate sidebar slimscroll if the fixed layout is set (requires SlimScroll Plugin)
+  //Activate sidebar slim scroll if the fixed layout is set (requires SlimScroll Plugin)
   sidebarSlimScroll: true,
-  //Enable sidebar expand on hover effect for sidebar mini
+  //Enable sidebar to expand on hover effect for sidebar mini
   //This option is forced to true if both the fixed layout and sidebar mini
   //are used together
   sidebarExpandOnHover: false,
@@ -676,7 +676,7 @@ function _init() {
  * EXPLICIT BOX CONTROLS
  * -----------------------
  * This is a custom plugin to use with the component BOX. It allows you to activate
- * a box inserted in the DOM after the app.js was loaded, toggle and remove box.
+ * a box inserted in the DOM after the app.js was loaded, toggle and remove the box.
  *
  * @type plugin
  * @usage $("#box-widget").activateBox();
@@ -704,9 +704,9 @@ function _init() {
 })(jQuery);
 
 /*
- * TODO LIST CUSTOM PLUGIN
+ * TO DO LIST CUSTOM PLUGIN
  * -----------------------
- * This plugin depends on iCheck plugin for checkbox and radio inputs
+ * This plugin depends on the iCheck plugin for checkbox and radio inputs
  *
  * @type plugin
  * @usage $("#todo-widget").todolist( options );
