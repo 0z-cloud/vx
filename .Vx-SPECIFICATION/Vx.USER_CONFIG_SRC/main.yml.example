@@ -46,7 +46,7 @@ anycloud_landscape_region_sub_zone: "eu-west-1a"
 anycloud_internet_charge_type: PayByTraffic # PayByTraffic / PayByBandwidth
 anycloud_instance_charge_type: PostPaid # PostPaid
 ##########################################################################################################################################################################################################################################
-## You must have minimal one enabled zone for works networks
+## You must have a minimal one enabled zone for works networks
 anycloud_adapter_vpc_zone_virtual_abstract:
   zones: 
     0z_template: 
