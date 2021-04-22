@@ -1,6 +1,6 @@
 ---
 
-# Settings which getted from alicloud web console for your account
+# Settings which getted from anycloud web console for your account
 anycloud_ci_cd_vcs_project_checkout_service_auth_identity_pass_or_token: "your deploy key in your brain memory is secret for decrypt you own wallet with shared password"
 anycloud_ci_cd_vcs_project_checkout_service_auth_identity_user: "root"
 
