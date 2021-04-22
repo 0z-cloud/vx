@@ -248,7 +248,7 @@
   }
 
   /**
-   * Store a new settings in the browser
+   * Store new settings in the browser
    *
    * @param String name Name of the setting
    * @param String val Value of the setting
@@ -263,7 +263,7 @@
   }
 
   /**
-   * Get a prestored setting
+   * Get a restored setting
    *
    * @param String name Name of of the setting
    * @returns String The value of the setting | null
