@@ -11,7 +11,7 @@
 
 ## Also
 
-    1. Must to generate correct pg_hba.conf for Postgres
+    1. Must generate correct pg_hba.conf for Postgres
     2. Maybe ` docker service ls | grep stage | awk '{print $2}' | xargs -I ID docker service update ID` need in future
     3. Need to investigate paused containers
 
