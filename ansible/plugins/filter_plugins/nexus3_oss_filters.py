@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """nexus3-oss custom filters."""
 
 from __future__ import (absolute_import, division, print_function)
