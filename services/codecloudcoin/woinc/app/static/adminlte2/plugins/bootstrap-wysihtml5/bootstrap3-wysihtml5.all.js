@@ -1,4 +1,4 @@
-// TODO: in future try to replace most inline compability checks with polyfills for code readability 
+// TO DO: in the future try to replace most inline compability checks with polyfills for code readability 
 
 // element.textContent polyfill.
 // Unsupporting browsers: IE8
@@ -75,7 +75,7 @@ var wysihtml5 = {
         // AMD. Register as an anonymous module.
         define(factory);
 /*
-    TODO: look into this properly.
+    TO DO: look into this properly.
     
     } else if (typeof exports == "object") {
         // Node/CommonJS style for Browserify
@@ -101,13 +101,13 @@ var wysihtml5 = {
 
     var textRangeProperties = ["boundingHeight", "boundingLeft", "boundingTop", "boundingWidth", "htmlText", "text"];
 
-    // Subset of TextRange's full set of methods that we're interested in
+    //  The Subset of TextRange's full set of methods that we're interested in
     var textRangeMethods = ["collapse", "compareEndPoints", "duplicate", "moveToElementText", "parentElement", "select",
         "setEndPoint", "getBoundingClientRect"];
 
     /*----------------------------------------------------------------------------------------------------------------*/
 
-    // Trio of functions taken from Peter Michaux's article:
+    //  The Trio of functions taken from Peter Michaux's article:
     // http://peter.michaux.ca/articles/feature-detection-state-of-the-art-browser-scripting
     function isHostMethod(o, p) {
         var t = typeof o[p];
@@ -135,7 +135,7 @@ var wysihtml5 = {
         };
     }
 
-    // Next trio of functions are a convenience to save verbose repeated calls to previous two functions
+    // The Next trio of functions are a convenience to save verbose repeated calls to the previous two functions
     var areHostMethods = createMultiplePropertyTest(isHostMethod);
     var areHostObjects = createMultiplePropertyTest(isHostObject);
     var areHostProperties = createMultiplePropertyTest(isHostProperty);
@@ -472,7 +472,7 @@ var wysihtml5 = {
 
     /*----------------------------------------------------------------------------------------------------------------*/
 
-    // Wait for document to load before running tests
+    // Wait for the document to load before running tests
 
     var docReady = false;
 
@@ -6700,7 +6700,7 @@ wysihtml5.dom.renameElement = function(element, newNodeName) {
   return newElement;
 };
 ;/**
- * Takes an element, removes it and replaces it with it's childs
+ * Takes an element, removes it, and replaces it with its childs
  *
  * @param {Object} node The node which to replace with it's child nodes
  * @example
