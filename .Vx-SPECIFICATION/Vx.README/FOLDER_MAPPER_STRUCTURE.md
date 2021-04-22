@@ -4,17 +4,17 @@ necessary_contract_path_dictionary:
     root:
     # /-/
         |
-        # Main Repository folder, which starts your Journey to Ansible Cloud SRE Intellegent System powered by Community Code.
+        # Main Repository folder, which starts your Journey to Ansible Cloud SRE Intelligent System powered by Community Code.
         # Contain primary directories designed and presents for you easy management and bootstrapped and understanding CI/CD/QA/DEV system.
-        # Just in case, each times we use way where, get a new fork whole of this code repository "Vortex Project Template", simply adding the needed for Project (ps. In BI = Product: Some your designed service/application/platform)...
-        # ...services which you developmented before or wants to develop.
-        # ...selects your backends services, such as like Databases, Queuries, Storages, Calculation, Transfers -
-        # This part represents back-end hided servies layer/level of your designed system coverage, and used for implement BI logic. 
+        # Just in case, each time we use way where get a new fork whole of this code repository "Vortex Project Template", simply adding the needed for Project (ps. In BI = Product: Some your designed service/application/platform)...
+        # ...services which you developed before or want to develop.
+        # ...selects your backends services, such as like Databases, Queries, Storages, Calculation, Transfers -
+        # This part represents the back-end hided services layer/level of your designed system coverage and is used to implement BI logic. 
         |
         .local:
         # /-----/
         |       |
-        |       # Hidden and (git)ignored local cloud exchange private dir index 0. Contain your personal access variavles and encrypted private keys, and elso needed stuff.
+        |       # Hidden and (git)ignored local cloud exchange private dir index 0. Contain your personal access variables and encrypted private keys, and also needed stuff.
         |       |
         |       group_vars:
         |       # /---------/
@@ -27,10 +27,10 @@ necessary_contract_path_dictionary:
         |       |           |                           attached: 
         |       |           |                           # /-----/
         |       |           |                           |       |
-        |       |           |                           |       # Special files with 0z layer checking/replacment/extending/including/rollup'ing other evironments,
-        |       |           |                           |       # or his parts by including patterns gethered from sourced path's when fly by dict and values. 
-        |       |           |                           |       # Be careful with use it (2 Senior's SRE can manage it on Production system without race-condition in work times),
-        |       |           |                           |       # try 7 times to think 'why it?', 'for what it need?', 'how its really works?', and 7 times tests before implement it to other then developmnet environment
+        |       |           |                           |       # Special files with 0z layer checking/replacement/extending/including/rollup'ing other environments,
+        |       |           |                           |       # or his parts by including patterns gathered from the sourced path's when flying by dict and values. 
+        |       |           |                           |       # Be careful with using it (2 Senior's SRE can manage it on a Production system without race-condition in work times),
+        |       |           |                           |       # try 7 times to think 'why it?', 'for what it needs?', 'how it really works?', and 7 times tests before implement it to other then development environment
         |       |           |                           |       |
         |       |           |                           |       # --\
         |       |           |                           |       #   |
@@ -45,10 +45,10 @@ necessary_contract_path_dictionary:
         |           |
         |           # CI/CD Implementation Production Ready ToolSet with all сommon. 
         |           # In past years has been multiple times implemented solution for different products same Time-tested,
-        |           # implemented repeatedly and used for various products, a huge number of times, a same template of solution containing
+        |           # implemented repeatedly and used for various products, a huge number of times, the same template of a solution containing
         |           # the necessary and sufficient set for building a modern IT product service chain. 
-        |           # Pipelines and And DevOps Practics and Metodologies as well and right included fully completed. 
-        |           # Just change settings and go use.
+        |           # Pipelines and And DevOps Practics and Methodologies as well and right included fully completed. 
+        |           # Just change settings and go to use.
         |           |
         |           |..
         ansible:
@@ -61,7 +61,7 @@ necessary_contract_path_dictionary:
         |       _selfbox_:
         |       # /---------/
         |       |           |
-        |       |           # POINT WHERE WE WORKS AT LOCALHOST PLACEMENT FOR DEV,TEST,CONNECT THE SOLUTION COMPONENTS
+        |       |           # POINT WHERE WE WORK AT LOCALHOST PLACEMENT FOR DEV,TEST,CONNECT THE SOLUTION COMPONENTS
         |       |           |
         |       |           |..
         |       !_PCI:
@@ -74,7 +74,7 @@ necessary_contract_path_dictionary:
         |       !_root_playbooks:
         |       # /-----------------/
         |       |                   |
-        |       |                   # TERAFORMA ANSIBLE API ADAPTERS FOR CLOUD PROVIDERS TEMPLATE LANDSCAPE WARM-UP BOOTSTRAPING AND APPLY SOLUTION ECOSYSTEM LAYOUT RESOURCES LAYOUT
+        |       |                   # TERRAFORM ANSIBLE API ADAPTERS FOR CLOUD PROVIDERS TEMPLATE LANDSCAPE WARM-UP BOOTSTRAPING AND APPLY SOLUTION ECOSYSTEM LAYOUT RESOURCES LAYOUT
         |       |                   # DO LIKE TERRAFORM (HASHICORP) STYLE, BUT BETTER 
         |       |                   |
         |       |                   |- {{ ansible_cloud_type }}
@@ -90,24 +90,24 @@ necessary_contract_path_dictionary:
         |       .files:
         |       # /-----/
         |       |       |
-        |       |       # INTERNAL IN-REPOSITORY CRYPTO VAULT WITH PERSONAL AND GROUP SECURED STORAGED CREDENTIALS AND CRITICAL SETTINGS/OPTIONS/DECLARATIONS
+        |       |       # INTERNAL IN-REPOSITORY CRYPTO VAULT WITH PERSONAL AND GROUP SECURED STORAGE CREDENTIALS AND CRITICAL SETTINGS/OPTIONS/DECLARATIONS
         |       |       |
         |       |       protected:
         |       |       # /---------/
         |       |                   |
-        |       |                   # Information will be added in next release. Try go to complete and full Vault Readme.
+        |       |                   # Information will be added in the next release. Try to go to complete and full Vault Readme.
         |       |                   |
         |       |                   |..
         |       .migrations:
         |       # /---------/
         |       |           |
-        |       |           # Information will be added in next release
+        |       |           # Information will be added in the next release
         |       |           |
         |       |           |..
         |       CI:
         |       # /-/
         |       |   |
-        |       |   # Information will be added in next release
+        |       |   # Information will be added in the next release
         |       |   |
         |       |   |..
         |       |
@@ -186,7 +186,7 @@ necessary_contract_path_dictionary:
         |       |           |       _meta_self_search_:
         |       |           |       # /-----------------/
         |       |           |       |                   |
-        |       |           |       |                   # AUTOSEARCH/AUTOSTACK ZONES/REGIONS WHEN USE DYNAMIC-TO-DYNAMIC WARM-UP GENERATED GEO AND MESH CLOUDS (WIP MODULE)
+        |       |           |       |                   # AUTOSEARCH/AUTOSTACK ZONES/REGIONS WHEN TO USE DYNAMIC-TO-DYNAMIC WARM-UP GENERATED GEO AND MESH CLOUDS (WIP MODULE)
         |       |           |       |                   |
         |       |           |       |                   |- v.meta.py
         |       |           |       |                   |
@@ -248,7 +248,7 @@ necessary_contract_path_dictionary:
         |       |           |       {{ ansible_product }}:
         |       |           |       # /---------------------/
         |       |           |       |                       |
-        |       |           |       |..                     # Product for operate in deploying platform section.
+        |       |           |       |..                     # Product for operating in deploying platform section.
         |       |           |                               |
         |       |           |                               {{ ansible_environment }}:
         |       |           |                               # /-------------------------/
@@ -372,9 +372,9 @@ necessary_contract_path_dictionary:
         dockerfiles:
         # /---------/
         |           |
-        |           # Stack of services or applications which must to be builded to docker container images, 
+        |           # Stack of services or applications which must be built to docker container images, 
         |           # and represents by self all services like and which you need for product infrastructure layout,
-        |           # where we ruunning things such like as Databases, Queues, Storages, Hypervisors, Processing or other,
+        |           # where we running things such like as Databases, Queues, Storages, Hypervisors, Processing or other,
         |           # used as last backend/transport/queue layer for your front-end/back-end or other BI Pipelines works.
         |           # As example - [redis,mongo,rabbit,kafka,minio,postgres,memcached,nextcloud,etc]
         |           |
@@ -382,7 +382,7 @@ necessary_contract_path_dictionary:
         docs:
         # /-/
         |   |
-        |   # Stack of services which provide a Web Documentation for your products/services/features/etc, like
+        |   # Stack of services which provides Web Documentation for your products/services/features/etc, like
         |   # Site(sub-domain like sdk.example.com/docs.example.com) with SDK with Repository and API/SDK documentation.
         |   # Designed for able splitting by security zones and published types scope of endless count of needed services.
         |   # Such as best as your can: docs.example.com - primary API/Service preview and documentation. docs-api.example.com - 
@@ -395,14 +395,14 @@ necessary_contract_path_dictionary:
         extended:
         # /---------/
         |           |
-        |           # Groups with Stacks of services structured by Department/Shared Component as root for Group of couple in Stacks Services
+        |           # Groups with Stacks of services structured by Department/Shared Component as root for Group of a couple in Stacks Services
         |           |
         |           |..
         |
         PythonQA:
         # /-----/
         |       |
-        |       |# Placement for QA Section with declared as simple and have powerful fexible types of invocations which you want to add.
+        |       |# Placement for QA Section with declared as simple and have powerful flexible types of invocations which you want to add.
         |       |
         |       |..
         |
@@ -410,7 +410,7 @@ necessary_contract_path_dictionary:
         # /-----/
         |       |
         |..     # Stack with Services, which represents your company product/s developed applications and services, 
-                # what we need to take as target infinity deployment DEV/CI/CD/QA by Pipelines shedule runs. 
+                # what we need to take as target infinity deployment DEV/CI/CD/QA by Pipelines schedule runs. 
                 # Or runs complete update/create/modify/link products services in you want time from Buttons in Your TeamCity instance. 
                 # Better and good result two scheduled master self CI Full cycle run each around 12h.
                 |
