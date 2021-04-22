@@ -76,7 +76,7 @@ def fetch_json(remote_url, method='GET', data=None, params=None, headers=None):
         raise Exception("While fetching " + remote_url + ": " + str(e)), None, sys.exc_info()[2]
 
     # don't use r.json here, as it will read from r.text, which will trigger
-    # content encoding auto-detection in almost all cases, WHICH IS EXTREMELY
+    # content-encoding auto-detection in almost all cases, WHICH IS EXTREMELY
     # SLOOOOOOOOOOOOOOOOOOOOOOW. just don't.
     data = None
     try:
