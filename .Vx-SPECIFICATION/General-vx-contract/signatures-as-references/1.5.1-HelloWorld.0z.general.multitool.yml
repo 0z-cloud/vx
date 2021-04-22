@@ -32,10 +32,10 @@
 # AnyCloud Abstracts Merge: target = if adapter value is defined; then adapter value; else default target value from template
 #########################################################################################################################################################################################################################################
 #
-anycloud_defaults_image_hostname: ns_vx_cloud_vcd_ # example for template itself parts with index count { +index count for count in do ...-{$i}...- }
-#CURRENTLY ONLY CAN BE USED TEMPLATE DATASTORAGE FOR INITIAL CREATION VMs FROM TEMPLATE
+anycloud_defaults_image_hostname: ns_vx_cloud_vcd_ # example for the template itself parts with index count { +index count for count in do ...-{$i}...- }
+#CURRENTLY ONLY CAN BE USED TEMPLATE DATA STORAGE FOR INITIAL CREATION VMs FROM TEMPLATE
 #-.-.-.->>-.-.-.-.->>-.-.-.-.->>-.-.-.-.->>-.-.-.-.->>-.-.-.-.->>-.-.-.-.->>-.-.-.-.->>
-# IN CHILDREN ZONE WE ARE POSSIBLE MAY CAN TO USE {#{ ANSIBLE_DATACENTER }#} WITH PARENT
+# IN CHILDREN ZONE WE ARE POSSIBLE MAY CAN USE {#{ ANSIBLE_DATACENTER }#} WITH PARENT
 # LINK, - 
 #   * SET THE FLAG AND SET TO TURN ON INTERHIRATE 
 #   * SET DNS SUB-DOMAIN SUFFIX AS ANSIBLE DATACENTER VARIABLE
@@ -58,8 +58,8 @@ ansible_datacenter_location: moscow
 #### Product, Location, Target Environment Layout, Platform Type, Networks, Security and Default Vortex PlayChains
 #########################################################################################################################################################################################################################################
 ##### Possible use as source template, right filled one type infrastructure adapter type,
-##### to gets configuration from other types for extend hist zone, or if you want, 
-##### try do some tests new possiblity to use cross-types and cross-environments calls to environments chains, for masking or other things.
+##### to gets configuration from other types for extending hist zone, or if you want, 
+##### try to do some tests new possibility to use cross-types and cross-environments calls to environments chains, for masking or other things.
 #########################################################################################################################################################################################################################################
 # AnyCloud: Declaration of the infrastructure place, parts, zones, platforms (vapp), security and networks
 ##########################################################################################################################################################################################################################################
@@ -146,7 +146,7 @@ cloud_bootstrap:
 
     #
     #########################################################################################################################################################################################################################################
-    # AnyCloud IDS PCI ZONE: Declare the PCI minimal networks list and subnets in zone
+    # AnyCloud IDS PCI ZONE: Declare the PCI minimal networks list and subnets in the zone
     #########################################################################################################################################################################################################################################
     #
     ids_network:
@@ -218,7 +218,7 @@ cloud_bootstrap:
                 second_ip: "{{ ozrouter_anycloud_adapter_image_hostname_fqdn }}_private_ip_address_REPLACED" 
                 second_network_subnet: "REPLACED"
                 #################################################################################################################################################################################################################################
-                # {% raw %}NETWORK GREEN: Used for second network interface when in configuration declared which we must to use instance_vm.ip & hostvars[host].second_ip with same values behind NAT, but with cloud private connection in green network{% endraw %}
+                # {% raw %}NETWORK GREEN: Used for a second network interface when in configuration declared which we must use instance_vm.ip & hostvars[host].second_ip with same values behind NAT, but with cloud private connection in green network{% endraw %}
                 #################################################################################################################################################################################################################################
                 green_ip: "REPLACED"
                 green_subnet: "REPLACED"
@@ -241,7 +241,7 @@ cloud_bootstrap:
 
 
     #########################################################################################################################################################################################################################################
-    # AnyCloud Cluster Declaration: Cluster dictionaries with same starting contract call to get the needed cluster type contents
+    # AnyCloud Cluster Declaration: Cluster dictionaries with the same starting contract call to get the needed cluster type contents
     #########################################################################################################################################################################################################################################
 
     clusters:
@@ -254,7 +254,7 @@ cloud_bootstrap:
 
 
     #########################################################################################################################################################################################################################################
-    # AnyCloud Instances: VM objects half-dynamic types, with primary instance name, but with possible to bootstrap multiple count of each VM instance.
+    # AnyCloud Instances: VM objects half-dynamic types, with the primary instance name, but with possible to bootstrap multiple counts of each VM instance.
     #########################################################################################################################################################################################################################################
 
     servers:
@@ -732,7 +732,7 @@ cloud_bootstrap:
                 # second_network_subnet: "255.255.0.0"
                 second_network_subnet: "REPLACED"
                     #################################################################################################################################################################################################################################
-                    # {% raw %}NETWORK GREEN: Used for second network interface when in configuration declared which we must to use instance_vm.ip & hostvars[host].second_ip with same values behind NAT, but with cloud private connection in green network{% endraw %}
+                    # {% raw %}NETWORK GREEN: Used for a second network interface when in configuration declared which we must use instance_vm.ip & hostvars[host].second_ip with the same values behind NAT, but with cloud private connection in green network{% endraw %}
                     #################################################################################################################################################################################################################################
                 green_ip: "REPLACED"
                 green_subnet: "REPLACED"
@@ -883,7 +883,7 @@ cloud_bootstrap:
                 # - kubernetes-cluster
                 # - kubernetes-worker
                 #################################################################################################################################################################################################################################
-                # HOST SPECIFIC VARS, SETTINGS, TAGS, VALUES, LINKS TO DICTS FOR ABLE SELECTING ROLES BY ENDPOINT LAST CHOISE METHOD. LIKE EXAMPLE, LIST OF PACKAGES WHICH CANNOT BE REMOVED FROM SOME VM INSTANCE HOST.
+                # HOST SPECIFIC VARS, SETTINGS, TAGS, VALUES, LINKS TO DICTS FOR ABLE SELECTING ROLES BY ENDPOINT LAST CHOICE METHOD. LIKE EXAMPLE, LIST OF PACKAGES WHICH CANNOT BE REMOVED FROM SOME VM INSTANCE HOST.
                 # - vx_vlan_all
                 # - kubernetes-cluster
                 # - kubernetes-master
