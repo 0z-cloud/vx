@@ -1,7 +1,7 @@
 ############################################################################################################################################################################################################################
 # Core IO NS CACHE CONTRACT.
 # T4/Template by Python Hard-style, gentoo geeks hi! ;)
-# DNSaaS in shortest implementation. Faster then a speed of the light.                Enjoy you happing song... at Radio01 on unknown frequency broadcasting level...
+# DNSaaS in the shortest implementation. Faster than the speed of the light.                Enjoy your happing song... at Radio01 on an unknown frequency broadcasting level...
 # Spec v.0.9-6m00L-0124hbb1 : CODENAME : [````````] Opinion Opion Teraz [`````````]
 ############################################################################################################################################################################################################################
 cloud_dir: "{{ CLOUD_DIRECTORY }}"
@@ -45,7 +45,7 @@ bind_cloud_settings:
     #   dc_location: office
     ######################################################################################################################################################################################################################
     ### Explain: dc_location
-    #   Used when we need match destination layout with project wants 0z layout and when we merge some zones
+    #   Used when we need to match destination layout with project wants 0z layout and when we merge some zones
     #   If no linked, used like marker information only.
     ######################################################################################################################################################################################################################
     ##### MULTIPLE UNION LOCATION LEVEL
@@ -54,9 +54,9 @@ bind_cloud_settings:
     ######################################################################################################################################################################################################################
     ### Explain: mu_location
     #   Sometimes one we can want and have more than one - multiple, 
-    #   - inventories in one location and ns with also same prefix.
+    #   - inventories in one location and ns with the also same prefix.
     #   Variable result working like checking flag, when defined it's 
-    #   Describe to layout about that location in same server and ns${i} (subzone/kind) level
+    #   Describe to layout about that location in the same server and ns${i} (subzone/kind) level
     ######################################################################################################################################################################################################################
     ##### CLOUD DNS ns$(i)-${dc_prefix} SERVER PREFIX FOR LOCATION
     ######################################################################################################################################################################################################################
@@ -69,7 +69,7 @@ bind_cloud_settings:
     #     - "207.46.13.138"
     #     - "65.52.110.23"
     ######################################################################################################################################################################################################################
-    #####!!!> Or you can use dynamic gathering facts about destination of the zone by Jinja #!!!
+    #####!!!> Or you can use dynamic gathering facts about the destination of the zone by Jinja #!!!
     ######################################################################################################################################################################################################################
     #   dns_ip_list: |
     #     {% set hostslist = [] %}
