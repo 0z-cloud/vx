@@ -6,11 +6,11 @@ echo -e "\n\n\n\n\n                                                        Dynam
 
 sleep 3
 
-echo -e "\n\n\n\n\n                                                        Please relax, read and try to understand basic concept \n\n\n\n\n\n"
+echo -e "\n\n\n\n\n                                                        Please relax, read and try to understand the basic concept \n\n\n\n\n\n"
 
 sleep 3
 
-echo -e "\n\n\n\n\n                                                        This a primary root Project path, and his contents \n\n\n\n\n\n"
+echo -e "\n\n\n\n\n                                                        This a primary root Project path, and its contents \n\n\n\n\n\n"
 
 sleep 3
 
@@ -22,7 +22,7 @@ clear && echo -e '\n\n /Users/rostislavgrigoriev/OZ/adam/ \n\n Project Root Dir 
 
 sleep 6
 
-echo -e "#  Ansible Root Dir - Contain all IaC CodeBase, for DevOps team code side ansible is a 'workdir' not are project root - "
+echo -e "#  Ansible Root Dir - Contains all IaC CodeBase, for DevOps team code side ansible is a 'workdir' not are project root - "
 
 sleep 2
 
@@ -30,13 +30,13 @@ clear && echo -e '\n\n /Users/rostislavgrigoriev/OZ/adam/ansible \n\n Ansible Ro
 
 sleep 2
 
-echo -e "#  Services which we development for product. Root Dir services."
+echo -e "#  Services which we develop for the product. Root Dir services."
 
 
 clear && echo -e '\n\n /Users/rostislavgrigoriev/OZ/adam/ \n\n Project Root Dir \n\n';ls -la $(dirname `pwd`)\/services;
 
 
-echo -e "#  Backend equipment services, databases and applications which operates by services which we development for product. Root Dir dockerfiles"
+echo -e "#  Backend equipment services, databases, and applications which operate by services that we develop for the product. Root Dir dockerfiles"
 
 
 clear && echo -e '\n\n /Users/rostislavgrigoriev/OZ/adam/ \n\n Project Root Dir \n\n';ls -la $(dirname `pwd`)\/dockerfiles;
