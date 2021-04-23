@@ -1,9 +1,9 @@
-## services as Service (SaaS) Contain:
+## Services as Service (SaaS) Contain:
 
-  * Your own services images, databases, tools, and all technolody stuff which you develop, test, integrate
-  * One place for all you sources in direct way: and want run, then I run!
-  * Be better, every day, by follow the that - simple guide ;)
-  * Like example if you -
+  * Your own services images, databases, tools, and all technology stuff which you develop test integrate
+  * One place for all your sources in a direct way: and want run, then I run!
+  * Be better, every day, by following the that - simple guide ;)
+  * For example, if you -
   
     IPSP - core, payment, gateway, api, admin
     
