@@ -2,4 +2,4 @@ This directory contains the full set of configs and secrets of all namespaces - 
 Usage
 kubectl apply -f rpay-engine / k8s / rpay-engine-k8s-cluster / default / secret.default.yaml add to the namespace Default description secrets
 
-And as example - drone service defenition for importing  through rancher web ui.
+And as an example - drone service definition for importing  through rancher web UI.
