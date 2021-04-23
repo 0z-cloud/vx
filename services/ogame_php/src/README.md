@@ -1,13 +1,13 @@
 ## Introduction ##
 
-This is revived OGame v 0.84 with old design.
+This is revived OGame v 0.84 with an old design.
 
-## !!! All trademarks and copyrighted materials are belongs to OGame respective owners - Gameforge GmbH !!! ##
-_Thank you for the great game, but redesign is not we like_
+## !!! All trademarks and copyrighted materials belong to OGame's respective owners - Gameforge GmbH !!! ##
+_Thank you for the great game, but the redesign is not what we like_
 
 <img src='http://ogamespec.com/imgstore/whc50b7bd1f6b2a2.jpg'>
 
-Currently only Russian, English and Deutch languages are supported. Other language packs can be submitted by volunteers. The game engine is multilingual. This mean you can play with your preffered language in any universe.<br>
+Currently, only Russian, English and Deutch languages are supported. Other language packs can be submitted by volunteers. The game engine is multilingual. This means you can play with your preferred language in any universe.<br>
 <br>
 <h2>Features</h2>
 <ul><li>Original game mechanics!<br>
@@ -52,12 +52,12 @@ Currently only Russian, English and Deutch languages are supported. Other langua
 <a href='http://oldogame.ru/images/screen2.jpg'><img src='http://oldogame.ru/images/screen2_sm.jpg' /></a>
 <a href='http://oldogame.ru/images/screen5.jpg'><img src='http://oldogame.ru/images/screen5_sm.jpg' /></a>
 
-<b>This is non commercial project, all Premium functions of original OGame (Dark Matter, Officeers and Trader) are free.</b><br>
+<b>This is a non-commercial project, all Premium functions of the original OGame (Dark Matter, Officeers and Trader) are free.</b><br>
 All copyrighted material is proprietary Gameforge stuff. We do not make money on it! We just have fun =)<br>
 <br>
 <h2>Progress</h2>
 
-The game is almost done. TODO list:<br>
+The game is almost done. TO DO list:<br>
 <br>
 <ul><li>Improve admin tool<br>
 </li><li>Battle engine on PHP<br>
@@ -112,7 +112,7 @@ Translation Guides:<br>
 <a href='News.md'>News</a>
 
 <h2>Credits</h2>
-Credits go to Alexander Rösner (Legor) for such revolutionary breakthrough in browser games.<br>
+Credits go to Alexander Rösner (Legor) for such a revolutionary breakthrough in browser games.<br>
 He was not first, but he was the one, who was successful.<br>
 To pay respect, we still have Legor's account, sitting on its own planet Arakis at [1:1:2] =)<br>
 <br>
