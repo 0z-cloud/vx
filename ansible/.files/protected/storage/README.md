@@ -1,3 +1,3 @@
 # PROTECTED ENTITY STORAGE
 
-    * contain some objects, and vault types folders, lie - ```groups/users/services```.
+    * contain some objects, and vault types folders, like - ```groups/users/services```.
