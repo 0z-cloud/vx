@@ -6,7 +6,7 @@ if [ ! -z $env ]; then
     export ANSIBLE_TARGET_LINKED_DATACENTER_CHANGE_BETWEEN="${env}"
 fi
 
-# FOR RUN TEST YOU MUST EXPORT YOUR DEPLOY PASSWORD
+# FOR RUN THE TEST YOU MUST EXPORT YOUR DEPLOY PASSWORD
 
 ################################################################################################
 # DETERMINATE USE THE SEPARATED CLOUD TYPES FOR BOOTSTRAP IaC 0 LEVEL and DEPLOYMENT IaC 1 LEVEL
