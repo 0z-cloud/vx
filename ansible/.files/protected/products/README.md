@@ -1,6 +1,6 @@
-# That folder contain products with users crendentials profile vault storage link
+# That folder contains products with users credentials profile vault storage link
 
-  * Explane the Example user configuration folder layout witch store necessary environments settings and API Clouds providers connections crendentials per that user
+  * Explain the Example user configuration folder layout witch store necessary environments settings and API Clouds providers connections credentials per that user
 
     ```
        id_rsa                       - user private ssh-key file
