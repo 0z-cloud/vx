@@ -1,12 +1,12 @@
 ### Running the playbooks on PCI Inventories
 
-* You must to run playbook with sudo login and password, for able to deploy/check/configuring something like in example below:
+* You must run the playbook with Sudo login and password, for able to deploy/check/configuring something like in the example below:
 
 ```bash
   ansible-playbook -i inventories/develop-vortex/ playbook-library/compliance/tomcat-compliance.yml --ask-sudo-pass -u  YOUR_USER_NAME --become-user YOUR_USER_NAME --ask-pass 
 ```
 
-* For running something playbooks or roles you must have a root access to exec a commands, as example use become-user root:
+* For running something playbooks or roles you must have root access to exec commands, as an example use become-user root:
 
 ```bash
   --ask-become-pass -u YOUR_USER_NAME --become-user root --ask-pass --become 
@@ -36,7 +36,7 @@
 
 ## Deploying the selfhosted applications
 
-* As example deploy mobicom application to HOSTS='vortex-mobicom-01':
+* As an example deploy mobicom application to HOSTS='vortex-mobicom-01':
 
 ```bash
   ansible-playbook -i inventories/vortex/production/ playbook-library/deploy/laravel.yml --ask-become-pass -u YOUR_USER_NAME --become-user root --ask-pass --become --ask-vault-pass --extra-vars HOSTS="vortex-mobicom-01"
@@ -50,19 +50,19 @@ git clone git@172.16.31.110:foundation/ansible.git
 ansible-galaxy install -r requirements.yml
 ```
 
-## Deploying some package from GitLab example, see whole a playbook code for understanding what and on a which you run a tasks:
+## Deploying some package from GitLab example, see whole a playbook code for understanding what and on a which you run tasks:
 
 ```bash
 ansible-playbook deploy.yml -i inventories/*** -u *** --ask-vault-pass
 ```
 
-## For deploy the ossec-agent role use as example:
+## To deploy the ossec-agent role use as an example:
 
 ```bash
  ansible-playbook -i inventories/vortex/production/ playbook-library/configuration/ossec-agent.yml --ask-become-pass -u YOUR_USER_NAME --become-user root --ask-pass --become --ask-vault-pass
 ```
 
-* You can run playbook with limit hosts - when limit setted playbook deploy only to limit host not for all hosts, just add to ansible-playbook command line:
+* You can run the playbook with limit hosts - when limit set playbook deploy only to limit host, not for all hosts, just add to the ansible-playbook command line:
 
 ```bash
 --limit vortex-proxy-payments-gateway-01 
