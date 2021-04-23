@@ -4,7 +4,7 @@
 env=$1
 run_choise_one_button_happy_place=$2
 
-# FOR RUN TEST YOU MUST EXPORT YOUR DEPLOY PASSWORD
+# FOR RUN THE TEST YOU MUST EXPORT YOUR DEPLOY PASSWORD
 ################################################################################################
 
 ################################################################################################
