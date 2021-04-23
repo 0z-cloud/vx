@@ -4,11 +4,11 @@
 
 - ``` ./CI/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/.. ```
 
-## For setup you local/test/stage enviroment sandbox and able test Infrastructure and Software installations with ansible.
+## For setup you local/test/stage environment sandbox and able test Infrastructure and Software installations with ansible.
 
 -  ``` !!! ITS REMOVE ALL YOU SANDBOX DATA !!! ```
 
-- For Re-initialization your cloud sandbox try run
+- For Re-initialization your cloud sandbox try to run
 
 *  ``` ./RE_init_cloud.sh ```
 
@@ -16,7 +16,7 @@
 
 * ``` cd {{ repository_path }}/CI/ansible_cloud/ ```
 
-## Then you can run all like in example below
+## Then you can run all like in the example below
 
 * ``` ansible -m setup -i inventories/.cloud all ```
 
