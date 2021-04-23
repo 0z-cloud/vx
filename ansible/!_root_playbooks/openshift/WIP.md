@@ -4,7 +4,7 @@
 
     interfaces(){
 
-        if almost ok ->
+        if almost is ok ->
 
             2. Compare contract maps, dataflows, datasets,
             ecosystem security implementation level, staking,
@@ -12,12 +12,12 @@
             OpenShift Core Codebase.
 
         else implement differents and extend current Vx model,
-            for able to resolve the challanges and repeat before done case,
+            for able to resolve the challenges and repeat before done case,
         do while done >= 1;
 
             check_interfaces=`interfaces`;
 
-            if interface ok; then
+            if interface is ok; then
 
                 finish_one=1
 
