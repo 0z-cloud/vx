@@ -1,6 +1,6 @@
 # Intro
 
-    Welcome to new era of Microservice Multicloud Adaptive Payment Opensource Platform which compliant PCI DSS as SaaS product.
+    Welcome to a new era of Microservice Multicloud Adaptive Payment Opensource Platform which compliant PCI DSS as SaaS product.
 
 
 ## How to create a new little cloud from scratch
@@ -24,7 +24,7 @@
 
         ```inventories/products```.
 
-    2. We have types of clouds backends ```{{ cloud_type }}```, now its:
+    2. We have types of clouds backends ```{{ cloud_type }}```, now it is:
 
         * alicloud
 
@@ -40,36 +40,36 @@
 
         * google
 
-    3. We have a ```products``` which have a environments ```{{ ansible_environment }}```, like ``` develop/stage/production ```.
+    3. We have a ```products``` which have environments ```{{ ansible_environment }}```, like ``` develop/stage/production ```.
 
-    4. We have three types and places for ```group_vars```, - spaces which contain main or specific hosts groups settings.
+    4. We have three types and places for ```group_vars```, - spaces that contain main or specific hosts groups settings.
 
         I. Root variables:
 
         ```{{ ansible_root }}/group_vars``` and ```{{ ansible_root }}/group_vars/products/{{ product_name }}```
 
-        II. Cloud bootstrap variables, which needed for initial create the cloud instances:
+        II. Cloud bootstrap variables, which needed to initial create the cloud instances:
 
         ```{{ ansible_root }}/inventories/0z-cloud/products/{{ cloud_type }}/{{ product_name }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml```
 
-        III. Variables in ```Target Inventory``` needed for run playbooks after creation the cloud instances:
+        III. Variables in ```Target Inventory``` needed for run playbooks after the creation of the cloud instances:
 
         ```{{ ansible_root }}/inventories/products/{{ product_name }}/{{ ansible_environment }}/group_vars```
 
 * Fill the access keys from example, for able project ```in run setup``` access to your cloud infrastructure:
 
-    * Becareful - you need prevent sensetive security data from push to repository, you must add them to ```.gitignore```
+    * Be careful - you need to prevent sensitive security data from push to repository, you must add them to ```.gitignore```
 
     * For ``` alicloud ``` move ```{{ ansible_root }}/group_vars/products/{{ product_name }}/alicloud.yml.example``` to ```{{ ansible_root }}/group_vars/products/{{ product_name }}/alicloud.yml```
-      and fill settings getted from alicloud console.
+      and fill settings got from alicloud console.
 
     * For ``` vsphere ```  move ```{{ ansible_root }}/group_vars/products/{{ product_name }}/vsphere.yml.example``` to ```{{ ansible_root }}/group_vars/products/{{ product_name }}/vsphere.yml```
-      and fill settings getted from vsphere console.
+      and fill settings got from vsphere console.
 
     * For main settings move ```{{ ansible_root }}/group_vars/products/{{ product_name }}/main.yml.example``` to ```{{ ansible_root }}/group_vars/products/{{ product_name }}/main.yml```
       and fill extra settings.
 
-    * You can dynamicly attach some specific dictionaries with settings in !_root_playbooks for some type of cloud:
+    * You can dynamically attach some specific dictionaries with settings in !_root_playbooks for some type of cloud:
 
 
           - name: Load groupvars/product global shared settings
@@ -85,9 +85,9 @@
                 - main
 
 
-* Information about run process:
+* Information about the run process:
 
-    1. When all settings filled correctly, you can run the wrapper, for get a list of all commands needed for run step by step:
+    1. When all settings filled correctly, you can run the wrapper, to get a list of all commands needed for run step by step:
 
         ```{{ ansible_root }}/\!_stand-minimal.sh```
 
@@ -95,7 +95,7 @@
 
         ```{{ ansible_root }}/\!_stand-minimal.sh {{ ansible_environment }} {{ product_name }} USERNAME PASS {{ NOWAIT }} {{ TYPE_OF_RUN }} {{ cloud_type }}```
 
-* A little example of commands which runned step by step for setup a simple cloud, getted by wrapper.
+* A little example of commands which ran step by step for setup a simple cloud, got by wrapper.
 
     1. Creating VMs:
 
@@ -119,7 +119,7 @@
 
         ```ansible-playbook -i inventories/products/vortex/production/ playbook-library/cloud/consul/!_consul_cloud_playbook.yml -e HOSTS=all -u vortex --become-user root --become -e ansible_become_pass='1235' -e ansible_ssh_pass='1235' -e consul_upgrade=true```
 
-    6. Creating the cloud persisetnt storages for each needed that hosts groups:
+    6. Creating the cloud persistent storages for each needed that hosts groups:
 
         ```ansible-playbook -i inventories/products/vortex/production/ playbook-library/storage/glusterfs-cluster.yml -e GLUSTERFS_CLUSTER_HOSTS=cloud-bind-frontend-dns-glusterfs-storage -u vortex --become-user root --become -e ansible_become_pass='1235' -e ansible_ssh_pass='1235'```
 
@@ -133,7 +133,7 @@
 
         ```ansible-playbook -i inventories/products/vortex/production/ playbook-library/!_bootstrap/core-dns.yml -e HOSTS=cloud-bind-frontend-dns -u vortex --become-user root --become -e ansible_become_pass='1235' -e ansible_ssh_pass='1235'```
 
-    9. Installing DNS Backend service for publish services DNS records to Internet:
+    9. Installing DNS Backend service for publishing services DNS records to the Internet:
 
         ```ansible-playbook -i inventories/products/vortex/production/ playbook-library/!_bootstrap/dns-backend.yml -e HOSTS=master-bind-master-backend -u vortex --become-user root --become -e ansible_become_pass='1235' -e ansible_ssh_pass='1235'```
 
@@ -142,15 +142,15 @@
 
         ```ansible-playbook -i inventories/products/vortex/production/ playbook-library/!_bootstrap/letsencrypt-pacemaker.yml -e HOSTS=master-bind-master-backend -u vortex --become-user root --become -e ansible_become_pass='1235' -e ansible_ssh_pass='1235'```
 
-    11. Creation the Docker Swarm Cluster where to after to be deploy stack of applications:
+    11. Creation of the Docker Swarm Cluster where to after to be deploy stack of applications:
 
         ```ansible-playbook -i inventories/products/vortex/production/ playbook-library/cloud/swarm/swarm-cluster.yml -e SWARM_MASTERS=swarm-cluster -u vortex --become-user root --become -e ansible_become_pass='1235' -e ansible_ssh_pass='1235' -e leave_cluster=true```
 
-    12. Deploy nginx frontend role, which provide proxy to backends:
+    12. Deploy nginx frontend role, which provides proxy to backends:
 
         ```ansible-playbook -i inventories/vortex/production/ playbook-library/cloud/nginx/nginx-frontend-ng.yml -e HOSTS=nginx-frontend -u vortex --become-user root --become -e ansible_become_pass=1235 -e ansible_ssh_pass=1235```
 
-    13. Profit: Cloud initialization done, now we can to deploy the applications.
+    13. Profit: Cloud initialization done, now we can deploy the applications.
     
 ## Cloud Deploy and Service Management
 
@@ -173,7 +173,7 @@
 
 2. Build process basic:
 
-    1. We have a three basic environments, its -
+    1. We have three basic environments, its -
 
         ``` 
             development
@@ -181,7 +181,7 @@
             production
         ```
 
-    2. Deploy to each environment start automaticly via Gitlab CI by .gitlab-ci.yml file:
+    2. Deploy to each environment start automatically via Gitlab CI by .gitlab-ci.yml file:
 
         * when we push ```any``` branch deploy starts to ```development environment```.
 
@@ -195,7 +195,7 @@
 
         * Build script basic work:
 
-            * Script takes a applications and services from each dirs, as example
+            *  The Script takes applications and services from each dirs, as example
 
                 ``` 
                     /root_dir/services/{{ service_name }}
@@ -205,11 +205,11 @@
 
             * Script build services and push to Gitlab Docker Registry
 
-            * Script generate the docker-stack file for deploy docker swarm stack
+            * Script generates the docker-stack file for deploy docker swarm stack
 
-            * Script deploy updated applications and services from builded images getted from docker registry.
+            * Script deploys updated applications and services from built images got from the docker registry.
 
-3. For each public service you must have a nginx configuration and public certificates, this process controlled by wrapper:
+3. For each public service you must have a nginx configuration and public certificates, this process controlled by the wrapper:
 
     ```/root_dir/ansible/!_0z-nginx_acme_helper.sh```
 
