@@ -8,6 +8,6 @@
 
 ./inventories/0z-cloud/vcloud/v.py >> ./tmp/inventory | ansible -i /tmp/inventory -m shell -a "echo 1" all
 
-- > For regenerate a dynamic part of inventory try run ``` ./cloud_regen.sh ``` from root folder of the project and enjoy!
+- > For regenerate a dynamic part of inventory try to run ``` ./cloud_regen.sh ``` from root folder of the project and enjoy!
 
-# THIS MUST TO BE WRITEN FOR UNDERSTANDING USAGE
+# THIS MUST BE WRITTEN FOR UNDERSTANDING USAGE
