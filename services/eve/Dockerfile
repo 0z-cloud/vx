@@ -1,5 +1,5 @@
 ######################################################################
-# - EVE - ALL WHAT ARE HAVE BORN - LIVE AT EDGE ON HELL -
+# - EVE - ALL THAT ARE HAVE BORN - LIVE AT EDGE ON HELL -
 ######################################################################
 FROM heaven:latest
 
