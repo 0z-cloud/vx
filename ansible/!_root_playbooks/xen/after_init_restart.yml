@@ -1,5 +1,5 @@
 
-- name: Restart after bootstrap infrastructure from localhost to Alicloud Infranstructure
+- name: Restart after bootstrap infrastructure from localhost to Alicloud Infrastructure
   hosts: localhost
   tasks:
 
