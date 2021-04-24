@@ -13,10 +13,18 @@ echo "projects path: $projects_path"
 echo "woinc_api path: $woinc_api_path"
 echo "docker path: $docker_path"
 cd $docker_path
+
+#### WORKS EXAMPLE
+#
+tar -ch ../codecloudcoin | docker build -t woinc/api-labirint -f ./codecloudcoin/Dockerfile -
+#
+#### OLD EXAMPLE
 # tar -czh ./codecloudcoin/ | docker build -t woinc/api-labirint -f ./codecloudcoin/Dockerfile -
 # cd ./woinc/
-tar -ch ../codecloudcoin | docker build -t woinc/api-labirint -f ../codecloudcoin/Dockerfile - 
+# 
+# tar -ch ../codecloudcoin | docker build -t woinc/api-labirint -f ../codecloudcoin/Dockerfile - 
 # tar -czh ./codecloudcoin/ | docker build -t woinc/api-labirint -f ./codecloudcoin/Dockerfile .
+#################
 cd $woinc_api_path
 
 docker rm -f woinc-api-postgresql
