@@ -1,12 +1,8 @@
 #!/usr/bin/env bash
-sudo apt-get update -y -qq
-sudo apt-get upgrade -y -qq
-sudo apt-get install curl -y -qq
-sudo apt-get install -y -qq \
-    apt-transport-https \
-    ca-certificates \
-    curl \
-    software-properties-common
+sudo apt-get update -yy -qq
+sudo apt-get upgrade -yy -qq
+sudo apt-get install curl wget -yy -qq
+sudo apt-get install apt-transport-https ca-certificates software-properties-common
 
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 
@@ -15,36 +11,26 @@ sudo add-apt-repository \
    $(lsb_release -cs) \
    stable"
 
-sudo apt-get update -y
+sudo apt-get update -yy -qq
 
-# sudo apt-get -y install unzip mc nano htop python3-pip smartmontools build-essential checkinstall software-properties-common libreadline-gplv2-dev libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev libffi-dev python-py python-pip -qq 
+# sudo apt-get -y install unzip mc nano htop python3-pip smartmontools build-essential checkinstall software-properties-common libreadline-gplv2-dev
+# libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev libffi-dev python-py python-pip -qq
 
-sudo apt-get -y install docker-ce unzip mc nano htop python3-pip smartmontools build-essential checkinstall software-properties-common libreadline-gplv2-dev libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev libffi-dev python-py -qq 
+sudo apt-get install -yy  docker-ce unzip mc nano htop python3-pip smartmontools build-essential checkinstall software-properties-common libreadline-gplv2-dev
+sudo apt install -yy  libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev libffi-dev python-py python3-dev
 
-sudo apt install -y -qq python-dockerpty gnupg2 pass
+sudo apt install -yy python-dockerpty gnupg2
+sudo apt install -yy pass
 
 wget https://bootstrap.pypa.io/get-pip.py
-python get-pip.py
+python3 get-pip.py
 
-ln -s /usr/local/bin/pip /usr/bin/pip
+ln -s /usr/local/bin/pip3 /usr/bin/pip3
 
-pushd /tmp
-cat > req.txt <<EOF
-cryptography
-pywinrm
-dnspython
-urllib3<1.25
-ansible
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-EOF
-
-# DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-# sudo -H pip install --upgrade pip
-# sudo -H pip install --upgrade virtualenv
-
-pip install -r $DIR/req.txt
-
-rm /tmp/req.txt
+pip3 install -r $DIR/river_uniq_all.yml
+pip3 install --upgrade -r $DIR/river_uniq_all.yml
 
 rm /etc/locales
 
@@ -70,5 +56,5 @@ source /etc/locales
 
 pushd /
 
-sudo -H pip install --upgrade pip
-sudo -H pip install --upgrade virtualenv
+sudo -H pip3 install --upgrade pip3
+sudo -H pip3 install --upgrade virtualenv
