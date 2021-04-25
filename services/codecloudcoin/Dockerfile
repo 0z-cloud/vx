@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM ubuntu:focal
 MAINTAINER Westsouthnight <ros@woinc.ru>
 ENV LANG en_US.UTF-8
 ENV TERM xterm
@@ -6,9 +6,10 @@ ENV TERM xterm
 # RUN apt update -q -yy && apt upgrade -yy -q
 RUN apt update -q -yy
 #
+RUN DEBIAN_FRONTEND="noninteractive" apt-get -y install tzdata
+
 # RUN apt install -q -yy libssl-dev python python3 python-dev python3-dev python-pip python3-pip 
-RUN apt install -q -yy python3 python3-pip expect
-#
+RUN apt install -q -yy python3 python3-pip expect net-tools
 #
 #--------
 RUN apt install -q -yy git curl postgresql-client

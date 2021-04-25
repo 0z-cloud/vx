@@ -1,5 +1,7 @@
 #!/bin/bash
 
+no_build=$1
+
 # MUST HAVE THE cgroupfs-mount package installed at you system
 
 cd ../../
@@ -16,18 +18,19 @@ echo "woinc_api path: $woinc_api_path"
 echo "docker path: $docker_path"
 cd $docker_path
 
-#### WORKS EXAMPLE
-#
-# tar -ch ../codecloudcoin | docker build -t woinc/api-labirint:latest -f ./codecloudcoin/Dockerfile -
-#
-#### OLD EXAMPLE
-# tar -czh ./codecloudcoin/ | docker build -t woinc/api-labirint -f ./codecloudcoin/Dockerfile -
-# cd ./woinc/
-# 
-# tar -ch ../codecloudcoin | docker build -t woinc/api-labirint -f ../codecloudcoin/Dockerfile - 
-# tar -czh ./codecloudcoin/ | docker build -t woinc/api-labirint -f ./codecloudcoin/Dockerfile .
-#################
-
+if [ ! -z $no_build ]; then
+    #### WORKS EXAMPLE
+    #
+    tar -ch ../codecloudcoin | docker build -t woinc/api-labirint:latest -f ./codecloudcoin/Dockerfile -
+    #
+    #### OLD EXAMPLE
+    # tar -czh ./codecloudcoin/ | docker build -t woinc/api-labirint -f ./codecloudcoin/Dockerfile -
+    # cd ./woinc/
+    # 
+    # tar -ch ../codecloudcoin | docker build -t woinc/api-labirint -f ../codecloudcoin/Dockerfile - 
+    # tar -czh ./codecloudcoin/ | docker build -t woinc/api-labirint -f ./codecloudcoin/Dockerfile .
+    #################
+fi
 # chmod -R 777 /dev/shm
 
 cd $woinc_api_path
@@ -51,7 +54,7 @@ docker run -d \
 echo "Sleep wait when postgres UP"
 sleep 5
 # docker run -d --name woinc-api-service -p 4444:4444 -e POSTGRES_PASSWORD=7539148620qQ --link woinc-api-postgresql:woinc-api-postgresql -e POSTGRES_DB=woincapi -v $projects_path:/codecloudcoin/woinc woinc/api-labirint:latest
-docker run -d --privileged --name woinc-api-service -p 4444:4444 -e POSTGRES_PASSWORD=7539148620qQ --link woinc-db:woinc-api-postgresql -e POSTGRES_DB=woincapi woinc/api-labirint
+docker run -d --privileged --name woinc-api-service -p 4444:4444 -e POSTGRES_PASSWORD=7539148620qQ --link woinc-api-postgresql woinc-api-postgresql -e POSTGRES_DB=woincapi woinc/api-labirint
 
 ``
 docker exec -it woinc-api-service 'python3 /codecloudcoin/woinc/create_db.py &'
