@@ -7,7 +7,7 @@ DATABASE_PASSWORD=$3
 DATABASE_NAME=$4
 DATABASE_USER=$5
 
-if [! -z $DO_REBUILD ]; then
+if [ ! -z $DO_REBUILD ]; then
 
     echo "DO_REBUIL: PASSED THE NOT ZERO STRING, MUST GO re/BUILD"
 
@@ -23,7 +23,7 @@ else
 
 fi
 
-if [! -z $DO_APPS_CLEAN ]; then
+if [ ! -z $DO_APPS_CLEAN ]; then
 
     echo "DO_APPS_CLEAN: PASSED THE NOT ZERO STRING, MUST GO re/Clean"
 
@@ -33,7 +33,7 @@ else
 
 fi 
 
-if [! -z $DATABASE_PASSWORD ]; then
+if [ ! -z $DATABASE_PASSWORD ]; then
 
     echo "DATABASE_PASSWORD: PASSED THE NOT ZERO STRING AND NEXT USE IT VALUE TO INJECT"
 
@@ -45,7 +45,7 @@ else
 
 fi 
 
-if [! -z $DATABASE_NAME ]; then
+if [ ! -z $DATABASE_NAME ]; then
 
     echo "DATABASE_NAME: PASSED THE NOT ZERO STRING AND NEXT USE IT VALUE TO INJECT"
 
@@ -57,7 +57,7 @@ else
 
 fi 
 
-if [! -z $DATABASE_USER ]; then
+if [ ! -z $DATABASE_USER ]; then
 
     echo "DATABASE_USER: PASSED THE NOT ZERO STRING AND NEXT USE IT VALUE TO INJECT"
 
