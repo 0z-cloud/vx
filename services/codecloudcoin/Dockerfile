@@ -6,7 +6,6 @@ ENV TERM xterm
 # RUN apt update -q -yy && apt upgrade -yy -q
 RUN apt update -q -yy
 #
-RUN apt install -q -yy expect
 # RUN apt install -q -yy libssl-dev python python3 python-dev python3-dev python-pip python3-pip 
 RUN apt install -q -yy python3 python3-pip expect
 #
