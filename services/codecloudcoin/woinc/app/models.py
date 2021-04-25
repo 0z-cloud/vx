@@ -16,6 +16,7 @@ from distutils.util import strtobool
 from distutils.version import StrictVersion
 from flask_login import AnonymousUserMixin
 
+
 from app import app, db
 from lib import utils
 from lib.log import logger
