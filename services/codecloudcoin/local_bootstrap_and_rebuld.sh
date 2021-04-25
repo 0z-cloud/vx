@@ -109,7 +109,7 @@ sleep 25
 
 echo -e "a/Wait when database are done Database is complete bootstrap"
 sleep 50
-docker exec -it woinc-db "su -l postgres -c \"psql -c \"ALTER ROLE $DATABASE_USER WITH PASSWORD '$DATABASE_PASSWORD';\"\""
+docker exec -it woinc-db 'su -l postgres -c "/db_create.sh ${DATABASE_USER} ${DATABASE_PASSWORD}"'
 
 echo -e "Create the Application Container Instance ..."
 docker run -d --privileged --name woinc-api-service -p 4444:4444 -e POSTGRES_PASSWORD=$DATABASE_PASSWORD --link woinc-db:woinc-api-postgresql -e POSTGRES_DB=$DATABASE_NAME woinc/api-labirint

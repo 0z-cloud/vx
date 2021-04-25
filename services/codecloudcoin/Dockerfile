@@ -43,6 +43,7 @@ RUN pip3 install -r /codecloudcoin/requirements.txt \
 COPY /codecloudcoin/start.sh /
 COPY /codecloudcoin/extended.sh /
 COPY /codecloudcoin/while.sh /
+COPY /codecloudcoin/db_create.sh /
 COPY /codecloudcoin/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 RUN pip3 install psycopg2
 EXPOSE 4444
