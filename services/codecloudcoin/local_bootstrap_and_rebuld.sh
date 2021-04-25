@@ -18,7 +18,7 @@ cd $docker_path
 
 #### WORKS EXAMPLE
 #
-# tar -ch ../codecloudcoin | docker build -t woinc/api-labirint:latest -f ./codecloudcoin/Dockerfile -
+tar -ch ../codecloudcoin | docker build -t woinc/api-labirint:latest -f ./codecloudcoin/Dockerfile -
 #
 #### OLD EXAMPLE
 # tar -czh ./codecloudcoin/ | docker build -t woinc/api-labirint -f ./codecloudcoin/Dockerfile -
