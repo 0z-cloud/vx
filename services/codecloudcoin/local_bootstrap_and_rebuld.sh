@@ -44,18 +44,20 @@ cgroupfs-mount;
 docker run -d \
     --name woinc-db \
     -p 5432:5432 \
-    -e POSTGRES_USERNAME=postgres \
     -e POSTGRES_PASSWORD=7539148620qQ \
     -e POSTGRES_DBNAME=woincapi \
     -v ${woinc_api_path}data:/var/lib/postgresql/data \
     frodenas/postgresql
 
+    # -e POSTGRES_USERNAME=postgres \
+
 # docker run -d --privileged --memory 256m --memory-swap -1 --name woinc-api-postgresql -p 5432:5432 -e POSTGRESQL_SHARED_BUFFERS=256MB -v /dev/shm:/dev/shm -v ${woinc_api_path}data:/var/lib/postgresql/data -e POSTGRES_PASSWORD=7539148620qQ -e POSTGRES_DB=woincapi postgres
 echo "Sleep wait when postgres UP"
-sleep 5
+sleep 50
 # docker run -d --name woinc-api-service -p 4444:4444 -e POSTGRES_PASSWORD=7539148620qQ --link woinc-api-postgresql:woinc-api-postgresql -e POSTGRES_DB=woincapi -v $projects_path:/codecloudcoin/woinc woinc/api-labirint:latest
-docker run -d --privileged --name woinc-api-service -p 4444:4444 -e POSTGRES_PASSWORD=7539148620qQ --link woinc-api-postgresql woinc-api-postgresql -e POSTGRES_DB=woincapi woinc/api-labirint
+docker run -d --privileged --name woinc-api-service -p 4444:4444 -e POSTGRES_PASSWORD=7539148620qQ --link woinc-db:woinc-api-postgresql -e POSTGRES_DB=woincapi woinc/api-labirint
 
-``
+sleep 10
+
 docker exec -it woinc-api-service 'python3 /codecloudcoin/woinc/create_db.py &'
 docker exec -it woinc-api-service 'bash -x /extended.sh'
