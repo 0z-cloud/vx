@@ -39,7 +39,7 @@ if [ ! -z $DATABASE_PASSWORD ]; then
 
 else
 
-    echo "PASSED NULL OR EMPTY VALUE, SETUP DEFAULT CONSTRAIN FOR IT"
+    echo "PASSED NULL OR EMPTY VALUE, SETUP DEFAULT DATABASE_PASSWORD CONSTRAIN FOR IT"
 
     DATABASE_PASSWORD="7539148620qQ"
 
@@ -51,7 +51,7 @@ if [ ! -z $DATABASE_NAME ]; then
 
 else
 
-    echo "PASSED NULL OR EMPTY VALUE, SETUP DEFAULT CONSTRAIN FOR IT"
+    echo "PASSED NULL OR EMPTY VALUE, SETUP DEFAULT DATABASE_NAME CONSTRAIN FOR IT"
 
     DATABASE_NAME="woincapi"
 
@@ -63,7 +63,7 @@ if [ ! -z $DATABASE_USER ]; then
 
 else
 
-    echo "PASSED NULL OR EMPTY VALUE, SETUP DEFAULT CONSTRAIN FOR IT"
+    echo "PASSED NULL OR EMPTY VALUE, SETUP DEFAULT DATABASE_USER CONSTRAIN FOR IT"
 
     DATABASE_USER="postgres"
 
@@ -107,8 +107,7 @@ docker run -d \
 echo "Sleep wait when postgres UP"
 sleep 25
 
-echo -e "docker exec -it woinc-db psql -c \"ALTER ROLE $DATABASE_USER WITH PASSWORD '$DATABASE_PASSWORD';\""
-docker exec -it woinc-db psql -c "ALTER ROLE $DATABASE_USER WITH PASSWORD '$DATABASE_PASSWORD';"
+docker exec -it woinc-db "su -l postgres -c \"psql -c \"ALTER ROLE $DATABASE_USER WITH PASSWORD '$DATABASE_PASSWORD';\"\""
 
 echo -e "a/Wait when database are done Database is complete bootstrap"
 sleep 50

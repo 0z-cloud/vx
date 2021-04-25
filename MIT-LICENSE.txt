@@ -1,56 +1,5 @@
-# Copyright (c) 2014-2021 0z-Cloud Corporation
-# #####################################################################
-# Executive Publish own rights designed:
-# #####################################################################
-#
-#   * Web Optimization Incorporated
-#
-# #####################################################################
-# Exploitation that would be exclusive to the copyright owner:
-# #####################################################################
-#
-#   * 0z Cloud Corporation : https://0z-cloud.com
-#
-# #####################################################################
-# Cooperate tougather we are provide for each as Open Cloud Bus Pipe.
-# #####################################################################
-#
-# In partipiate with our dear friends,
-# 
-#   * RNP [Russian National Programming] :
-#
-#        https://rnp.com
-#
-#   * ReactivePay [Cloud Financial Platform] : 
-#
-#       https://reactivepay.com 
-#
-#   * MyDATAhub [Any Analitics Anywhere] :
-#
-#       https://mydatahub.pro
-#
-######################################################################
-# Mission - In cooperation with our partners, we create one place for:
-#   
-#    build, delivery, run, check, analize and complete changes to
-#
-#    our apps, models, pipelines, types, ways, layouts, polices for
-#    
-#    any component, any time, any cloud, any data, any app, any where.
-#
-#    working every day in many Clouds - we Trust, use for it our 
-#
-#    shared analitics, metrics, platforms, values and progresses,
-#   
-#    cooperate to give an a much more advantage of Future our Data
-#
-#    each us make future today use full power of anonymous devs help.
-#
-######################################################################
-#
-# And some default next strings, also just need.
-#
-# ## ## ## ## ## ## ## ## ## ## #### ## ## ## ## ## ## ## #### ## ## ## ## ## ##
+Copyright (c) 2014-2021 0z-Cloud Corporation
+, Web Optimization Incorporated, and others
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -70,10 +19,3 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
 LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-#
-# ## ## 
-# Wizards of 0z 
-# MIT Teacher mr. Unknown
-# 2021
-# ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
