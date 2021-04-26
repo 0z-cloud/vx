@@ -1,7 +1,7 @@
-# Добавление нового сайта в nginx с автоматической публикацией в DNS.
+# Добавление нового сайта в nginx с автоматической публикацией в DNS. (Adding a new site to nginx with automatic publication in DNS).
 
-1.  Добавляешь то как его будет видно во вне, по факту это для конфигурации nginx
-    Объявление имени сайта, в рамках окружения
+1.  Добавляешь то как его будет видно во вне, по факту это для конфигурации nginx.
+    Объявление имени сайта, в рамках окружения. (Add it as it will be seen on the outside, in fact, this is for the nginx configuration. Declaring the site name within the environment).
 
     ```yaml
     ## Main Sites
@@ -9,8 +9,8 @@
     ansible_global_api_site_name: "api.{{ public_consul_domain }}"
     ```
 
-2.  Добавлешь сайт -
-    Добавление объекта типа сайт в окружение
+2.  Добавляешь сайт -
+    Добавление объекта типа сайт в окружение (Adding a site - add an object, for example a site, to the environment).
 
     ```yaml
     unification_sites:
@@ -25,10 +25,12 @@
         }
     ```
 
-3.  Добавляешь сервис в unification_services_remapping_external_fqdn или в unification_services
+3.  Добавляешь сервис в unification_services_remapping_external_fqdn или в unification_services (Add the service to unification_services_remapping_external_fqdn or to unification_services).
+
 
     В эту секцию если имя сервиса содержит дефис или требуется ремапнуть внешнее имя (пример public-api):
-
+    (In this section, if the service name contains a hyphen or you want to remap the external name (example public-api)):
+    
     ```yaml
     unification_services_remapping_external_fqdn:
       - {
@@ -58,6 +60,7 @@
     ```
 
     В эту секцию в общем случае:
+    (In this section in the general case):
 
     ```yaml
     unification_services:
@@ -74,14 +77,16 @@
     ```
 
     Для использования service discovery в nginx необходимо указать:
+    (To use "service discovery" in nginx, you must specify):
 
     ```yaml
     "target": "service_discovery"
     ```
 
-    В ином случае директива указывает на группу хостов которая будет использована для заполнения upstream servers.
+    В ином случае директива указывает на группу хостов которая будет использована для заполнения upstream servers. (Otherwise, the directive indicates a group of hosts that will be used to fill out "upstream servers").
 
 4.  Добавляешь порт для сервиса:
+    (Add a port for the service:)
 
     ```yaml
     # Wallets
@@ -89,6 +94,7 @@
     ```
 
 5.  Создаем службу в nginx_locations_mapping_list::
+    (Create service in "nginx_locations_mapping_list ::")
 
         ```yaml
         nginx_locations_mapping_list:
@@ -101,7 +107,8 @@
     <!--
 
 
-6.  Добавляешь в директиву nginx_same новый конфиг (nginx_config_locations_wallets)
+6.  Добавляешь в директиву nginx_same новый конфиг (nginx_config_locations_wallets).
+    (Add a new config (nginx_config_locations_wallets) to the "nginx_same" directive).
 
     ````yaml
     nginx_same: "{{ nginx_config_defaults |combine(nginx_config_locations_gateway_mcom,nginx_config_locations_checkout,nginx_config_locations_mobicom,nginx_config_locations_public_api,nginx_config_locations_admin,nginx_config_locations_consul,nginx_config_locations_wallets,nginx_config_locations_sentry) }}"
@@ -110,6 +117,7 @@
     ````
 
 7.  Идешь в корень ansible, в основной group_vars/nginx-frontend/nginx-frontend.yml, находишь переменные и добавляешь по аналогии:
+    (You go to the root "ansible", to the main "group_vars / nginx-frontend / nginx-frontend.yml", find the variables and add by analogy):
 
     ```yaml
     nginx_configs_locations_checkout: "{{ ansible_environment }}_locations_checkout"
@@ -125,6 +133,7 @@
     ```
 
 8.  Запускаешь последовательно из корня необходимые плейбуки, с помощью команд:
+    (You run the necessary "playbooks" sequentially from the root, using the following commands):
 
     ```bash
     ./\!_any_part_runner.sh develop sample_product vortex 1235 dns-backend
@@ -132,6 +141,7 @@
     ```
 
 # Добавление нового сервиса для осуществления автоматической сборки
+  (Adding a new service for automatic build)
 
 1. Add the environment variables for new service:
 
@@ -151,7 +161,7 @@
    ansible/inventories/products/{{ ansible_product }}/{{ ansible_environment }}/group_vars/!_Applications_Core/{{ ANSIBLE_APPLICATION_TYPE }}/{{ ANSIBLE_APPLICATION_TYPE }}_settings_map.yml
    ```
 
-2. Add new service to services list:
+2. Add a new service to services list:
 
    ```yaml
    all_services_remap_docker_compose_generate:
