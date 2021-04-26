@@ -102,7 +102,7 @@ docker run -d \
     -e POSTGRES_PASSWORD=$DATABASE_PASSWORD \
     -e POSTGRES_DBNAME=$DATABASE_NAME \
     -v ${woinc_api_path}data:/var/lib/postgresql/data \
-    -v ${woinc_api_path}db_create.sh:/db_create.sh \
+    -v ${docker_path}db_create.sh:/db_create.sh \
     frodenas/postgresql
 
 echo "Sleep wait when postgres UP"
