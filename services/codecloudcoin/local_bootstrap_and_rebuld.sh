@@ -105,10 +105,9 @@ docker run -d \
     frodenas/postgresql
 
 echo "Sleep wait when postgres UP"
-sleep 25
-
+sleep 15
 echo -e "a/Wait when database are done Database is complete bootstrap"
-sleep 50
+sleep 5
 echo "docker exec woinc-db /bin/su postgres -c '/db_create.sh ${DATABASE_USER} ${DATABASE_PASSWORD}'"
 docker exec woinc-db /bin/su postgres -c '/db_create.sh ${DATABASE_USER} ${DATABASE_PASSWORD}'
 
