@@ -109,7 +109,7 @@ sleep 25
 
 echo -e "a/Wait when database are done Database is complete bootstrap"
 sleep 50
-docker exec -it woinc-db 'su -l postgres -c "/db_create.sh ${DATABASE_USER} ${DATABASE_PASSWORD}"'
+docker exec woinc-db /bin/su postgres -c '/db_create.sh ${DATABASE_USER} ${DATABASE_PASSWORD}'
 
 echo -e "Create the Application Container Instance ..."
 docker run -d --privileged --name woinc-api-service -p 4444:4444 -e POSTGRES_PASSWORD=$DATABASE_PASSWORD --link woinc-db:woinc-api-postgresql -e POSTGRES_DB=$DATABASE_NAME woinc/api-labirint
@@ -118,8 +118,8 @@ echo -e "a/Wait when application are starts complete"
 sleep 5
 
 echo -e "Perform run inside Application processes applying some migrations and re/validation re/creation default data[base][set]"
-docker exec -it woinc-api-service bash -c 'python3 /codecloudcoin/woinc/create_db.py'
-docker exec -it woinc-api-service bash -c '/extended.sh'
+docker exec woinc-api-service python3 /codecloudcoin/woinc/create_db.py
+docker exec woinc-api-service bash -c '/extended.sh'
 
 # By default after complete Vx injected to DB constrains, like Admin password and other, 
 # and you can get it... or ... \
