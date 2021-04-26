@@ -109,6 +109,7 @@ sleep 25
 
 echo -e "a/Wait when database are done Database is complete bootstrap"
 sleep 50
+echo "docker exec woinc-db /bin/su postgres -c '/db_create.sh ${DATABASE_USER} ${DATABASE_PASSWORD}'"
 docker exec woinc-db /bin/su postgres -c '/db_create.sh ${DATABASE_USER} ${DATABASE_PASSWORD}'
 
 echo -e "Create the Application Container Instance ..."
