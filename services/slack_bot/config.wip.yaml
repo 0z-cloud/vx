@@ -1,0 +1,190 @@
+
+slack:
+  token: xoxb-2047533411056-2023757814562-8KoMdbG2KgQju0DqhBZbpWAu # use xoxb-1234567-secret
+  socket_token: xapp-1-A0212A8MB1P-2023879292514-4abea6fdb8dd640fa56ca9e2438bae1ca19a5e4941507b30ec0cf2143f84ed40 # needed for Socket mode, starts with "xapp-"
+  debug: false # some more slack information
+
+# list of trusted slack users: allows the user-id and the name
+allowed_users:
+  - your.name
+  - lazy_bot
+  - USLACKBOT
+  - woinc
+  - U020PN9PYGJ
+  - U020LK7HPGD
+# there are some restricted commands, like reading logs or show runtime stats
+admin_users:
+  - UADMINID
+  - woinc
+  - U020PN9PYGJ
+  - U020LK7HPGD
+
+# define a custom set of own commands: They match a regular expression any can call a set of other internal/custom commands
+# here just some examples:
+commands:
+  - name: Support
+    # trigger: "support (?P<count>[\\w\\d\\-_\\.\\/]+)"
+    trigger: "support (?P<arn>([\\w\\d\\-:_\\.\\/]+)) (?P<count>([\\w\\d\\-_\\.\\/]+))"
+
+    commands:
+      # - |
+      #     reply
+      #          {
+      #           "event": {
+      #             "Records": [
+      #               {
+      #                 "eventID": "shardId-000000000000:49545115243490985018280067714973144582180062593244200961",
+      #                 "eventVersion": "1.0",
+      #                 "Kinesis": {
+      #                   "partitionKey": "partitionKey-3",
+      #                   "data": "eyJtZXNzYWdlIjogIkhlbGxvIGZyb20gQXBleCEifQ==",
+      #                   "kinesisSchemaVersion": "1.0",
+      #                   "sequenceNumber": "49545115243490985018280067714973144582180062593244200961"
+      #                 },
+      #                 "invokeIdentityArn": "arn:aws:iam::EXAMPLE",
+      #                 "eventName": "aws:kinesis:record",
+      #                 "eventSourceARN": "arn:aws:kinesis:EXAMPLE",
+      #                 "eventSource": "aws:kinesis",
+      #                 "awsRegion": "us-east-1"
+      #               }
+      #             ]
+      #           }
+      #         }
+      # - support change-shard arn count {{.count}}
+      # - trigger job BuildClients {{.count}}
+      # - trigger job Deploy {{.count}}
+      - reply Bot received to decrease/increase count of L.function to be deployed - {{.count}}
+      - reply Bot received to ARN for L.function to be deployed - {{.arn}}
+      - reply Command to be executed as template support change-shard arn count
+      - reply Start execute the support change-shard {{.arn}} count with Count - {{.count}}
+      - reply support change-shard {{.arn}} count {{.count}}
+      # - add link "Open Admintool" https://project.example.com/admintool/
+
+  - name: Deploy
+    trigger: "deploy (?P<branch>[\\w\\d\\-_\\.\\/]+)"
+    commands:
+      - trigger job BuildClients {{.branch}}
+      - trigger job Deploy {{.branch}}
+      - reply I deployed {{.branch}}
+      - add link "Open Admintool" https://project.example.com/admintool/
+
+  - name: List open Jira bugs
+    trigger: "open (?P<project>(backend|mobile|frontend)) bugs"
+    description: "Lists open Jira bugs from a given component"
+    category: QA
+    commands:
+      - "add reaction :bug:"
+      - jql issuetype = Bug AND component = "{{.project}}" AND resolution = Unresolved ORDER BY priority DESC, created DESC
+    examples:
+      - open backend bugs
+      - open mobile bugs
+      - open frontend bugs
+
+  - name: demo
+    trigger: "demo (?P<ticketId>\\w+-\\d+)"
+    commands:
+      - |
+        {{ $ticket := jiraTicket .ticketId }}
+        {{ if $ticket }}
+          reply <!here> demo for <{{ jiraTicketUrl $ticket.Key }}|{{ $ticket.Key }}: {{ $ticket.Fields.Summary }}>
+        {{ else }}
+          reply Ticket {{ .ticketId }} not found :white_frowning_face:
+        {{ end }}
+    description: Informs the current channel about a demo of a Jira ticket. It directly posts a link to the ticket
+    examples:
+      - demo XYZ-1232
+
+  # - name: operate_support 
+  #   trigger: "support change-shard arn count (?P<ticketId>\\w+-\\d+)"
+  #   commands:
+  #     - |
+  #       {{ $ticket := jiraTicket .ticketId }}
+  #       {{ if $ticket }}
+  #         reply <!here> demo for <{{ jiraTicketUrl $ticket.Key }}|{{ $ticket.Key }}: {{ $ticket.Fields.Summary }}>
+  #       {{ else }}
+  #         reply Ticket {{ .ticketId }} not found :white_frowning_face:
+  #       {{ end }}
+  #   description: Informs the current channel about a demo of a Jira ticket. It directly posts a link to the ticket
+  #   examples:
+  #     - support change-shard arn count
+
+# optional AWS integration
+aws:
+  host: # https://jenkins.example.com
+  username: username
+  password: secret
+  jobs:
+    change-shard:
+      parameters:
+        - name: count
+          default: 20
+          type: count
+    BuildMobileClient:
+      parameters:
+        - name: BRANCH
+          default: master
+          type: branch
+    BuildFrontendClient:
+      parameters:
+        - name: BRANCH
+          default: master
+          type: branch
+
+# optional Jenkins integration
+jenkins:
+  host: #https://jenkins.example.com
+  username: username
+  password: secret
+  jobs:
+    BackendTests:
+      parameters:
+        - name: BRANCH
+          default: master
+          type: branch
+    BuildMobileClient:
+      parameters:
+        - name: BRANCH
+          default: master
+          type: branch
+    BuildFrontendClient:
+      parameters:
+        - name: BRANCH
+          default: master
+          type: branch
+
+# optional Jira integration
+jira:
+  #host: https://jira.example.de
+  username: readonlyuser
+  password: secret
+  project: FOO
+
+# optional Github integration to watch PR state
+github:
+  access_token: # optional when using github features
+
+# optional Gitlab integration to watch merge request state
+gitlab:
+#  host: https://gitlab.example.de
+#  accesstoken: # optional when using gitlab features
+
+
+# used for the "weather" command to fetch current weather information from openweathermap.org
+#open_weathermap:
+#  apikey: iamtheapifromopenweathermap
+#  location: Hamburg
+
+# able to set a custom "approved" reactions. E.g to see directly who or which component/department approved a pullrequest
+#pullrequest:
+#  reactions:
+#    merged: custom_merge_arrow
+#  custom_approve_reaction:
+#    nerdydev: "approved_backend"
+#    iamamobiledev: "approved_mobile"
+#    iamamobiledev2: "approved_mobile"
+
+logger:
+  level: info
+  file: ./bot.log
+
+timezone: UTC
