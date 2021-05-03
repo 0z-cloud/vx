@@ -1,0 +1,61 @@
+#!/bin/bash
+
+set -x -e
+
+ssconfig=/tmp/config.json
+proxychainsconfig=/tmp/proxychains.conf
+
+init_proxychains() {
+    cat >$ssconfig <<EOF
+{
+    "server":"127.0.0.1",
+    "server_port":8800,
+    "local_address": "127.0.0.1",
+    "local_port":1800,
+    "password":"password",
+    "timeout":600,
+    "method":"aes-256-cfb"
+}
+EOF
+
+    cat >$proxychainsconfig <<EOF
+strict_chain
+quiet_mode
+proxy_dns
+remote_dns_subnet 224
+tcp_read_time_out 15000
+tcp_connect_time_out 8000
+[ProxyList]
+socks5 	127.0.0.1 1800
+EOF
+}
+
+main() {
+  local action=$1; shift
+  case $action in
+    init)
+      init_proxychains
+      ;;
+    startproxy)
+      pgrep -f "sslocal -c $ssconfig" || {
+          sslocal -c $ssconfig 1>&2 2>/tmp/sslocal.log &
+      }
+      pgrep -f "ssserver -c $ssserver" || {
+          ssserver -c $ssconfig 1>&2 2>/tmp/ssserver.log &
+      }
+      ;;
+    stopproxy)
+      pkill -f "sslocal -c $ssconfig"
+      pkill -f "ssserver -c $ssconfig"
+      ;;
+    run)
+       exec proxychains4 -f $proxychainsconfig "$@"
+      ;;
+    *)
+      echo "WARNING: unknown command $action"
+      exit 1
+      ;;
+  esac
+}
+
+main "$@"

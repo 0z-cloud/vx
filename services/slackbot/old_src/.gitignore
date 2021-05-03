@@ -1,0 +1,16 @@
+.env
+/.tox/
+*.pyc
+*#
+*~
+*.swp
+#*
+local_settings.py
+local_test_settings.py
+slackbot_settings.py
+slackbot_test_settings.py
+/build
+/dist
+/*.egg-info
+.cache
+/.vscode/

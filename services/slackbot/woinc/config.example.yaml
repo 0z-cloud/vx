@@ -1,0 +1,110 @@
+
+slack:
+  token: # use xoxb-1234567-secret
+  socket_token: # needed for Socket mode, starts with "xapp-"
+  debug: false # some more slack information
+
+# list of trusted slack users: allows the user-id and the name
+allowed_users:
+  - your.name
+  - U122323
+
+# there are some restricted commands, like reading logs or show runtime stats
+admin_users:
+  - UADMINID
+
+# define a custom set of own commands: They match a regular expression any can call a set of other internal/custom commands
+# here just some examples:
+commands:
+  - name: Deploy
+    trigger: "deploy (?P<branch>[\\w\\d\\-_\\.\\/]+)"
+    commands:
+      - trigger job BuildClients {{.branch}}
+      - trigger job Deploy {{.branch}}
+      - reply I deployed {{.branch}}
+      - add link "Open Admintool" https://project.example.com/admintool/
+
+  - name: List open Jira bugs
+    trigger: "open (?P<project>(backend|mobile|frontend)) bugs"
+    description: "Lists open Jira bugs from a given component"
+    category: QA
+    commands:
+      - "add reaction :bug:"
+      - jql issuetype = Bug AND component = "{{.project}}" AND resolution = Unresolved ORDER BY priority DESC, created DESC
+    examples:
+      - open backend bugs
+      - open mobile bugs
+      - open frontend bugs
+
+  - name: demo
+    trigger: "demo (?P<ticketId>\\w+-\\d+)"
+    commands:
+      - |
+        {{ $ticket := jiraTicket .ticketId }}
+        {{ if $ticket }}
+          reply <!here> demo for <{{ jiraTicketUrl $ticket.Key }}|{{ $ticket.Key }}: {{ $ticket.Fields.Summary }}>
+        {{ else }}
+          reply Ticket {{ .ticketId }} not found :white_frowning_face:
+        {{ end }}
+    description: Informs the current channel about a demo of a Jira ticket. It directly posts a link to the ticket
+    examples:
+      - demo XYZ-1232
+
+# optional Jenkins integration
+jenkins:
+  host: #https://jenkins.example.com
+  username: username
+  password: secret
+  jobs:
+    BackendTests:
+      parameters:
+        - name: BRANCH
+          default: master
+          type: branch
+    BuildMobileClient:
+      parameters:
+        - name: BRANCH
+          default: master
+          type: branch
+    BuildFrontendClient:
+      parameters:
+        - name: BRANCH
+          default: master
+          type: branch
+
+# optional Jira integration
+jira:
+  #host: https://jira.example.de
+  username: readonlyuser
+  password: secret
+  project: FOO
+
+# optional Github integration to watch PR state
+github:
+  access_token: # optional when using github features
+
+# optional Gitlab integration to watch merge request state
+gitlab:
+#  host: https://gitlab.example.de
+#  accesstoken: # optional when using gitlab features
+
+
+# used for the "weather" command to fetch current weather information from openweathermap.org
+#open_weathermap:
+#  apikey: iamtheapifromopenweathermap
+#  location: Hamburg
+
+# able to set a custom "approved" reactions. E.g to see directly who or which component/department approved a pullrequest
+#pullrequest:
+#  reactions:
+#    merged: custom_merge_arrow
+#  custom_approve_reaction:
+#    nerdydev: "approved_backend"
+#    iamamobiledev: "approved_mobile"
+#    iamamobiledev2: "approved_mobile"
+
+logger:
+  level: info
+  file: ./bot.log
+
+timezone: UTC
