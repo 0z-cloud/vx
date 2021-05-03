@@ -301,7 +301,7 @@ Target Inventory (GET INVENTORY), resulting inventory:
 
 ### ZeroCloud configuration flow inside and only on ansible calls
 
-![Api_flow_dynamic_inventories](ansible/CI/repo_images/vortex_api_generate_flow.png)
+![Api_flow_dynamic_inventories](ansible/CI/repo_images/vortex_api_generate_flow_ng.png)
 
 ### Working with virtual and cloud environments, bootstrapping and managing
 
