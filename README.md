@@ -9,8 +9,8 @@
 **Release State: stable-1.6.2**
 
 
-* At ``` *.woinc.ru ``` we place a ``` Public Demo Access Platform ``` 
-  which represents our ``` Vx Live Run ``` 
+* In ``` *.woinc.ru ``` we place a ``` Public Demo Access Platform ``` 
+  that presents our ``` Vx Live Run ``` 
 
 * This is real ``` Lifecycle Auto Cloud ``` 
 
@@ -20,7 +20,7 @@
   
   - ``` Vx Zone Environment Infrastructure Subset ``` 
 
-* Vx Repo hold and contain explain to each implemented as
+* Vx Repo holds and contains explanations to each implemented as
   ``` a self Vx parts in each Vx Repository ``` 
 
 
