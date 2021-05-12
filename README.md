@@ -24,7 +24,7 @@
   ``` a self Vx parts in each Vx Repository ``` 
 
 
-Example run contain:
+An example of execution contains:
 
  - https://woinc.ru
  - https://teamcity.woinc.ru
@@ -63,12 +63,12 @@ Example run contain:
 ## Repository statements:
 
 ```
-* Terraform-free ansible realization of Dynamic Infrastructure development/management/deployment
+* Terraform-free Ansible realization of Dynamic Infrastructure development/management/deployment.
 * Full IaC support via Ansible Cloud API modules.
 * Ready to use, just add your services and declare infrastructure.
-* Simple to understand solution template provides complete CI/CD/QA.
-* Multimple ways to use many roles, zones, clusters, networks.
-* K8 & Docker Swarm support - you can have  multiple clusters in one environment.
+* An easy-to-understand solution template provides complete CI/CD/QA.
+* Several ways to use multiple roles, zones, clusters, networks.
+* K8 & Docker Swarm support - you can have multiple clusters in one environment.
 * You can have multiple virtual environments on one virtual cloud infrastructure placement.
 * Easy template for build, bootstrap, develop, deploy and test your infrastructure.
 * Have a TeamCity ready to import configuration with full process with a simple CI/CD/QA pipeline.
@@ -209,7 +209,7 @@ Example run contain:
           * Provides dynamic zone extending and stacking, 
             in geo-mesh networks detects and declare nearest endpoints of truth.
 
-    - [-] Kubernetes DNS Vip Endpoint.
+    - [-] Kubernetes DNS VIP Endpoint.
 
           * Used as the same case like in Consul, extends domain with prefix k8 by CoreDNS DMZ Service Discovery Sector,
           and able forward DNS queries to Internal Kubernetes Cluster DNS Service Discovery,
@@ -289,7 +289,7 @@ Dynamic Inventory (API INVENTORY), called 0z-cloud:
 
 Target Inventory (GET INVENTORY), resulting inventory:
 
-     - Result of generation the API INVENTORY, contains all needed for ansible works.
+     - Result of generation the API INVENTORY, contains all needed for Ansible works.
      - Placed in inventories/products/{{ ansible_product }}/{{ ansible_environment }}
      - No stored in repository.
 
@@ -318,8 +318,8 @@ Target Inventory (GET INVENTORY), resulting inventory:
 - First of all, we create and bootstrap environment, now its are included in any `reference_*.sh`, in previous versions
   wrappers for that has been in separated executable wrapper files,
   you can find those old wrappers in https://github.com/itmo-eve/adam-vortex/tree/master/ansible/scripts/wrappers/init
-  If you are a needed, can do like are wants be you require by Platform Product and Cloud layout,
-  with flexible ways to contract your pipeline chain CI/CD flow suite.
+  If you need to, you can do what you want, depending on what you need with the Platform Product and Cloud layout,
+  with flexible ways to contract a set of CI / CD streams for the pipeline chain.
 
 - Go to ansible folder in the cloned repository, -
 
@@ -327,7 +327,7 @@ Target Inventory (GET INVENTORY), resulting inventory:
         cd ./ansible
      ```
 
-  - Try run the wrapper as an example, -
+  - Try to run the wrapper as an example, -
 
     ```
       ./reference_iac_stand.sh
@@ -419,10 +419,10 @@ Target Inventory (GET INVENTORY), resulting inventory:
       
       Maybe like `cron`.
 
-    - So, because the interface for talking to platform box are knowns and we can use any way to run pipe, 
-      by same way, like it will same way to hapen in next time on build by any tool, 
+    - So, because the interface for talking to platform box are known and we can use any way to run pipe, 
+      by same way, like it will same way to happen in next time on build by any tool, 
       then say me - I can imitate the `Pushing CI Button or CI Triggers`.
-      Also, its are great way to test all features completely, 
+      Also, it is a great way to test all features completely, 
       from the same code for preparing an awesome featured release.
 
     - For running any Shell CI Button, go to `ansible` HOME_DIR =)
