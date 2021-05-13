@@ -68,11 +68,11 @@ An example of execution contains:
 * Ready to use, just add your services and declare infrastructure.
 * An easy-to-understand solution template provides complete CI/CD/QA.
 * Several ways to use multiple roles, zones, clusters, networks.
-* K8 & Docker Swarm support - you can have multiple clusters in one environment.
-* You can have multiple virtual environments on one virtual cloud infrastructure placement.
-* Easy template for build, bootstrap, develop, deploy and test your infrastructure.
-* Have a TeamCity ready to import configuration with full process with a simple CI/CD/QA pipeline.
-* Network balancer included - keepalived, haproxy, nginx, etc
+* K8 & Docker Swarm support - you can have multiple clusters in the same environment.
+* A single virtual cloud infrastructure can have multiple virtual environments.
+* A simple template to build, boot, develop, deploy, and test your infrastructure.
+* Prepare TeamCity to import full process configuration with a simple CI/CD/QA pipeline.
+* Network balancer enabled - keepalived, haproxy, nginx, etc.
 * PCI DSS Compliance initial support modules.
 * Firewall zero-in inside based on Shorewall.
 * Much other stuff like rabbitmq/tarantool/redis/etc clusters.
