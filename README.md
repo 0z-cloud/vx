@@ -73,31 +73,31 @@ An example of execution contains:
 * A simple template to build, boot, develop, deploy, and test your infrastructure.
 * Prepare TeamCity to import full process configuration with a simple CI/CD/QA pipeline.
 * Network balancer enabled - keepalived, haproxy, nginx, etc.
-* PCI DSS Compliance initial support modules.
+* Initial PCI DSS compliance support modules.
 * Firewall zero-in inside based on Shorewall.
 * Much other stuff like rabbitmq/tarantool/redis/etc clusters.
-* GlusterFS as NFS shared storage.
-* Provides single point in the development process.
-* All configurations fully generated - for local development and environments.
-* You can use different CI/CD tools for use, - TeamCity, Jenkins, Gitlab-CI, etc.
-* Storing built docker images possible to different registries - gitlab, registryv2, nexus, etc.
+* GlusterFS as shared NFS storage.
+* Provides a single point in the development process.
+* All configurations are fully generated - for local development and environments.
+* You can use various CI/CD tools to use, - TeamCity, Jenkins, Gitlab-CI, etc.
+* Storage of embedded docker images is possible in various registries - GitLab, registryv2, nexus, etc.
 ```
 
 ### Markdown constants
 
-    - [-] Feature which almost works fine, but need to update/bugfix/extend/refactor now.
-    - [+] Feature now in dev's and planned to next major release
-    - [p] Feature which is planned for future roadmap release on the second major release
-    - [t] Feature in Testing Branch
-    - [x] Feature is implemented yet completely, like for CI/CD Pipeline, 
-          if Kubernetes as an example have that flag, 
-          that describes what we can possibly create cluster and deploy to it.
-    - [w] Whitepaper page for feature ready to RFC, or wip state
-    - [*] Feature planned to be refactored
-    - [?] On RFC stage
-    - [.] Pre-research and modeling. Checking able and profit after implementation.
-    - [U] An Urgent and most important task for complete
-
+    - [-] Feature almost works fine but needs to update/bugfix/extend/refactor now.
+    - [+] Feature is currently in development and is planned for the next major release. 
+    - [p] Feature that is planned for a future roadmap release in the second major release.
+    - [t] Feature is in Testing Branch.
+    - [x] Feature is fully implemented, as for the CI/CD Pipeline, 
+          if Kubernetes as an example has that flag, 
+          which describes that we can create a cluster and deploy in it.
+    - [w] Whitepaper page for the feature is ready for RFC, or wip state.
+    - [*] Feature is planned to be refactored.
+    - [?] On RFC stage.
+    - [.] Pre-research and modeling. Checking the status and profit after implementation.
+    - [U] The most urgent and most important task to complete.
+     
 ### Ansible Teraforma API Cloud adapters
 
     - [x] Baremetal (FAKE-API)
@@ -135,7 +135,7 @@ An example of execution contains:
     - [ ] XEN
     - [U] EVE
 
-### Vortex runs at OS Platforms
+### Vortex runs on OS Platforms
 
     - [x] Linux
     - [x] Mac OS X
@@ -150,18 +150,18 @@ An example of execution contains:
 
 ### Vault Storages
 
-    - [x] Internal Contract Model Vault storage based on Ansible-Vault and simple interface,
-          uses for manage the zero levels necessary shared logins and passwords constraints,
-          and also product specific settings, which possible to be shared by groups, 
-          by inventories, regions, sectors, zones, environments, and placements like ACL, -
-          represents are same shared pieces of security cake, - 
+    - [x]  The Internal Contract Model Vault, based on Ansible-Vault and a simple interface,
+          uses the necessary generic login and password restrictions to manage zero levels, 
+          as well as product-specific settings, that can be shared across groups, 
+          by inventories, by regions, by sectors, by zones, 
+          environments and placements such as ACLs are the same common pieces of the security pie - 
           For example, one command implements a feature for dev[1-3] environments, 
-          and have only access by security violation policy interface,
-          only to part of vault where stored his credentials,
-          which able perform operations only on dev environments, after the task completes, 
-          team lead as an example, who has more access level, 
-          and can from same commit run chain pipeline to stage environment,
-          with separated per each user credentials container level.
+          and has access only through the security breach policy interface,
+          only the part of the repository where his credentials,
+          which can only perform operations in development environments, after the task is completed, 
+          the team leader as an example, who has a higher access level, 
+          and can from one pipeline of the commit execution chain to a staging environment,
+          with a separate credential for each user level.
             
             Please README in Vx component documentation.
 
