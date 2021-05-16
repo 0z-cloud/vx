@@ -470,7 +470,7 @@ Let's make, for example, two Childs of Primary - a development and a stage envir
          ./0z-cloud/products/\!_{{ cloud_type }}/{{ ansible_product }}/stage/
     ```
 
-- Create symlinks from Parent Primary Cloud dynamic Environment to his new childs -
+- Create symbolic links from the dynamic environment of the parent primary cloud to its new childs - 
 
     ```
          mkdir ./0z-cloud/products/\!_{{ cloud_type }}/{{ ansible_product }}/stage/
@@ -479,7 +479,7 @@ Let's make, for example, two Childs of Primary - a development and a stage envir
          ln -s ../production/bootstrap_vms
     ```
 
-- Copy the Target inventory from Parent to New, first of all, create a target inventories locations -
+- Copy the Target inventory from Parent to New, first of all create target inventory locations -
 
     ```
          src_environment="production"
@@ -493,48 +493,48 @@ Let's make, for example, two Childs of Primary - a development and a stage envir
          cp -R $old_from_env $new_env_path
     ```
     
-- Done, now change the domain names and ports settings on your new cloud target childs from production environments, and deploy!
+- Done, now change the domain names and port settings on your new cloud child targets from production environments and deploy! 
 
-### Create a new environment (API and target) by cloning some as parent:
+### Create a new environment (API and target) cloning some of them as parent:
 
-- Makes new inventories from scratch, with examples and descriptions about why we need those and for what
+- From scratch makes a new inventory with examples and a description of why they are needed and what for 
 
        ./\!_mk_new_env.sh production vortex bare symlink bare setta vortex
 
-- Necessary input values to select your way to create a new environment, product, scale,
-  or during some migrate or update to your infrastructure.
+- Required inputs to choose how to create a new environment, product, scale,
+  or during a migration or upgrade of your infrastructure. 
 
       1. inventory:    
           
-          Parent inventory is must be specified, which be a donor for new inventory
+          You must specify the parent inventory that will be the donor for the new inventory. 
 
       2. product:      
           
-          Parent product is must be specified, which be a donor for new cloud-config
+          You must specify the parent product that will be the donor for the new cloud configuration. 
 
       3. type cloud:   
           
-          Parent cloud type is must be specified, like { vsphere / alicloud / bare / etc }
+          You must specify the type of parent cloud, for example {vsphere / alicloud / bare / etc}. 
 
       4. run type:     
       
-          Type of spawning the scratcher, from other repo, ways for choice {clone/symlink}
+          Type of spawning the scratcher, from other repo, ways for choice {clone/symlink}.
 
       5. type cloud:   
       
-          Target cloud type is must be specified, such as like -
+          You must specify the type of target cloud, for example like - 
           
-          { aws / azure / do / vcd / vsphere / yandex / gcp / alicloud / bare / etc }
+          { aws / azure / do / vcd / vsphere / yandex / gcp / alicloud / bare / etc }.
 
       6. inventory:    
           
-          Target inventory is must be specified, -
-          which be a result of new inventory for cloud location
+          You must specify the target inventory, -
+          which is the result of the new inventory for the cloud location. 
 
       7. product:      
           
-          Target product is must be specified, which be a result for new cloud location
-
+          You must specify the target product, which is the result for the new cloud location. 
+          
 ### Code Cloud Liquid Coin Database 
 
 * Localhost simple web integrated API Client overview:
