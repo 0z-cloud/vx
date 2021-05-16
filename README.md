@@ -447,7 +447,7 @@ Target Inventory (GET INVENTORY), resulting inventory:
    ```
 
     - To contribute and fix the use of the complete solution, 
-      you must create `Internal Vault` for your profile ` Internal Vault Contract`.
+      you must create an `Internal Vault` for your ` Internal Vault Contract` profile.
 
 ## Examples of usage the inventories childs -
 
@@ -457,13 +457,13 @@ We have one primary inventory, on some product, some cloud type provider as tota
 
             one compute environment, - {{ ansible_environment }} == 'production'
 
-But wants to placement multiple virtual environments on the same Datacenter to same VMs environment
+But wants to host multiple virtual environments in the same Datacenter to the same VMs environment
 
-All linked environments, which we want to add as childs like virtual, looks and works by the symlinks way.
+All related environments that we want to add as childs such as virtual ones, look and work on symbolic links.
 
-Let's do like for example, two Childs of Primary - development and stage environments,
+Let's make, for example, two Childs of Primary - a development and a stage environment,
 
-- Create the new folders in API Cloud Inventory -
+- Create new folders in the API Cloud Inventory -
 
     ```
          ./0z-cloud/products/\!_{{ cloud_type }}/{{ ansible_product }}/developemnt/
