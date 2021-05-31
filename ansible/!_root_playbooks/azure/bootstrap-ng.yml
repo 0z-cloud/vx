@@ -1,25 +1,45 @@
-- name: Starting the instance bootstrap and check
+- name: AZURE | Starting the instance bootstrap and check
   hosts: localhost
   tasks:
 
-      - name: Load groupvars/product global shared settings
+      - name: AZURE | Install the Azure Management Ansible Collection Module
+        shell: ansible-galaxy install -r requirements.yml
+
+      - name: AZURE | Load groupvars/product global shared settings
         include_vars: group_vars/products/{{ ansible_product }}/{{ item }}.yml
         with_items:
-          - alicloud
+          - azure
           - main
 
-      - name: Load groupvars/product global shared settings
+      - name: AZURE | Load groupvars/product global shared settings
         include_vars: group_vars/products/{{ ansible_product }}/{{ ansible_environment }}/{{ item }}.yml
         with_items:
           - attached
           - main
 
-- name: Starting the instance bootstrap and check
+      - name: re/Create credentials directory at home of running user
+        file:
+          path: $HOME/.azure
+          state: directory
+          mode: 0755
+
+      - name: AZURE | Create specific API access credentials file at run user home directory
+        template:
+          src: credentials.j2
+          dest: $HOME/.azure/credentials
+
+- name: AZURE | Starting the instance bootstrap and check
   hosts: localhost
   roles:
 
-      - name: Include role VPC Zone maintain
-        role: ./!_cloud/dc_integration/alicloud/vpc
+      - name: AZURE | Include role Storage maintain
+        role: ./!_cloud/dc_integration/azure/resource_group
 
-      - name: Include role vSwitch Zone maintain
-        role: ./!_cloud/dc_integration/alicloud/vswitch
+      - name: AZURE | Include role Storage maintain
+        role: ./!_cloud/dc_integration/azure/storage
+
+      - name: AZURE | Include role Network Zone maintain
+        role: ./!_cloud/dc_integration/azure/network
+
+      - name: AZURE | Include role VM Zone maintain
+        role: ./!_cloud/dc_integration/azure/vm

@@ -1,0 +1,41 @@
+- name: AZURE | Create virtual network
+  azure.azcollection.azure_rm_virtualnetwork:
+    resource_group: "{{ anycloud_api_resource_group_name }}"
+    name: "{{ anycloud_api_virtual_network_name }}"
+    address_prefixes: "{{ anycloud_adapter_vpc_zone_virtual_abstract.zones.azure.cidr }}"
+
+- name: AZURE | Add subnet
+  azure.azcollection.azure_rm_subnet:
+    resource_group: "{{ anycloud_api_resource_group_name }}"
+    name: "{{ anycloud_api_resource_network_name }}"
+    address_prefix: "{{ anycloud_adapter_vpc_zone_virtual_abstract.zones.azure.subnet }}"
+    virtual_network: "{{ anycloud_api_virtual_network_name }}"
+
+- name: AZURE | Create security group that allows SSH
+  azure.azcollection.azure_rm_securitygroup:
+    resource_group: "{{ anycloud_api_resource_group_name }}"
+    name: "{{ anycloud_api_security_group_name }}"
+    rules:
+      - name: SSH
+        protocol: Tcp
+        destination_port_range: 22
+        access: Allow
+        priority: 101
+        direction: Inbound
+
+- name: AZURE | Create Public IP Object
+  azure.azcollection.azure_rm_publicipaddress:
+    resource_group: "{{ anycloud_api_resource_group_name }}"
+    allocation_method: Static
+    name: "{{ item['value']['ip'] }}"
+  with_dict: "{{ cloud_bootstrap.servers }}"
+
+- name: AZURE | Create NIC for Each Instance for Private
+  azure.azcollection.azure_rm_networkinterface:
+    resource_group: "{{ anycloud_api_resource_group_name }}"
+    name: "{{ item['value']['ansible_inventory_vars']['second_ip'] }}"
+    virtual_network: "{{ anycloud_api_virtual_network_name }}"
+    subnet: "{{ anycloud_api_resource_network_name }}"
+    public_ip_name: "{{ item['value']['ansible_inventory_vars']['second_ip'] }}"
+    security_group: "{{ anycloud_api_security_group_name }}"
+  with_dict: "{{ cloud_bootstrap.servers }}"

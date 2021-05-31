@@ -19,10 +19,14 @@ if [ ! -z $env ]; then
     # remap target linked inventory by proovided value from stdin
     export ANSIBLE_TARGET_LINKED_DATACENTER_CHANGE_BETWEEN="${env}"
 else
-    export ANSIBLE_TARGET_LINKED_DATACENTER_CHANGE_BETWEEN="do"
+    # export ANSIBLE_TARGET_LINKED_DATACENTER_CHANGE_BETWEEN="do"
+    export ANSIBLE_TARGET_LINKED_DATACENTER_CHANGE_BETWEEN="azure"
+
 fi
 
-export ANSIBLE_TARGET_LINKED_DATACENTER_CHANGE_BETWEEN="do"
+# export ANSIBLE_TARGET_LINKED_DATACENTER_CHANGE_BETWEEN="do"
+
+export ANSIBLE_TARGET_LINKED_DATACENTER_CHANGE_BETWEEN="azure"
 
 
 ################################################################################################
@@ -43,7 +47,9 @@ export ANSIBLE_CI_PROJECT_NAMESPACE="upservice"
 # OR JUMPS TO OTHER CLOUD TYPE, IF PARENT ROOT ECOSYSTEM CLOUD ARE IS DEFINED TO CHANGE FROM IT.
 # export ANSIBLE_CLOUD_TYPE="eve"
 # export ANSIBLE_CLOUD_TYPE="gcp"
-export ANSIBLE_CLOUD_TYPE="do"
+# export ANSIBLE_CLOUD_TYPE="do"
+export ANSIBLE_CLOUD_TYPE="azure"
+
 ################################################################################################
 # USER WHICH INITIATE THE CHAINED PIPELINES FLOW, MUST HAVE A NECESSARY SETTINGS IN VAULT PLACE
 export ANSIBLE_DEPLOY_USERNAME="template"
@@ -81,7 +87,7 @@ export ANSIBLE_REGISTRY_USERNAME="registry_local"
 #     # remap target linked inventory by proovided value from stdin
 #     export ANSIBLE_RUN_TYPE="true"
 # else
-export ANSIBLE_RUN_TYPE="true"
+export ANSIBLE_RUN_TYPE="print_only"
 # fi
 # export ANSIBLE_RUN_TYPE="true"
 ################################################################################################
@@ -90,7 +96,7 @@ export ANSIBLE_TRIGGER_TOKEN="notuniqbutveryverywellguys"
 
 ################################################################################################
 # CI GENERATED BUILD RELEASE VERSION
-export ANSIBLE_CI_VERSION="2020.10.999-223344"
+export ANSIBLE_CI_VERSION="2021.05.fff-777777"
 
 ################################################################################################
 # SETTING ENVIRONMENT LANDSCAPE OVERALL LEVEL OF APPLYED SECURITY REQUIREMENTS FOR ALL ECOSYSTEM

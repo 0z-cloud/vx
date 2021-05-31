@@ -1,0 +1,5 @@
+collections:
+  # Install a collection from Ansible Galaxy.
+  - name: "azure.azcollection"
+    source: https://galaxy.ansible.com
+    

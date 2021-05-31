@@ -53,7 +53,7 @@
 # anycloud_virtual_cloud_name: "anycloud_in_{{ anycloud_region }}-{{ anycloud_zone }}-{{ ansible_datacenter }}_{{ ansible_product }}_{{ ansible_environment }}"
 # anycloud_virtual_cloud_description: "vZone_{{ anycloud_zone }}_Sector_Network_{{ anycloud_region }}_Exchgange_{{ ansible_product }}_zone_{{ ansible_environment }}"
 
-# anycloud_virtual_cloud_zone: "{{ anycloud_zone_virtual_cloud_name }}"
+anycloud_virtual_cloud_zone: "{{ anycloud_zone_virtual_cloud_name }}"
 
 ##### ADAPTER SPECIFIC
 ##########################################################################################################################################################################################################################################
