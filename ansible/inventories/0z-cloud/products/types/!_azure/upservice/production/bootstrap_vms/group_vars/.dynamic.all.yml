@@ -267,7 +267,7 @@ cloud_bootstrap:
             name: "upservice-kube-01-production"
             # IMPLEMENT DHCP!
             # RE-Vx TEMPLATE RFC - 
-            ip: "52.166.107.221"
+            ip: "52.157.103.110"
             gw: "upservice-kube-01-production_public_ip_gateway_REPLACED"
             # gw: "10.10.10.1"
             # ip: "REPLACED"
@@ -451,7 +451,7 @@ cloud_bootstrap:
             #################################################################################################################################################################################################################################
             # IMPLEMENT DHCP!
             # RE-Vx TEMPLATE RFC - ip: "VX GET upservice-kube-22_public_ip_address_REPLACED"
-            ip: "13.73.190.6"
+            ip: "52.142.218.94"
             gw: "upservice-kube-02-production_public_ip_gateway_REPLACED"
             network: "REPLACED"
             network_name: "VM Network"

@@ -10,12 +10,14 @@
         with_items:
           - azure
           - main
-
+        tags: sec_rules
+        
       - name: AZURE | Load groupvars/product global shared settings
         include_vars: group_vars/products/{{ ansible_product }}/{{ ansible_environment }}/{{ item }}.yml
         with_items:
           - attached
           - main
+        tags: sec_rules
 
       - name: re/Create credentials directory at home of running user
         file:
