@@ -108,7 +108,7 @@ An example of execution contains:
     - [ ] Openstack
     - [ ] Huawei Cloud
     - [x] DigitalOcean
-    - [+] Azure
+    - [x] Azure
     - [ ] Apache (Citrix) CloudStack
     - [+] Google Compute Engine / Google Cloud Platform (API)
     - [ ] OpenNebula
