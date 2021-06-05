@@ -1,0 +1,29 @@
+
+### INTERNET GATEWAY
+
+- name: AWS | VPC | Create a Internet Gateway for Virtual Private Cloud Zone which will be Gateway of current Zone Subnet
+  ec2_vpc_igw:
+
+- name: AWS | VPC | Get info about Internet Gateway for Virtual Private Cloud Zone which will be Gateway of current Zone Subnet
+  ec2_vpc_igw_info:
+
+### ACL
+
+- name: AWS | VPC | Set ACL for Virtual Private Cloud Zone which will be Gateway of current Zone Subnet
+  ec2_vpc_nacl:
+
+- name: AWS | VPC | Get ACL for Virtual Private Cloud Zone which will be Gateway of current Zone Subnet
+  ec2_vpc_nacl_info:
+
+### EACH MORE...
+
+#
+# # more info can get if - go to 0z Router README...
+#
+# - name: AWS | VPC | Run get VPN Gateway of Zone Subnet 
+#   ec2_vpc_vgw:
+#   ec2_vpc_vgw_info:
+#
+# - name: AWS | VPC | Run set/get Zones Peering of Region Subnet in Global Lanscape  
+#   ec2_vpc_peer:
+#   ec2_vpc_peer_info:

@@ -1,0 +1,241 @@
+# - name: AZURE | re/Create virtual machine with defaults
+#   azure_rm_virtualmachine:
+#     resource_group: myResourceGroup
+#     name: testvm10
+#     admin_username: chouseknecht
+#     admin_password: <your password here>
+#     network_interfaces: "{{ item['value']['name'] }}"
+
+#     image:
+#       offer: 0001-com-ubuntu-server-focal
+#       publisher: canonical
+#       sku: '20_04-lts-gen2'
+#       version: latest
+#   register: create_instance_result
+#   with_dict: "{{ cloud_bootstrap.servers }}"
+
+# - name: AZURE | Show results after re/Bootstraping VMs
+#   debug: 
+#     msg: "{{ item }}"
+#   with_dict: "{{ create_instance_result.results }}"
+
+# - debug: 
+#     msg: "{{ item.value.azure_vm.properties['networkProfile'].networkInterfaces | from_json | json_query('properties.ipAddress') }}"
+#   with_dict: "{{ create_instance_result.results }}"
+#   when: "item.key == 'ansible_facts' and 'azure_vm' in item.value"
+# - name: De/Bug
+#   debug:
+#     msg: "{{ item }}"
+#   with_dict: "{{ create_instance_result.results | from_json | json_query('properties.ipAddress')}}"
+
+# - name: First clean objects from getted results
+#   debug: 
+#     msg: "
+#       {{ item.value.azure_vm.properties['networkProfile'].networkInterfaces }}
+      
+#       "
+    
+#     #|
+#       # "{% for it in item %}{% if it == 'data' %}{{ item }}{% endif %}{% endfor %}"
+#     # msg: "ID is {{ item.data.droplet.id }}, IP is {{ item.data.ip_address }}"
+#   with_dict: "{{ create_instance_result.results }}"
+#   when: "item.key == 'ansible_facts' and 'azure_vm' in item.value"
+#   register: stage_sort
+
+# - name: Populate dict
+#   set_fact:
+#     a_azure_networkinterfaces_private: "{{ a_azure_networkinterfaces_private|default({}) | combine( {item.name: item.ip_configurations} ) }}"
+#   with_items:
+#     - "{{ azure_networkinterfaces_private.results }}"
+
+# - name: Ansible Debug Task
+#   debug: 
+#     msg: "{{ item }}"
+#   with_dict: "{{ a_azure_networkinterfaces_private }}"
+#   # register: private_ip_addresses_array
+  # when: "'networkinterfaces' in item.key"
+
+# - name: 0z Ansible Debug Task ip_configurations
+#   debug: 
+#     msg: "{% for dict_item in item.value %}{{ dict_item.name }}: {{ dict_item.ip_configurations | list2dict | dict2items |subelements('value.private_ip_address',{ 'skip_missing': True }) }}{% endfor %}"
+#   with_dict: "{{ a_azure_networkinterfaces_private }}"
+#   register: private_ip_addresses_array
+#   when: "'networkinterfaces' in item.key"
+  # vars:                                                                       |
+  #   _query: "[].private_ip_address[?!no_ptr_record][].[ip,ipv6][]"  
+
+# msg={{ ( dict_item.ip_configurations | from_json | first).private_ip_address }}
+# - name: "SET FACT FOR DEVICE STDOUT RESPONSE"
+#   set_fact:
+#     result: "{{ (content_info['stdout'] | from_json)['response']['result'] }}"
+
+# - set_fact:
+#     private_ip_addresses_array: >
+#       "{% for dict_item in item.value %}{{ (private_ip_addresses_array|default([])) + [{dict_item.name: dict_item.ip_configurations}] }}{% endfor %}"
+#   with_dict: "{{ azure_networkinterfaces_private.results }}"
+#   # register: private_ip_addresses_array
+#   when: "'networkinterfaces' in item.key"
+
+# - name: 0z Ansible Debug Task private_ip_addresses_array ip_configurations
+#   debug: 
+#     msg: "{{ private_ip_addresses_array | }}"
+#   # with_items: "{{ private_ip_addresses_array }}"
+
+# - name: AZURE | Add details private network interfaces details
+#   set_fact: 
+#     private_ip_addresses: "{{ private_ip_addresses|default([]) + [ item.value ] }}"
+#     # "{{ item.value }}"
+#     # "{{ private_ip_addresses_array | default() + item.value ] }}"
+#     #     # - set_fact: private_ip_addresses_array="{{ my_default_values | combine( item.value | join ) }}"
+#     #     # private_ip_addresses_array: "{{ private_ip_addresses_array | combine( item.value } ) }}"
+#     #     # private_ip_addresses_array: "{{ private_ip_addresses_array|default([]) + [ item.value ] }}"
+#   with_items: "{{ private_ip_addresses_array }}"
+#   # register: private_ip_addresses_array
+#   when: "'msg' in item.key"
+# # 'key': 'msg', 'value': 
+
+# - name: 0zAnsible Debug Task ip_configurations
+#   debug: 
+#     msg: "{% for dict_item in item.value %}{{ dict_item.ip_configurations }}{% endfor%}"
+#   with_dict: "{{ azure_networkinterfaces_private.results }}"
+#   # register: private_ip_addresses_array
+#   when: "'networkinterfaces' in item.key"
+
+# - set_fact:
+#     private_ip_addresses_array: >
+#       "{% for dict_item in item.value %}{{ (private_ip_addresses_array|default([])) + [{dict_item.name: dict_item.ip_configurations}] }}{% endfor%}"
+#   with_dict: "{{ azure_networkinterfaces_private.results }}"
+#   # register: private_ip_addresses_array
+# #   when: "'networkinterfaces' in item.key"
+
+# - name: Ansible Debug Task private_ip_addresses_array
+#   debug: 
+#     msg: "{{ private_ip_addresses }}"
+#   # with_dict: "{{ azure_networkinterfaces_private.results }}"
+#   # register: private_ip_addresses_array
+#   # when: "'networkinterfaces' in item.key"
+
+# - name: Ansible Debug Task private_ip_addresses_objects
+#   debug: 
+#     msg: "{% for key, value in item %}{{ key }}{% endfor %}"
+#   with_items: "{{ private_ip_addresses  }}"
+#   # with_dict: "{{ azure_networkinterfaces_private.results }}"
+  # register: private_ip_addresses_array
+  # when: "'networkinterfaces' in item.key"
+
+# - name: AZURE | Add details private network interfaces details
+#   set_fact: 
+#     private_ip_addresses_array: "{{ private_ip_addresses_array | default() + item.value ] }}"
+#     # - set_fact: private_ip_addresses_array="{{ my_default_values|combine( item.value | join ) }}"
+#     # private_ip_addresses_array: "{{ private_ip_addresses_array | combine( item.value } ) }}"
+#     # private_ip_addresses_array: "{{ private_ip_addresses_array|default([]) + [ item.value ] }}"
+#     # private_ip_addresses_array: "{{ item.value }}"
+#   with_dict: "{{ azure_networkinterfaces_private.results }}"
+#   register: private_ip_addresses_array
+#   when: "'networkinterfaces' in item.key"
+# - name: 0zAnsible Debug Task ip_configurations
+#   debug: 
+#     msg: "{{ item.value.name }}"
+#   with_dict: "{{ azure_networkinterfaces_private.results }}"
+#   register: private_ip_addresses_array
+#   when: "'networkinterfaces' in item.key"
+
+# - name: Ansible Debug Task
+#   debug: 
+#     msg: "{{ item }}"
+#   with_dict: "{{ azure_networkinterfaces_private.results }}"
+#   register: private_ip_addresses_array
+#   when: "'networkinterfaces' in item.key"
+
+# - name: Ansible debug register private array
+#   debug:
+#     msg: "{{ private_ip_addresses_array }}"
+
+# - set_fact: private_ip_addresses_array="{}"
+
+# - set_fact: private_ip_addresses_array="{{ private_ip_addresses_array|combine( item.value | join) }}"
+#   with_dict: "{{ azure_networkinterfaces_private.results }}"
+#   when: "'networkinterfaces' in item.key"
+
+# - debug: msg="{{ item.key }} = {{ item.value }}"
+#   with_dict: private_ip_addresses_array
+
+# - name: AZURE | Add details private network interfaces details
+#   set_fact: 
+# - set_fact: private_ip_addresses_array="{{ my_default_values|combine( item.value | join ) }}"
+#     private_ip_addresses_array: "{{ private_ip_addresses_array|default() + item.value ] }}"
+#     # private_ip_addresses_array: "{{ private_ip_addresses_array | combine( item.value } ) }}"
+#     # private_ip_addresses_array: "{{ private_ip_addresses_array|default([]) + [ item.value ] }}"
+#     # private_ip_addresses_array: "{{ item.value }}"
+#   with_dict: "{{ azure_networkinterfaces_private.results }}"
+#   when: "'networkinterfaces' in item.key"
+
+# - name: AZURE | Show debug names of items Private
+#   debug:
+#     msg: "{{ item }}"
+#   with_dict: "{{ private_ip_addresses_array }}"
+
+# # - name: AZURE | Show debug names of items Private
+# #   ansible.builtin.debug:
+# #     msg: "{{ item.key }} - {{ item.value }}"
+# #   loop: "{{ private_ip_addresses_array|dict2items }}"
+
+# # - name: AZURE | Show debug names of items Private
+# #   debug:
+# #     msg: "{{ item['private_ip_address'] }}"
+# #   with_items: "{{ private_ip_addresses_array.['ip_configurations'] }}"
+
+# # - name: AZURE | Show debug names of items Private
+# #   debug:
+# #     msg: "
+# #         {% for key,value in item['ip_configurations'] %}{% if key == 'private_ip_address' %}{{ value }}{% endif %}{% endfor %}
+
+# #     {{ item['name'] }}
+    
+# #     "
+# #   with_items: "{{ private_ip_addresses_array }}"
+
+#         # {{ item.value['name'] }}
+
+#         # {{ item.value.ip_configurations['private_ip_address'] }}
+
+#         # {{ item.value.name }}
+
+#         # {{ item.value.publicipaddresses.ip_address }}
+
+#   # when: "item.key == 'ansible_facts' and 'azure_vm' in item.value"
+
+# # - name: Print internal IP
+# #   debug: msg="{{ vm.vm_name}} internal ip is {{azure_networkinterfaces.ansible_facts.azure_networkinterfaces[0].properties.ipConfigurations[0].properties.privateIPAddress}}"
+
+# # - name: set value of vm internal IP
+# #   set_fact:
+# #     vm_internal_ip: "{{azure_networkinterfaces.ansible_facts.azure_networkinterfaces[0].properties.ipConfigurations[0].properties.privateIPAddress}}"
+
+# # - name: Stage second to clean objects from getted results
+# #   debug: 
+# #     msg: "{{ stage_sort }}"
+
+#     #|
+#       # "{% for it in item %}{% if it == 'data' %}{{ item }}{% endif %}{% endfor %}"
+#     # msg: "ID is {{ item.data.droplet.id }}, IP is {{ item.data.ip_address }}"
+#   # when: "item.key == 'data'"
+
+# {{ item['ip_configurations.ip'] }}
+
+# # - name: Somewhere in galaxy
+# #   debug: 
+# #     msg: "
+# #       {{ item.value.droplet.name }} 
+      
+# #       {{ item.value.droplet.networks.v4[1].ip_address }} {{ item.value.droplet.networks.v4[1].gateway }}
+
+# #       {{ item.value.droplet.networks.v4[0].ip_address }} {{ item.value.droplet.networks.v4[0].gateway }}
+
+# #       "
+    
+# #     #|
+# #       # "{% for it in item %}{% if it == 'data' %}{{ item }}{% endif %}{% endfor %}"
+# #     # msg: "ID is {{ item.data.droplet.id }}, IP is {{ item.data.ip_address }}"
+# #   with_dict: "{{ create_instance_result.results }}"
+# #   when: "item.key == 'data'"
