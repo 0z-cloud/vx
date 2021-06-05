@@ -212,7 +212,7 @@ location_wazuh:
   - location / {
     proxy_pass http://wazuh_{{ ansible_environment }};
     auth_basic "Restricted";
-    auth_basic_user_file /mnt/cloud-bind-frontend-dns-glusterfs-storage/secured/.htpasswd;
+    auth_basic_user_file /mnt/cloud-bind-frontend-persistence-dns-glusterfs-storage/secured/.htpasswd;
     }
 
 ## SERVICE DISCOVERY
@@ -272,7 +272,7 @@ location_kibana:
   - location / {
     proxy_pass http://kibana_{{ ansible_environment }};
     auth_basic "Restricted";
-    auth_basic_user_file /mnt/cloud-bind-frontend-dns-glusterfs-storage/secured/.htpasswd;
+    auth_basic_user_file /mnt/cloud-bind-frontend-persistence-dns-glusterfs-storage/secured/.htpasswd;
     }
 
 ## PLATFORM MONITORING SERVICES
@@ -286,14 +286,14 @@ location_prometheus:
   - location / {
     proxy_pass http://prometheus_{{ ansible_environment }};
     auth_basic "Restricted";
-    auth_basic_user_file /mnt/cloud-bind-frontend-dns-glusterfs-storage/secured/.htpasswd;
+    auth_basic_user_file /mnt/cloud-bind-frontend-persistence-dns-glusterfs-storage/secured/.htpasswd;
     }
 
 location_alertmanager:
   - location / {
     proxy_pass http://alertmanager_{{ ansible_environment }};
     auth_basic "Restricted";
-    auth_basic_user_file /mnt/cloud-bind-frontend-dns-glusterfs-storage/secured/.htpasswd;
+    auth_basic_user_file /mnt/cloud-bind-frontend-persistence-dns-glusterfs-storage/secured/.htpasswd;
     }
 
 ### LOCATIONS CONFIGS

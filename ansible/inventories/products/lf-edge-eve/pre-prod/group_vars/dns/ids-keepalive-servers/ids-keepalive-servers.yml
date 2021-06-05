@@ -1,5 +1,5 @@
 # HISTORY. CONFIG LEGENDS.
-# cloud_dir: /mnt/cloud-bind-frontend-dns-glusterfs-storage
+# cloud_dir: /mnt/cloud-bind-frontend-persistence-dns-glusterfs-storage
 cloud_dir: "{{ CLOUD_DIRECTORY }}"
 
 bind_cloud_settings:

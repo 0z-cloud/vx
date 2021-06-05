@@ -1,109 +1,202 @@
+{% raw %}
+####################################################################################################################################################################
+# Vagrant Vx Template Interface for Local IaC
+####################################################################################################################################################################
 # All Vagrant configuration is done below. The "2" in Vagrant.configure
 # configures the configuration version (we support older styles for
 # backwards compatibility). Please don't change it unless you know what
 # you're doing.
+####################################################################################################################################################################
 Vagrant.configure(2) do |config|
+####################################################################################################################################################################
+{% endraw %}
+{% set iterated_groups_list = false %}
+{% set iterated_instance_objects = false %}
+{% set iterated_instance_groups = false %}
+{% set not_in_group = false %}
+{% set reverse_start2 = [] %}
+{% set reverse_start = [] %}{% raw %}
+####################################################################################################################################################################
+# {% set ng_reverse_start = [] %}
+{% endraw %}{% set ng_put_array = [] -%}{% raw %} # inputarray
+{% endraw %}{% set ng_reverse_start = [] -% {% raw %} # outputarray
+####################################################################################################################################################################
+{% endraw %}{% for item in cloud_bootstrap.servers %}{% raw %}
 
-{% for server in dict(cloud_bootstrap.servers) %}
-
-    config.vm.define "{{ server }}-{{ ansible_environment }}" do |node|
-      $ip = "{{ server.ip }}"
-      node.vm.box = "ubuntu/trusty64"
-      node.vm.network "private_network", ip: $ip
+    config.vm.define "{% endraw %}{{ item }}{% raw %}-{% endraw %}{{ ansible_environment }}{% raw %}" do |node|
+      config.ssh.username = "vagrant"
+      config.ssh.password = "vagrant"
+   config.vm.provider "virtualbox" do |vb|
+     vb.gui = true
+   end
       node.vm.provision "shell",
-        inline: "echo hello from node #{i}"
+        inline: "echo hello from node {% endraw %}{{ item }}{% raw %}"
+      $ip = "{% endraw %}{{ cloud_bootstrap.servers[item].ip }}{% raw %}"
+      node.vm.box = "ubuntu/focal64"
+      node.vm.network "private_network", ip: $ip
     end
-{% endfor %}
+{% endraw %}
+{% endfor %}{% raw %}
+####################################################################################################################################################################
+{% endraw %}{% for item in cloud_bootstrap.vx_control %}
 
-  config.vm.define "vortex-control-vx-{{ ansible_environment }}", primary: true do |control|
-    control.vm.box = "ubuntu/trusty64"
-    control.vm.network "private_network", ip: "{{ server.ip }}"
-    control.vm.provision "shell", binary: true, privileged: true, path: "scripts/requirements/reqirements.sh"
-    
-    
+  config.vm.define "{{ item }}-{{ ansible_environment }}", primary: true do |control|
+    control.vm.box = "ubuntu/focal64"
+    control.vm.network "private_network", ip: "{{ cloud_bootstrap.vx_control[item].ip }}"
+    control.vm.provision "shell", binary: true, privileged: true, inline: "echo hello from node vortex_control_vx"
+    config.vm.synced_folder '.', '/vagrant', disabled: true{% raw %}
+####################################################################################################################################################################
+{% endraw %}{% endfor %}
     control.vm.provision "ansible" do |ansible|
-{% for server in dict(cloud_bootstrap.servers) %}
-        config.vm.define "{{ server }}-{{ ansible_environment }}" do |node|
-          $ip = "{{ server.ip }}"
+        {% for instance in cloud_bootstrap.servers %}
+        config.vm.define "{{ instance }}-{{ ansible_environment }}" do |node|
+          $ip = "{{ cloud_bootstrap.servers[instance].ip }}"
           node.ssh.host = $ip
           node.vm.provision "shell",
-              inline: "echo hello from node #{i}"
+              inline: "echo hello from node #{{ instance }}"
           end
-{% endfor %}
+        {% endfor %}{% raw %}
+####################################################################################################################################################################
+
       ansible.playbook = "empty.yml"
       ansible.limit = 'all'
-      ansible.groups = {
-        "keyserver-zone" => [
-          "vortex-test-1-#{ENV['USER']} ", 
-          "vortex-test-2-#{ENV['USER']}"
-        ],
-        "web-servers" => [
-          "vortex-test-1-#{ENV['USER']}", 
-          "vortex-test-2-#{ENV['USER']}"
-        ],
-        "tomcat-servers" => [
-          "vortex-test-1-#{ENV['USER']}", 
-          "vortex-test-2-#{ENV['USER']}"
-          ],
-        "bastion-host" => [
-          "vortex-control-#{ENV['USER']}"
-          ],
-        "firewall-host" => [
-          "vortex-control-#{ENV['USER']}"
-          ],
-        "vortex-pansearch-hosts" => [
-          "vortex-test-1-#{ENV['USER']}", 
-          "vortex-test-2-#{ENV['USER']}"
-          ],
-        "keepalived-servers" => [
-          "vortex-test-2-#{ENV['USER']}",
-          "vortex-test-1-#{ENV['USER']}"
-          ],
-        "secureweb-servers" => [
-          "vortex-test-1-#{ENV['USER']}", 
-          "vortex-test-2-#{ENV['USER']}"
-        ],
-        "adminweb-servers" => [
-          "vortex-test-1-#{ENV['USER']}", 
-          "vortex-test-2-#{ENV['USER']}"
-        ],
-        "gateway-servers" => [
-          "vortex-test-1-#{ENV['USER']}", 
-          "vortex-test-2-#{ENV['USER']}"
-        ],
-        "clientweb-servers" => [
-          "vortex-test-1-#{ENV['USER']}", 
-          "vortex-test-2-#{ENV['USER']}"
-        ],
-        "percona-servers" =>  [
-          "vortex-test-1-#{ENV['USER']}",
-          "vortex-test-2-#{ENV['USER']}"
-        ],
-        "dns-servers" => [
-          "vortex-control-#{ENV['USER']}"
-        ],
-        "repo-servers" => [
-          "vortex-control-#{ENV['USER']}"
-        ],
-        "rsyslog-servers" => [
-          "vortex-control-#{ENV['USER']}"
-        ],
-        "vortex-after-bastion" => [
-          "vortex-control-#{ENV['USER']}"
-        ],
+      ansible.groups = { 
+{% endraw %}        
+####################################################################################################################################################################
+{% set whole_groups_object = [] %}
+{% set cleared_groups_list = [] %}
+{% set group_inventory_group_names_loop = [] %}
+####################################################################################################################################################################
+{% for item in cloud_bootstrap.servers %}
+{% set server_name = cloud_bootstrap.servers[item].name | join %}
+{% set server_groups = cloud_bootstrap.servers[item].ansible_inventory_groups %}
+{% for group_name in server_groups %}
+{% set whole_groups_object = whole_groups_object.append(group_name) %}
+{% endfor %}
+####################################################################################################################################################################
+{% for group_fullname in whole_groups_object %}
+    {% if group_fullname not in cleared_groups_list %}
+        {{ group_fullname }}
 
-        "all" => [
-          "vortex-test-2-#{ENV['USER']}",
-          "vortex-test-1-#{ENV['USER']}",
-          "vortex-control-#{ENV['USER']}"
-        ],
+        {% set cleared_groups_list = cleared_groups_list.append(group_fullname) %}
+    {% endif %}
+{% endfor %}
+####################################################################################################################################################################
+# {% for item_group_name in whole_groups_object %}
+# item_group_name: {{ item_group_name }}
+# {% endfor %}
+# {% endfor %}
+####################################################################################################################################################################
+# {% for item_group_name in cleared_groups_list %}
+# Final cleared_groups_list: {{ item_group_name }}
+# {% endfor %}
+####################################################################################################################################################################
+{% for item_group_name in cleared_groups_list %}
+{% for item in cloud_bootstrap.servers %}
+{% set server_name = cloud_bootstrap.servers[item].name | join %}{% set instance_groups = cloud_bootstrap.servers[item].ansible_inventory_groups %}
+{% for group_of_instance in instance_groups %}{% if group_of_instance == item_group_name %}
+# {{ reverse_start | combine( { item_group_name: server_name } ) }}
+        {% set reverse_start = ng_reverse_start |combine({item_group_name: server_name}) -%}
+        {{ ng_reverse_start.append(reverse_start) and '' }}
+{% endif %}
+{% endfor %}
+{% endfor %}
+{% endfor %}
+####################################################################################################################################################################
+# PUT: {{ ng_reverse_start }}
 
-        "vagrant" => [
-          "vortex-test-2-#{ENV['USER']}",
-          "vortex-test-1-#{ENV['USER']}",
-          "vortex-control-#{ENV['USER']}"
-        ]
-      }
+# {% for dict_item in ng_reverse_start %}
+#    {% for key, value in dict_item.items() %}
+#       <h1>Key: {{key}}</h1>
+#       <h2>Value: {{value}}</h2>
+#    {% endfor %}
+# {% endfor %}
+
+####################################################################################################################################################################
+# ng_reverse_start
+####################################################################################################################################################################
+
+# {% for item_group_name in cleared_groups_list %}
+
+#     {{ item_group_name }}: [
+
+#       {% for item in ng_reverse_start %}
+
+#           {% if item_group_name in item %}
+
+#             {{ item }}
+
+#           {% endif %}
+
+#       {% endfor %}
+
+#     ]
+
+# {% endfor %}
+
+# {{ ng_reverse_start }}
+
+# ####################################################################################################################################################################
+# # key, value for target immutable propogatiation
+# ####################################################################################################################################################################
+
+# {% for item in ng_reverse_start %}
+# {{ item }}
+# {% endfor %} 
+
+# ####################################################################################################################################################################
+# {% for item_group_name in cleared_groups_list %}
+#     {% set item_inventory_group_names_loop = loop %}
+
+#     "{{ item_group_name }}" => [ 
+#       {% set item_group_name_groups_list = [] %}
+
+      
+#         {% for item in cloud_bootstrap.servers %}{% set object_inventory_group_names_loop = loop %}{% set server_name = cloud_bootstrap.servers[item].name | join %}{% set instance_groups = cloud_bootstrap.servers[item].ansible_inventory_groups %}
+# {% for group_of_instance in instance_groups %}{% set group_inventory_group_names_loop = loop %}
+# {% if group_of_instance == item_group_name %}
+# "{{ server_name }}"{% endif %}{% endfor %}{{ ", " if not object_inventory_group_names_loop.last or not loop.last or group_inventory_group_names_loop.index == loop.index else "" }}
+# {% endfor %} 
+#     ]{% if not loop.last %},
+#   {% endif %}
+
+
+# {% endfor %} 
+# ####################################################################################################################################################################
+
+{% for dict_item in ng_reverse_start %}
+   {% for key, value in dict_item.items() %}
+
+
+      <h1>Key: {{ key }}</h1>
+      <h2>Value: {{ value }}</h2>
+
+      "{{ key | join }}" => [ 
+
+
+
+   {% endfor %}
+{% endfor %}
+        }
     end
   end
 end
+
+# {% for inventory_group in all_inventory_group_names | unique | list %}{% set all_inventory_group_names_loop = loop %}
+#     "{{ inventory_group | join }}" => [ 
+# {% for item in cloud_bootstrap.servers %}
+
+
+# {% set item_inventory_group_names_loop = loop %}{% set server_name = cloud_bootstrap.servers[item].name | join %}{% for group_name_of_instance in cloud_bootstrap.servers[item].ansible_inventory_groups %}{% set item_inventory_group_names_instance = loop %}{% if inventory_group == group_name_of_instance %}{% set iterated_instance_groups = false %}
+#           "{{ server_name }}"{% else %}{% set not_in_group = true %}{% endif %}{% set iterated_instance_groups = true %}{% endfor %}{% if not loop.last and not_in_group == false %},{% endif %}
+
+#   {% endfor %}{% raw %}
+
+#     ]{% endraw %}{% if not loop.last %},
+#   {% endif %}
+# {% endfor %} 
+#         }
+#     end
+#   end
+# end
+####################################################################################################################################################################

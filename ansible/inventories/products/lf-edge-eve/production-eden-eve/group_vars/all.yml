@@ -109,7 +109,7 @@ kube_users:
       - system:masters
 
 ## K8S MAIN SETTINGS 
-CLOUD_DIRECTORY: /mnt/cloud-bind-frontend-dns-glusterfs-storage
+CLOUD_DIRECTORY: /mnt/cloud-bind-frontend-persistence-dns-glusterfs-storage
 CLOUD_PRIVATE_NETWORK_INTERFACE: enp0s8
 
 CALICO_POOL_1_CIDR: 10.224.128.0/19

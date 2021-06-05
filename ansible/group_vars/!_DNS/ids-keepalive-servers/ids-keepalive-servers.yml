@@ -1,4 +1,4 @@
-cloud_dir: /mnt/cloud-bind-frontend-dns-glusterfs-storage
+cloud_dir: /mnt/cloud-bind-frontend-persistence-dns-glusterfs-storage
 
 bind_cloud_settings:
   domain: "{{ consul_merge_domain_name }}"
