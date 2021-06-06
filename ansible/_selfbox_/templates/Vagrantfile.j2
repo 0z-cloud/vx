@@ -1,15 +1,4 @@
-{% raw %}
-####################################################################################################################################################################
-# Vagrant Vx Template Interface for Local IaC
-####################################################################################################################################################################
-# All Vagrant configuration is done below. The "2" in Vagrant.configure
-# configures the configuration version (we support older styles for
-# backwards compatibility). Please don't change it unless you know what
-# you're doing.
-####################################################################################################################################################################
-Vagrant.configure(2) do |config|
-####################################################################################################################################################################
-{% endraw %}
+
 {% set iterated_groups_list = false %}
 {% set iterated_instance_objects = false %}
 {% set iterated_instance_groups = false %}
@@ -19,7 +8,7 @@ Vagrant.configure(2) do |config|
 ####################################################################################################################################################################
 # {% set ng_reverse_start = [] %}
 {% endraw %}{% set ng_put_array = [] -%}{% raw %} # inputarray
-{% endraw %}{% set ng_reverse_start = [] -% {% raw %} # outputarray
+{% endraw %}{% set ng_reverse_start = [] -%} {% raw %} # outputarray
 ####################################################################################################################################################################
 {% endraw %}{% for item in cloud_bootstrap.servers %}{% raw %}
 
