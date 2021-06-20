@@ -1,15 +1,43 @@
-- name: AZURE | Create virtual network
-  azure.azcollection.azure_rm_virtualnetwork:
-    resource_group: "{{ anycloud_api_resource_group_name }}"
-    name: "{{ anycloud_api_virtual_network_name }}"
-    address_prefixes: "{{ anycloud_adapter_vpc_zone_virtual_abstract.zones.azure.cidr }}"
 
-- name: AZURE | Add subnet
-  azure.azcollection.azure_rm_subnet:
-    resource_group: "{{ anycloud_api_resource_group_name }}"
-    name: "{{ anycloud_api_resource_network_name }}"
-    address_prefix: "{{ anycloud_adapter_vpc_zone_virtual_abstract.zones.azure.subnet }}"
-    virtual_network: "{{ anycloud_api_virtual_network_name }}"
+### SUBNET FOR VPC ZONE
+
+- name: AWS | VPC | Run set Zone Subnet
+  ec2_vpc_subnet:
+    aws_access_key: "{{ amazon_aws_private_creds_api_token_access_key }}"
+    aws_secret_key: "{{ amazon_aws_private_creds_api_token_secret_key }}"
+
+- name: AWS | VPC | Run get Zone Subnet
+  ec2_vpc_subnet_info:
+    aws_access_key: "{{ amazon_aws_private_creds_api_token_access_key }}"
+    aws_secret_key: "{{ amazon_aws_private_creds_api_token_secret_key }}"
+
+### NAT GATEWAY
+
+- name: AWS | VPC | Run set Gateway of Zone Subnet
+  ec2_vpc_nat_gateway:
+    aws_access_key: "{{ amazon_aws_private_creds_api_token_access_key }}"
+    aws_secret_key: "{{ amazon_aws_private_creds_api_token_secret_key }}"
+
+- name: AWS | VPC | Run get Gateway of Zone Subnet
+  ec2_vpc_nat_gateway_info:
+    aws_access_key: "{{ amazon_aws_private_creds_api_token_access_key }}"
+    aws_secret_key: "{{ amazon_aws_private_creds_api_token_secret_key }}"
+
+
+
+
+# - name: AZURE | Create virtual network
+#   azure.azcollection.azure_rm_virtualnetwork:
+#     resource_group: "{{ anycloud_api_resource_group_name }}"
+#     name: "{{ anycloud_api_virtual_network_name }}"
+#     address_prefixes: "{{ anycloud_adapter_vpc_zone_virtual_abstract.zones.azure.cidr }}"
+
+# - name: AZURE | Add subnet
+#   azure.azcollection.azure_rm_subnet:
+#     resource_group: "{{ anycloud_api_resource_group_name }}"
+#     name: "{{ anycloud_api_resource_network_name }}"
+#     address_prefix: "{{ anycloud_adapter_vpc_zone_virtual_abstract.zones.azure.subnet }}"
+#     virtual_network: "{{ anycloud_api_virtual_network_name }}"
 
 # - name: AZURE | Allow ICMP
 #   azure_rm_securitygroup:

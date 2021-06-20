@@ -2,23 +2,13 @@
 
 - name: AWS | VPC | Run set Layout Zone Part
   ec2_vpc_net:
+    aws_access_key: "{{ amazon_aws_private_creds_api_token_access_key }}"
+    aws_secret_key: "{{ amazon_aws_private_creds_api_token_secret_key }}"
 
 - name: AWS | VPC | Run get Layout Zone Part
   ec2_vpc_net_info:
+    aws_access_key: "{{ amazon_aws_private_creds_api_token_access_key }}"
+    aws_secret_key: "{{ amazon_aws_private_creds_api_token_secret_key }}"
 
-### SUBNET FOR VPC ZONE
 
-- name: AWS | VPC | Run set Zone Subnet
-  ec2_vpc_subnet:
-
-- name: AWS | VPC | Run get Zone Subnet
-  ec2_vpc_subnet_info:
-
-### NAT GATEWAY
-
-- name: AWS | VPC | Run set Gateway of Zone Subnet
-  ec2_vpc_nat_gateway:
-
-- name: AWS | VPC | Run get Gateway of Zone Subnet
-  ec2_vpc_nat_gateway_info:
 

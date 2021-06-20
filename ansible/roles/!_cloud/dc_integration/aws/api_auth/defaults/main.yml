@@ -1,0 +1,27 @@
+
+ANYCLOUD_ENV_CONVARS:
+
+  input_data_raw:
+
+    keypair: "my-keypair-name"
+    instance_type: m4.large
+    security_group: 
+      - "vpc-group-1"
+      - "vpc-group-2"
+    image: "ami-XXXXXXXXXXXXXXXX"
+    region: "{{ amazon_aws_zone_region_id }}"
+    user_access_key: "{{ lookup('env', 'amazon_aws_private_creds_api_token_access_key') }}"
+    user_secret_key: "{{ lookup('env', 'amazon_aws_private_creds_api_token_secret_key') }}"
+ 
+
+  must_use_for_inject: 
+
+    keypair: ""
+
+# ...anycloud_region
+
+amazon_aws_zone_region_id: "{{ us-east-1 }}"
+amazon_aws_private_creds_client_id: "{{ AWS_ACCOUNT_ID }}"
+amazon_aws_private_creds_api_token_access_key: "{{ AWS_ACCESS_KEY_ID }}"
+amazon_aws_private_creds_api_token_secret_key: "{{ AWS_SECRET_KEY }}"
+amazon_aws_private_creds_canonical_user_id: "{{ AWS_CANONICAL_USER_ID }}"

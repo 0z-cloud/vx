@@ -1,7 +1,8 @@
-#
-# Basic provisioning example
-#
-- ec2:
+#### MUST TO SELECT BEST WAYS FOR INHERIT THE CURRENT NEEDED...
+- name : AWS | Basic provisioning basic instances
+  ec2:
+    aws_access_key: "{{ amazon_aws_private_creds_api_token_access_key }}"
+    aws_secret_key: "{{ amazon_aws_private_creds_api_token_secret_key }}"
     key_name: "{{ item['value']['name'] }}"
     instance_type:  "{{ anycloud_api_vm_size }}" # > to vars aws spec product at group vars > t2.micro
     image: "{{ anycloud_adapter_vm_vapp_box_version }}" # ami-123456
@@ -14,3 +15,6 @@
   register: create_instance_result
   with_dict: "{{ cloud_bootstrap.servers }}"
 
+
+# 
+# anycloud_adapter_vpc_subnet_zone_with_box_id: {{ get ? }}
