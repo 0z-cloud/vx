@@ -96,7 +96,7 @@ cloud_bootstrap:
             - kubernetes-worker
             - consul-cluster
             - cloud-bind-frontend-dns
-            - glusterfs-storage-cloud-bind-frontend-dns
+            - glusterfs-storage-cloud-main-frontend-dns
             - consul-masters
             - swarm-cluster
             - nginx-frontend
@@ -138,7 +138,7 @@ cloud_bootstrap:
             - kubernetes-worker
             - consul-cluster
             - cloud-bind-frontend-dns
-            - glusterfs-storage-cloud-bind-frontend-dns
+            - glusterfs-storage-cloud-main-frontend-dns
             - consul-masters
             - swarm-cluster
             - nginx-frontend
@@ -181,7 +181,7 @@ cloud_bootstrap:
             - kubernetes-worker
             - consul-cluster
             - cloud-bind-frontend-dns
-            - glusterfs-storage-cloud-bind-frontend-dns
+            - glusterfs-storage-cloud-main-frontend-dns
             - consul-masters
             - swarm-cluster
             - nginx-frontend

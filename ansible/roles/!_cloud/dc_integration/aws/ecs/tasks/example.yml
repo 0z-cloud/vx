@@ -1,0 +1,27 @@
+# Note: These examples do not set authentication details, see the AWS Guide for details.
+
+# - name: AZURE | re/Create virtual machine With Default Configuration
+#   azure.azcollection.azure_rm_virtualmachine:
+#     resource_group: "{{ anycloud_api_resource_group_name }}"
+#     name: "{{ item['value']['name'] }}"
+#     vm_size: "{{ anycloud_api_vm_size }}"
+#     storage_account: "{{ anycloud_api_resource_storage_account }}"
+#     storage_container: "{{ item['value']['name'] }}"
+#     storage_blob: "{{ item['value']['name'] }}.vhd"
+#     admin_username: "{{ anycloud_vm_access_user }}"
+#     admin_password: "{{ anycloud_vm_access_pass }}"
+#     network_interfaces: "{{ item['value']['ansible_inventory_vars']['second_ip'] }}"
+#     image:
+#       offer: "{{ anycloud_adapter_vm_vapp_box_offer }}"
+#       publisher: "{{ anycloud_adapter_vm_vapp_box_publisher }}"
+#       sku: '{{ anycloud_adapter_vm_vapp_box_sku }}'
+#       version: "{{ anycloud_adapter_vm_vapp_box_version }}"
+#   register: create_instance_result
+#   with_dict: "{{ cloud_bootstrap.servers }}"
+
+# - name: AZURE | Get Internal network interfaces details
+#   azure_rm_networkinterface_info:
+#     resource_group: "{{ anycloud_api_resource_group_name }}"
+#     name: "{{ item['value']['ansible_inventory_vars']['second_ip'] }}"
+#   register: azure_networkinterfaces_private
+#   with_dict: "{{ cloud_bootstrap.servers }}"

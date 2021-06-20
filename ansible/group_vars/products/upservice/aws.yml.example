@@ -1,0 +1,152 @@
+#########################################################################################################################################################################################################################################
+# AnyCloud User Adapter Vault Sercters Out
+#
+# 0z-cloud is stilling stay in...       zen...
+#########################################################################################################################################################################################################################################
+# AnyCloud:                             Default Settings Configuration 
+#########################################################################################################################################################################################################################################
+# Version:                              v.1.7.1-techlaunch
+# VCS Group:                            cicd
+# Product:                              service_devops_zone 
+# Repository:                           vx
+# user:                                 template 
+# current:                              integration
+# salt:                                 ci/cd/qa/dev
+# vector:                               30.05.2021.20.46
+# timeto:                               zen...io
+# Environment:                          production
+# Usage:                                anycloud
+# Infrastructure is in want target:     production
+#########################################################################################################################################################################################################################################
+# PRIMARY TEMPLATE !
+##########################################################################################################################################################################################################################################
+
+# TEMPLATE PARAMS 
+anycloud_adapter_vm_template: u2004_template64
+anycloud_adapter_vm_vapp_box_name: u2004_template64
+anycloud_template_adapter_root_folder: "/"
+anycloud_adapter_vm_access_pass: 12345
+anycloud_adapter_vm_access_user: 0zroot
+ssh_connect_type_self: "default"
+ssh_connect_type_via: "ansible_ssh_common_args='-o ProxyCommand=\"ssh -W %h:%p %r@REPLACED_BY_BASTION_DMZ_MACHINE_IP\"'"
+
+# DEFAULT PARAMS
+anycloud_adapter_vm_vapp_box_version: latest
+anycloud_adapter_vm_vapp_box_sku: 20_04-daily-lts
+anycloud_adapter_vm_vapp_box_publisher: Canonical
+anycloud_adapter_vm_vapp_box_offer: 0001-com-ubuntu-server-focal-daily
+
+anycloud_vm_access_pass: 0hh09we6n09j30nyuh@
+anycloud_vm_access_user: 0zroot
+
+##########################################################################################################################################################################################################################################
+# AnyCloud VM: Instance disk parameters
+##########################################################################################################################################################################################################################################
+
+google_gcp_private_creds_cert_client_xtls: "https://www.googleapis.com/robot/v1/metadata/x509/506606656747-compute%40developer.gserviceaccount.com"
+google_gcp_private_creds_cert_url: "https://www.googleapis.com/oauth2/v1/certs"
+google_gcp_private_creds_token_uri: "https://oauth2.googleapis.com/token"
+google_gcp_private_creds_auth_uri: "https://accounts.google.com/o/oauth2/auth"
+google_gcp_private_creds_client_id: "108179898534755331997"
+google_gcp_private_creds_client_email: "506606656747-compute@developer.gserviceaccount.com"
+google_gcp_private_creds_api_token_access_key: "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQChSBON692tKUsT\nL5akO+vL9GTgJV7ofbtvAnw9pjq0wLACWDFkfRWeZrCo+lcCtpEJRC7duTNCmOav\noBcVBbhYmW6WyxwReMPAqVxbrpq4Eq+6kFCcvXCQ5H8feFtyjJqg/Jgh/y3paugt\nNiIxycifEe7KpSy5E32ZbwrcedA/TQfed7zdjethqxTqSg4cWlFlExHU8u+TANYQ\nsHXx4OxFYyD9N0tYSlQO/j96msvpYWsdMKiM7q9j5dHn5od5m+btrCeakvVpjUMt\nLSrPxg1RMSLuZbbqb0vxDiEPuJbdMWxHRrSyJN1jTeHGa2XlAD81UyfPgWIKlxjr\nwp1WpGbFAgMBAAECggEAAabuG329EUDFo7U1Ve78fHZRiBHUNxbQn+FNmf/r8oax\nMks8w7c3TKeMRxLXZ7AaR5cOPtf5/p/A+p03BQdbuKswQUdkar+K+YDJeiiEQEg9\nAYMxkw6YbzLz/7F9vyxR5Zl7E5uA4iSu9Dx2nSKXVWapKSQspbZCJjbQlcY48ukI\nKcwvYiY1dzznx+oLPydLvMsfXZG47mCF6vOldK/BK8+yz8tK3fpdJr5k32dKR9ts\nEc0r2HZl/eYhmomwnnFt4zYqXif/T0QQqcFMrRGwn/1nGTqhd7VR4z7kDkpk0Kkc\n+18ghORlGoN2i1HUgGmq0Jr/04zboT71Yeb7+Ll1eQKBgQDdPjg4NmiBHqA0WtfF\nrtoBGreyscv2k4+2UiB+MWK11SvdTGjRGkhfzxglP+LEp6IIJOoKJErCaCAFdNQi\nTuFqhthI7Uv5uYVJx/7YCmFG2vCMq7TrXXxUJLq5NCp1xl7ndA9HsLdpVinrRxd8\n6K+cG/eaiVMB+4+E45EHNNtruQKBgQC6nl88gdJVwhA47B+s9Rrdbtd2rgxR2jX4\n7Pc8jT7XoyIfEks8Zz19H1FrDgbTreNsePQZN2xBF1hvfQ096BJFklIaZZwrrTgJ\nQxe94bRfn3ePqNCysFg+m0kr8hm9fB88Y+7x/VxnWi+jxok3N4xvFCTsjHszVaN/\nDprNTjJRbQKBgF3+aB4hp2Zr334+tfsLXR0o/7BQbynz6RN5csqKKri7tyYOp11n\nACaMMmLo8GvCGEnDfRcP8h8D487Noq5susHqRgs9nZCb6++7ox6f0lIrBBWPgY6Z\nKhAJhrbWXc+plnpYyYEYp+N9stN9YZI0vR7iluA1xWlLOd8oW14na60pAoGAHxVp\n/4YQJsCgOxr5W7Gnu+JOeTIcUzXpb4Do3WkZYomFkW9WoMUBdOnWgeJgOLnp+5NZ\n9SlKGr1suYU2w2z4PiZVDpiGHrBHeSN3vOTvSk4heAhCWsEMscDjuzIkH2+hNEng\n7uWokn5vGPRkvpG+DnJohA4SJ0bIaM1h83hm4TECgYBlUchKzKb2WJYHCPURCn9Q\nWb6+8F6XH7ljf6Q3/Jqun5SHlGIIHgfThfJy6FZi0ZilexQQf8QxZzuKA4HUgf6F\nYIdg55TeLCbJVh9lAIAMy4W/Bwz7n4iqJqr3BeWiJZ1doBzuowodZ872l1ifkbbS\nAMtuZwHdDG0Lhb1nxNg5rA==\n-----END PRIVATE KEY-----\n"
+google_gcp_private_key_api_token_id: "7e5fe1cb3c9eb2e6089e87c975defcac301275b8"
+ansible_product_id: "{{ ansible_product }}"
+google_cloud_account_type: "serviceaccount"
+
+anycloud_defaults_storage_profile: Silver
+anycloud_instance_system_disk_category: "cloud_ssd"
+anycloud_instance_system_disk_size: 50
+anycloud_one_instance_duplicates_count: 2
+anycloud_instance_cloud_disk_name: "cloud_disk"
+anycloud_instance_cloud_disk_category: "cloud_ssd"
+anycloud_instance_cloud_disk_description: "Description - {{ ansible_product }} host {{ ansible_environment }}"
+anycloud_instance_cloud_data_disk_size: 80
+anycloud_instance_cloud_delete_with_instance: False
+anycloud_virtual_machine_resources_middle_type: size_of_instance_profile
+# anycloud_instance_cloud_disk_tags: [{tag_key: "created_by", tag_value: "{{ ansible_product }}-cloud-{{ ansible_environment }}"}, {tag_key: "created_from", tag_value: "{{ ansible_product }}-ecs-vpc-{{ ansible_environment }}"}]
+
+anycloud_zone: earth
+anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_description: vSwitch_{{ ansible_environment }}
+anycloud_region: worldwide
+anycloud_defaults_virtual_cloud_cidr: 172.16.222.0/24
+anycloud_virtual_cloud_name: vZone_Sector_Network_Exchange_{{ ansible_product }}_zone_{{ ansible_environment }}_{{ ansible_datacenter }}
+anycloud_virtual_cloud_description: "{{ anycloud_virtual_cloud_name }}"
+
+anycloud_zone_virtual_cloud_primary_network_virtual_communication_device_description: "Create a new VPC resource {{ ansible_environment }}_{{ ansible_datacenter }}"
+anycloud_zone_virtual_cloud_name: "vZone_Sector_Network_Exchange_{{ ansible_product }}_zone_{{ ansible_environment }}_{{ ansible_datacenter }}"
+anycloud_zone_adapter_cloud_name_of_network: "vZone_Sector_Network_Exchange_{{ ansible_product }}_zone_{{ ansible_environment }}_{{ ansible_datacenter }}"
+
+anycloud_zone_adapter_virtual_cloud_cidr: "172.16.0.0/12"
+anycloud_zone_adapter_zone: earth
+anycloud_zone_adapter_region: worldwide
+anycloud_zone_adapter_vpc_zone_virtual_abstract_layout: all
+anycloud_zone_adapter_virtual_cloud_primary_network_virtual_communication_device_description: "Virtual Primary on {{ anycloud_zone_adapter_region }} Cloud Network Communication Device for {{ ansible_environment }} on zone {{ anycloud_zone_adapter_zone }}"
+anycloud_zone_adapter_virtual_cloud_primary_network_virtual_communication_device_dns_suffix: "dn"
+
+##### VIRTUAL ZONE
+
+anycloud_virtual_cloud_description: "vZone_{{ anycloud_zone }}_Sector_Network_{{ anycloud_region }}_Exchgange_{{ ansible_product }}_zone_{{ ansible_environment }}"
+anycloud_virtual_cloud_zone: "{{ anycloud_zone_virtual_cloud_name }}"
+anycloud_virtual_cloud_name: "anycloud_in_{{ anycloud_region }}-{{ anycloud_zone }}-{{ ansible_datacenter }}_{{ ansible_product }}_{{ ansible_environment }}"
+
+### STORAGE RETURN RESULTS
+
+anycloud_vm_storage_configuration: "{{ anycloud_defaults_storage_profile }}"
+anycloud_vm_performance_configuration: "{{ anycloud_virtual_machine_resources_middle_type }}"
+
+## VORTEX DEFAULT EXAMPLE
+# anycloud_api_user_login: "aim_admin"
+# anycloud_api_access_key: "LTAI18PoV9VdqhK7!"
+# anycloud_api_secret_key: "UXQ6BBASSOBRIgVZjA7ZioDoCQrzjm"
+# anycloud_vm_access_pass: "12345"
+
+anycloud_api_subscription_id: "SECURED_REMOVED_BEFORE_PUSH"
+anycloud_api_application_id: "SECURED_REMOVED_BEFORE_PUSH"
+anycloud_api_secret_key: "SECURED_REMOVED_BEFORE_PUSH"
+anycloud_api_tenant_dc_name: "SECURED_REMOVED_BEFORE_PUSH"
+anycloud_api_resource_group_name: "0z"
+anycloud_api_resource_group_location: "westeurope"
+anycloud_api_resource_storage_account: "0zstorage001"
+anycloud_api_resource_storage_account_type: "Standard_LRS"
+anycloud_api_resource_network_name: "0znet001"
+anycloud_api_virtual_network_name: "0zvn001"
+anycloud_api_security_group_name: "0zsecgroup001"
+# anycloud_api_vm_size: "Standard_D1"
+anycloud_api_vm_size: "Standard_D2a_v4"
+
+ansilbe_infrastructure_target_layout: simple
+ansilbe_infrastructure_target_layout_mandatory: false
+ansilbe_infrastructure_target_layout_default: simple
+
+anycloud_vm_vapp_box_name: CentOS
+
+#####  ANYCLOUD DEFAULT ZONE SETTINGS MAP
+# anycloud_defaults_cloud_name: global
+anycloud_defaults_cloud_name: "vZone_Sector_Network_Exchange_{{ ansible_product }}_zone_{{ ansible_environment }}_{{ ansible_datacenter }}"
+anycloud_defaults_zone: earth
+anycloud_defaults_region: worldwide
+anycloud_defaults_vpc_zone_virtual_abstract_layout: all
+anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_description: "Virtual Primary Cloud Network Communication Device for {{ ansible_environment }}"
+anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_dns_suffix: "dn"
+
+anycloud_defaults_vpc_zone_virtual_abstract: 
+  zones: 
+    earth: 
+      index: 0
+      enabled: true # true / false
+      cidr: 0.0.0.0/0
+    0z_template: 
+      index: 1
+      enabled: true # true / false
+      cidr: 172.16.1.0/16
+    main:
+      index: 2
+      enabled: true # true / false
+      cidr: 192.168.1.0/16
+  dns_servers:
+    - 8.8.4.4
+    - 8.8.8.8
+  initial_only_dns_servers:
+    - 8.8.4.4
+    - 8.8.8.8

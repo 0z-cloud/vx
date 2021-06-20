@@ -1,25 +1,33 @@
-- name: Starting the instance bootstrap and check
+- name: AWS | Starting the instance bootstrap and check
   hosts: localhost
   tasks:
 
-      - name: Load groupvars/product global shared settings
+      - name: AWS | Load groupvars/product global shared settings
         include_vars: group_vars/products/{{ ansible_product }}/{{ item }}.yml
         with_items:
-          - alicloud
+          - aws
           - main
 
-      - name: Load groupvars/product global shared settings
+      - name: AWS | Load groupvars/product global shared settings
         include_vars: group_vars/products/{{ ansible_product }}/{{ ansible_environment }}/{{ item }}.yml
         with_items:
           - attached
           - main
 
-- name: Starting the instance bootstrap and check
+- name: AWS | Starting the instance bootstrap and check
   hosts: localhost
   roles:
 
-      - name: Include role VPC Zone maintain
-        role: ./!_cloud/dc_integration/alicloud/vpc
+      - name: AWS | Include role VPC Zone maintain
+        role: ./!_cloud/dc_integration/aws/vpc
 
-      - name: Include role vSwitch Zone maintain
-        role: ./!_cloud/dc_integration/alicloud/vswitch
+      - name: AWS | Include role vSwitch Zone maintain
+        role: ./!_cloud/dc_integration/aws/vswitch
+
+      - name: AWS | Include role Elastic Compute Cervice Instances re/Bootstrap or re/Validate at in Zone which Pipeline now are maintain
+        role: ./!_cloud/dc_integration/aws/ecs
+
+      - name: AWS | Include role Firewall for update all in Zone which maintain now at in this run...try aws and get zen...0z-zen...
+        role: ./!_cloud/dc_integration/aws/firewall
+
+	

@@ -21,7 +21,7 @@ x-sentry-defaults: &sentry_defaults
   environment:
     SNUBA: 'http://snuba-api:1218'
   volumes:
-    - '/cloud_storage/cloud-bind-frontend-dns-glusterfs-storage/sentry/sentry-data:/data'
+    - '/cloud_storage/cloud-bind-frontend-persistence-dns-glusterfs-storage/sentry/sentry-data:/data'
 x-snuba-defaults: &snuba_defaults
   << : *restart_policy
   depends_on:
@@ -48,8 +48,8 @@ services:
     << : *restart_policy
     image: tianon/exim4
     volumes:
-      - '/cloud_storage/cloud-bind-frontend-dns-glusterfs-storage/sentry/sentry-smtp:/var/spool/exim4'
-      - '/cloud_storage/cloud-bind-frontend-dns-glusterfs-storage/sentry/sentry-smtp-log:/var/log/exim4'
+      - '/cloud_storage/cloud-bind-frontend-persistence-dns-glusterfs-storage/sentry/sentry-smtp:/var/spool/exim4'
+      - '/cloud_storage/cloud-bind-frontend-persistence-dns-glusterfs-storage/sentry/sentry-smtp-log:/var/log/exim4'
   memcached:
     << : *restart_policy
     image: 'memcached:1.5-alpine'
@@ -57,12 +57,12 @@ services:
     << : *restart_policy
     image: 'redis:5.0-alpine'
     volumes:
-      - '/cloud_storage/cloud-bind-frontend-dns-glusterfs-storage/sentry/sentry-redis:/data'
+      - '/cloud_storage/cloud-bind-frontend-persistence-dns-glusterfs-storage/sentry/sentry-redis:/data'
   postgres:
     << : *restart_policy
     image: 'postgres:9.6'
     volumes:
-      - '/cloud_storage/cloud-bind-frontend-dns-glusterfs-storage/sentry/sentry-postgres:/var/lib/postgresql/data'
+      - '/cloud_storage/cloud-bind-frontend-persistence-dns-glusterfs-storage/sentry/sentry-postgres:/var/lib/postgresql/data'
   zookeeper:
     << : *restart_policy
     image: 'confluentinc/cp-zookeeper:5.1.2'
@@ -72,9 +72,9 @@ services:
       ZOOKEEPER_LOG4J_ROOT_LOGLEVEL: 'WARN'
       ZOOKEEPER_TOOLS_LOG4J_LOGLEVEL: 'WARN'
     volumes:
-      - '/cloud_storage/cloud-bind-frontend-dns-glusterfs-storage/sentry/sentry-zookeeper:/var/lib/zookeeper/data'
-      - '/cloud_storage/cloud-bind-frontend-dns-glusterfs-storage/sentry/sentry-zookeeper-log:/var/lib/zookeeper/log'
-      - '/cloud_storage/cloud-bind-frontend-dns-glusterfs-storage/sentry/sentry-secrets:/etc/zookeeper/secrets'
+      - '/cloud_storage/cloud-bind-frontend-persistence-dns-glusterfs-storage/sentry/sentry-zookeeper:/var/lib/zookeeper/data'
+      - '/cloud_storage/cloud-bind-frontend-persistence-dns-glusterfs-storage/sentry/sentry-zookeeper-log:/var/lib/zookeeper/log'
+      - '/cloud_storage/cloud-bind-frontend-persistence-dns-glusterfs-storage/sentry/sentry-secrets:/etc/zookeeper/secrets'
   kafka:
     << : *restart_policy
     depends_on:
@@ -89,9 +89,9 @@ services:
       KAFKA_LOG4J_ROOT_LOGLEVEL: 'WARN'
       KAFKA_TOOLS_LOG4J_LOGLEVEL: 'WARN'
     volumes:
-      - '/cloud_storage/cloud-bind-frontend-dns-glusterfs-storage/sentry/sentry-kafka:/var/lib/kafka/data'
-      - '/cloud_storage/cloud-bind-frontend-dns-glusterfs-storage/sentry/sentry-kafka-log:/var/lib/kafka/log'
-      - '/cloud_storage/cloud-bind-frontend-dns-glusterfs-storage/sentry/sentry-secrets:/etc/kafka/secrets'
+      - '/cloud_storage/cloud-bind-frontend-persistence-dns-glusterfs-storage/sentry/sentry-kafka:/var/lib/kafka/data'
+      - '/cloud_storage/cloud-bind-frontend-persistence-dns-glusterfs-storage/sentry/sentry-kafka-log:/var/lib/kafka/log'
+      - '/cloud_storage/cloud-bind-frontend-persistence-dns-glusterfs-storage/sentry/sentry-secrets:/etc/kafka/secrets'
   clickhouse:
     << : *restart_policy
     image: 'yandex/clickhouse-server:19.11'
@@ -100,7 +100,7 @@ services:
         soft: 262144
         hard: 262144
     volumes:
-      - '/cloud_storage/cloud-bind-frontend-dns-glusterfs-storage/sentry/sentry-clickhouse:/var/lib/clickhouse'
+      - '/cloud_storage/cloud-bind-frontend-persistence-dns-glusterfs-storage/sentry/sentry-clickhouse:/var/lib/clickhouse'
   snuba-api:
     << : *snuba_defaults
   snuba-consumer:
@@ -121,7 +121,7 @@ services:
     << : *restart_policy
     image: 'getsentry/symbolicator:latest'
     volumes:
-      - '/cloud_storage/cloud-bind-frontend-dns-glusterfs-storage/sentry/sentry-symbolicator:/data'
+      - '/cloud_storage/cloud-bind-frontend-persistence-dns-glusterfs-storage/sentry/sentry-symbolicator:/data'
     command: run
   symbolicator-cleanup:
     image: symbolicator-cleanup-onpremise-local
@@ -131,7 +131,7 @@ services:
         BASE_IMAGE: 'getsentry/symbolicator:latest'
     command: '"55 23 * * * gosu symbolicator symbolicator cleanup"'
     volumes:
-      - '/cloud_storage/cloud-bind-frontend-dns-glusterfs-storage/sentry/sentry-symbolicator:/data'
+      - '/cloud_storage/cloud-bind-frontend-persistence-dns-glusterfs-storage/sentry/sentry-symbolicator:/data'
   web:
     << : *sentry_defaults
     ports:

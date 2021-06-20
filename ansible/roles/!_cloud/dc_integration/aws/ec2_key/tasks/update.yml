@@ -1,0 +1,10 @@
+
+# try creating a key pair with the name of an already existing keypair
+# but don't overwrite it even if the key is different (force=false)
+- name: AWS | try creating a key pair with name of an already existing keypair
+  amazon.aws.ec2_key:
+    aws_access_key: "{{ amazon_aws_private_creds_api_token_access_key }}"
+    aws_secret_key: "{{ amazon_aws_private_creds_api_token_secret_key }}"
+    name: my_existing_keypair
+    key_material: 'ssh-rsa AAAAxyz...== me@example.com'
+    force: false

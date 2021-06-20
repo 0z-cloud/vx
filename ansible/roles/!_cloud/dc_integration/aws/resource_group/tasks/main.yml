@@ -1,0 +1,7 @@
+- name: AZURE | Create a resource group
+  azure_rm_resourcegroup:
+    name: "{{ anycloud_api_resource_group_name }}"
+    location: "{{ anycloud_api_resource_group_location }}"
+    # tags:
+        # testing: testing
+        # delete: never

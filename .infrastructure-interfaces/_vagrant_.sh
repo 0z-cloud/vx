@@ -67,48 +67,6 @@ if [ "${sudopassword}" == "EMPTY" ] ; then
     sudopassword=""
 fi
 
-if [ "${inventory}" == "" ]; then
-
-    echo -e "
-    
-    [E] CATCHED ERROR!
-            
-            YOU ARE RUN WITH MISSED INVENTORY PARAM! 
-            
-            You must pass param contain your environment name
-            
-        "
-    exit 1
-
-fi
-
-if [ "${typeofcloud}" == "" ]; then
-
-    echo -e "
-    
-    [E] CATCHED ERROR!
-    
-            YOU ARE RUN WITH MISSED CLOUD TYPE PARAM! 
-            
-            You must pass as third param your Cloud Type
-            
-        "
-    exit 1
-
-fi
-
-if [ "${product}" == "" ]; then
-    echo -e "
-    
-    [E] CATCHED ERROR!
-    
-            YOU ARE RUN WITH MISSED PRODUCT PARAM! 
-            
-            You must pass as third param your Product name
-            
-        "
-    exit 1
-fi
 
 if [ -z "${runtype}" ]; then 
 
@@ -147,6 +105,49 @@ case $runtype in
 esac
 
 
+if [ "${typeofcloud}" == "" ]; then
+
+    echo -e "
+    
+    [E] CATCHED ERROR!
+    
+            YOU ARE RUN WITH MISSED CLOUD TYPE PARAM! 
+            
+            You must pass as third param your Cloud Type
+            
+        "
+    exit 1
+
+fi
+
+if [ "${product}" == "" ]; then
+    echo -e "
+    
+    [E] CATCHED ERROR!
+    
+            YOU ARE RUN WITH MISSED PRODUCT PARAM! 
+            
+            You must pass as third param your Product name
+            
+        "
+    exit 1
+fi
+
+if [ "${inventory}" == "" ]; then
+
+    echo -e "
+    
+    [E] CATCHED ERROR!
+            
+            YOU ARE RUN WITH MISSED INVENTORY PARAM! 
+            
+            You must pass param contain your environment name
+            
+        "
+    exit 1
+
+fi
+
 
 if [ "${runtype}" == "cleanfirst" ]; then
 
@@ -167,7 +168,7 @@ if [ "${runtype}" == "cleanfirst" ]; then
     #     -e destroy="true"
 
     ansible-playbook -i ansible/inventories/0z-cloud/products/types/\!_"${typeofcloud}"/"$product"/"$inventory"/bootstrap_vms/ \
-        ansible/_selfbox_/_selfbox_vagrant_.yml -e ansible_product="$product" -e ansible_environment="$inventory" \ 
+        ansible/_selfbox_/_selfbox_vagrant_.yml -e ansible_product="$product" -e ansible_environment="$inventory" -e ansible_cloud_type="$typeofcloud" \ 
         -e stage="0" -e ansible_become_pass="${sudopassword}" -e RUNTYPE="${runtype}" \
         -e destroy="true"
 
@@ -179,5 +180,5 @@ fi
 #         -e stage="0" -e ansible_become_pass="${sudopassword}" -e RUNTYPE="${runtype}" 
 
 ansible-playbook -i ansible/inventories/0z-cloud/products/types/\!_"${typeofcloud}"/"$product"/"$inventory"/bootstrap_vms/ \
-        ansible/_selfbox_/_selfbox_vagrant_.yml -e ansible_product="$product" -e ansible_environment="$inventory" \
+        ansible/_selfbox_/_selfbox_vagrant_.yml -e ansible_product="$product" -e ansible_environment="$inventory" -e ansible_cloud_type="$typeofcloud" \
         -e stage="0" -e ansible_become_pass="${sudopassword}" -e RUNTYPE="${runtype}" 

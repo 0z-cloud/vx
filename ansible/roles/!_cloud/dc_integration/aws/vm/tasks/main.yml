@@ -1,0 +1,158 @@
+- name: debug
+  debug:
+    msg: "{{ anycloud_vm_access_pass }}"
+
+- name: AZURE | re/Create virtual machine With Default Configuration
+  azure.azcollection.azure_rm_virtualmachine:
+    resource_group: "{{ anycloud_api_resource_group_name }}"
+    name: "{{ item['value']['name'] }}"
+    vm_size: "{{ anycloud_api_vm_size }}"
+    storage_account: "{{ anycloud_api_resource_storage_account }}"
+    storage_container: "{{ item['value']['name'] }}"
+    storage_blob: "{{ item['value']['name'] }}.vhd"
+    admin_username: "{{ anycloud_vm_access_user }}"
+    admin_password: "{{ anycloud_vm_access_pass }}"
+    network_interfaces: "{{ item['value']['ansible_inventory_vars']['second_ip'] }}"
+    image:
+      offer: "{{ anycloud_adapter_vm_vapp_box_offer }}"
+      publisher: "{{ anycloud_adapter_vm_vapp_box_publisher }}"
+      sku: '{{ anycloud_adapter_vm_vapp_box_sku }}'
+      version: "{{ anycloud_adapter_vm_vapp_box_version }}"
+  register: create_instance_result
+  with_dict: "{{ cloud_bootstrap.servers }}"
+
+- name: AZURE | Get Internal network interfaces details
+  azure_rm_networkinterface_info:
+    resource_group: "{{ anycloud_api_resource_group_name }}"
+    name: "{{ item['value']['ansible_inventory_vars']['second_ip'] }}"
+  register: azure_networkinterfaces_private
+  with_dict: "{{ cloud_bootstrap.servers }}"
+
+# - set_fact:
+#     private_ip_addresses_array: >
+#       "{% for dict_item in item.value %}{{ (private_ip_addresses_array|default([])) + [{dict_item.name: dict_item.ip_configurations}] }}{% endfor %}"
+#   with_dict: "{{ azure_networkinterfaces_private.results }}"
+#   # register: private_ip_addresses_array
+#   when: "'networkinterfaces' in item.key"
+
+- name: AZURE | Loop over subelements of the dictionary to get Private IP Addresses of Instances
+  debug:
+    msg: "{% for dict_item in item.value %}{{ dict_item.name }}: {{ dict_item.ip_configurations | selectattr('private_ip_address', 'defined') | map(attribute='private_ip_address') | join }}{% endfor %}"
+  with_dict: "{{ azure_networkinterfaces_private.results }}"
+  register: azure_networkinterfaces_private_array
+  when: "'networkinterfaces' in item.key" 
+
+# - name: AZURE | <MEGADEBUG>
+#   debug:
+#     msg: "{{ item.value }}"
+#   with_dict: "{{ azure_networkinterfaces_private_array.results }}"
+#   when: "'msg' in item.key"
+
+# - name: Populate dict
+#   set_fact:
+#     private_ip_addresses_array_result_object: "{{ private_ip_addresses_array_result_object|default({}) | combine( {(item.value | items2dict)} ) }}"
+#   with_dict: "{{ azure_networkinterfaces_private_array.results }}"
+#   when: "'msg' in item.key"
+
+# - set_fact:
+#     private_ip_addresses_array_result_object: "{{ private_ip_addresses_array_result_object|d([]) + [{ 'key': item.value(':')[0]|trim, 'value': item.value(':')[1]|trim }] }}"
+#   with_dict: "{{ azure_networkinterfaces_private_array.results }}"
+
+- name: Populate dict with Private IPs
+  set_fact:
+    private_ip_addresses_array_result_object: "{{ private_ip_addresses_array_result_object|d({})|combine({_key: _val}) }}"
+  with_dict: "{{ azure_networkinterfaces_private_array.results }}"
+  when: "'msg' in item.key"
+  vars:
+    _key: "{{ item.value.split(':')[0]|trim }}"
+    _val: "{{ item.value.split(':')[1]|trim }}"
+
+# - debug:
+#     var: private_ip_addresses_array_result_object
+
+# - name: AZURE | Loop over subelements of the dictionary to get Private IP Addresses of Instances
+#   set_fact:
+#     private_ip_addresses_array_result_object: "{{ private_ip_addresses_array_result_object|default([]) + [{ item.value | items2dict }] }}"
+#   with_dict: "{{ azure_networkinterfaces_private_array.results }}"
+#   when: "'msg' in item.key"
+
+# - name: AZURE | <ITEMS AFTER MEGADEBUG IN OBJECT TO COMPLETE 0z>
+#   debug:
+#     msg: "{{ item.key }}: {{ item.value }}"
+#   with_dict: "{{ private_ip_addresses_array_result_object }}"
+
+# - name: AZURE | Loop over subelements of the dictionary to get Private IP Addresses of Instances
+#   set_fact:
+#     private_ip_addresses_array: "{{ private_ip_addresses_array|default([]) | combine({% for dict_item in item.value %}{{ dict_item.name }}: {{ dict_item.ip_configurations | selectattr('private_ip_address', 'defined') | map(attribute='private_ip_address') | join }}{% endfor %} ) }}"
+#   with_dict: "{{ azure_networkinterfaces_private.results }}"
+#   when: "'networkinterfaces' in item.key" 
+
+- name: AZURE | Get facts for Public IP network interfaces 
+  community.azure.azure_rm_publicipaddress_info:
+    resource_group: "{{ anycloud_api_resource_group_name }}"
+    name: "{{ item['value']['ip'] }}"
+  register: azure_networkinterfaces_public
+  with_dict: "{{ cloud_bootstrap.servers }}"
+
+- name: AZURE | Add Public network interfaces details to array
+  set_fact: 
+    public_ip_addresses_array: "{{ public_ip_addresses_array|default([]) + [ item.value ] }}"
+  with_dict: "{{ azure_networkinterfaces_public.results }}"
+  when: "'publicipaddresses' in item.key"
+
+# - name: AZURE | Show debug elements
+#   debug:
+#     msg: "{{ item }}"
+#   with_items: 
+#     - "{{ private_ip_addresses_array_result_object }}"
+#     - "{{ public_ip_addresses_array }}"
+
+# - name: AZURE | Show debug names of items Public IPs
+#   debug:
+#     msg: "{{ item['name'] }}: {{ item['ip_address'] }}"
+#   with_items: "{{ public_ip_addresses_array }}"
+
+# - name: AZURE | Show debug names of items Private IPs
+#   debug:
+#     msg: "{{ item.key }}: {{ item.value }}"
+#   with_dict: "{{ private_ip_addresses_array_result_object }}"
+
+- name: AZURE | Copy 0z inventory to work ignored copy for generate the local inventory
+  copy:
+    src: "inventories/0z-cloud/products/types/!_azure/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/all.yml"
+    dest: "inventories/0z-cloud/products/types/!_azure/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/.dynamic.all.yml"
+  when: destroy_instances is not defined
+
+# - name: Populate dict with Public IPs
+#   set_fact:
+#     public_ip_addresses_array_result_object: "{{ public_ip_addresses_array_result_object|d({})|combine({_key: _val}) }}"
+#   with_dict: "{{ azure_networkinterfaces_private_array.results }}"
+#   when: "'msg' in item.key"
+#   vars:
+#     _key: "{{ item.value.split(':')[0]|trim }}"
+#     _val: "{{ item.value.split(':')[1]|trim }}"
+
+- name: AZURE | Line public_ip_address in file change for dynamic inventory
+  lineinfile:
+    path: inventories/0z-cloud/products/types/!_azure/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/.dynamic.all.yml
+    regexp: "{{ item['name'] }}"
+    line: "            ip: \"{{ item['ip_address'] }}\""
+  with_items: "{{ public_ip_addresses_array }}"
+  when: "destroy_instances is not defined"
+
+### NEED TO CHECK NEEDED OR NO
+# - name: Line public_ip_gateway in file change for dynamic inventory
+#   lineinfile:
+#     path: inventories/0z-cloud/products/types/!_azure/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/.dynamic.all.yml
+#     regexp: '^(.*\gw: "{{ item.value.droplet.name }}_public_ip_gateway_REPLACED")'
+#     line: '            gw: "{{ item.value.droplet.networks.v4[1].gateway }}"'
+#   with_dict: "{{ create_instance_result.results }}"
+#   when: "destroy_instances is not defined and item.key == 'data'"
+
+- name: AZURE | Line private_ip_address in file change for dynamic inventory
+  lineinfile:
+    path: inventories/0z-cloud/products/types/!_azure/{{ ansible_product }}/{{ ansible_environment }}/bootstrap_vms/group_vars/.dynamic.all.yml
+    regexp: 'second_ip: "{{ item.key }}"'
+    line: '                second_ip: "{{ item.value }}"'
+  with_dict: "{{ private_ip_addresses_array_result_object }}"
+  when: "destroy_instances is not defined"

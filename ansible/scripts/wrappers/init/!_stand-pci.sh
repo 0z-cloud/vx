@@ -124,7 +124,7 @@ function_selector_runner ansible-playbook -i "$ansible_dir"/inventories/products
 
 function_selector_runner ansible-playbook -i "$ansible_dir"/inventories/products/$product/$inventory/ \
     "$ansible_dir"/playbook-library/storage/glusterfs-cluster.yml \
-    -e GLUSTERFS_CLUSTER_HOSTS="glusterfs-storage-cloud-bind-frontend-dns" \
+    -e GLUSTERFS_CLUSTER_HOSTS="glusterfs-storage-cloud-main-frontend-dns" \
     -u $username --become-user root --become \
     -e "ansible_become_pass='$password'" -e "ansible_ssh_pass='$password'" -e stage="1"
 

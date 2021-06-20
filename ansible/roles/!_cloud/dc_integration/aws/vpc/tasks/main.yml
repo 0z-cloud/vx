@@ -1,0 +1,14 @@
+### VPC CREATE / VALIDATE 
+
+- name: AWS | VPC | Run set Layout Zone Part
+  ec2_vpc_net:
+    aws_access_key: "{{ amazon_aws_private_creds_api_token_access_key }}"
+    aws_secret_key: "{{ amazon_aws_private_creds_api_token_secret_key }}"
+
+- name: AWS | VPC | Run get Layout Zone Part
+  ec2_vpc_net_info:
+    aws_access_key: "{{ amazon_aws_private_creds_api_token_access_key }}"
+    aws_secret_key: "{{ amazon_aws_private_creds_api_token_secret_key }}"
+
+
+

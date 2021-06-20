@@ -1,0 +1,26 @@
+# To do the on-fly consolidation and update to synced state at 1-2-3
+#
+# create the ec2 ssh key by ec2_key and provides a first basic access 
+# for able to manage and setup new resources which cloud are extending
+
+# Note: These examples do not set authentication details, see the AWS Guide for details.
+
+- name: AWS | Create a new ec2 key pair, returns generated private key
+  amazon.aws.ec2_key:
+    aws_access_key: "{{ amazon_aws_private_creds_api_token_access_key }}"
+    aws_secret_key: "{{ amazon_aws_private_creds_api_token_secret_key }}"
+    name: my_keypair
+
+- name: AWS | Create key pair using provided key_material
+  amazon.aws.ec2_key:
+    key_material: 'ssh-rsa AAAAxyz...== me@example.com'
+    aws_access_key: "{{ amazon_aws_private_creds_api_token_access_key }}"
+    aws_secret_key: "{{ amazon_aws_private_creds_api_token_secret_key }}"
+    name: my_keypair
+
+- name: AWS | Create key pair using key_material obtained using 'file' lookup plugin
+  amazon.aws.ec2_key:
+    name: my_keypair
+    key_material: "{{ lookup('file', '/path/to/public_key/id_rsa.pub') }}"
+    aws_access_key: "{{ amazon_aws_private_creds_api_token_access_key }}"
+    aws_secret_key: "{{ amazon_aws_private_creds_api_token_secret_key }}"

@@ -1,0 +1,6 @@
+- name: AZURE | Create storage account
+  azure.azcollection.azure_rm_storageaccount:
+    resource_group: "{{ anycloud_api_resource_group_name }}"
+    name: "{{ anycloud_api_resource_storage_account }}"
+    account_type: "{{ anycloud_api_resource_storage_account_type }}"
+
