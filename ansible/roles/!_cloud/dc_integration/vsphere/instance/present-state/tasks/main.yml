@@ -65,19 +65,32 @@
       when: "'hypervisor' in item.key"
       with_dict: "{{ cloud_bootstrap.clusters }}"
 
-    - name: Create Cluster
-      community.vmware.vmware_cluster:
-        hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
-        username: "{{ anycloud_adapter_api_user }}"
-        password: "{{ anycloud_adapter_api_password }}"
-        validate_certs: no
-        datacenter_name: "{{ anycloud_adapter_api_datacenter }}"
-        cluster_name: "{{ anycloud_hypervisor_cluster.lower() }}"
-        enable_ha: no
-        enable_drs: yes
-        enable_vsan: no
-      when: "'hypervisor' in item.key"
-      with_dict: "{{ cloud_bootstrap.clusters }}"
+    - name: Debug dataset anycloud_hypervisor_cluster 
+      debug:
+        msg: "{{ item }}"
+      with_items: "{{ anycloud_hypervisor_cluster }}"
+
+    - name: Debug dataset anycloud_adapter_api_datacenter 
+      debug:
+        msg: "{{ item }}"
+      with_items: "{{ anycloud_adapter_api_datacenter }}"
+
+    # - name: Create Cluster with additional changes
+    #   community.vmware.vmware_cluster:
+    #     hostname: "{{ anycloud_adapter_api_url_endpoint_fqdn }}"
+    #     username: "{{ anycloud_adapter_api_user }}"
+    #     password: "{{ anycloud_adapter_api_password }}"
+    #     datacenter_name: "{{ anycloud_adapter_api_datacenter }}"
+    #     cluster_name: "{{ anycloud_hypervisor_cluster.lower() }}"
+    #     enable_ha: True
+    #     ha_vm_monitoring: vmMonitoringOnly
+    #     enable_drs: True
+    #     drs_default_vm_behavior: partiallyAutomated
+    #     enable_vsan: True
+    #     validate_certs: no
+    #   register: cl_result
+    #   when: "'hypervisor' in item.key"
+    #   with_dict: "{{ cloud_bootstrap.clusters }}"
 
     - name: with_together -> loop
       ansible.builtin.debug:

@@ -87,9 +87,9 @@ export ANSIBLE_REGISTRY_USERNAME="registry_local"
 #     # remap target linked inventory by proovided value from stdin
 #     export ANSIBLE_RUN_TYPE="true"
 # else
-export ANSIBLE_RUN_TYPE="print_only"
+# export ANSIBLE_RUN_TYPE="print_only"
 # fi
-# export ANSIBLE_RUN_TYPE="true"
+export ANSIBLE_RUN_TYPE="true"
 ################################################################################################
 # LOCAL REGISTRY AUTH CREDENTIALS ARE DEFAULT REPLACED CONSTRAIN
 export ANSIBLE_TRIGGER_TOKEN="notuniqbutveryverywellguys"

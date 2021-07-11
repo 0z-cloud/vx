@@ -113,10 +113,11 @@ anycloud_vm_performance_configuration: "{{ anycloud_virtual_machine_resources_mi
 
 # AZURE CLOUD SETTINGS PLACE
 
-anycloud_api_subscription_id: "SECURED_REMOVED_BEFORE_PUSH"
-anycloud_api_application_id: "SECURED_REMOVED_BEFORE_PUSH"
-anycloud_api_secret_key: "SECURED_REMOVED_BEFORE_PUSH"
-anycloud_api_tenant_dc_name: "SECURED_REMOVED_BEFORE_PUSH"
+# anycloud_api_subscription_id: "SECURED_REMOVED_BEFORE_PUSH"
+# anycloud_api_application_id: "SECURED_REMOVED_BEFORE_PUSH"
+# anycloud_api_secret_key: "SECURED_REMOVED_BEFORE_PUSH"
+# anycloud_api_tenant_dc_name: "SECURED_REMOVED_BEFORE_PUSH"
+
 anycloud_api_resource_group_name: "0z"
 anycloud_api_resource_group_location: "westeurope"
 anycloud_api_resource_storage_account: "0zstorage001"
