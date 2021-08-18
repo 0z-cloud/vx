@@ -1,0 +1,17 @@
+########################################################################
+# Version:                              v.1.2.0-devops
+# VCS Group:                            cicd
+# Product:                              service_devops_zone 
+# Repository:                           adam-vortex
+# user:                                 template 
+# current:                              integration
+# salt:                                 ci/cd/qa/dev
+# vector:                               01.07.2020.01.21
+# timeto:                               zen...io
+# Environment:                          production
+# Usage:                                anycloud
+# Infrastructure is in want target:     production
+########################################################################
+# ONLINE REMAPPING. USAGE IF YOU IQ MORE THEN 220.
+########################################################################
+test_variable_01: vcloud.yml

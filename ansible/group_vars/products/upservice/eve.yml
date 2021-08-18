@@ -1,0 +1,180 @@
+#########################################################################################################################################################################################################################################
+# AnyCloud User Adapter Vault Sercters Out
+#
+# 0z-cloud is stilling stay in...       zen...
+#########################################################################################################################################################################################################################################
+# AnyCloud:                             Default Settings Configuration 
+#########################################################################################################################################################################################################################################
+# Version:                              v.1.2.0-devops
+# VCS Group:                            cicd
+# Product:                              service_devops_zone 
+# Repository:                           adam-vortex
+# user:                                 template 
+# current:                              integration
+# salt:                                 ci/cd/qa/dev
+# vector:                               01.07.2020.01.21
+# timeto:                               zen...io
+# Environment:                          production
+# Usage:                                anycloud
+# Infrastructure is in want target:     production
+#########################################################################################################################################################################################################################################
+# PRIMARY TEMPLATE !
+##########################################################################################################################################################################################################################################
+
+# TEMPLATE PARAMS 
+anycloud_adapter_vm_template: u2004_template64
+anycloud_adapter_vm_vapp_box_name: u2004_template64
+anycloud_template_adapter_root_folder: "/"
+anycloud_adapter_vm_access_pass: 12345
+
+ssh_connect_type_self: "default"
+ssh_connect_type_via: "ansible_ssh_common_args='-o ProxyCommand=\"ssh -W %h:%p %r@REPLACED_BY_BASTION_DMZ_MACHINE_IP\"'"
+
+##########################################################################################################################################################################################################################################
+# AnyCloud VM: Instance disk parameters
+##########################################################################################################################################################################################################################################
+
+########
+
+anycloud_defaults_storage_profile: Silver
+anycloud_instance_system_disk_category: "cloud_ssd"
+anycloud_instance_system_disk_size: 50
+anycloud_one_instance_duplicates_count: 2
+anycloud_instance_cloud_disk_name: "cloud_disk"
+anycloud_instance_cloud_disk_category: "cloud_ssd"
+anycloud_instance_cloud_disk_description: "Description - {{ ansible_product }} host {{ ansible_environment }}"
+anycloud_instance_cloud_data_disk_size: 80
+anycloud_instance_cloud_delete_with_instance: False
+anycloud_virtual_machine_resources_middle_type: size_of_instance_profile
+# anycloud_instance_cloud_disk_tags: [{tag_key: "created_by", tag_value: "{{ ansible_product }}-cloud-{{ ansible_environment }}"}, {tag_key: "created_from", tag_value: "{{ ansible_product }}-ecs-vpc-{{ ansible_environment }}"}]
+
+### STORAGE RETURN RESULTS
+
+anycloud_vm_storage_configuration: "{{ anycloud_defaults_storage_profile }}"
+anycloud_vm_performance_configuration: "{{ anycloud_virtual_machine_resources_middle_type }}"
+
+## VORTEX DEFAULT EXAMPLE
+# anycloud_api_user_login: "some_admin"
+# anycloud_api_access_key: "LTAaf236523618PoV9VdqhK7!"
+# anycloud_api_secret_key: "UXQ6BBASSOBRIgVZjA7ZioDoCQrzjm"
+# anycloud_vm_access_pass: "2412415"
+
+###################################################################################################################################################
+##### PERSONAL CLOUD ADAPTER SETTINGS
+###################################################################################################################################################
+## GOOGLE CLOUD PLATFORM ACCESS BASE ENVIRONMENT 
+###################################################################################################################################################
+google_gcp_private_creds_cert_client_xtls: "https://www.googleapis.com/robot/v1/metadata/x509/506606656747-compute%40developer.gserviceaccount.com"
+google_gcp_private_creds_cert_url: "https://www.googleapis.com/oauth2/v1/certs"
+google_gcp_private_creds_token_uri: "https://oauth2.googleapis.com/token"
+google_gcp_private_creds_auth_uri: "https://accounts.google.com/o/oauth2/auth"
+google_gcp_private_creds_client_id: "108179898534755331997"
+google_gcp_private_creds_client_email: "506606656747-compute@developer.gserviceaccount.com"
+google_gcp_private_creds_api_token_access_key: "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQChSBON692tKUsT\nL5akO+vL9GTgJV7ofbtvAnw9pjq0wLACWDFkfRWeZrCo+lcCtpEJRC7duTNCmOav\noBcVBbhYmW6WyxwReMPAqVxbrpq4Eq+6kFCcvXCQ5H8feFtyjJqg/Jgh/y3paugt\nNiIxycifEe7KpSy5E32ZbwrcedA/TQfed7zdjethqxTqSg4cWlFlExHU8u+TANYQ\nsHXx4OxFYyD9N0tYSlQO/j96msvpYWsdMKiM7q9j5dHn5od5m+btrCeakvVpjUMt\nLSrPxg1RMSLuZbbqb0vxDiEPuJbdMWxHRrSyJN1jTeHGa2XlAD81UyfPgWIKlxjr\nwp1WpGbFAgMBAAECggEAAabuG329EUDFo7U1Ve78fHZRiBHUNxbQn+FNmf/r8oax\nMks8w7c3TKeMRxLXZ7AaR5cOPtf5/p/A+p03BQdbuKswQUdkar+K+YDJeiiEQEg9\nAYMxkw6YbzLz/7F9vyxR5Zl7E5uA4iSu9Dx2nSKXVWapKSQspbZCJjbQlcY48ukI\nKcwvYiY1dzznx+oLPydLvMsfXZG47mCF6vOldK/BK8+yz8tK3fpdJr5k32dKR9ts\nEc0r2HZl/eYhmomwnnFt4zYqXif/T0QQqcFMrRGwn/1nGTqhd7VR4z7kDkpk0Kkc\n+18ghORlGoN2i1HUgGmq0Jr/04zboT71Yeb7+Ll1eQKBgQDdPjg4NmiBHqA0WtfF\nrtoBGreyscv2k4+2UiB+MWK11SvdTGjRGkhfzxglP+LEp6IIJOoKJErCaCAFdNQi\nTuFqhthI7Uv5uYVJx/7YCmFG2vCMq7TrXXxUJLq5NCp1xl7ndA9HsLdpVinrRxd8\n6K+cG/eaiVMB+4+E45EHNNtruQKBgQC6nl88gdJVwhA47B+s9Rrdbtd2rgxR2jX4\n7Pc8jT7XoyIfEks8Zz19H1FrDgbTreNsePQZN2xBF1hvfQ096BJFklIaZZwrrTgJ\nQxe94bRfn3ePqNCysFg+m0kr8hm9fB88Y+7x/VxnWi+jxok3N4xvFCTsjHszVaN/\nDprNTjJRbQKBgF3+aB4hp2Zr334+tfsLXR0o/7BQbynz6RN5csqKKri7tyYOp11n\nACaMMmLo8GvCGEnDfRcP8h8D487Noq5susHqRgs9nZCb6++7ox6f0lIrBBWPgY6Z\nKhAJhrbWXc+plnpYyYEYp+N9stN9YZI0vR7iluA1xWlLOd8oW14na60pAoGAHxVp\n/4YQJsCgOxr5W7Gnu+JOeTIcUzXpb4Do3WkZYomFkW9WoMUBdOnWgeJgOLnp+5NZ\n9SlKGr1suYU2w2z4PiZVDpiGHrBHeSN3vOTvSk4heAhCWsEMscDjuzIkH2+hNEng\n7uWokn5vGPRkvpG+DnJohA4SJ0bIaM1h83hm4TECgYBlUchKzKb2WJYHCPURCn9Q\nWb6+8F6XH7ljf6Q3/Jqun5SHlGIIHgfThfJy6FZi0ZilexQQf8QxZzuKA4HUgf6F\nYIdg55TeLCbJVh9lAIAMy4W/Bwz7n4iqJqr3BeWiJZ1doBzuowodZ872l1ifkbbS\nAMtuZwHdDG0Lhb1nxNg5rA==\n-----END PRIVATE KEY-----\n"
+google_gcp_private_key_api_token_id: "7e5fe1cb3c9eb2e6089e87c975defcac301275b8"
+ansible_product_id: "{{ ansible_product }}"
+google_cloud_account_type: "service_account"
+
+###################################################################################################################################################
+### EVE Cloud Adapter RAW's Interface mapping
+###################################################################################################################################################
+
+EVE_CLOUD_DEFAULT_EVE_NAME: "node1"
+EVE_CLOUD_DEFAULT_EVE_GCP_IMAGE_NAME: "eden-gcp-test"
+EVE_CLOUD_DEFAULT_EVE_GCP_BUCKET_NAME: "eve-live"
+EVE_CLOUD_DEFAULT_EVE_GCP_PROJECT_NAME: "lf-edge-eve"
+EVE_CLOUD_DEFAULT_EVE_GCP_ZONE_REGIONE_NAME: "us-west1-a"
+EVE_CLOUD_DEFAULT_EVE_GCP_INSTANCE_SIZE_TYPE: "n1-standard-1"
+EVE_CLOUD_DEFAULT_ADAM_DIST: ""
+EVE_CLOUD_DEFAULT_DIST: "dist"
+EVE_CLOUD_DEFAULT_IMAGE_DIST: "images"
+EVE_CLOUD_ESERVER_DIST: ""
+EVE_CLOUD_REGISTRY_DIST: ""
+EVE_CLOUD_REDIS_DIST: ""
+EVE_CLOUD_DEFAULT_ADAM_DIST: ""
+EVE_CLOUD_DEFAULT_EVE_DIST: "eve"
+EVE_CLOUD_DEFAULT_CERT_DIST: "certs"
+EVE_CLOUD_DEFAULT_BIN_DIST: "bin"
+EVE_CLOUD_DEFAULT_EDEN_HOME_DIR: ".eden"
+EVE_CLOUD_DEFAULT_EDEN_CONFIG_CURRENT_DIR: "eden-config.yml"
+EVE_CLOUD_DEFAULT_EDEN_CONTEXT: "context.yml"
+EVE_CLOUD_DEFAULT_EDEN_DEFAULT_CONTEXT: "default"
+EVE_CLOUD_DEFAULT_EDEN_ROOT_PATH_FOR_CONTEXT_MAPS: "contexts"
+EVE_CLOUD_DEFAULT_EDEN_QEMU_FILE_TO_SAVE: "qemu.conf"
+EVE_CLOUD_DEFAULT_EDEN_ROOT_SSH_KEY: "certs/id_rsa.pub"
+EVE_CLOUD_DEFAULT_EDEN_ROOT_HIDDEN_CONFIG: ".eden-config.yml"
+EVE_CLOUD_DEFAULT_EDEN_ROOT_SAVED_CONFIG: "config_saved.yml"
+EVE_CLOUD_DEFAULT_EVE_TAG: "0.0.0-snapshot-master-09f8c9ae" 
+EVE_CLOUD_DEFAULT_ADAM_TAG: "0.0.63"
+EVE_CLOUD_DEFAULT_REDIS_TAG: "6"
+EVE_CLOUD_DEFAULT_RGISTRY_TAG: "2.7"
+EVE_CLOUD_DEFAULT_LINUXKIT_VERSION: "v0.7"
+EVE_CLOUD_DEFAULT_IMAGE: "library/alpine"
+EVE_CLOUD_DEFAULT_ADAM_CONTAINER_REFERENCE: "lfedge/adam"
+EVE_CLOUD_DEFAULT_REDIS_CONTAINER_REFERENCE: "redis"
+EVE_CLOUD_DEFAULT_REGISTRY_CONTAINER_REFERENCE: "library/registry"
+EVE_CLOUD_DEFAULT_TAG_IMAGE: "eden-alpine"
+EVE_CLOUD_DEFAULT_EVE_REPO_URI: "https://github.com/lf-edge/eve.git"
+EVE_CLOUD_DEFAULT_EVE_REGISTRY: "lfedge"
+EVE_CLOUD_DEFAULT_PRIMARY_REGISTRY: "docker.io"
+EVE_CLOUD_DEFAULT_ESEREVER_TAG: "1.2"
+EVE_CLOUD_DEFAULT_ESEREVER_CONTAINER_REFERENCE: "lfedge/eden-http-server"
+EVE_CLOUD_DEFAULT_REPEAT_COUNT: 20
+EVE_CLOUD_DEFAULT_REPEAT_TIMEOUT: "5 * time.Second"
+EVE_CLOUD_DEFAULT_UUID: "1"
+EVE_CLOUD_DEFAULT_FILE_TO_SAVE: "./test.tar"
+EVE_CLOUD_DEFAULT_IS_LOCAL: "false"
+EVE_CLOUD_DEFAULT_BACKEND_HYPERVISOR: "{{ ansible_cloud_declared_hypervisor_init_type }}"
+EVE_CLOUD_DEFAULT_QEMU_CPU: 4
+EVE_CLOUD_DEFAULT_QEMU_RAM: 4096
+EVE_CLOUD_DEFAULT_EVE_IMAGE_SIZE: 8192
+EVE_CLOUD_DEFAULT_EVE_APP_MEM: 1024000
+EVE_CLOUD_DEFAULT_EVE_APP_CPU: 1
+EVE_CLOUD_DEFAULT_EVE_SERIAL: "31415926"
+EVE_CLOUD_DEFAULT_EVE_DECLARED_SSH_PORT: "{{ ansible_port }}"
+EVE_CLOUD_DEFAULT_EVE_REMOTE: false
+EVE_CLOUD_DEFAULT_APPS_NET_SUBNET: "{{ eden_cloud_apps_subnet }}"
+EVE_CLOUD_DEFAULT_EDEN_DEFAULT_DOMAIN: "{{ public_consul_domain }}"
+EVE_CLOUD_DEFAULT_EDEN_DEFAULT_IP: "{{ eden_cloud_eden_default_ip }}"
+EVE_CLOUD_DEFAULT_EDEN_DEFAULT_EVE_IP: "{{ eden_cloud_eve_default_ip }}"
+EVE_CLOUD_DEFAULT_EDEN_DEFAULT_ESERVER_PORT: "{{ eden_redis_eserver_service_listen_port }}"
+EVE_CLOUD_DEFAULT_EDEN_DEFAULT_TELNET_PORT: "{{ eden_eve_default_telnet_port }}"
+EVE_CLOUD_DEFAULT_EDEN_DEFAULT_SSH_PORT: "{{ eden_eve_default_ssh_port }}"
+EVE_CLOUD_DEFAULT_EDEN_DEFAULT_EVE_HOST: "{{ eden_eve_default_host }}"
+EVE_CLOUD_DEFAULT_EDEN_DEFAULT_REDIS_EVE_HOST: "{{ eden_redis_eve_host }}"
+EVE_CLOUD_DEFAULT_EDEN_DEFAULT_REDIS_EVE_PORT: "{{ redis_service_listen_port }}"
+EVE_CLOUD_DEFAULT_EDEN_DEFAULT_REDIS_ADAM_PORT: "{{ eden_redis_adam_service_listen_port }}"
+EVE_CLOUD_DEFAULT_EDEN_DEFAULT_REDIS_REGISTRY_PORT: "{{ eden_redis_registry_service_listen_port }}"
+EVE_CLOUD_DEFAULT_EVE_IMAGE_SERIAL_ID: "1ab8761b-5f89-4e0b-b757-4b87a9fa93ec"
+EVE_CLOUD_DEFAULT_EVE_IMAGE_DATASTORE_ID: "eab8761b-5f89-4e0b-b757-4b87a9fa93ec"
+EVE_CLOUD_DEFAULT_EVE_IMAGE_BASE_ID: "22b8761b-5f89-4e0b-b757-4b87a9fa93ec"
+EVE_CLOUD_DEFAULT_NET_DHCP_ID: "6822e35f-c1b8-43ca-b344-0bbc0ece8cf1"
+EVE_CLOUD_DEFAULT_NET_NO_DHCP_ID: "6822e35f-c1b8-43ca-b344-0bbc0ece8cf2"
+EVE_CLOUD_DEFAULT_NET_WIRELESS_ID: "6822e35f-c1b8-43ca-b344-0bbc0ece8cf3"
+EVE_CLOUD_DEFAULT_TEST_PROGRAM: ""
+EVE_CLOUD_DEFAULT_TEST_SCINARIO: ""
+EVE_CLOUD_DEFAULT_ROOT_FS_VERSION_PATTERN: "{% raw %}`^(\d+\.*){2,3}.*-(xen|kvm|acrn|rpi|rpi-xen|rpi-kvm)-(amd64|arm64)$`{% endraw %}"
+EVE_CLOUD_DEFAULT_CONTROLE_MODE_PATTERN: "{% raw %}`^(?P<Type>(file|proto|adam|zedcloud)):\/\/(?P<URL>.*)$`{% endraw %}"
+EVE_CLOUD_DEFAULT_POD_LINK_PATTERN: "{% raw %}`^(?P<TYPE>(oci|docker|http[s]{0,1}|file)):\/\/(?P<TAG>[^:]+):*(?P<VERSION>.*)$`{% endraw %}"
+EVE_CLOUD_DEFAULT_REDIS_CONTAINER_NAME: "eden_redis_{{ ansible_environment }}_{{ ansible_product }}"
+EVE_CLOUD_DEFAULT_ADAM_CONTAINER_NAME: "eden_adam_{{ ansible_environment }}_{{ ansible_product }}"
+EVE_CLOUD_DEFAULT_REGISTRY_CONTAINER_NAME: "eden_registry_{{ ansible_environment }}_{{ ansible_product }}"
+EVE_CLOUD_DEFAULT_ESERVER_CONTAINER_NAME: "eden_eserver_{{ ansible_environment }}_{{ ansible_product }}"
+EVE_CLOUD_DEFAULT_DOCKER_NETWORK_NAME: "eden_network_{{ ansible_environment }}_{{ ansible_product }}"
+EVE_CLOUD_DEFAULT_LOG_LEVEL_OVERALL: "log.InfoLevel"
+EVE_CLOUD_DEFAULT_PEM_COUNTRY: "RU"
+EVE_CLOUD_DEFAULT_PEM_COMPANY: "Itmo"
+EVE_CLOUD_DEFAULT_APPS_LOGS_REDIS_PREFIX: "APPS_EVE_"
+EVE_CLOUD_DEFAULT_INSTANCE_REDIS_LOGS_PREFIX: "LOGS_EVE_"
+EVE_CLOUD_DEFAULT_INFO_REDIS_PREFIX: "INFO_EVE_"
+EVE_CLOUD_DEFAULT_METRICS_REDIS_PREFIX: "METRICS_EVE_"
+EVE_CLOUD_DEFAULT_REQUESTS_REDIS_PREFIX: "REQUESTS_EVE_"
+EVE_CLOUD_DEFAULT_QEMU_ACCEL_DARWIN: "-machine q35,accel=hvf -cpu kvm64,kvmclock=off "
+EVE_CLOUD_DEFAULT_QEMU_ACCEL_LINUX: "-machine q35,accel=kvm,dump-guest-core=off -cpu host,invtsc=on,kvmclock=off -machine kernel-irqchip=split -device intel-iommu,intremap=on,caching-mode=on,aw-bits=48 "
+EVE_CLOUD_DEFAULT_EVE_MODEL: "ZedVirtual-4G"
+EVE_CLOUD_DEFAULT_RPI_MODEL: "RPi4"
+EVE_CLOUD_DEFAULT_CLOUD_ADAPTER_INSIDE: "{{ ansible_cloud_declared_target_uppercase_type }}"
+EVE_CLOUD_DEFAULT_EVE_DUMMPY_EXCEPT: "docker://image"
+EVE_CLOUD_DEFAULT_EVE_VOLUME_SIZE: "1024 * 1024 * 1024"
+EVE_CLOUD_DEFAULT_EVE_EMPTY_VOLUME_LINK_DOCKER: "docker://hello-world"
+EVE_CLOUD_DEFAULT_EVE_EMPTY_VOLUME_LINK_QCOW2: "empty.qcow2"

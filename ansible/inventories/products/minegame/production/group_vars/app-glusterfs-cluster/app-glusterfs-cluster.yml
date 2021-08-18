@@ -1,0 +1,10 @@
+unification_services:
+  - {'admin': {'target': 'admin', 'listen_port': "{{ admin_service_listen_port }}", 'check_type': "http", 'script_check': "http://{{ inventory_hostname }}:{{ admin_service_listen_port }}" }}
+  - {'antifraud': {'target': 'antifraud', 'listen_port': "{{ antifraud_service_listen_port }}", 'check_type': "http", 'script_check': "http://{{ inventory_hostname }}:{{ antifraud_service_listen_port }}" }}
+  - {'bik': {'target': 'bik', listen_port: "{{ bik_service_listen_port }}", 'check_type': "tcp", 'script_check': "{{ inventory_hostname }}:{{ bik_service_listen_port }}" }}
+  - {'checkout': {'target': 'checkout', 'listen_port': "{{ checkout_service_listen_port }}", 'check_type': "tcp", 'script_check': "{{ inventory_hostname }}:{{ checkout_service_listen_port }}" }}
+  - {'debug': {'target': 'debug', 'listen_port': "{{ debug_service_listen_port }}", 'check_type': "tcp", 'script_check': "{{ inventory_hostname }}:{{ debug_service_listen_port }}" }}
+  - {'financial-reports': {'target': 'financial-reports', 'listen_port': "{{ financial_reports_service_listen_port }}", 'check_type': "tcp", 'script_check': "{{ inventory_hostname }}:{{ financial_reports_service_listen_port }}" }}
+  - {'private-api': {'target': 'private-api', 'listen_port': "{{ private_api_service_listen_port }}", 'check_type': "http", 'script_check': "http://{{ inventory_hostname }}:{{ private_api_service_listen_port }}" }}
+  - {'public-api': {'target': 'public-api', 'listen_port': "{{ public_api_service_listen_port }}", 'check_type': "http", 'script_check': "http://{{ inventory_hostname }}:{{ public_api_service_listen_port }}" }}
+  - {'wallets': {'target': 'wallets', 'listen_port': "{{ wallets_service_listen_port }}", 'check_type': "http", 'script_check': "http://{{ inventory_hostname }}:{{ wallets_service_listen_port }}" }}

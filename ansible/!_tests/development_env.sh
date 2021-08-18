@@ -11,30 +11,33 @@ fi
 ################################################################################################
 # DETERMINATE USE THE SEPARATED CLOUD TYPES FOR BOOTSTRAP IaC 0 LEVEL and DEPLOYMENT IaC 1 LEVEL
 # USED FOR EXTEND, OR REPLACE CORE PARTS OF APPLYED LAYOUT OF SOLUTION ECOSYSTEM
-export ANSIBLE_TARGET_LINKED_DATACENTER_CHANGE_BETWEEN="vagrant"
+# export ANSIBLE_TARGET_LINKED_DATACENTER_CHANGE_BETWEEN="vagrant"
 # export ANSIBLE_TARGET_LINKED_DATACENTER_CHANGE_BETWEEN="vcd"
 # export ANSIBLE_TARGET_LINKED_DATACENTER_CHANGE_BETWEEN="eve"
+export ANSIBLE_TARGET_LINKED_DATACENTER_CHANGE_BETWEEN="vsphere"
 
 ################################################################################################
 # APPLICATION SET - LAYOUT OF BUILD, TEST, PUBLISH, DEPLOY AND RUN SELECTED PRODUCT SOLUTION
-export ANSIBLE_APPLICATION_TYPE="eden_vortice"
+export ANSIBLE_APPLICATION_TYPE="minegame"
 
 ################################################################################################
 # VCS PROJECT NAME IN NAMESPACE, SIMPLY ARE REPOSITORY PRIMARY NAME, - IF NO CHAGES IN FLY.
-export ANSIBLE_CI_PROJECT_NAME="adam-vortex"
+export ANSIBLE_CI_PROJECT_NAME="vx"
 
 ################################################################################################
 # VCS PROJECT NAMESPACE FOR NEGOTIATE THE REPOSITORY LOCATION, 
 # IN MOST CASES NAME OF PROJECT/COMPANY/ORGANIZATION
-export ANSIBLE_CI_PROJECT_NAMESPACE="lf-edge"
+export ANSIBLE_CI_PROJECT_NAMESPACE="normstate"
 
 ################################################################################################
 # ANSIBLE PRIMARY IF CHANGE BETWEEN NOT ARE SET, 
 # OR JUMPS TO OTHER CLOUD TYPE, IF PARENT ROOT ECOSYSTEM CLOUD ARE IS DEFINED TO CHANGE FROM IT.
-export ANSIBLE_CLOUD_TYPE="eve"
+export ANSIBLE_CLOUD_TYPE="vsphere"
 
 ################################################################################################
 # USER WHICH INITIATE THE CHAINED PIPELINES FLOW, MUST HAVE A NECESSARY SETTINGS IN VAULT PLACE
+# export ANSIBLE_DEPLOY_USERNAME="template"
+
 export ANSIBLE_DEPLOY_USERNAME="westsouthnight"
 
 ################################################################################################
@@ -47,11 +50,11 @@ export ANSIBLE_ENVIRONMENT="production"
 ################################################################################################
 # INVENTORY PRODUCT NAME 
 # export ANSIBLE_PRODUCT_NAME="lf-edge-eve"
-export ANSIBLE_PRODUCT_NAME="eden-vortice"
+export ANSIBLE_PRODUCT_NAME="minegame"
 
 ################################################################################################
 # LOCAL REGISTRY URI ENDPOINT CONSTRAIN
-export ANSIBLE_REGISTRY_URL="registry.local.eve.eden"
+export ANSIBLE_REGISTRY_URL="registry.saggi.uno"
 # export ANSIBLE_REGISTRY_URL="registry.adam.local.cloud.eve.vortice.eden"
 
 ################################################################################################
@@ -66,7 +69,7 @@ export ANSIBLE_REGISTRY_USERNAME="registry_local"
 ##  or run selected parts of needed chained pipelines workflow.
 
 export ANSIBLE_RUN_TYPE="true"
-#export ANSIBLE_RUN_TYPE="print_only"
+# export ANSIBLE_RUN_TYPE="print_only"
 
 ################################################################################################
 # LOCAL REGISTRY AUTH CREDENTIALS ARE DEFAULT REPLACED CONSTRAIN

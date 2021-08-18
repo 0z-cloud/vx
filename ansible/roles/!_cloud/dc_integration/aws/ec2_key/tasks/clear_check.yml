@@ -1,0 +1,7 @@
+
+- name: AWS | remove key pair by name
+  amazon.aws.ec2_key:
+    name: my_keypair
+    state: absent
+    aws_access_key: "{{ amazon_aws_private_creds_api_token_access_key }}"
+    aws_secret_key: "{{ amazon_aws_private_creds_api_token_secret_key }}"

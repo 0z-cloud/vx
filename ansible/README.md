@@ -121,7 +121,7 @@
 
     6. Creating the cloud persistent storages for each needed that hosts groups:
 
-        ```ansible-playbook -i inventories/products/vortex/production/ playbook-library/storage/glusterfs-cluster.yml -e GLUSTERFS_CLUSTER_HOSTS=cloud-bind-frontend-dns-glusterfs-storage -u vortex --become-user root --become -e ansible_become_pass='1235' -e ansible_ssh_pass='1235'```
+        ```ansible-playbook -i inventories/products/vortex/production/ playbook-library/storage/glusterfs-cluster.yml -e GLUSTERFS_CLUSTER_HOSTS=cloud-bind-frontend-persistence-dns-glusterfs-storage -u vortex --become-user root --become -e ansible_become_pass='1235' -e ansible_ssh_pass='1235'```
 
         ```ansible-playbook -i inventories/products/vortex/production/ playbook-library/storage/glusterfs-cluster.yml -e GLUSTERFS_CLUSTER_HOSTS=bind-master-glusterfs -u vortex --become-user root --become -e ansible_become_pass='1235' -e ansible_ssh_pass='1235'```
 

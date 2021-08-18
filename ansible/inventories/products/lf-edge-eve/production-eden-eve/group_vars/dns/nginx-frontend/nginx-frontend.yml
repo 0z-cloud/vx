@@ -174,4 +174,4 @@ core_dns_cloud_settings:
     deploy: "{{ cloud_dir }}/ca_root/letsencrypt/deploy"
     dnsapi: "{{ cloud_dir }}/ca_root/letsencrypt/dnsapi"
     cert_root: "{{ cloud_dir }}/ca_root/cert_root"
-    certificate_sync_onboard_fullpath: "/mnt/cloud-bind-frontend-dns-glusterfs-storage/"
+    certificate_sync_onboard_fullpath: "/mnt/cloud-bind-frontend-persistence-dns-glusterfs-storage/"

@@ -16,11 +16,11 @@ ansilbe_infrastructure_target_layout: simple
 ansilbe_infrastructure_target_layout_mandatory: false
 ansilbe_infrastructure_target_layout_default: simple
 
-anycloud_environment: access-f1-run
+anycloud_environment: production
 # anycloud_product: adam
-anycloud_datacenter: "lf-vx-z1e-vcd"
+anycloud_datacenter: "opushka"
 anycloud_defaults_virtual_organization: "lf-vx-z1e"
-anycloud_datacenter_location: piter
+anycloud_datacenter_location: mahachkala
 anycloud_one_instance_duplicates_count: 1
 anycloud_allocate_public_ip: yes
 

@@ -1,0 +1,133 @@
+ansible_application_core_name_settings_storage_environment: test
+
+all_services_settings_map:
+
+    _gateway_api:
+      - "ENV: {{ ansible_application_core_name_settings_storage_environment }}"
+    eden_vortice_jobs_monitoring:
+      - "ENV: {{ ansible_application_core_name_settings_storage_environment }}"
+    eden_vortice_mail_server:
+      - "ENV: {{ ansible_application_core_name_settings_storage_environment }}"
+    eden_vortice_mgmt_api:
+      - "ENV: {{ ansible_application_core_name_settings_storage_environment }}"
+    eden_vortice_poc_billing_integration:
+      - "ENV: {{ ansible_application_core_name_settings_storage_environment }}"
+    eden_vortice_pod_scraper_v1:
+      - "ENV: {{ ansible_application_core_name_settings_storage_environment }}"
+    eden_vortice_public_api:
+      - "ENV: {{ ansible_application_core_name_settings_storage_environment }}"
+    eden_vortice_resource_monitor:
+      - "ENV: {{ ansible_application_core_name_settings_storage_environment }}"  
+
+    # nginx:
+    #   - "DOCKER_ENV: {{ ansible_environment }}"
+
+    # postgres:
+    #   - "DOCKER_ENV: {{ ansible_environment }}"
+
+    # core: |
+    #   {{ shared_env_variables_service_core_ }}
+
+    # mongo:
+    #   - "DOCKER_ENV: {{ ansible_environment }}"
+
+    # redis:
+    #   - "DOCKER_ENV: {{ ansible_environment }}"
+
+    # pgsql:
+    #   - "DOCKER_ENV: {{ ansible_environment }}"
+
+    # pgmanager:
+    #   - "DOCKER_ENV: {{ ansible_environment }}"
+
+    # pgpool:
+    #   - "DOCKER_ENV: {{ ansible_environment }}"
+
+    # pgbouncer:
+    #   - "RAILS_LOG_TO_STDOUT: \"true\""
+    #   - "RAILS_ENV: {{ ansible_application_core_name_settings_storage_environment }}"
+    #   - "POOL_MODE: session"
+    #   - "SERVER_RESET_QUERY: \"DISCARD ALL\""
+    #   - "MAX_CLIENT_CONN: 100"
+    #   - "DB_HOST: postgres"
+    #   - "DB_USER: postgres"
+    #   - "DB_NAME: \"*\""
+    #   - "DB_PASSWORD: postgres"
+    #   - "DATABASE_URL: \"postgres://postgres:postgres@postgres/*\""
+
+    # kibana:
+    #   - "KIBANA_ELASTICSEARCH_URL: {{ KIBANA_ELASTICSEARCH_URL }}"
+    #   - "KIBANA_ELASTICSEARCH_PORT: {{ elasticsearch_service_listen_port }}"
+    #   - "DOCKER_ENV: {{ ansible_environment }}"
+
+    # elasticsearch:
+    #   - "DOCKER_ENV: {{ ansible_environment }}"
+
+shared_env_variables_service_core_:
+      - "APP_DOMAIN: {{ APP_DOMAIN }}"
+      - "CLIENT_APP_NAME: {{ CLIENT_APP_NAME }}"
+
+all_access_services_settings_map:
+    mongo:
+      - "DOCKER_ENV: {{ ansible_environment }}"
+    pritunl:
+      - "PRITUNL_MONGODB_URI: mongodb://mongo:27017/pritunl"
+
+all_security_services_settings_map:
+    graylog:
+      - "ANSIBLE_ENV: {{ ansible_environment }}"
+
+all_services_location_map:
+  directories:
+    root: "{{ cloud_dir }}/{{ ansible_environment }}"
+    database: "{{ cloud_dir }}/{{ ansible_environment }}/{{ ansible_environment }}_database"
+    database_log: "{{ cloud_dir }}/{{ ansible_environment }}/{{ ansible_environment }}_database_log"
+    stack: "{{ cloud_dir }}/{{ ansible_environment }}/stack"
+    mongo: "{{ cloud_dir }}/{{ ansible_environment }}/{{ ansible_environment }}_mongo"
+    elasticsearch: "{{ cloud_dir }}/{{ ansible_environment }}/{{ ansible_environment }}_elasticsearch"
+    minio: "{{ cloud_dir }}/{{ ansible_environment }}/{{ ansible_environment }}_minio"
+    minio_config: "{{ cloud_dir }}/{{ ansible_environment }}/{{ ansible_environment }}_minio_config"
+    metabase_storage: "{{ cloud_dir }}/{{ ansible_environment }}/{{ ansible_environment }}_metabase_storage"
+    k8s_storage: "{{ cloud_dir }}/{{ ansible_environment }}/{{ ansible_environment }}_k8s_storage"
+    k8s_storage_helm: "{{ cloud_dir }}/{{ ansible_environment }}/{{ ansible_environment }}_k8s_storage/helm/{{ ansible_product }}"
+    nginx_tmp: "{{ cloud_dir }}/{{ ansible_environment }}/{{ ansible_environment }}_nginx_tmp"
+    nginx_config: "{{ cloud_dir }}/{{ ansible_environment }}/{{ ansible_environment }}_nginx_config"
+
+all_access_services_location_map:
+  directories:
+    pritunl: "{{ cloud_dir }}/{{ ansible_environment }}/{{ ansible_environment }}_pritunl"
+    mongo: "{{ cloud_dir }}/{{ ansible_environment }}/{{ ansible_environment }}_pritunl_mongo"
+    stack: "{{ cloud_dir }}/{{ ansible_environment }}/stack"
+
+PCI_NETWORKS_LIST:
+    - { id: 0, network: 'MIDDLE_NETWORK_{{ ansible_environment }}', subnet: '172.16.200.0/24' }
+    - { id: 1, network: 'DB_NETWORK_{{ ansible_environment }}', subnet: '172.16.200.0/24' }
+    - { id: 2, network: 'FRONT_NETWORK_{{ ansible_environment }}', subnet: '172.16.200.0/24' }
+    - { id: 3, network: 'LOG_NETWORK_{{ ansible_environment }}', subnet: '172.16.200.0/24' }
+    - { id: 4, network: 'KEY_NETWORK_{{ ansible_environment }}', subnet: '172.16.200.0/24' }
+                 
+special_all_services_settings_map:
+    kubeflow_fairing:
+      - "ENV: {{ ansible_application_core_name_settings_storage_environment }}"
+    limit_notification:
+      - "ENV: {{ ansible_application_core_name_settings_storage_environment }}"
+    oidc_authservice:
+      - "ENV: {{ ansible_application_core_name_settings_storage_environment }}"
+    python3_sigma_mirror:
+      - "ENV: {{ ansible_application_core_name_settings_storage_environment }}"
+    nginx:
+      - "DOCKER_ENV: {{ ansible_environment }}"
+
+extended_services_settings_map:
+    slurm_base:
+      - "ENV: {{ ansible_application_core_name_settings_storage_environment }}"
+    slurm_autoscaler:
+      - "ENV: {{ ansible_application_core_name_settings_storage_environment }}"
+    slurm_heap_monitor:
+      - "ENV: {{ ansible_application_core_name_settings_storage_environment }}"
+    slurm_influxdb:
+      - "ENV: {{ ansible_application_core_name_settings_storage_environment }}"
+    slurm_master:
+      - "ENV: {{ ansible_application_core_name_settings_storage_environment }}"
+    slurm_control:
+      - "ENV: {{ ansible_application_core_name_settings_storage_environment }}"
