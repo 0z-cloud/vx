@@ -71,10 +71,11 @@ if [ ! -z $linked_env_in_product ]; then
     "$ANSIBLE_TRIGGER_TOKEN" \
     "$ANSIBLE_COMMIT_SHA" \
     "$ANSIBLE_BUILD_ID" \
-    "$ANSIBLE_CI_DATACENTER" \
-    "EXTRA_MILK_COW" \
-    "REINSTALL_PIP_TRUE" \
-    "$linked_env_in_product" 
+    "$ANSIBLE_CI_DATACENTER" 
+#\
+#    "EXTRA_MILK_COW" \
+#    "REINSTALL_PIP_TRUE" \
+#    "$linked_env_in_product" 
 
 else
     /bin/bash "$ansible_dir"/reference_development_rnd.sh \
@@ -96,9 +97,10 @@ else
     "$ANSIBLE_TRIGGER_TOKEN" \
     "$ANSIBLE_COMMIT_SHA" \
     "$ANSIBLE_BUILD_ID" \
-    "$ANSIBLE_CI_DATACENTER" \
-    "EXTRA_MILK_COW" \
-    "REINSTALL_PIP_TRUE" 
+    "$ANSIBLE_CI_DATACENTER" 
+	# \
+    # "EXTRA_MILK_COW" \
+    # "REINSTALL_PIP_TRUE" 
 
 fi
 

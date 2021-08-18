@@ -1,0 +1,30 @@
+name: checkout
+published_port: "{{ checkout_service_listen_port }}"
+docker_image: "gitlab.vortex.ru:4567/vortex/checkout"
+docker_image_tag: latest
+replicas: 1
+
+queues:
+  - { queue: "default", workers: 1 }
+  - { queue: "callbacks", workers: 1 }
+
+db_migrate: false
+db_seed: true
+link_storage: true
+
+variables:
+  APP_URL: "https://checkout.vortex.me"
+  CORE_DB_HOST: "percona.service.cloud.vortex.me"
+  CORE_DB_PORT: "3306"
+  CORE_DB_DATABASE: "vortex"
+  CORE_DB_USERNAME: "vortex"
+  CORE_DB_PASSWORD: "vortex"
+  BROADCAST_DRIVER: "log"
+  CACHE_DRIVER: "file"
+  SESSION_DRIVER: "file"
+  QUEUE_DRIVER: "sync"
+
+secured_variables:
+  - {name: "app.key", value: "base64:xFxGQXWcIusVF0EKrGLZpTJFQzbnmCnGPTJVyv4srB8="}
+  - {name: "database.connections.mysql.password", value: "bar"}
+

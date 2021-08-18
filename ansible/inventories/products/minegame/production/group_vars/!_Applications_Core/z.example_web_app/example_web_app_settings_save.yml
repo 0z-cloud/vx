@@ -1,0 +1,310 @@
+ansible_application_core_name_settings_storage_environment: test
+
+all_services_settings_map:
+    # admin_panel: 
+      #   - "MYSQL_ROOT_PASSWORD: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_PASSWORD }}"
+      #   - "DOCKER_ENV: {{ ansible_environment }}"
+      #   - "DB_HOST: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_HOST }}"
+      #   - "DB_PORT: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_PORT }}"
+      #   - "DB_USER: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_USER }}"
+      #   - "DB_PASSWORD: '{{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_PASSWORD }}'"
+      #   - "DB_DATABASE: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_DATABASE }}"
+      #   - "DATABASE_USER: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_USER }}"
+      #   - "PORT: {{ admin_panel_service_listen_port }}"
+      #   - "HOST: {{ NODE_BIND_ADDRESS }}"
+      #   - "BABEL_ENV: {{ ansible_environment }}"
+      #   - "NODE_ENV: {{ ansible_environment }}"
+      #   - "MODE: {{ NODE_INSIDE_MODE }}"
+      #   # - "ADVANCED_LOGGING: {{ NODE_ADVANCED_LOGGING }}"
+      #   - "LOGGING_TO_SQL: {{ NODE_LOGGING_TO_SQL }}"
+      #   - "HTTP_MAX_REDIRECTS: {{ NODE_HTTP_MAX_REDIRECTS }}"
+      #   - "HTTP_TIMEOUT: {{ NODE_HTTP_TIMEOUT }}"
+      #   - "MAILER_HOST_PORT: {{ MAILER_HOST_PORT }}"
+      #   - "MAILER_HOST_ADDRESS: {{ MAILER_HOST_ADDRESS }}" 
+      #   - "MAILER_HOST_SECURE: {{ MAILER_HOST_SECURE }}"
+      #   - "MAILER_HOST_AUTH_USERNAME: {{ MAILER_HOST_AUTH_USERNAME }}"
+      #   - "MAILER_HOST_AUTH_PASSWORD: {{ MAILER_HOST_AUTH_PASSWORD }}"
+      #   - "MAILER_SENDER_USERNAME: {{ MAILER_SENDER_USERNAME }}"
+      #   - "HTTPS: {{ NODE_HTTPS_SERVICE_SUPPORT }}" # true / null
+    # cli: 
+      #   - "MYSQL_ROOT_PASSWORD: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_PASSWORD }}"
+      #   - "DOCKER_ENV: {{ ansible_environment }}"
+      #   - "DB_HOST: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_HOST }}"
+      #   - "DB_PORT: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_PORT }}"
+      #   - "DB_USER: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_USER }}"
+      #   - "DB_PASSWORD: '{{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_PASSWORD }}'"
+      #   - "DB_DATABASE: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_DATABASE }}"
+      #   - "DATABASE_USER: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_USER }}"
+      #   - "PORT: {{ cli_service_listen_port }}"
+      #   - "HOST: {{ NODE_BIND_ADDRESS }}"
+      #   - "BABEL_ENV: {{ ansible_environment }}"
+      #   - "NODE_ENV: {{ ansible_environment }}"
+      #   - "MODE: {{ NODE_INSIDE_MODE }}"
+      #   # - "ADVANCED_LOGGING: {{ NODE_ADVANCED_LOGGING }}"
+      #   - "LOGGING_TO_SQL: {{ NODE_LOGGING_TO_SQL }}"
+      #   - "HTTP_MAX_REDIRECTS: {{ NODE_HTTP_MAX_REDIRECTS }}"
+      #   - "HTTP_TIMEOUT: {{ NODE_HTTP_TIMEOUT }}"
+      #   - "MAILER_HOST_PORT: {{ MAILER_HOST_PORT }}"
+      #   - "MAILER_HOST_ADDRESS: {{ MAILER_HOST_ADDRESS }}" 
+      #   - "MAILER_HOST_SECURE: {{ MAILER_HOST_SECURE }}"
+      #   - "MAILER_HOST_AUTH_USERNAME: {{ MAILER_HOST_AUTH_USERNAME }}"
+      #   - "MAILER_HOST_AUTH_PASSWORD: {{ MAILER_HOST_AUTH_PASSWORD }}"
+      #   - "MAILER_SENDER_USERNAME: {{ MAILER_SENDER_USERNAME }}"
+      #   - "HTTPS: {{ NODE_HTTPS_SERVICE_SUPPORT }}" # true / null
+    backend: 
+      - "DB_HOST: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_HOST }}"
+      - "DB_PORT: 3306"
+      - "DB_USER: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_USER }}"
+      - "DB_PASSWORD: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_PASSWORD }}"
+      - "DB_DATABASE: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_DATABASE }}"
+      - "MODE: DEV"
+      - "NODE_ENV: {{ ansible_environment }}"
+      - "ADVANCED_LOGGING: \"true\""
+      # - "LOGGING_TO_SQL: false"
+      - "PUBLIC_URL: {{ public_consul_domain }}"
+      - "HTTP_MAX_REDIRECTS: {{ NODE_HTTP_MAX_REDIRECTS }}"
+      - "HTTP_TIMEOUT: {{ NODE_HTTP_TIMEOUT }}"
+      - "MAILER_HOST_PORT: {{ MAILER_HOST_PORT }}"
+      - "MAILER_HOST_ADDRESS: {{ MAILER_HOST_ADDRESS }}" 
+      - "MAILER_HOST_SECURE: {{ MAILER_HOST_SECURE }}"
+      - "MAILER_HOST_AUTH_USERNAME: {{ MAILER_HOST_AUTH_USERNAME }}"
+      - "MAILER_HOST_AUTH_PASSWORD: {{ MAILER_HOST_AUTH_PASSWORD }}"
+      - "MAILER_SENDER_USERNAME: {{ MAILER_SENDER_USERNAME }}"
+    frontend: 
+      - "DB_HOST: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_HOST }}"
+      - "DB_PORT: 3306"
+      - "DB_USER: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_USER }}"
+      - "DB_PASSWORD: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_PASSWORD }}"
+      - "DB_DATABASE: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_DATABASE }}"
+      - "MODE: DEV"
+      - "ADVANCED_LOGGING: \"true\""
+      - "NODE_ENV: {{ ansible_environment }}"
+      # - "LOGGING_TO_SQL: false"
+      - "HTTP_MAX_REDIRECTS: {{ NODE_HTTP_MAX_REDIRECTS }}"
+      - "HTTP_TIMEOUT: {{ NODE_HTTP_TIMEOUT }}"
+      - "MAILER_HOST_PORT: {{ MAILER_HOST_PORT }}"
+      - "MAILER_HOST_ADDRESS: {{ MAILER_HOST_ADDRESS }}" 
+      - "MAILER_HOST_SECURE: {{ MAILER_HOST_SECURE }}"
+      - "MAILER_HOST_AUTH_USERNAME: {{ MAILER_HOST_AUTH_USERNAME }}"
+      - "MAILER_HOST_AUTH_PASSWORD: {{ MAILER_HOST_AUTH_PASSWORD }}"
+      - "MAILER_SENDER_USERNAME: {{ MAILER_SENDER_USERNAME }}"
+    # admin_panel: 
+      #   - "DB_HOST: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_HOST }}"
+      #   - "DB_PORT: 3306"
+      #   - "DB_USER: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_USER }}"
+      #   - "DB_PASSWORD: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_PASSWORD }}"
+      #   - "DB_DATABASE: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_DATABASE }}"
+      #   - "MODE: DEV"
+      #   - "ADVANCED_LOGGING: \"true\""
+      #   - "NODE_ENV: {{ ansible_environment }}"
+      #   - "PUBLIC_URL: {{ public_consul_domain }}"
+      #   # - "LOGGING_TO_SQL: false"
+      #   - "HTTP_MAX_REDIRECTS: {{ NODE_HTTP_MAX_REDIRECTS }}"
+      #   - "HTTP_TIMEOUT: {{ NODE_HTTP_TIMEOUT }}"
+      #   - "MAILER_HOST_PORT: {{ MAILER_HOST_PORT }}"
+      #   - "MAILER_HOST_ADDRESS: {{ MAILER_HOST_ADDRESS }}" 
+      #   - "MAILER_HOST_SECURE: {{ MAILER_HOST_SECURE }}"
+      #   - "MAILER_HOST_AUTH_USERNAME: {{ MAILER_HOST_AUTH_USERNAME }}"
+      #   - "MAILER_HOST_AUTH_PASSWORD: {{ MAILER_HOST_AUTH_PASSWORD }}"
+      #   - "MAILER_SENDER_USERNAME: {{ MAILER_SENDER_USERNAME }}"
+      #   - "MYSQL_ROOT_PASSWORD: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_PASSWORD }}"
+      #   - "DOCKER_ENV: {{ ansible_environment }}"
+      #   - "DB_HOST: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_HOST }}"
+      #   - "DB_PORT: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_PORT }}"
+      #   - "DB_USER: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_USER }}"
+      #   - "DB_PASSWORD: '{{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_PASSWORD }}'"
+      #   - "DB_DATABASE: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_DATABASE }}"
+      #   - "DATABASE_USER: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_USER }}"
+      #   - "PORT: {{ backend_service_listen_port }}"
+      #   - "HOST: {{ NODE_BIND_ADDRESS }}"
+      #   - "BABEL_ENV: {{ ansible_environment }}"
+      #   - "NODE_ENV: {{ ansible_environment }}"
+      #   - "MODE: {{ NODE_INSIDE_MODE }}"
+      #   # - "ADVANCED_LOGGING: {{ NODE_ADVANCED_LOGGING }}"
+      #   - "LOGGING_TO_SQL: {{ NODE_LOGGING_TO_SQL }}"
+      #   - "HTTP_MAX_REDIRECTS: {{ NODE_HTTP_MAX_REDIRECTS }}"
+      #   - "HTTP_TIMEOUT: {{ NODE_HTTP_TIMEOUT }}"
+      #   - "MAILER_HOST_PORT: {{ MAILER_HOST_PORT }}"
+      #   - "MAILER_HOST_ADDRESS: {{ MAILER_HOST_ADDRESS }}" 
+      #   - "MAILER_HOST_SECURE: {{ MAILER_HOST_SECURE }}"
+      #   - "MAILER_HOST_AUTH_USERNAME: {{ MAILER_HOST_AUTH_USERNAME }}"
+      #   - "MAILER_HOST_AUTH_PASSWORD: {{ MAILER_HOST_AUTH_PASSWORD }}"
+      #   - "MAILER_SENDER_USERNAME: {{ MAILER_SENDER_USERNAME }}"
+      #   - "HTTPS: {{ NODE_HTTPS_SERVICE_SUPPORT }}" # true / null
+    # # frontend: 
+      #   - "MYSQL_ROOT_PASSWORD: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_PASSWORD }}"
+      #   - "DOCKER_ENV: {{ ansible_environment }}"
+      #   - "DB_HOST: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_HOST }}"
+      #   - "DB_PORT: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_PORT }}"
+      #   - "DB_USER: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_USER }}"
+      #   - "DB_PASSWORD: '{{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_PASSWORD }}'"
+      #   - "DB_DATABASE: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_DATABASE }}"
+      #   - "DATABASE_USER: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_USER }}"
+      #   - "PORT: {{ frontend_service_listen_port }}"
+      #   - "HOST: {{ NODE_BIND_ADDRESS }}"
+      #   - "BABEL_ENV: {{ ansible_environment }}"
+      #   - "NODE_ENV: {{ ansible_environment }}"
+      #   - "MODE: {{ NODE_INSIDE_MODE }}"
+      #   # - "ADVANCED_LOGGING: {{ NODE_ADVANCED_LOGGING }}"
+      #   - "LOGGING_TO_SQL: {{ NODE_LOGGING_TO_SQL }}"
+      #   - "HTTP_MAX_REDIRECTS: {{ NODE_HTTP_MAX_REDIRECTS }}"
+      #   - "HTTP_TIMEOUT: {{ NODE_HTTP_TIMEOUT }}"
+      #   - "MAILER_HOST_PORT: {{ MAILER_HOST_PORT }}"
+      #   - "MAILER_HOST_ADDRESS: {{ MAILER_HOST_ADDRESS }}" 
+      #   - "MAILER_HOST_SECURE: {{ MAILER_HOST_SECURE }}"
+      #   - "MAILER_HOST_AUTH_USERNAME: {{ MAILER_HOST_AUTH_USERNAME }}"
+      #   - "MAILER_HOST_AUTH_PASSWORD: {{ MAILER_HOST_AUTH_PASSWORD }}"
+      #   - "MAILER_SENDER_USERNAME: {{ MAILER_SENDER_USERNAME }}"
+      #   - "HTTPS: {{ NODE_HTTPS_SERVICE_SUPPORT }}" # true / null
+    # mailer:
+      #   - "MYSQL_ROOT_PASSWORD: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_PASSWORD }}"
+      #   - "DOCKER_ENV: {{ ansible_environment }}"
+      #   - "DB_HOST: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_HOST }}"
+      #   - "DB_PORT: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_PORT }}"
+      #   - "DB_USER: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_USER }}"
+      #   - "DB_PASSWORD: '{{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_PASSWORD }}'"
+      #   - "DB_DATABASE: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_DATABASE }}"
+      #   - "DATABASE_USER: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_USER }}"
+      #   - "PORT: {{ mailer_service_listen_port }}"
+      #   - "HOST: {{ NODE_BIND_ADDRESS }}"
+      #   - "BABEL_ENV: {{ ansible_environment }}"
+      #   - "NODE_ENV: {{ ansible_environment }}"
+      #   - "MODE: {{ NODE_INSIDE_MODE }}"
+      #   # - "ADVANCED_LOGGING: {{ NODE_ADVANCED_LOGGING }}"
+      #   - "LOGGING_TO_SQL: {{ NODE_LOGGING_TO_SQL }}"
+      #   - "HTTP_MAX_REDIRECTS: {{ NODE_HTTP_MAX_REDIRECTS }}"
+      #   - "HTTP_TIMEOUT: {{ NODE_HTTP_TIMEOUT }}"
+      #   - "MAILER_HOST_PORT: {{ MAILER_HOST_PORT }}"
+      #   - "MAILER_HOST_ADDRESS: {{ MAILER_HOST_ADDRESS }}" 
+      #   - "MAILER_HOST_SECURE: {{ MAILER_HOST_SECURE }}"
+      #   - "MAILER_HOST_AUTH_USERNAME: {{ MAILER_HOST_AUTH_USERNAME }}"
+      #   - "MAILER_HOST_AUTH_PASSWORD: {{ MAILER_HOST_AUTH_PASSWORD }}"
+      #   - "MAILER_SENDER_USERNAME: {{ MAILER_SENDER_USERNAME }}"
+      #   - "HTTPS: {{ NODE_HTTPS_SERVICE_SUPPORT }}" # true / null
+    mariadb: |
+      {{ shared_env_variables_service_db_connection_ }}
+    kibana:
+      - "KIBANA_ELASTICSEARCH_URL: {{ KIBANA_ELASTICSEARCH_URL }}"
+      - "KIBANA_ELASTICSEARCH_PORT: {{ elasticsearch_service_listen_port }}"
+      - "DOCKER_ENV: {{ ansible_environment }}"
+    elasticsearch:
+      - "DOCKER_ENV: {{ ansible_environment }}"
+
+    # core: |
+      #   {{ shared_env_variables_service_core_ }}
+
+    # postgres:
+      #   - "DOCKER_ENV: {{ ansible_environment }}"
+
+    # core: |
+      #   {{ shared_env_variables_service_core_ }}
+
+    # mongo:
+      #   - "DOCKER_ENV: {{ ansible_environment }}"
+
+    # redis:
+      #   - "DOCKER_ENV: {{ ansible_environment }}"
+
+    # pgsql:
+      #   - "DOCKER_ENV: {{ ansible_environment }}"
+
+    # pgmanager:
+      #   - "DOCKER_ENV: {{ ansible_environment }}"
+
+    # pgpool:
+      #   - "DOCKER_ENV: {{ ansible_environment }}"
+
+    # pgbouncer:
+      #   - "RAILS_LOG_TO_STDOUT: \"true\""
+      #   - "RAILS_ENV: {{ ansible_application_core_name_settings_storage_environment }}"
+      #   - "POOL_MODE: session"
+      #   - "SERVER_RESET_QUERY: \"DISCARD ALL\""
+      #   - "MAX_CLIENT_CONN: 100"
+      #   - "DB_HOST: postgres"
+      #   - "DB_USER: postgres"
+      #   - "DB_NAME: \"*\""
+      #   - "DB_PASSWORD: postgres"
+      #   - "DATABASE_URL: \"postgres://postgres:postgres@postgres/*\""
+
+shared_env_variables_service_db_connection_:
+      - "MARIADB_REPLICATION_MODE: master"
+      - "MARIADB_REPLICATION_USER: repl_user"
+      - "MARIADB_REPLICATION_PASSWORD: repl_password"
+      - "MARIADB_ROOT_PASSWORD: master_root_password"
+      - "MARIADB_USER: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_USER }}"
+      - "MARIADB_PASSWORD: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_PASSWORD }}"
+      - "MARIADB_DATABASE: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_DATABASE }}"
+      # - "MYSQL_ROOT_PASSWORD: '{{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_PASSWORD }}'"
+      # - "MYSQL_DATABASE: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_DATABASE }}"
+      # - "DOCKER_ENV: {{ ansible_environment }}"
+      # - "DB_HOST: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_HOST }}"
+      # - "DB_PORT: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_PORT }}"
+      # - "DB_USER: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_USER }}"
+      # - "DB_PASSWORD: '{{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_PASSWORD }}'"
+      # - "DB_DATABASE: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_DATABASE }}"
+      # - "DATABASE_USER: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_USER }}"
+      # - "MYSQL_USER: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_USER }}"
+      # - "MYSQL_PASSWORD: '{{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_PASSWORD }}'"
+      # - "PORT: 3006"
+      # - "HOST: 0.0.0.0"
+      # - "BABEL_ENV: {{ ansible_environment }}"
+      # - "NODE_ENV: {{ ansible_environment }}"
+      # - "MYSQL_ROOT_HOST: mariadb"
+      # - "MARIADB_ROOT_PASSWORD: '{{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_PASSWORD }}'"
+      # # - "MARIADB_REPLICATION_MODE: master"
+      # # - "MARIADB_REPLICATION_USER: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_USER }}"
+      # # - "MARIADB_REPLICATION_PASSWORD: my_repl_password"
+      # - "MARIADB_USER: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_USER }}"
+      # - "MARIADB_PASSWORD: '{{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_PASSWORD }}'"
+      # - "MARIADB_DATABASE: {{ APPLICATION_SET_SOLUTION_FROM_SERVICES_FOLDERWEB_DB_DATABASE }}"
+      # - "MARIADB_EXTRA_FLAGS: '--max-connect-errors=1000 --max_connections=155'"
+      # - "HTTPS: false" # true / null
+      #
+      # - "NODE_MODE: prod"
+      ########
+            ### -----------------------------------------------------------\
+            ### * NODE JS INTERNAL ENVIRONMENT CHANGER ENVIRONMENT VARIABLES, 
+            ###
+            ###   CAN BE ARE ONE OF THEM:
+            #
+            ##   variable NODE_ENV:
+            #
+            # - "NODE_ENV: production"
+            # - "NODE_ENV: prod" (emulates production)
+            # - "NODE_ENV: development"
+            #
+            ##   IF ARE DEFINED GO EMULATES PRODUCTION:
+            # - "NODE_MODE: prod"
+########################################################################
+
+shared_env_variables_service_core_:
+      - "APP_DOMAIN: {{ APP_DOMAIN }}"
+      - "CLIENT_APP_NAME: {{ CLIENT_APP_NAME }}"
+
+all_access_services_settings_map:
+    mongo:
+      - "DOCKER_ENV: {{ ansible_environment }}"
+    pritunl:
+      - "PRITUNL_MONGODB_URI: mongodb://mongo:27017/pritunl"
+
+all_security_services_settings_map:
+    graylog:
+      - "ANSIBLE_ENV: {{ ansible_environment }}"
+
+
+all_access_services_location_map:
+  directories:
+    pritunl: "{{ cloud_dir }}/{{ ansible_environment }}/{{ ansible_environment }}_pritunl"
+    mongo: "{{ cloud_dir }}/{{ ansible_environment }}/{{ ansible_environment }}_pritunl_mongo"
+    stack: "{{ cloud_dir }}/{{ ansible_environment }}/stack"
+
+PCI_NETWORKS_LIST:
+    - { id: 0, network: 'MIDDLE_NETWORK_{{ ansible_environment }}', subnet: '172.16.200.0/24' }
+    - { id: 1, network: 'DB_NETWORK_{{ ansible_environment }}', subnet: '172.16.200.0/24' }
+    - { id: 2, network: 'FRONT_NETWORK_{{ ansible_environment }}', subnet: '172.16.200.0/24' }
+    - { id: 3, network: 'LOG_NETWORK_{{ ansible_environment }}', subnet: '172.16.200.0/24' }
+    - { id: 4, network: 'KEY_NETWORK_{{ ansible_environment }}', subnet: '172.16.200.0/24' }
+                 
+special_all_services_settings_map:
+    nginx:
+      - "DOCKER_ENV: {{ ansible_environment }}"

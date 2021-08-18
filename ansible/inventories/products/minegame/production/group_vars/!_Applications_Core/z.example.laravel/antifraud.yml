@@ -1,0 +1,36 @@
+name: antifraud
+published_port: "{{ antifraud_service_listen_port }}"
+docker_image: "gitlab.vortex.ru:4567/vortex/antifraud"
+docker_image_tag: latest
+replicas: 1
+
+db_migrate: false
+db_seed: true
+
+variables:
+  APP_NAME: "antifraud"
+  APP_ENV: "stage"
+  APP_KEY: "base64:93e1H1xTugXfoGrXfJ3O2ZMCrcL9CmDHpL6tWldkrM8="
+  APP_DEBUG: "true"
+  APP_URL: "http://antifraud.service.cloud.vortex.me:{{ antifraud_service_listen_port }}"
+  LOG_CHANNEL: "single"
+  CORE_DB_HOST: "percona.service.cloud.vortex.me"
+  CORE_DB_PORT: "3306"
+  CORE_DB_DATABASE: "vortex"
+  CORE_DB_USERNAME: "root"
+  CORE_DB_PASSWORD: "root"
+  CACHE_DRIVER: "file"
+  SESSION_DRIVER: "file"
+  QUEUE_DRIVER: "sync"
+  MAIL_DRIVER: "smtp"
+  MAIL_HOST: "smtp.mailtrap.io"
+  MAIL_PORT: "2525"
+  MAIL_USERNAME: "b609011ea66d62"
+  MAIL_PASSWORD: "af1215791463a4"
+  SENTRY_LARAVEL_DSN: "http://9af71b6ec49b4aee95a42003a151cb73:91feda4864674a4c99b34b8b3d24d274@sentry.service.cloud.vortex.me:9000/7"
+
+secured_variables:
+  - {name: "app.key", value: "base64:93e1H1xTugXfoGrXfJ3O2ZMCrcL9CmDHpL6tWldkrM8="}
+
+sentry_release_webhook: http://sentry.service.cloud.vortex.me:9000/api/hooks/release/builtin/7/cf12686d9362f98075fdd8ce8cf0a5a67be00431fd22bd4b731a1a96a4f62e6e/
+

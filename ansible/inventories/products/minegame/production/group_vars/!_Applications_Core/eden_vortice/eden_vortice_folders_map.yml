@@ -1,0 +1,21 @@
+all_services_location_map:
+    directories:
+      root: "{{ cloud_dir }}/{{ ansible_environment }}"
+      database: "{{ cloud_dir }}/{{ ansible_environment }}/{{ ansible_environment }}_database"
+      database_log: "{{ cloud_dir }}/{{ ansible_environment }}/{{ ansible_environment }}_database_log"
+      stack: "{{ cloud_dir }}/{{ ansible_environment }}/stack"
+      mongo: "{{ cloud_dir }}/{{ ansible_environment }}/{{ ansible_environment }}_mongo"
+      elasticsearch: "{{ cloud_dir }}/{{ ansible_environment }}/{{ ansible_environment }}_elasticsearch"
+      minio: "{{ cloud_dir }}/{{ ansible_environment }}/{{ ansible_environment }}_minio"
+      minio_config: "{{ cloud_dir }}/{{ ansible_environment }}/{{ ansible_environment }}_minio_config"
+      metabase_storage: "{{ cloud_dir }}/{{ ansible_environment }}/{{ ansible_environment }}_metabase_storage"
+      k8s_storage: "{{ cloud_dir }}/{{ ansible_environment }}/{{ ansible_environment }}_k8s_storage"
+      k8s_storage_helm: "{{ cloud_dir }}/{{ ansible_environment }}/{{ ansible_environment }}_k8s_storage/helm/{{ ansible_product }}"
+      nginx_tmp: "{{ cloud_dir }}/{{ ansible_environment }}/{{ ansible_environment }}_nginx_tmp"
+      nginx_config: "{{ cloud_dir }}/{{ ansible_environment }}/{{ ansible_environment }}_nginx_config"
+      mariadb_database: "{{ cloud_dir }}/{{ ansible_environment }}/{{ ansible_environment }}_mariadb"
+      mariadb_database_logs: "{{ cloud_dir }}/{{ ansible_environment }}/{{ ansible_environment }}_mariadb_logs"
+      redis_data: "{{ cloud_dir }}/{{ ansible_environment }}/{{ ansible_environment }}_redis_data"
+    eden:
+      directories:
+        eve_container: stub_placement

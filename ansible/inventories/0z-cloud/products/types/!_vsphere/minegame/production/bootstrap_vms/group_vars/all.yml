@@ -1,0 +1,617 @@
+
+#########################################################################################################################################################################################################################################
+# AnyCloud Infrastructure Bootstrap from scratch based on Template Layout
+#
+# 0z-cloud is stilling stay in...       zen...
+#########################################################################################################################################################################################################################################
+# AnyCloud:                             Default Settings Configuration 
+#########################################################################################################################################################################################################################################
+# Version:                              1.9.0.0.1-AD
+# Release Code Name:                    AD
+# VCS Group:                            cicd
+# Product:                              minegame 
+# Repository:                           vx
+# user:                                 template 
+# current:                              rnd
+# salt:                                 ci/cd/qa/dev
+# vector:                               18.08.2021
+# timeto:                               zen...io
+# Environment:                          production
+# Usage:                                anycloud
+# Infrastructure is in want target:     production
+##### CLOUD SUPPORT TESTED
+# [+][gcp]
+# [+][bare]
+# [.][vagrant]
+# [.][vcd]
+# [.][vcd]
+# ...wip
+#########################################################################################################################################################################################################################################
+# 
+#########################################################################################################################################################################################################################################
+# AnyCloud Abstracts Merge: target = if adapter value is defined; then adapter value; else default target value from template
+#########################################################################################################################################################################################################################################
+#
+ansible_resource_pool: normstate
+resource_pool: "{{ ansible_resource_pool }}"
+anycloud_defaults_image_hostname: normstate_vx_cloud_ # example for template itself parts with index count { +index count for count in do ...-{$i}...- }
+#CURRENTLY ONLY CAN BE USED TEMPLATE DATASTORAGE FOR INITIAL CREATION VMs FROM TEMPLATE
+#-.-.-.->>-.-.-.-.->>-.-.-.-.->>-.-.-.-.->>-.-.-.-.->>-.-.-.-.->>-.-.-.-.->>-.-.-.-.->>
+# IN CHILDREN ZONE WE ARE POSSIBLE MAY CAN TO USE {#{ ANSIBLE_DATACENTER }#} WITH PARENT
+# LINK, - 
+#   * SET THE FLAG AND SET TO TURN ON INTERHIRATE 
+#   * SET DNS SUB-DOMAIN SUFFIX AS ANSIBLE DATACENTER VARIABLE
+anycloud_datacenter: "opushka"
+### NS DNS DOMAIN ROOT
+anycloud_domain_result: "{{ anycloud_adapter_domain_fqdn | default(anycloud_domain_default) }}"
+anycloud_domain_default: "saggi.uno"
+anycloud_domain: "{{ anycloud_domain_default | default(anycloud_domain_result) }}"
+#########################################################################################################################################################################################################################################
+########## PARENT OF KIND OFFSPRING - ansible_environment: production
+#########################################################################################################################################################################################################################################
+ansible_environment: production
+ansible_product: "minegame"
+ansible_datacenter: opushka
+ansible_datacenter_location: moscow
+#########################################################################################################################################################################################################################################
+# AnyCloud Vx: Infrastructure 
+## Inventory Places by
+### Environment Settings and Variables contain layers and objects like
+#### Product, Location, Target Environment Layout, Platform Type, Networks, Security and Default Vortex PlayChains
+#########################################################################################################################################################################################################################################
+##### Possible use as source template, right filled one type infrastructure adapter type,
+##### to gets configuration from other types for extend hist zone, or if you want, 
+##### try do some tests new possiblity to use cross-types and cross-environments calls to environments chains, for masking or other things.
+#########################################################################################################################################################################################################################################
+# AnyCloud: Declaration of the infrastructure place, parts, zones, platforms (vapp), security and networks
+##########################################################################################################################################################################################################################################
+anycloud_one_instance_duplicates_count: 1
+count: 1
+anycloud_allocate_public_ip: yes
+anycloud_results_vpc_zone_virtual_abstract: 
+    dns_servers: "{{ anycloud_adapter_vpc_zone_virtual_abstract_dns_servers | default(anycloud_defaults_vpc_zone_virtual_abstract.dns_servers) }}"
+    zones: "{{ anycloud_adapter_vpc_zone_virtual_abstract | default(anycloud_defaults_vpc_zone_virtual_abstract) }}"
+    initial_only_dns_servers: "{{ anycloud_adapter_vpc_zone_virtual_abstract_initial_only_dns_servers | default(anycloud_defaults_vpc_zone_virtual_abstract.initial_only_dns_servers) }}"
+    layout: "{{ ansilbe_infrastructure_target_layout_default | default(anycloud_result_vpc_zone_virtual_abstract_layout) }}"
+    landscape: "{{ anycloud_adapter_vpc_zone_virtual_abstract_layout | default(anycloud_defaults_vpc_zone_virtual_abstract_layout) }}"
+anycloud_defaults_virtual_application_box_sector: vapp_{{ ansible_environment }}_{{ ansible_product }}_sector
+anycloud_defaults_virtual_vpc_zone_sectors: sector_{{ anycloud_results_vpc_zone_virtual_abstract.layout }}
+anycloud_defaults_virtual_organization: AIM # any group or subgroup in datacenter sectors hold names of organization unit, as example any name - AIM/SUPPORT/FINANCE/PROCESSING 
+anycloud_defaults_virtual_datacenter: "{{ anycloud_datacenter }}" # virtualization abstract level for { INFRA } or for { INFRASTRUCTURE }, choisen by real type or layout
+anycloud_defaults_virtual_cloud_application_box_sector: "{{ anycloud_adapter_virtual_cloud_application_box_sector | default('simple') }}"
+anycloud_defaults_virtual_cloud_cidr: "{{ anycloud_adapter_virtual_cloud_cidr | default('10.0.0.0/8') }}"
+anycloud_defaults_virtual_cloud_name: "{{ anycloud_adapter_virtual_cloud_name | default('anycloud-default-cloud') }}"
+anycloud_defaults_cloud_description: "{{ anycloud_adapter_virtual_cloud_description | default('vCloud Director Simple Template nothing to explain') }}"
+anycloud_defaults_api_url_endpoint: vcd.example.com # vcloud main api public endpoint listener
+anycloud_defaults_cloud_name: "vZone_Sector_Network_Exchange_{{ ansible_product }}_zone_{{ ansible_environment }}_{{ ansible_datacenter }}"
+# anycloud_defaults_image_name: ubuntu_18_04_64_20G_alibase_20181212.vhd
+anycloud_defaults_image_name: vx_u20.04.01.vhd
+#########################################################################################################################################################################################################################################
+# AnyCloud: Merge and Get any possible and all minimal needed as necessary variables and settings for configfurate the VM Instance by Template
+# AnyCloud INFO: VARS FOR SEGMENT/ZONE/SECTOR/SECTION of LAYOUT in SCOPE
+#########################################################################################################################################################################################################################################
+anycloud_vm_template_name: "{{ anycloud_adapter_vm_template | default(anycloud_defaults_vm_template) }}"
+anycloud_template_root_folder: "{{ anycloud_template_adapter_root_folder | default(anycloud_template_defaults_root_folder) }}"
+anycloud_template_defaults_root_folder: "/"
+#
+anycloud_virtual_machine_default_hard_disk_template_source_name: "vx_u20.04.01.vhd"
+anycloud_vm_vapp_box_name: "{{ ozrouter_anycloud_vapp_template_name_of_template_container }}"
+ozrouter_anycloud_virtual_machine_default_vm_template_vm_name_vm_template_name: "{{ ozrouter_anycloud_virtual_machine_default_vm_template_vm_name }}"
+############################################################################################################################################################################################################################################
+# AnyCloud: Cloud bootstrap main object, contain instances, groups, settings, networks, security, etc
+############################################################################################################################################################################################################################################
+cloud_bootstrap:
+############################################################################################################################################################################################################################################
+    basic_roles:
+        - '!_bootstrap/update-dns-config'
+        - '!_bootstrap/ntp-client'
+        - '!_bootstrap/local-repository'
+        - auditd
+        - rsyslog
+        - ossim-agent
+
+    services:
+        inventory_groups_vars:
+            test-sentry-redis-io-cluster:
+                redis_public_port: 6379
+                redis_slave_public_port: 6380
+                redis_username: redis
+                redis_passowrd: dc1d494f7915da973d6c037357c548adbaee349e35
+
+    switches:
+        vswitch_01:
+            anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_name: "{{ anycloud_defaults_cloud_name }}"
+            anycloud_virtual_cloud_name: "{{ anycloud_defaults_cloud_name }}"
+            anycloud_zone: "{{ anycloud_zone }}"
+            anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_description: "vSwitch_production"
+            anycloud_region: "{{ anycloud_region }}"
+            anycloud_defaults_virtual_cloud_cidr: '{{ anycloud_defaults_virtual_cloud_cidr }}'
+            anycloud_communication_device_id: "REPLACED"
+
+    vpc_zones:
+        vpc_0001:
+            anycloud_virtual_cloud_name: "{{ anycloud_defaults_cloud_name }}"
+            anycloud_region: "{{ anycloud_region }}"
+            anycloud_virtual_cloud_description: "{{ anycloud_virtual_cloud_description }}"
+            anycloud_virtual_zone_cidr_block: "{{ anycloud_defaults_virtual_cloud_cidr }}"
+            anycloud_defaults_virtual_cloud_primary_network_virtual_communication_device_name: "{{ anycloud_defaults_cloud_name }}"
+
+
+    #
+    #########################################################################################################################################################################################################################################
+    # AnyCloud IDS PCI ZONE: Declare the PCI minimal networks list and subnets in zone
+    #########################################################################################################################################################################################################################################
+    #
+    ids_network:
+        zones:
+            primary:
+                public_inet: enp0s3
+                vrrp_network: enp0s8
+                front_network: enp0s9
+                master_network: enp0s10
+                backend_network: enp0s16
+                misc_network: enp0s17
+            secondary:
+                public_inet: enp0s11 # EXAMPLE FOR DYNAMIC LOAD OR RELOAD
+                vrrp_network: enp0s8
+                front_network: enp0s9
+                master_network: enp0s10
+                backend_network: enp0s16
+                misc_network: enp0s17
+    #########################################################################################################################################################################################################################################
+    # AnyCloud oZrouter IDS ZONE: Declare the oZrouter networks manager and subnets propagation in zone
+    #########################################################################################################################################################################################################################################
+    #
+    # ozrouter_anycloud_adapter_image_hostname: "ai_oz_router_"
+    # ozrouter_anycloud_virtual_machine_default_hard_disk_template_source_name: 0z_MeshNet_Router_Template
+    # ozrouter_anycloud_vapp_template_name_of_template_container: 0z_MeshNet_Router_Template
+    # ozrouter_anycloud_virtual_machine_default_vm_template_vm_name: 0z_MeshNet_Router_Template
+
+    oz_routers:
+         oz_router_01:
+            #################################################################################################################################################################################################################################
+            # Replaced after VMs bootstrapped in anycloud
+            #################################################################################################################################################################################################################################
+            network: "REPLACED"
+            ip: "{{ ozrouter_anycloud_adapter_image_hostname_fqdn }}_public_ip_address_REPLACED"
+            gw: "REPLACED"
+            #################################################################################################################################################################################################################################
+            anycloud_vm_vapp_box_name: "{{ ozrouter_anycloud_virtual_machine_default_vm_template_vm_name }}"
+            anycloud_vm_template_name: "{{ ozrouter_anycloud_virtual_machine_default_vm_template_vm_name }}"
+            name: "{{ ozrouter_anycloud_adapter_image_hostname_fqdn }}"
+            anycloud_vm_performance_configuration: "{{ anycloud_vm_performance_configuration }}"
+            anycloud_vm_storage_configuration: "{{ anycloud_vm_storage_configuration }}"
+            anycloud_virtual_cloud_zone: "{{ anycloud_virtual_cloud_zone }}"
+            initial_only_dns_servers: "{{ anycloud_results_vpc_zone_virtual_abstract.initial_only_dns_servers }}"
+            ansible_inventory_groups:
+                #################################################################################################################################################################################################################################
+                # AnyCloud Instance Groups: For this VM Instance, hi has been a part of each declared group
+                #################################################################################################################################################################################################################################
+                # MAIN
+                #################################################################################################################################################################################################################################
+                - vlan-dhcp-to-all
+                #################################################################################################################################################################################################################################
+                # ACCESS SERVICES: VPN Server PritUNL with multi-factor auth
+                #################################################################################################################################################################################################################################
+                - pritunl-zone-endpoint
+            #################################################################################################################################################################################################################################
+            # HOST SPECIFIC VARS, SETTINGS, TAGS, VALUES, LINKS TO DICTS FOR ABLE SELECTING ROLES BY ENDPOINT LAST CHOICE METHOD. LIKE EXAMPLE, LIST OF PACKAGES WHICH CANNOT BE REMOVED FROM SOME VM INSTANCE HOST.
+            ansible_inventory_vars:
+            #################################################################################################################################################################################################################################
+            #####{% raw %} Default get the values from vars for example host is - hostvars[inventory_hostname].variable; or if in for each host loop on some group - hostvars[host].variable
+                #{% endraw %} 
+                #################################################################################################################################################################################################################################
+                #{% raw %} NETWORK DATA: Second Network, if network only one, and we have one interface, then instance_vm.ip & hostvars[host].second_ip must be have a same value still that not excluded and replaced by other work pipeline {% endraw %}
+                #################################################################################################################################################################################################################################
+                second_network_type: "ozrouter"
+                second_network_zone: "ozrouter"
+                second_network_cluster_group: "oz-router"
+                second_network: "REPLACED"
+                second_iface: "REPLACED"
+                second_ip: "{{ ozrouter_anycloud_adapter_image_hostname_fqdn }}_private_ip_address_REPLACED" 
+                second_network_subnet: "REPLACED"
+                #################################################################################################################################################################################################################################
+                # {% raw %}NETWORK GREEN: Used for second network interface when in configuration declared which we must to use instance_vm.ip & hostvars[host].second_ip with same values behind NAT, but with cloud private connection in green network{% endraw %}
+                #################################################################################################################################################################################################################################
+                green_ip: "REPLACED"
+                green_subnet: "REPLACED"
+                #################################################################################################################################################################################################################################
+                # NETWORK NAT: Used for Network Address Translation connections from Public to DMZ via Firewall/Router and publishing frontend information to Public Internet
+                #################################################################################################################################################################################################################################            
+                # public_nat_ip: "37.18.116.46"
+                # NEED TO TRY GET FROM EDGE
+                public_nat_ip: "REPLACED"
+                public_nat_gw: "REPLACED"
+                public_nat_eth: "REPLACED"
+                public_nat_network: "REPLACED"
+                public_nat_broadcast: "REPLACED"
+                public_nat_netmask: "REPLACED"
+                #################################################################################################################################################################################################################################
+                # ANSIBLE SETTINGS
+                #################################################################################################################################################################################################################################
+                ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+                ansible_python_interpreter: "python3"
+
+    #################################################################################################################################################################################################################################
+    clusters:
+        
+        hypervisor:
+            vcd: "911"
+            vsphere: "911"
+
+        software:
+            swarm: "Vx_Swarm_Cluster_{{ ansible_environment }}_{{ ansible_product | lower }}"
+            k8s: "Vx_k8s_Cluster_{{ ansible_environment }}_{{ ansible_product | lower }}"
+            nomad: "Vx_nomad_Cluster_{{ ansible_environment }}_{{ ansible_product | lower }}"
+
+    cloud_management_resource_group: "911"
+
+    anycloud_awaits_timeouts:
+                for_ip_address: 300
+                for_customization_completes: 300
+
+    #########################################################################################################################################################################################################################################
+    # AnyCloud Instances: VM objects half-dynamic types, with primary instance name, but with possible to bootstrap multiple count of each VM instance.
+    #########################################################################################################################################################################################################################################
+    servers:
+
+        #########################################
+        # FRONTEND WEB/DNS EXCHANGE NORM Vx CLOUD
+        #########################################
+        # normstate-vx-cloud-01.opushka.saggi.uno
+        
+        normstate_vx_cloud_01:
+            ip: "10.10.11.101"
+            gw: "10.10.10.1"
+            network: "REPLACED"
+            network_name: "VM Network"
+            anycloud_network_type: "DHCP"
+            anycloud_adapter_type: "e1000"
+            network_subnet: "255.255.0.0"
+            anycloud_link_state_network: yes
+            anycloud_network_link_label: "{{ ansible_environment }}_{{ ansible_product.lower() }}_{{ ansible_datacenter }}"
+            anycloud_virtual_cloud_zone: "{{ anycloud_virtual_cloud_zone }}"
+            anycloud_vm_vapp_box_name: "{{ anycloud_vm_vapp_box_name }}"
+            anycloud_vm_template_name: "{{ anycloud_vm_template_name }}"
+            initial_only_dns_servers: "{{ anycloud_results_vpc_zone_virtual_abstract.initial_only_dns_servers }}"
+            anycloud_vm_performance_configuration: "{{ anycloud_vm_performance_configuration }}"
+            name: "normstate-vx-cloud-01"
+            anycloud_vm_storage_configuration: "{{ anycloud_vm_storage_configuration }}"
+            # #################################################################################################################################################################################################################################
+            vm_extended_volume_configuration: 
+                partition_size: 153gb # IN GB int()
+                type: xfs
+                mount: /cloud_storage
+                controller: VirtualSCSI
+                # or: controller: lsilogic
+                #anycloud_target: "vsanDatastore"
+                anycloud_target: "datastore (1)"
+            ansible_inventory_groups:
+                #################################################################################################################################################################################################################################
+                # AnyCloud Instance Groups: For this VM Instance, hi has been a part of each declared group
+                #################################################################################################################################################################################################################################
+                # MAIN
+                #################################################################################################################################################################################################################################
+                - vlan_all
+                - vlan_frontend
+                #################################################################################################################################################################################################################################
+                # **** 
+                #################################################################################################################################################################################################################################
+                - teamcity-agent
+                - logging-kibana-service
+                #################################################################################################################################################################################################################################
+                # STORAGE
+                #################################################################################################################################################################################################################################
+                - cloud-bind-frontend-dns
+                - glusterfs-storage-cloud-main-frontend-dns
+                - cloud-bind-frontend-persistence-dns-glusterfs-storage
+                #################################################################################################################################################################################################################################
+                # CLUSTER SERVICE
+                #################################################################################################################################################################################################################################
+                - swarm-cluster
+                #################################################################################################################################################################################################################################
+                # WEB
+                #################################################################################################################################################################################################################################
+                - nginx-frontend
+                #################################################################################################################################################################################################################################
+                # OWN PLATFORM ENDPOINT SERVICES CONTAINER PLACEMENT
+                #################################################################################################################################################################################################################################
+                - core
+                #################################################################################################################################################################################################################################
+                # EXTERNAL SERVICE DISCOVERY: DMZ PART CLUSTER WHICH CONTROLS FRONTEND NGINX's SERVERS AROUND MULTIPLE PLACES, AUTO ENABLE AND DISABLE BROKEN SECTIONS OF INFRASTRUCTURE. 
+                #################################################################################################################################################################################################################################
+                - consul-masters
+                - consul-cluster
+                ################################################################################################################################################################################################
+                # HOST SPECIFIC VARS, SETTINGS, TAGS, VALUES, LINKS TO DICTS FOR ABLE SELECTING ROLES BY ENDPOINT LAST CHOISE METHOD. LIKE EXAMPLE, LIST OF PACKAGES WHICH CANNOT BE REMOVED FROM SOME VM INSTANCE HOST.
+                #
+            ansible_inventory_vars:
+                second_network_type: "dmz"
+                second_network_zone: "cluster"
+                second_network_cluster_group: "nginx-frontend"
+                second_network: "VM Network"
+                second_iface: "REPLACED"
+                second_ip: "10.10.11.101"
+                second_network_subnet: "255.255.0.0"
+                anycloud_second_network_link_label: "{{ ansible_environment }}_{{ ansible_product.lower() }}_{{ ansible_datacenter }}"
+                green_ip: "REPLACED"
+                green_subnet: "REPLACED"
+                public_nat_ip: "77.51.187.248"
+                public_nat_eth: "REPLACED"
+                public_nat_gw: "REPLACED"
+                public_nat_network: "REPLACED"
+                public_nat_broadcast: "REPLACED"
+                public_nat_netmask: "REPLACED"
+                glusterfs_replica_count: "3"
+                cloud_ns_name: "ns1-cloud"
+                swarm_node_type: "master"
+                consul_type: "master"
+                kubernetes_type: "worker"
+                ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+                ansible_python_interpreter: "python3"
+                clamav_startup_hour: "3"
+                clamav_startup_minutes: "30"
+                clamav_mirror_update_hour: "2"
+                clamav_mirror_update_minutes: "30"
+                apt_mirror_startup_minutes: "05"
+                apt_mirror_startup_hour: "3"
+
+        #########################################
+        # normstate-vx-cloud-02.opushka.saggi.uno
+        normstate_vx_cloud_02:
+            ip: "10.10.11.102"
+            gw: "10.10.10.1"
+            network: "REPLACED"
+            network_name: "VM Network"
+            anycloud_network_type: "DHCP"
+            anycloud_adapter_type: "e1000"
+            network_subnet: "255.255.0.0"
+            anycloud_link_state_network: yes
+            anycloud_network_link_label: "{{ ansible_environment }}_{{ ansible_product.lower() }}_{{ ansible_datacenter }}"
+            anycloud_virtual_cloud_zone: "{{ anycloud_virtual_cloud_zone }}"
+            anycloud_vm_vapp_box_name: "{{ anycloud_vm_vapp_box_name }}"
+            anycloud_vm_template_name: "{{ anycloud_vm_template_name }}"
+            initial_only_dns_servers: "{{ anycloud_results_vpc_zone_virtual_abstract.initial_only_dns_servers }}"
+            anycloud_vm_performance_configuration: "{{ anycloud_vm_performance_configuration }}"
+            name: "normstate-vx-cloud-02"
+            anycloud_vm_storage_configuration: "{{ anycloud_vm_storage_configuration }}"
+            # #################################################################################################################################################################################################################################
+            vm_extended_volume_configuration: 
+                partition_size: 153gb # IN GB int()
+                type: xfs
+                mount: /cloud_storage
+                controller: VirtualSCSI
+                # or: controller: lsilogic
+                #anycloud_target: "vsanDatastore"
+                anycloud_target: "datastore (1)"
+            ansible_inventory_groups:
+                #################################################################################################################################################################################################################################
+                # AnyCloud Instance Groups: For this VM Instance, hi has been a part of each declared group
+                #################################################################################################################################################################################################################################
+                # MAIN
+                #################################################################################################################################################################################################################################
+                - vlan_all
+                - vlan_frontend
+                #################################################################################################################################################################################################################################
+                # STORAGE
+                #################################################################################################################################################################################################################################
+                - cloud-bind-frontend-dns
+                - glusterfs-storage-cloud-main-frontend-dns
+                - cloud-bind-frontend-persistence-dns-glusterfs-storage
+                #################################################################################################################################################################################################################################
+                # CLUSTER SERVICE
+                #################################################################################################################################################################################################################################
+                - swarm-cluster
+                #################################################################################################################################################################################################################################
+                # WEB
+                #################################################################################################################################################################################################################################
+                - nginx-frontend
+                #################################################################################################################################################################################################################################
+                # OWN PLATFORM ENDPOINT SERVICES CONTAINER PLACEMENT
+                #################################################################################################################################################################################################################################
+                - core
+                #################################################################################################################################################################################################################################
+                # EXTERNAL SERVICE DISCOVERY: DMZ PART CLUSTER WHICH CONTROLS FRONTEND NGINX's SERVERS AROUND MULTIPLE PLACES, AUTO ENABLE AND DISABLE BROKEN SECTIONS OF INFRASTRUCTURE. 
+                #################################################################################################################################################################################################################################
+                - consul-masters
+                - consul-cluster
+                #################################################################################################################################################################################################################################
+                # HOST SPECIFIC VARS, SETTINGS, TAGS, VALUES, LINKS TO DICTS FOR ABLE SELECTING ROLES BY ENDPOINT LAST CHOISE METHOD. LIKE EXAMPLE, LIST OF PACKAGES WHICH CANNOT BE REMOVED FROM SOME VM INSTANCE HOST.
+            ansible_inventory_vars:
+                second_network_type: "dmz"
+                second_network_zone: "cluster"
+                second_network_cluster_group: "nginx-frontend"
+                second_network: "VM Network"
+                second_ip: "10.10.11.102"
+                second_iface: "REPLACED"
+                second_network_subnet: "255.255.0.0"
+                anycloud_second_network_link_label: "{{ ansible_environment }}_{{ ansible_product.lower() }}_{{ ansible_datacenter }}"
+                green_ip: "REPLACED"
+                green_subnet: "REPLACED"
+                public_nat_ip: "77.51.194.108"
+                public_nat_gw: "REPLACED"
+                public_nat_eth: "REPLACED"
+                public_nat_network: "REPLACED"
+                public_nat_broadcast: "REPLACED"
+                public_nat_netmask: "REPLACED"
+                glusterfs_replica_count: "3"
+                cloud_ns_name: "ns2-cloud"
+                swarm_node_type: "master"
+                consul_type: "master"
+                kubernetes_type: "worker"
+                ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+                ansible_python_interpreter: "python3"
+                clamav_startup_hour: "3"
+                clamav_startup_minutes: "30"
+                clamav_mirror_update_hour: "2"
+                clamav_mirror_update_minutes: "30"
+                apt_mirror_startup_minutes: "05"
+                apt_mirror_startup_hour: "3"
+
+        #########################################
+        # BACKEND BALANCERS/DMZ SERVICE EXCHANGE
+        #########################################
+        # normstate-vx-cloud-03.opushka.saggi.uno
+        normstate_vx_cloud_03:
+            ip: "10.10.11.103"
+            gw: "10.10.10.1"
+            network: "REPLACED"
+            network_name: "VM Network"
+            anycloud_network_type: "DHCP"
+            anycloud_adapter_type: "e1000"
+            network_subnet: "255.255.0.0"
+            anycloud_link_state_network: yes
+            anycloud_network_link_label: "{{ ansible_environment }}_{{ ansible_product.lower() }}_{{ ansible_datacenter }}"
+            anycloud_virtual_cloud_zone: "{{ anycloud_virtual_cloud_zone }}"
+            anycloud_vm_vapp_box_name: "{{ anycloud_vm_vapp_box_name }}"
+            anycloud_vm_template_name: "{{ anycloud_vm_template_name }}"
+            initial_only_dns_servers: "{{ anycloud_results_vpc_zone_virtual_abstract.initial_only_dns_servers }}"
+            anycloud_vm_performance_configuration: "{{ anycloud_vm_performance_configuration }}"
+            name: "normstate-vx-cloud-03"
+            anycloud_vm_storage_configuration: "{{ anycloud_vm_storage_configuration }}"
+            # #################################################################################################################################################################################################################################
+            vm_extended_volume_configuration: 
+                partition_size: 153gb # IN GB int()
+                type: xfs
+                mount: /cloud_storage
+                controller: VirtualSCSI
+                # or: controller: lsilogic
+                #anycloud_target: "vsanDatastore"
+                anycloud_target: "datastore (1)"
+            ansible_inventory_groups:
+                #################################################################################################################################################################################################################################
+                # AnyCloud Instance Groups: For this VM Instance, hi has been a part of each declared group
+                #################################################################################################################################################################################################################################
+                # MAIN
+                #################################################################################################################################################################################################################################
+                - vlan_all
+                - vlan_frontend
+                #################################################################################################################################################################################################################################
+                # CI/CD
+                #################################################################################################################################################################################################################################
+                - teamcity-agent
+                #################################################################################################################################################################################################################################
+                # OWN PLATFORM ENDPOINT SERVICES CONTAINER PLACEMENT
+                #################################################################################################################################################################################################################################
+                - master-bind-master-backend
+                - bind-master-glusterfs
+                #################################################################################################################################################################################################################################
+                # EXTERNAL SERVICE DISCOVERY: DMZ PART CLUSTER WHICH CONTROLS FRONTEND NGINX's SERVERS AROUND MULTIPLE PLACES, AUTO ENABLE AND DISABLE BROKEN SECTIONS OF INFRASTRUCTURE. 
+                #################################################################################################################################################################################################################################
+                - consul-clients
+                - consul-cluster
+                #################################################################################################################################################################################################################################
+                # HOST SPECIFIC VARS, SETTINGS, TAGS, VALUES, LINKS TO DICTS FOR ABLE SELECTING ROLES BY ENDPOINT LAST CHOISE METHOD. LIKE EXAMPLE, LIST OF PACKAGES WHICH CANNOT BE REMOVED FROM SOME VM INSTANCE HOST.
+            ansible_inventory_vars:
+                second_network_type: "dmz"
+                second_network_zone: "cluster"
+                second_network_cluster_group: "nginx-frontend"
+                second_network: "REPLACED"
+                anycloud_second_network_link_label: "{{ ansible_environment }}_{{ ansible_product.lower() }}_{{ ansible_datacenter }}"
+                second_iface: "REPLACED"
+                second_ip: "10.10.11.103"
+                second_network_subnet: "255.255.0.0"
+                green_ip: "REPLACED"
+                green_subnet: "REPLACED"
+                public_nat_ip: "REPLACED" # - NONE MODE 
+                public_nat_eth: "REPLACED"
+                public_nat_network: "REPLACED"
+                public_nat_broadcast: "REPLACED"
+                public_nat_netmask: "REPLACED"
+                glusterfs_replica_count: "3"
+                cloud_ns_name: "normstate-vx-cloud-03"
+                swarm_node_type: "master"
+                consul_type: "client"
+                kubernetes_type: "worker"
+                ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+                ansible_python_interpreter: "python3"
+                clamav_startup_hour: "3"
+                clamav_startup_minutes: "30"
+                clamav_mirror_update_hour: "2"
+                clamav_mirror_update_minutes: "30"
+                apt_mirror_startup_minutes: "05"
+                apt_mirror_startup_hour: "3"
+
+        # normstate-vx-cloud-04.opushka.saggi.uno
+
+        normstate_vx_cloud_04:
+            ip: "10.10.11.104"
+            gw: "10.10.10.1"
+            network: "REPLACED"
+            network_name: "VM Network"
+            anycloud_network_type: "DHCP"
+            anycloud_adapter_type: "e1000"
+            network_subnet: "255.255.0.0"
+            anycloud_link_state_network: yes
+            anycloud_network_link_label: "{{ ansible_environment }}_{{ ansible_product.lower() }}_{{ ansible_datacenter }}"
+            anycloud_virtual_cloud_zone: "{{ anycloud_virtual_cloud_zone }}"
+            anycloud_vm_vapp_box_name: "{{ anycloud_vm_vapp_box_name }}"
+            anycloud_vm_template_name: "{{ anycloud_vm_template_name }}"
+            initial_only_dns_servers: "{{ anycloud_results_vpc_zone_virtual_abstract.initial_only_dns_servers }}"
+            anycloud_vm_performance_configuration: "{{ anycloud_vm_performance_configuration }}"
+            name: "normstate-vx-cloud-04"
+            anycloud_vm_storage_configuration: "{{ anycloud_vm_storage_configuration }}"
+            vm_extended_volume_configuration: 
+                partition_size: 153gb # IN GB int()
+                type: xfs
+                mount: /cloud_storage
+                controller: VirtualSCSI
+                # or: controller: lsilogic
+                #anycloud_target: "vsanDatastore"
+                anycloud_target: "datastore (1)"
+            ansible_inventory_groups:
+                #################################################################################################################################################################################################################################
+                # AnyCloud Instance Groups: For this VM Instance, hi has been a part of each declared group
+                #################################################################################################################################################################################################################################
+                # MAIN
+                #################################################################################################################################################################################################################################
+                - vlan_all
+                - vlan_frontend
+                - code_coincloud_placement
+                #################################################################################################################################################################################################################################
+                # CI/CD
+                #################################################################################################################################################################################################################################
+                - teamcity-server
+                - grafana
+                - prometheus
+                - alertmanager
+                - kibana
+                #################################################################################################################################################################################################################################
+                # EXTERNAL SERVICE DISCOVERY: DMZ PART CLUSTER WHICH CONTROLS FRONTEND NGINX's SERVERS AROUND MULTIPLE PLACES, AUTO ENABLE AND DISABLE BROKEN SECTIONS OF INFRASTRUCTURE. 
+                #################################################################################################################################################################################################################################
+                - consul-clients
+                - consul-cluster
+                #################################################################################################################################################################################################################################
+                # HOST SPECIFIC VARS, SETTINGS, TAGS, VALUES, LINKS TO DICTS FOR ABLE SELECTING ROLES BY ENDPOINT LAST CHOISE METHOD. LIKE EXAMPLE, LIST OF PACKAGES WHICH CANNOT BE REMOVED FROM SOME VM INSTANCE HOST.
+                - master-bind-master-backend
+                - bind-master-glusterfs
+            ansible_inventory_vars:
+                second_network_type: "dmz"
+                second_network_zone: "cluster"
+                second_network_cluster_group: "nginx-frontend"
+                second_network: "VM Network"
+                second_iface: "REPLACED"
+                second_ip: "10.10.11.104"
+                second_network_subnet: "255.255.0.0"
+                anycloud_second_network_link_label: "{{ ansible_environment }}_{{ ansible_product.lower() }}_{{ ansible_datacenter }}"
+                green_ip: "REPLACED"
+                green_subnet: "REPLACED"
+                public_nat_ip: "REPLACED" # - NONE MODE 
+                public_nat_eth: "REPLACED"
+                public_nat_network: "REPLACED"
+                public_nat_broadcast: "REPLACED"
+                public_nat_netmask: "REPLACED"
+                glusterfs_replica_count: "3"
+                cloud_ns_name: "normstate-vx-cloud-04"
+                swarm_node_type: "master"
+                consul_type: "client"
+                kubernetes_type: "worker"
+                ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+                ansible_python_interpreter: "python3"
+                clamav_startup_hour: "3"
+                clamav_startup_minutes: "30"
+                clamav_mirror_update_hour: "2"
+                clamav_mirror_update_minutes: "30"
+                apt_mirror_startup_minutes: "05"
+                apt_mirror_startup_hour: "3"
+

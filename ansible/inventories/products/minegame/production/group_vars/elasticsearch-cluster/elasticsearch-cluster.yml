@@ -1,0 +1,31 @@
+es_swarm:
+    containers_prefix: overlay-storage
+    docker_es_image: 'es-service'
+    docker_elasticsearch_name: 'es-service-develop'
+    directories:
+        working_etc_directory: /opt/es-conf/vortex-{{ ansible_environment }}/etc
+        elasticsearch_path_data: '/opt/elastic/vortex-{{ ansible_environment }}/data'
+        elasticsearch_path_work: '/opt/elastic/vortex-{{ ansible_environment }}/work'
+        elasticsearch_path_logs: '/opt/elastic/vortex-{{ ansible_environment }}/logs'
+        elasticsearch_path_catalina_logs: '/opt/elastic/vortex-{{ ansible_environment }}/logs/catalina'
+        elasticsearch_path_conf: '/opt/elastic/vortex-{{ ansible_environment }}/conf'
+        elasticsearch_path_pid: '/opt/elastic/vortex-{{ ansible_environment }}'
+    elasticsearch_cluster_name: 'vortex-main-data-develop'
+    elasticsearch_discovery_minimum_master_nodes: '2'
+    elasticsearch_discovery_multicast_enabled: 'false'
+    elasticsearch_discovery_ping_unicast_hosts: '{{ groups["elasticsearch-cluster"] }}'
+    elasticsearch_node_port: '11200'
+    elasticsearch_http_port: '11300'
+    elasticsearch_default_node_port: '9200'
+    elasticsearch_default_http_port: '9300'
+    elasticsearch_client_port: '9500'
+    elasticsearch_client_port_publish: '9600'
+    container_memory: 512M
+
+elastic_hq:
+    port: 5000
+    container_name: elastic-hq-{{ ansible_environment }}
+
+unification_services:
+    - {'elasticsearch': {'target': 'elasticsearch-cluster', 'listen_port': "{{ elasticsearch_service_listen_port }}", 'check_type': "tcp", 'script_check': "{{ inventory_hostname }}:{{ elasticsearch_service_listen_port }}" }}
+    - {'elastic-http': {'target': 'elasticsearch-cluster', 'listen_port': "{{ es_swarm.elasticsearch_default_http_port }}", 'check_type': "tcp", 'script_check': "{{ inventory_hostname }}:{{ es_swarm.elasticsearch_default_http_port }}" }}
