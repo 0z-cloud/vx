@@ -542,3 +542,5 @@ Let's make, for example, two Childs of Primary - a development and a stage envir
 
 
 ![UI.png](ansible/CI/repo_images/CodeCloudCoinClientUIatLocalHost.png)
+
+Update
